@@ -331,6 +331,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                             subscription.link = text
                             subscription.autoUpdate = false
                             group.name = ""
+                            DataStore.dirty = true
                             runOnDefaultDispatcher {
                                 GroupManager.createGroup(group)
                                 startActivity(Intent(requireContext(), GroupSettingsActivity::class.java).apply {
