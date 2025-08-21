@@ -274,7 +274,7 @@
     <string name="enable_log_sum">用于调试目的</string>
     <string name="list">列表</string>
     <string name="random">随机</string>
-    <string name="leastPing>Ping</string>
+    <string name="leastPing">Ping</string>
     <string name="api_port">API 端口</string>
     <string name="probe_interval">负载均衡观察间隔</string>
     <string name="standard">标准</string>
