@@ -355,27 +355,6 @@ public abstract class StandardV2RayBean extends AbstractBean {
         // Note: kcp fields are read in the switch case above when version >= 6
     }
 
-    @Override
-    public void applyFeatureSettings(AbstractBean other) {
-        if (!(other instanceof StandardV2RayBean)) return;
-        StandardV2RayBean bean = ((StandardV2RayBean) other);
-        bean.allowInsecure = allowInsecure;
-        bean.utlsFingerprint = utlsFingerprint;
-        bean.packetEncoding = packetEncoding;
-        bean.enableECH = enableECH;
-        bean.echConfig = echConfig;
-        bean.enableMux = enableMux;
-        bean.muxPadding = muxPadding;
-        bean.muxType = muxType;
-        bean.muxConcurrency = muxConcurrency;
-        bean.muxMode = muxMode;
-        bean.muxMaxConnections = muxMaxConnections;
-        bean.muxMinStreams = muxMinStreams;
-        bean.muxBrutal = muxBrutal;
-        bean.muxBrutalUpMbps = muxBrutalUpMbps;
-        bean.muxBrutalDownMbps = muxBrutalDownMbps;
-    }
-
     public boolean isVLESS() {
         if (this instanceof VMessBean) {
             Integer aid = ((VMessBean) this).alterId;

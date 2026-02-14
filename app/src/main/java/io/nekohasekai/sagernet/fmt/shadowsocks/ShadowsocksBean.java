@@ -104,23 +104,6 @@ public class ShadowsocksBean extends AbstractBean {
         }
     }
 
-    @Override
-    public void applyFeatureSettings(AbstractBean other) {
-        if (!(other instanceof ShadowsocksBean)) return;
-        ShadowsocksBean bean = ((ShadowsocksBean) other);
-        bean.sUoT = sUoT;
-        bean.enableMux = enableMux;
-        bean.muxPadding = muxPadding;
-        bean.muxType = muxType;
-        bean.muxConcurrency = muxConcurrency;
-        bean.muxMode = muxMode;
-        bean.muxMaxConnections = muxMaxConnections;
-        bean.muxMinStreams = muxMinStreams;
-        bean.muxBrutal = muxBrutal;
-        bean.muxBrutalUpMbps = muxBrutalUpMbps;
-        bean.muxBrutalDownMbps = muxBrutalDownMbps;
-    }
-
     @NotNull
     @Override
     public ShadowsocksBean clone() {
