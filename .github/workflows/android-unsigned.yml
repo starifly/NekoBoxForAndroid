@@ -62,6 +62,23 @@ jobs:
       - name: Verify libcore AAR exists
         run: test -f app/libs/libcore.aar
 
+      - name: Build installable OSS debug APK
+        run: ./gradlew --no-daemon :app:assembleOssDebug
+
+      - name: Collect installable OSS debug APKs
+        run: |
+          mkdir -p dist-debug
+          find app/build/outputs/apk/oss/debug -type f -name "*.apk" -print -exec cp -v {} dist-debug/ \;
+          test -n "$(find dist-debug -maxdepth 1 -type f -name "*.apk" -print -quit)" || { echo "No OSS debug APK files found"; exit 1; }
+
+      - name: Upload installable OSS debug APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NekoBox_SF-oss-debug-installable-apk
+          path: dist-debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Build unsigned release APK
         run: ./gradlew --no-daemon :app:assembleRelease
 
