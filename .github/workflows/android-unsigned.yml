@@ -30,6 +30,14 @@ jobs:
           java-version: '17'
           cache: gradle
 
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.24.9'
+          cache-dependency-path: |
+            libcore/go.sum
+            libcore/go.mod
+
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
 
@@ -38,10 +46,21 @@ jobs:
           sdkmanager --install \
             "platform-tools" \
             "platforms;android-35" \
-            "build-tools;35.0.0"
+            "build-tools;35.0.1" \
+            "ndk;25.0.8775105"
 
-      - name: Make Gradle wrapper executable
-        run: chmod +x ./gradlew
+      - name: Make scripts executable
+        run: |
+          chmod +x ./gradlew ./run
+          chmod +x buildScript/lib/core.sh buildScript/lib/core/init.sh buildScript/lib/core/build.sh
+          chmod +x buildScript/lib/core/get_source.sh buildScript/init/env.sh buildScript/init/env_ndk.sh
+          chmod +x libcore/init.sh libcore/build.sh
+
+      - name: Build libcore AAR
+        run: ./buildScript/lib/core.sh
+
+      - name: Verify libcore AAR exists
+        run: test -f app/libs/libcore.aar
 
       - name: Build unsigned release APK
         run: ./gradlew --no-daemon :app:assembleRelease
