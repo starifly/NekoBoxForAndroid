@@ -17,8 +17,6 @@ import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.utils.Theme
 import moe.matsuri.nb4a.ui.*
-import android.os.Handler
-import android.os.Looper
 import android.widget.Toast
 import java.io.File
 
@@ -70,6 +68,14 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val allowAccess = findPreference<Preference>(Key.ALLOW_ACCESS)!!
         val appendHttpProxy = findPreference<SwitchPreference>(Key.APPEND_HTTP_PROXY)!!
         val strictRoute = findPreference<SwitchPreference>(Key.STRICT_ROUTE)!!
+        // Force-disable insecure local proxy exposure options.
+        if (DataStore.allowAccess) DataStore.allowAccess = false
+        if (DataStore.appendHttpProxy) DataStore.appendHttpProxy = false
+        allowAccess.isEnabled = false
+        appendHttpProxy.apply {
+            isChecked = false
+            isEnabled = false
+        }
 
         val showDirectSpeed = findPreference<SwitchPreference>(Key.SHOW_DIRECT_SPEED)!!
         val ipv6Mode = findPreference<Preference>(Key.IPV6_MODE)!!
@@ -241,24 +247,39 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
     }
 
     private fun clearAppCache() {
-        try {
-            val cacheDir = SagerNet.application.cacheDir
-            clearDirFiles(cacheDir, skipFiles = setOf("neko.log"))
-            
-            val parentDir = cacheDir.parentFile
-            val relativeCache = File(parentDir, "cache")
-            if (relativeCache.exists() && relativeCache.isDirectory) {
-                clearDirFiles(relativeCache)
+        runOnDefaultDispatcher {
+            try {
+                // Stop current core/service first, so cache files are no longer in use.
+                SagerNet.stopService()
+                Thread.sleep(300)
+
+                val cacheDir = SagerNet.application.cacheDir
+                clearDirFiles(cacheDir, skipFiles = setOf("neko.log"))
+
+                val parentDir = cacheDir.parentFile
+                val relativeCache = File(parentDir, "cache")
+                if (relativeCache.exists() && relativeCache.isDirectory) {
+                    clearDirFiles(relativeCache)
+                }
+
+                onMainDispatcher {
+                    Toast.makeText(
+                        requireContext(),
+                        R.string.clear_cache_success,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    triggerFullRestart(requireContext())
+                }
+            } catch (e: Exception) {
+                onMainDispatcher {
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.clear_cache_failed, e.message),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                e.printStackTrace()
             }
-            
-            Toast.makeText(requireContext(), R.string.clear_cache_success, Toast.LENGTH_SHORT).show()
-            
-            Handler(Looper.getMainLooper()).postDelayed({
-                needReload()
-            }, 500)
-        } catch (e: Exception) {
-            Toast.makeText(requireContext(), getString(R.string.clear_cache_failed, e.message), Toast.LENGTH_SHORT).show()
-            e.printStackTrace()
         }
     }
     
@@ -293,5 +314,4 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
         return false
     }
-
 }
