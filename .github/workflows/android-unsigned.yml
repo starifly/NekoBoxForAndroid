@@ -1,0 +1,58 @@
+name: Android unsigned build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-unsigned-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install required Android packages
+        run: |
+          sdkmanager --install \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Build unsigned release APK
+        run: ./gradlew --no-daemon :app:assembleRelease
+
+      - name: Collect release APKs
+        run: |
+          mkdir -p dist
+          find app/build/outputs/apk -type f \( -name "*release*.apk" -o -name "*unsigned*.apk" \) -print -exec cp -v {} dist/ \;
+          test -n "$(find dist -maxdepth 1 -type f -name "*.apk" -print -quit)" || { echo "No APK files found"; exit 1; }
+
+      - name: Upload unsigned APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NekoBox_SF-release-unsigned-apk
+          path: dist/*.apk
+          if-no-files-found: error
+          retention-days: 14
