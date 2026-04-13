@@ -1,0 +1,277 @@
+diff --git a/app/src/main/java/io/nekohasekai/sagernet/ui/SettingsPreferenceFragment.kt b/app/src/main/java/io/nekohasekai/sagernet/ui/SettingsPreferenceFragment.kt
+index e142770..0000000 100644
+--- a/app/src/main/java/io/nekohasekai/sagernet/ui/SettingsPreferenceFragment.kt
++++ b/app/src/main/java/io/nekohasekai/sagernet/ui/SettingsPreferenceFragment.kt
+@@
+-        val allowAccess = findPreference<Preference>(Key.ALLOW_ACCESS)!!
++        val allowAccess = findPreference<SwitchPreference>(Key.ALLOW_ACCESS)!!
+         val appendHttpProxy = findPreference<SwitchPreference>(Key.APPEND_HTTP_PROXY)!!
+         val strictRoute = findPreference<SwitchPreference>(Key.STRICT_ROUTE)!!
+-        // Force-disable insecure local proxy exposure options.
+-        if (DataStore.allowAccess) DataStore.allowAccess = false
+-        if (DataStore.appendHttpProxy) DataStore.appendHttpProxy = false
+-        allowAccess.isEnabled = false
+-        appendHttpProxy.apply {
+-            isChecked = false
+-            isEnabled = false
+-        }
+diff --git a/app/src/main/java/io/nekohasekai/sagernet/database/DataStore.kt b/app/src/main/java/io/nekohasekai/sagernet/database/DataStore.kt
+index 2b590bc..0000000 100644
+--- a/app/src/main/java/io/nekohasekai/sagernet/database/DataStore.kt
++++ b/app/src/main/java/io/nekohasekai/sagernet/database/DataStore.kt
+@@
+     fun initGlobal() {
+         if (configurationStore.getString(Key.MIXED_PORT) == null) {
+             mixedPort = mixedPort
+         }
+-        // Security hardening: keep local inbound proxies unavailable from LAN/VPN HTTP append.
+-        allowAccess = false
+-        appendHttpProxy = false
+     }
+diff --git a/app/src/main/java/io/nekohasekai/sagernet/fmt/ConfigBuilder.kt b/app/src/main/java/io/nekohasekai/sagernet/fmt/ConfigBuilder.kt
+index 2626a04..0000000 100644
+--- a/app/src/main/java/io/nekohasekai/sagernet/fmt/ConfigBuilder.kt
++++ b/app/src/main/java/io/nekohasekai/sagernet/fmt/ConfigBuilder.kt
+@@
+     val extraRules = if (forTest) listOf() else SagerDatabase.rulesDao.enabledRules()
+@@
+     val isVPN = DataStore.serviceMode == Key.MODE_VPN
+     val bind = if (!forTest && DataStore.allowAccess) "0.0.0.0" else LOCALHOST
++    val needMixedInbound = !isVPN || DataStore.allowAccess || DataStore.appendHttpProxy
+     val remoteDns = DataStore.remoteDns.split("\n")
+         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
+@@
+         inbounds = mutableListOf()
+ 
+         if (!forTest) {
+             if (isVPN) inbounds.add(Inbound_TunOptions().apply {
+@@
+                     }
+                 }
+             })
+-            inbounds.add(Inbound_MixedOptions().apply {
+-                type = "mixed"
+-                tag = TAG_MIXED
+-                listen = bind
+-                listen_port = DataStore.mixedPort
+-                domain_strategy = genDomainStrategy(DataStore.resolveDestination)
+-                sniff = needSniff
+-                sniff_override_destination = needSniffOverride
+-            })
++            if (needMixedInbound) inbounds.add(Inbound_MixedOptions().apply {
++                type = "mixed"
++                tag = TAG_MIXED
++                listen = bind
++                listen_port = DataStore.mixedPort
++                domain_strategy = genDomainStrategy(DataStore.resolveDestination)
++                sniff = needSniff
++                sniff_override_destination = needSniffOverride
++            })
+         }
+@@
+             route.rules.add(Rule_DefaultOptions().apply {
+                 inbound = listOf("tun-in")
+                 outbound = mainProxyTag
+             })
+ 
+-            route.rules.add(Rule_DefaultOptions().apply {
+-                inbound = listOf(TAG_MIXED)
+-                outbound = mainProxyTag
+-            })
++            if (needMixedInbound) {
++                route.rules.add(Rule_DefaultOptions().apply {
++                    inbound = listOf(TAG_MIXED)
++                    outbound = mainProxyTag
++                })
++            }
+ 
+             route.final_ = mainProxyTag
+         } else {
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+index fd68ab9..0000000 100644
+--- a/app/src/main/AndroidManifest.xml
++++ b/app/src/main/AndroidManifest.xml
+@@
+     <application
+         android:name="io.nekohasekai.sagernet.SagerNet"
+-        android:allowBackup="true"
++        android:allowBackup="false"
+         android:autoRevokePermissions="allowed"
+@@
+         <activity
+             android:name="io.nekohasekai.sagernet.ui.QuickDisableShortcut"
+             android:excludeFromRecents="true"
+             android:exported="true"
+             android:label="@string/quick_disable"
+             android:launchMode="singleTask"
+             android:process=":bg"
+             android:taskAffinity=""
+             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
++        <activity
++            android:name="io.nekohasekai.sagernet.ui.QuickClearCacheShortcut"
++            android:excludeFromRecents="true"
++            android:exported="true"
++            android:label="@string/quick_clear_cache_restart"
++            android:launchMode="singleTask"
++            android:process=":bg"
++            android:taskAffinity=""
++            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+diff --git a/app/src/main/res/xml/shortcuts.xml b/app/src/main/res/xml/shortcuts.xml
+index b6b9b2b..0000000 100644
+--- a/app/src/main/res/xml/shortcuts.xml
++++ b/app/src/main/res/xml/shortcuts.xml
+@@
+     <shortcut
+         android:icon="@drawable/ic_qu_shadowsocks_launcher"
+         android:shortcutId="toggle"
+         android:shortcutLongLabel="@string/quick_toggle"
+         android:shortcutShortLabel="@string/quick_toggle">
+         <intent
+             android:action="android.intent.action.MAIN"
+-            android:targetClass="io.nekohasekai.sagernet.QuickToggleShortcut"
+-            android:targetPackage="moe.nb4a" />
++            android:targetClass="io.nekohasekai.sagernet.QuickToggleShortcut" />
+     </shortcut>
+@@
+         android:shortcutId="enable"
+         android:shortcutLongLabel="@string/quick_enable"
+         android:shortcutShortLabel="@string/quick_enable">
+         <intent
+             android:action="android.intent.action.MAIN"
+-            android:targetClass="io.nekohasekai.sagernet.ui.QuickEnableShortcut"
+-            android:targetPackage="moe.nb4a" />
++            android:targetClass="io.nekohasekai.sagernet.ui.QuickEnableShortcut" />
+     </shortcut>
+@@
+         android:shortcutId="disable"
+         android:shortcutLongLabel="@string/quick_disable"
+         android:shortcutShortLabel="@string/quick_disable">
+         <intent
+             android:action="android.intent.action.MAIN"
+-            android:targetClass="io.nekohasekai.sagernet.ui.QuickDisableShortcut"
+-            android:targetPackage="moe.nb4a" />
++            android:targetClass="io.nekohasekai.sagernet.ui.QuickDisableShortcut" />
++    </shortcut>
++    <shortcut
++        android:icon="@drawable/ic_qu_shadowsocks_launcher"
++        android:shortcutId="clear-cache-restart"
++        android:shortcutLongLabel="@string/quick_clear_cache_restart"
++        android:shortcutShortLabel="@string/quick_clear_cache_restart">
++        <intent
++            android:action="android.intent.action.MAIN"
++            android:targetClass="io.nekohasekai.sagernet.ui.QuickClearCacheShortcut" />
+     </shortcut>
+     <shortcut
+         android:icon="@drawable/ic_qu_camera_launcher"
+         android:shortcutId="scan"
+         android:shortcutLongLabel="@string/add_profile_methods_scan_qr_code"
+         android:shortcutShortLabel="@string/add_profile_methods_scan_qr_code">
+         <intent
+             android:action="android.intent.action.MAIN"
+-            android:targetClass="io.nekohasekai.sagernet.ui.ScannerActivity"
+-            android:targetPackage="moe.nb4a" />
++            android:targetClass="io.nekohasekai.sagernet.ui.ScannerActivity" />
+     </shortcut>
+ </shortcuts>
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+index 46b254c..0000000 100644
+--- a/app/src/main/res/values/strings.xml
++++ b/app/src/main/res/values/strings.xml
+@@
+     <string name="quick_toggle">Toggle</string>
+     <string name="quick_enable">Enable</string>
+     <string name="quick_disable">Disable</string>
++    <string name="quick_clear_cache_restart">Clear Cache &amp; Restart</string>
+     <string name="tile_title">Switcher</string>
+diff --git a/app/src/main/java/io/nekohasekai/sagernet/ui/QuickClearCacheShortcut.kt b/app/src/main/java/io/nekohasekai/sagernet/ui/QuickClearCacheShortcut.kt
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/app/src/main/java/io/nekohasekai/sagernet/ui/QuickClearCacheShortcut.kt
+@@
++package io.nekohasekai.sagernet.ui
++
++import android.app.Activity
++import android.content.pm.ShortcutManager
++import android.os.Build
++import android.os.Bundle
++import android.widget.Toast
++import androidx.core.content.getSystemService
++import io.nekohasekai.sagernet.R
++import io.nekohasekai.sagernet.SagerNet
++import io.nekohasekai.sagernet.ktx.onMainDispatcher
++import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
++import io.nekohasekai.sagernet.ktx.triggerFullRestart
++import java.io.File
++
++class QuickClearCacheShortcut : Activity() {
++
++    override fun onCreate(savedInstanceState: Bundle?) {
++        super.onCreate(savedInstanceState)
++
++        if (Build.VERSION.SDK_INT >= 25) {
++            getSystemService<ShortcutManager>()!!.reportShortcutUsed("clear-cache-restart")
++        }
++
++        runOnDefaultDispatcher {
++            try {
++                SagerNet.stopService()
++                Thread.sleep(300)
++
++                clearDirFiles(SagerNet.application.cacheDir, skipFiles = setOf("neko.log"))
++
++                val parentDir = SagerNet.application.cacheDir.parentFile
++                val relativeCache = File(parentDir, "cache")
++                if (relativeCache.exists() && relativeCache.isDirectory) {
++                    clearDirFiles(relativeCache)
++                }
++
++                onMainDispatcher {
++                    Toast.makeText(
++                        this@QuickClearCacheShortcut,
++                        R.string.clear_cache_success,
++                        Toast.LENGTH_SHORT
++                    ).show()
++                    triggerFullRestart(this@QuickClearCacheShortcut)
++                    finish()
++                }
++            } catch (e: Exception) {
++                onMainDispatcher {
++                    Toast.makeText(
++                        this@QuickClearCacheShortcut,
++                        getString(R.string.clear_cache_failed, e.message),
++                        Toast.LENGTH_SHORT
++                    ).show()
++                    finish()
++                }
++            }
++        }
++    }
++
++    private fun clearDirFiles(dir: File, skipFiles: Set<String> = emptySet()): Boolean {
++        if (!dir.isDirectory) return false
++
++        val children = dir.list() ?: return true
++        for (child in children) {
++            val childFile = File(dir, child)
++
++            if (child == "neko.log") {
++                try {
++                    childFile.writeText("")
++                    continue
++                } catch (_: Exception) {
++                }
++            }
++
++            if (child in skipFiles) continue
++
++            if (childFile.isDirectory) {
++                clearDirFiles(childFile, skipFiles)
++            } else {
++                childFile.delete()
++            }
++        }
++
++        return true
++    }
++}
