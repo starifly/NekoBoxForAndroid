@@ -1,0 +1,147 @@
+name: Apply Neko fixes
+
+on:
+  push:
+    branches:
+      - chatgpt-fix-neko-20260413
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fixes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: chatgpt-fix-neko-20260413
+          fetch-depth: 0
+
+      - name: Apply source changes
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+          
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              if new in text:
+                  return text
+              if old not in text:
+                  raise SystemExit(f"Failed to find block for {label}")
+              return text.replace(old, new, 1)
+          
+          def remove_once(text: str, old: str, label: str) -> str:
+              if old not in text:
+                  return text
+              return text.replace(old, "", 1)
+          
+          def write(path: str, content: str):
+              Path(path).write_text(content, encoding="utf-8")
+          
+          def read(path: str) -> str:
+              return Path(path).read_text(encoding="utf-8")
+          
+          # SettingsPreferenceFragment.kt
+          path = "app/src/main/java/io/nekohasekai/sagernet/ui/SettingsPreferenceFragment.kt"
+          text = read(path)
+          text = replace_once(
+              text,
+              '        val allowAccess = findPreference<Preference>(Key.ALLOW_ACCESS)!!\n',
+              '        val allowAccess = findPreference<SwitchPreference>(Key.ALLOW_ACCESS)!!\n',
+              'allowAccess type'
+          )
+          forced_disable = '''        // Force-disable insecure local proxy exposure options.\n        if (DataStore.allowAccess) DataStore.allowAccess = false\n        if (DataStore.appendHttpProxy) DataStore.appendHttpProxy = false\n        allowAccess.isEnabled = false\n        appendHttpProxy.apply {\n            isChecked = false\n            isEnabled = false\n        }\n\n'''
+          text = remove_once(text, forced_disable, 'forced disable block')
+          write(path, text)
+          
+          # DataStore.kt
+          path = "app/src/main/java/io/nekohasekai/sagernet/database/DataStore.kt"
+          text = read(path)
+          hardening = '''        // Security hardening: keep local inbound proxies unavailable from LAN/VPN HTTP append.\n        allowAccess = false\n        appendHttpProxy = false\n'''
+          text = remove_once(text, hardening, 'DataStore hardening block')
+          write(path, text)
+          
+          # ConfigBuilder.kt
+          path = "app/src/main/java/io/nekohasekai/sagernet/fmt/ConfigBuilder.kt"
+          text = read(path)
+          text = replace_once(
+              text,
+              '    val bind = if (!forTest && DataStore.allowAccess) "0.0.0.0" else LOCALHOST\n',
+              '    val bind = if (!forTest && DataStore.allowAccess) "0.0.0.0" else LOCALHOST\n    val needMixedInbound = !isVPN || DataStore.allowAccess || DataStore.appendHttpProxy\n',
+              'needMixedInbound declaration'
+          )
+          old_mixed = '''            inbounds.add(Inbound_MixedOptions().apply {\n                type = "mixed"\n                tag = TAG_MIXED\n                listen = bind\n                listen_port = DataStore.mixedPort\n                domain_strategy = genDomainStrategy(DataStore.resolveDestination)\n                sniff = needSniff\n                sniff_override_destination = needSniffOverride\n            })\n'''
+          new_mixed = '''            if (needMixedInbound) inbounds.add(Inbound_MixedOptions().apply {\n                type = "mixed"\n                tag = TAG_MIXED\n                listen = bind\n                listen_port = DataStore.mixedPort\n                domain_strategy = genDomainStrategy(DataStore.resolveDestination)\n                sniff = needSniff\n                sniff_override_destination = needSniffOverride\n            })\n'''
+          text = replace_once(text, old_mixed, new_mixed, 'mixed inbound gating')
+          old_global_mixed_rule = '''            route.rules.add(Rule_DefaultOptions().apply {\n                inbound = listOf(TAG_MIXED)\n                outbound = mainProxyTag\n            })\n'''
+          new_global_mixed_rule = '''            if (needMixedInbound) {\n                route.rules.add(Rule_DefaultOptions().apply {\n                    inbound = listOf(TAG_MIXED)\n                    outbound = mainProxyTag\n                })\n            }\n'''
+          text = replace_once(text, old_global_mixed_rule, new_global_mixed_rule, 'global mode mixed rule gating')
+          write(path, text)
+          
+          # AndroidManifest.xml
+          path = "app/src/main/AndroidManifest.xml"
+          text = read(path)
+          text = replace_once(
+              text,
+              '        android:allowBackup="true"\n',
+              '        android:allowBackup="false"\n',
+              'allowBackup false'
+          )
+          quick_clear_activity = '''        <activity\n            android:name="io.nekohasekai.sagernet.ui.QuickClearCacheShortcut"\n            android:excludeFromRecents="true"\n            android:exported="true"\n            android:label="@string/quick_clear_cache_restart"\n            android:launchMode="singleTask"\n            android:process=":bg"\n            android:taskAffinity=""\n            android:theme="@android:style/Theme.Translucent.NoTitleBar" />\n'''
+          if quick_clear_activity not in text:
+              anchor = '''        <activity\n            android:name="io.nekohasekai.sagernet.ui.AppManagerActivity"'''
+              if anchor not in text:
+                  raise SystemExit('Failed to find AndroidManifest anchor for QuickClearCacheShortcut')
+              text = text.replace(anchor, quick_clear_activity + anchor, 1)
+          write(path, text)
+          
+          # shortcuts.xml
+          path = "app/src/main/res/xml/shortcuts.xml"
+          text = read(path)
+          text = text.replace('\n            android:targetPackage="moe.nb4a"', '')
+          quick_clear_shortcut = '''    <shortcut\n        android:icon="@drawable/ic_qu_shadowsocks_launcher"\n        android:shortcutId="clear-cache-restart"\n        android:shortcutLongLabel="@string/quick_clear_cache_restart"\n        android:shortcutShortLabel="@string/quick_clear_cache_restart">\n        <intent\n            android:action="android.intent.action.MAIN"\n            android:targetClass="io.nekohasekai.sagernet.ui.QuickClearCacheShortcut" />\n    </shortcut>\n'''
+          if 'android:shortcutId="clear-cache-restart"' not in text:
+              anchor = '''    <shortcut\n        android:icon="@drawable/ic_qu_camera_launcher"'''
+              if anchor not in text:
+                  raise SystemExit('Failed to find shortcuts.xml anchor for clear-cache-restart')
+              text = text.replace(anchor, quick_clear_shortcut + anchor, 1)
+          write(path, text)
+          
+          # strings.xml
+          path = "app/src/main/res/values/strings.xml"
+          text = read(path)
+          if '<string name="quick_clear_cache_restart">Clear Cache &amp; Restart</string>' not in text:
+              anchor = '    <string name="quick_disable">Disable</string>\n'
+              if anchor not in text:
+                  raise SystemExit('Failed to find strings.xml anchor for quick_clear_cache_restart')
+              text = text.replace(anchor, anchor + '    <string name="quick_clear_cache_restart">Clear Cache &amp; Restart</string>\n', 1)
+          write(path, text)
+          
+          # New shortcut activity
+          path = Path("app/src/main/java/io/nekohasekai/sagernet/ui/QuickClearCacheShortcut.kt")
+          if not path.exists():
+              path.write_text('''package io.nekohasekai.sagernet.ui\n\nimport android.app.Activity\nimport android.content.pm.ShortcutManager\nimport android.os.Build\nimport android.os.Bundle\nimport android.widget.Toast\nimport androidx.core.content.getSystemService\nimport com.jakewharton.processphoenix.ProcessPhoenix\nimport io.nekohasekai.sagernet.R\nimport io.nekohasekai.sagernet.SagerNet\nimport io.nekohasekai.sagernet.ktx.onMainDispatcher\nimport io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher\nimport java.io.File\n\nclass QuickClearCacheShortcut : Activity() {\n\n    override fun onCreate(savedInstanceState: Bundle?) {\n        super.onCreate(savedInstanceState)\n\n        if (Build.VERSION.SDK_INT >= 25) {\n            getSystemService<ShortcutManager>()!!.reportShortcutUsed("clear-cache-restart")\n        }\n\n        runOnDefaultDispatcher {\n            try {\n                SagerNet.stopService()\n                Thread.sleep(300)\n\n                clearDirFiles(SagerNet.application.cacheDir, skipFiles = setOf("neko.log"))\n\n                val parentDir = SagerNet.application.cacheDir.parentFile\n                val relativeCache = File(parentDir, "cache")\n                if (relativeCache.exists() && relativeCache.isDirectory) {\n                    clearDirFiles(relativeCache)\n                }\n\n                onMainDispatcher {\n                    Toast.makeText(\n                        this@QuickClearCacheShortcut,\n                        R.string.clear_cache_success,\n                        Toast.LENGTH_SHORT\n                    ).show()\n                    ProcessPhoenix.triggerRebirth(this@QuickClearCacheShortcut)\n                }\n            } catch (e: Exception) {\n                onMainDispatcher {\n                    Toast.makeText(\n                        this@QuickClearCacheShortcut,\n                        getString(R.string.clear_cache_failed, e.message),\n                        Toast.LENGTH_SHORT\n                    ).show()\n                    finish()\n                }\n            }\n        }\n    }\n\n    private fun clearDirFiles(dir: File, skipFiles: Set<String> = emptySet()): Boolean {\n        if (!dir.isDirectory) return false\n\n        val children = dir.list() ?: return true\n        for (child in children) {\n            val childFile = File(dir, child)\n\n            if (child == "neko.log") {\n                try {\n                    childFile.writeText("")\n                    continue\n                } catch (_: Exception) {\n                }\n            }\n\n            if (child in skipFiles) continue\n\n            if (childFile.isDirectory) {\n                clearDirFiles(childFile, skipFiles)\n            } else {\n                childFile.delete()\n            }\n        }\n\n        return true\n    }\n}\n''', encoding='utf-8')
+          PY
+
+      - name: Commit changes if needed
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/java/io/nekohasekai/sagernet/ui/SettingsPreferenceFragment.kt \
+                  app/src/main/java/io/nekohasekai/sagernet/database/DataStore.kt \
+                  app/src/main/java/io/nekohasekai/sagernet/fmt/ConfigBuilder.kt \
+                  app/src/main/AndroidManifest.xml \
+                  app/src/main/res/xml/shortcuts.xml \
+                  app/src/main/res/values/strings.xml \
+                  app/src/main/java/io/nekohasekai/sagernet/ui/QuickClearCacheShortcut.kt
+          git commit -m "Apply Neko fixes via GitHub Actions"
+          git push origin HEAD:chatgpt-fix-neko-20260413
