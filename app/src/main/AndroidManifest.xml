@@ -49,7 +49,7 @@
 
     <application
         android:name="io.nekohasekai.sagernet.SagerNet"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:autoRevokePermissions="allowed"
         android:banner="@mipmap/ic_launcher"
         android:dataExtractionRules="@xml/backup_rules"
@@ -241,6 +241,15 @@
             android:excludeFromRecents="true"
             android:exported="true"
             android:label="@string/quick_disable"
+            android:launchMode="singleTask"
+            android:process=":bg"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity
+            android:name="io.nekohasekai.sagernet.ui.QuickClearCacheShortcut"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:label="@string/quick_clear_cache_restart"
             android:launchMode="singleTask"
             android:process=":bg"
             android:taskAffinity=""

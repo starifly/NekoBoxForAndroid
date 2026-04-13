@@ -141,9 +141,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         if (configurationStore.getString(Key.MIXED_PORT) == null) {
             mixedPort = mixedPort
         }
-        // Security hardening: keep local inbound proxies unavailable from LAN/VPN HTTP append.
-        allowAccess = false
-        appendHttpProxy = false
     }
 
 

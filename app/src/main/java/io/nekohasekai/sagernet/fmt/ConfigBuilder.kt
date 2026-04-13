@@ -139,6 +139,7 @@ fun buildConfig(
     val bypassDNSBeans = hashSetOf<AbstractBean>()
     val isVPN = DataStore.serviceMode == Key.MODE_VPN
     val bind = if (!forTest && DataStore.allowAccess) "0.0.0.0" else LOCALHOST
+    val needMixedInbound = !isVPN || DataStore.allowAccess || DataStore.appendHttpProxy
     val remoteDns = DataStore.remoteDns.split("\n")
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
     val directDNS = DataStore.directDns.split("\n")
@@ -244,7 +245,7 @@ fun buildConfig(
                     }
                 }
             })
-            inbounds.add(Inbound_MixedOptions().apply {
+            if (needMixedInbound) inbounds.add(Inbound_MixedOptions().apply {
                 type = "mixed"
                 tag = TAG_MIXED
                 listen = bind
@@ -550,10 +551,12 @@ fun buildConfig(
                 outbound = mainProxyTag
             })
 
-            route.rules.add(Rule_DefaultOptions().apply {
-                inbound = listOf(TAG_MIXED)
-                outbound = mainProxyTag
-            })
+            if (needMixedInbound) {
+                route.rules.add(Rule_DefaultOptions().apply {
+                    inbound = listOf(TAG_MIXED)
+                    outbound = mainProxyTag
+                })
+            }
 
             route.final_ = mainProxyTag
         } else {

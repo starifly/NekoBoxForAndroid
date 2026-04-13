@@ -65,18 +65,9 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
         val mixedPort = findPreference<EditTextPreference>(Key.MIXED_PORT)!!
         val serviceMode = findPreference<Preference>(Key.SERVICE_MODE)!!
-        val allowAccess = findPreference<Preference>(Key.ALLOW_ACCESS)!!
+        val allowAccess = findPreference<SwitchPreference>(Key.ALLOW_ACCESS)!!
         val appendHttpProxy = findPreference<SwitchPreference>(Key.APPEND_HTTP_PROXY)!!
         val strictRoute = findPreference<SwitchPreference>(Key.STRICT_ROUTE)!!
-        // Force-disable insecure local proxy exposure options.
-        if (DataStore.allowAccess) DataStore.allowAccess = false
-        if (DataStore.appendHttpProxy) DataStore.appendHttpProxy = false
-        allowAccess.isEnabled = false
-        appendHttpProxy.apply {
-            isChecked = false
-            isEnabled = false
-        }
-
         val showDirectSpeed = findPreference<SwitchPreference>(Key.SHOW_DIRECT_SPEED)!!
         val ipv6Mode = findPreference<Preference>(Key.IPV6_MODE)!!
         val trafficSniffing = findPreference<Preference>(Key.TRAFFIC_SNIFFING)!!

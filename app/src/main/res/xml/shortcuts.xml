@@ -7,8 +7,7 @@
         android:shortcutShortLabel="@string/quick_toggle">
         <intent
             android:action="android.intent.action.MAIN"
-            android:targetClass="io.nekohasekai.sagernet.QuickToggleShortcut"
-            android:targetPackage="moe.nb4a" />
+            android:targetClass="io.nekohasekai.sagernet.QuickToggleShortcut" />
     </shortcut>
     <shortcut
         android:icon="@drawable/ic_qu_shadowsocks_launcher"
@@ -17,8 +16,7 @@
         android:shortcutShortLabel="@string/quick_enable">
         <intent
             android:action="android.intent.action.MAIN"
-            android:targetClass="io.nekohasekai.sagernet.ui.QuickEnableShortcut"
-            android:targetPackage="moe.nb4a" />
+            android:targetClass="io.nekohasekai.sagernet.ui.QuickEnableShortcut" />
     </shortcut>
     <shortcut
         android:icon="@drawable/ic_qu_shadowsocks_launcher"
@@ -27,8 +25,16 @@
         android:shortcutShortLabel="@string/quick_disable">
         <intent
             android:action="android.intent.action.MAIN"
-            android:targetClass="io.nekohasekai.sagernet.ui.QuickDisableShortcut"
-            android:targetPackage="moe.nb4a" />
+            android:targetClass="io.nekohasekai.sagernet.ui.QuickDisableShortcut" />
+    </shortcut>
+    <shortcut
+        android:icon="@drawable/ic_qu_shadowsocks_launcher"
+        android:shortcutId="clear-cache-restart"
+        android:shortcutLongLabel="@string/quick_clear_cache_restart"
+        android:shortcutShortLabel="@string/quick_clear_cache_restart">
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetClass="io.nekohasekai.sagernet.ui.QuickClearCacheShortcut" />
     </shortcut>
     <shortcut
         android:icon="@drawable/ic_qu_camera_launcher"
@@ -37,7 +43,6 @@
         android:shortcutShortLabel="@string/add_profile_methods_scan_qr_code">
         <intent
             android:action="android.intent.action.MAIN"
-            android:targetClass="io.nekohasekai.sagernet.ui.ScannerActivity"
-            android:targetPackage="moe.nb4a" />
+            android:targetClass="io.nekohasekai.sagernet.ui.ScannerActivity" />
     </shortcut>
 </shortcuts>
