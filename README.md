@@ -54,10 +54,10 @@ https://matsuridayo.github.io
 
 <pre><code class="language-json">
 {
-	"x_padding_bytes": "0-0",
-	"sc_max_each_post_bytes": "0-0",
-	"sc_min_posts_interval_ms": "0-0",
-	"sc_stream_up_server_secs": "0-0",
+    "no_grpc_header": false,  // stream-up/one
+	"x_padding_bytes": "100-10000",
+	"sc_max_each_post_bytes": 1000000, // packet-up only
+	"sc_min_posts_interval_ms": 30, // packet-up only
 	"xmux": {
 		"max_concurrency": "16-32",
 		"max_connections": "0-0",
@@ -66,14 +66,27 @@ https://matsuridayo.github.io
 		"h_max_reusable_secs": "1800-3000",
 		"h_keep_alive_period": 0
 	},
+    "x_padding_obfs_mode": false,
+    "x_padding_key": "",
+    "x_padding_header": "",
+    "x_padding_placement": "",
+    "x_padding_method": "",
+    "uplink_http_method": "",
+    "session_placement": "",
+    "session_key": "",
+    "seq_placement": "",
+    "seq_key": "",
+    "uplink_data_placement": "",
+    "uplink_data_key": "",
+    "uplink_chunk_size": 0,
 	"download": {
 		"mode": "auto",
 		"host": "b.yourdomain.com",
 		"path": "/xhttp",
-		"x_padding_bytes": "0-0",
-		"sc_max_each_post_bytes": "0-0",
-		"sc_min_posts_interval_ms": "0-0",
-		"sc_stream_up_server_secs": "0-0",
+        "no_grpc_header": false,  // stream-up/one
+	    "x_padding_bytes": "100-10000",
+	    "sc_max_each_post_bytes": 1000000, // packet-up only
+	    "sc_min_posts_interval_ms": 30, // packet-up only
 		"xmux": {
 			"max_concurrency": "16-32",
 			"max_connections": "0-0",
@@ -82,6 +95,19 @@ https://matsuridayo.github.io
 			"h_max_reusable_secs": "1800-3000",
 			"h_keep_alive_period": 0
 		},
+        "x_padding_obfs_mode": false,
+        "x_padding_key": "",
+        "x_padding_header": "",
+        "x_padding_placement": "",
+        "x_padding_method": "",
+        "uplink_http_method": "",
+        "session_placement": "",
+        "session_key": "",
+        "seq_placement": "",
+        "seq_key": "",
+        "uplink_data_placement": "",
+        "uplink_data_key": "",
+        "uplink_chunk_size": 0,
 		"server": "$(ip_or_domain_of_your_cdn)",
 		"server_port": 443,
 		"tls": {
@@ -103,10 +129,10 @@ https://matsuridayo.github.io
 
 <pre><code class="language-json">
 {
-	"x_padding_bytes": "0-0",
-	"sc_max_each_post_bytes": "0-0",
-	"sc_min_posts_interval_ms": "0-0",
-	"sc_stream_up_server_secs": "0-0",
+    "no_grpc_header": false,  // stream-up/one
+	"x_padding_bytes": "100-10000",
+	"sc_max_each_post_bytes": 1000000, // packet-up only
+	"sc_min_posts_interval_ms": 30, // packet-up only
 	"xmux": {
 		"max_concurrency": "16-32",
 		"max_connections": "0-0",
@@ -115,14 +141,27 @@ https://matsuridayo.github.io
 		"h_max_reusable_secs": "1800-3000",
 		"h_keep_alive_period": 0
 	},
+    "x_padding_obfs_mode": false,
+    "x_padding_key": "",
+    "x_padding_header": "",
+    "x_padding_placement": "",
+    "x_padding_method": "",
+    "uplink_http_method": "",
+    "session_placement": "",
+    "session_key": "",
+    "seq_placement": "",
+    "seq_key": "",
+    "uplink_data_placement": "",
+    "uplink_data_key": "",
+    "uplink_chunk_size": 0,
 	"download": {
 		"mode": "auto",
 		"host": "example.com",
 		"path": "/xhttp",
-		"x_padding_bytes": "0-0",
-		"sc_max_each_post_bytes": "0-0",
-		"sc_min_posts_interval_ms": "0-0",
-		"sc_stream_up_server_secs": "0-0",
+        "no_grpc_header": false,  // stream-up/one
+	    "x_padding_bytes": "100-10000",
+	    "sc_max_each_post_bytes": 1000000, // packet-up only
+	    "sc_min_posts_interval_ms": 30, // packet-up only
 		"xmux": {
 			"max_concurrency": "16-32",
 			"max_connections": "0-0",
@@ -131,6 +170,19 @@ https://matsuridayo.github.io
 			"h_max_reusable_secs": "1800-3000",
 			"h_keep_alive_period": 0
 		},
+        "x_padding_obfs_mode": false,
+        "x_padding_key": "",
+        "x_padding_header": "",
+        "x_padding_placement": "",
+        "x_padding_method": "",
+        "uplink_http_method": "",
+        "session_placement": "",
+        "session_key": "",
+        "seq_placement": "",
+        "seq_key": "",
+        "uplink_data_placement": "",
+        "uplink_data_key": "",
+        "uplink_chunk_size": 0,
 		"server": "$(ip_or_domain_of_your_cdn)",
 		"server_port": 443,
 		"tls": {
