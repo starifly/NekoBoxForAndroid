@@ -421,6 +421,7 @@ object RawUpdater : GroupUpdater() {
                                         when (opt.value) {
                                             "h2", "http" -> bean.type = "http"
                                             "ws", "grpc" -> bean.type = opt.value as String
+                                            "xhttp" -> if (bean.isVLESS) bean.type = "xhttp"
                                         }
                                     }
 
@@ -493,6 +494,65 @@ object RawUpdater : GroupUpdater() {
                                             when (grpcOpt.key) {
                                                 "grpc-service-name" -> bean.path =
                                                     grpcOpt.value?.toString()
+                                            }
+                                        }
+                                    }
+
+                                    "xhttp-opts" -> if (bean.isVLESS && bean.type == "xhttp") {
+                                        (opt.value as? Map<String, Any?>)?.also { xhttpOpts ->
+                                            xhttpOpts["host"]?.toString()?.let {
+                                                bean.host = it
+                                            }
+                                            xhttpOpts["path"]?.toString()?.let {
+                                                bean.path = it
+                                            }
+                                            xhttpOpts["mode"]?.toString()?.let {
+                                                bean.xhttpMode = when (it) {
+                                                    "auto", "packet-up", "stream-up", "stream-one" -> it
+                                                    "" -> "auto"
+                                                    else -> bean.xhttpMode
+                                                }
+                                            }
+
+                                            val extra = JSONObject()
+                                            xhttpOpts["no-grpc-header"]?.let {
+                                                extra.put("no_grpc_header", it)
+                                            }
+                                            xhttpOpts["x-padding-bytes"]?.toString()?.let {
+                                                extra.put("x_padding_bytes", it)
+                                            }
+                                            xhttpOpts["sc-max-each-post-bytes"]?.toString()?.let {
+                                                extra.put("sc_max_each_post_bytes", it)
+                                            }
+                                            xhttpOpts["sc-min-posts-interval-ms"]?.toString()?.let {
+                                                extra.put("sc_min_posts_interval_ms", it)
+                                            }
+                                            (xhttpOpts["reuse-settings"] as? Map<*, *>)?.let { reuseSettings ->
+                                                val xmux = JSONObject()
+                                                reuseSettings["max-connections"]?.toString()?.let {
+                                                    xmux.put("max_connections", it)
+                                                }
+                                                reuseSettings["max-concurrency"]?.toString()?.let {
+                                                    xmux.put("max_concurrency", it)
+                                                }
+                                                reuseSettings["c-max-reuse-times"]?.toString()?.let {
+                                                    xmux.put("c_max_reuse_times", it)
+                                                }
+                                                reuseSettings["h-max-request-times"]?.toString()?.let {
+                                                    xmux.put("h_max_request_times", it)
+                                                }
+                                                reuseSettings["h-max-reusable-secs"]?.toString()?.let {
+                                                    xmux.put("h_max_reusable_secs", it)
+                                                }
+                                                reuseSettings["h-keep-alive-period"]?.toString()?.let {
+                                                    xmux.put("h_keep_alive_period", it)
+                                                }
+                                                if (xmux.length() > 0) {
+                                                    extra.put("xmux", xmux)
+                                                }
+                                            }
+                                            if (extra.length() > 0) {
+                                                bean.xhttpExtra = extra.toString(2)
                                             }
                                         }
                                     }
