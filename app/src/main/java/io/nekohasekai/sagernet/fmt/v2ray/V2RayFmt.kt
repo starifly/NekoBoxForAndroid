@@ -703,10 +703,24 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
                     val allowedKeys = arrayOf(
                         "download",
                         "xmux",
+                        "headers",
                         "x_padding_bytes",
                         "no_grpc_header",
                         "sc_max_each_post_bytes",
-                        "sc_min_posts_interval_ms"
+                        "sc_min_posts_interval_ms",
+                        "x_padding_obfs_mode",
+                        "x_padding_key",
+                        "x_padding_header",
+                        "x_padding_placement",
+                        "x_padding_method",
+                        "uplink_http_method",
+                        "session_placement",
+                        "session_key",
+                        "seq_placement",
+                        "seq_key",
+                        "uplink_data_placement",
+                        "uplink_data_key",
+                        "uplink_chunk_size"
                     )
                     allowedKeys.forEach { key ->
                         if (extraJson.has(key)) {
