@@ -14,7 +14,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONObject
 
 private val supportedKcpHeaderType = arrayOf(
-    "none", "srtp", "utp", "wechat-video", "dtls", "wireguard"
+    "none", "srtp", "utp", "wechat-video", "dtls", "wireguard", "dns"
 )
 
 data class VmessQRCode(
@@ -221,8 +221,19 @@ fun StandardV2RayBean.parseDuckSoft(url: HttpUrl) {
                 mKcpSeed = it
             }
             url.queryParameter("headerType")?.let {
-                if (it !in supportedKcpHeaderType) error("unsupported headerType")
-                headerType = it
+                if (it.isNotBlank()) {
+                    if (it !in supportedKcpHeaderType) error("unsupported headerType")
+                    headerType = it
+                }
+            }
+            url.queryParameter("mtu")?.let {
+                kcpMtu = it.toIntOrNull()
+            }
+            url.queryParameter("tti")?.let {
+                kcpTti = it.toIntOrNull()
+            }
+            url.queryParameter("cwnd")?.let {
+                kcpCwndMultiplier = it.toIntOrNull()
             }
         }
 
@@ -532,6 +543,15 @@ fun StandardV2RayBean.toUriVMessVLESSTrojan(isTrojan: Boolean): String {
             if (mKcpSeed.isNotBlank()) {
                 builder.addQueryParameter("seed", mKcpSeed)
             }
+            if (kcpMtu != null && kcpMtu!! > 0) {
+                builder.addQueryParameter("mtu", kcpMtu.toString())
+            }
+            if (kcpTti != null && kcpTti!! > 0) {
+                builder.addQueryParameter("tti", kcpTti.toString())
+            }
+            if (kcpCwndMultiplier != null && kcpCwndMultiplier!! > 0) {
+                builder.addQueryParameter("cwnd", kcpCwndMultiplier.toString())
+            }
         }
 
         "xhttp" -> {
@@ -637,13 +657,16 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
         "kcp" -> {
             return V2RayTransportOptions_KCPOptions().apply {
                 type = "kcp"
-                mtu = 1350
-                tti = 50
+                mtu = if (bean.kcpMtu != null && bean.kcpMtu!! > 0) bean.kcpMtu!! else 1350
+                tti = if (bean.kcpTti != null && bean.kcpTti!! > 0) bean.kcpTti!! else 50
                 uplink_capacity = 12
                 downlink_capacity = 100
                 congestion = false
                 read_buffer_size = 1
                 write_buffer_size = 1
+                if (bean.kcpCwndMultiplier != null && bean.kcpCwndMultiplier!! > 0) {
+                    cwnd_multiplier = bean.kcpCwndMultiplier!!
+                }
                 header_type = bean.headerType.takeIf { it.isNotBlank() } ?: "none"
                 if (bean.mKcpSeed.isNotBlank()) {
                     seed = bean.mKcpSeed

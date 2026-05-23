@@ -4711,6 +4711,8 @@ public class SingBoxOptions {
 
         public Integer write_buffer_size;
 
+        public Integer cwnd_multiplier;
+
         public String header_type;
 
         public String seed;

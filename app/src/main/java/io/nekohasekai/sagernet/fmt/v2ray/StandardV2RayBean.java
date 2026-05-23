@@ -58,6 +58,9 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
     public String mKcpSeed;
     public String headerType;
+    public Integer kcpMtu;
+    public Integer kcpTti;
+    public Integer kcpCwndMultiplier;
 
     // --------------------------------------- ech
 
@@ -140,11 +143,12 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
         if (JavaUtil.isNullOrBlank(mKcpSeed)) mKcpSeed = "";
         if (JavaUtil.isNullOrBlank(headerType)) headerType = "none";
+        // kcpMtu、kcpTti 和 kcpCwndMultiplier 保持 null，不设置默认值
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(8);
+        output.writeInt(10);
         super.serialize(output);
         output.writeString(uuid);
         output.writeString(encryption);
@@ -190,6 +194,9 @@ public abstract class StandardV2RayBean extends AbstractBean {
             case "kcp": {
                 output.writeString(mKcpSeed);
                 output.writeString(headerType);
+                output.writeInt(kcpMtu == null ? 0 : kcpMtu);
+                output.writeInt(kcpTti == null ? 0 : kcpTti);
+                output.writeInt(kcpCwndMultiplier == null ? 0 : kcpCwndMultiplier);
                 break;
             }
         }
@@ -282,6 +289,16 @@ public abstract class StandardV2RayBean extends AbstractBean {
                 if (version >= 6) {
                     mKcpSeed = input.readString();
                     headerType = input.readString();
+                    if (version >= 9) {
+                        int mtu = input.readInt();
+                        int tti = input.readInt();
+                        kcpMtu = mtu == 0 ? null : mtu;
+                        kcpTti = tti == 0 ? null : tti;
+                        if (version >= 10) {
+                            int cwnd = input.readInt();
+                            kcpCwndMultiplier = cwnd == 0 ? null : cwnd;
+                        }
+                    }
                 }
                 break;
             }

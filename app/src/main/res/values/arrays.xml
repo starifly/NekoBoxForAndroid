@@ -333,6 +333,21 @@
         <item>wechat-video</item>
         <item>dtls</item>
         <item>wireguard</item>
+        <item>dns</item>
+    </string-array>
+
+    <string-array name="kcp_cwnd_multiplier_entry">
+        <item>20</item>
+        <item>10</item>
+        <item>5</item>
+        <item>1</item>
+    </string-array>
+
+    <string-array name="kcp_cwnd_multiplier_value">
+        <item>20</item>
+        <item>10</item>
+        <item>5</item>
+        <item>1</item>
     </string-array>
 
     <string-array name="xhttp_mode_entry">

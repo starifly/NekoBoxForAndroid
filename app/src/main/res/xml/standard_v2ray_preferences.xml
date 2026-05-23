@@ -83,11 +83,29 @@
             app:key="headerType"
             app:title="@string/kcp_header_type"
             app:useSimpleSummaryProvider="true" />
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+            app:defaultValue="20"
+            app:entries="@array/kcp_cwnd_multiplier_entry"
+            app:entryValues="@array/kcp_cwnd_multiplier_value"
+            app:icon="@drawable/ic_baseline_speed_24"
+            app:key="kcpCwndMultiplier"
+            app:title="@string/kcp_cwnd_multiplier"
+            app:useSimpleSummaryProvider="true" />
         <EditTextPreference
             app:dialogLayout="@layout/layout_password_dialog"
             app:icon="@drawable/ic_baseline_format_align_left_24"
             app:key="mKcpSeed"
             app:title="@string/kcp_seed"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_tune_24"
+            app:key="kcpMtu"
+            app:title="@string/kcp_mtu"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_speed_24"
+            app:key="kcpTti"
+            app:title="@string/kcp_tti"
             app:useSimpleSummaryProvider="true" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
             app:entries="@array/transport_layer_encryption_value"

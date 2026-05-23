@@ -7,6 +7,7 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
@@ -66,6 +67,9 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
     // KCP
     private val mKcpSeed = pbm.add(PreferenceBinding(Type.Text, "mKcpSeed"))
     private val headerType = pbm.add(PreferenceBinding(Type.Text, "headerType"))
+    private val kcpMtu = pbm.add(PreferenceBinding(Type.TextToInt, "kcpMtu"))
+    private val kcpTti = pbm.add(PreferenceBinding(Type.TextToInt, "kcpTti"))
+    private val kcpCwndMultiplier = pbm.add(PreferenceBinding(Type.TextToInt, "kcpCwndMultiplier"))
 
     override fun StandardV2RayBean.init() {
         if (this is TrojanBean) {
@@ -202,6 +206,9 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
         path.preference.isVisible = false
         mKcpSeed.preference.isVisible = false
         headerType.preference.isVisible = false
+        kcpMtu.preference.isVisible = false
+        kcpTti.preference.isVisible = false
+        kcpCwndMultiplier.preference.isVisible = false
         wsCategory.isVisible = false
         xhttpCategory.isVisible = false
 
@@ -214,6 +221,9 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
             "kcp" -> {
                 mKcpSeed.preference.isVisible = true
                 headerType.preference.isVisible = true
+                kcpMtu.preference.isVisible = true
+                kcpTti.preference.isVisible = true
+                kcpCwndMultiplier.preference.isVisible = true
             }
 
             "http" -> {

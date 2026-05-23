@@ -128,6 +128,9 @@
     <string name="http_path">HTTP Path</string>
     <string name="kcp_seed">mKCP Seed</string>
     <string name="kcp_header_type">Header Type</string>
+    <string name="kcp_mtu">mKCP MTU</string>
+    <string name="kcp_tti">mKCP TTI</string>
+    <string name="kcp_cwnd_multiplier">CWND Multiplier</string>
     <string name="grpc_service_name">gRPC ServiceName</string>
     <string name="tls">Use TLS</string>
     <string name="sni">Server Name Indication</string>
