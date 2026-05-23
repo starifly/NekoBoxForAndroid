@@ -8,7 +8,7 @@
         <intent
             android:action="android.intent.action.MAIN"
             android:targetClass="io.nekohasekai.sagernet.QuickToggleShortcut"
-            android:targetPackage="moe.nb4a" />
+            android:targetPackage="com.nb4a" />
     </shortcut>
     <shortcut
         android:icon="@drawable/ic_qu_shadowsocks_launcher"
@@ -18,7 +18,7 @@
         <intent
             android:action="android.intent.action.MAIN"
             android:targetClass="io.nekohasekai.sagernet.ui.QuickEnableShortcut"
-            android:targetPackage="moe.nb4a" />
+            android:targetPackage="com.nb4a" />
     </shortcut>
     <shortcut
         android:icon="@drawable/ic_qu_shadowsocks_launcher"
@@ -28,7 +28,7 @@
         <intent
             android:action="android.intent.action.MAIN"
             android:targetClass="io.nekohasekai.sagernet.ui.QuickDisableShortcut"
-            android:targetPackage="moe.nb4a" />
+            android:targetPackage="com.nb4a" />
     </shortcut>
     <shortcut
         android:icon="@drawable/ic_qu_camera_launcher"
@@ -38,6 +38,6 @@
         <intent
             android:action="android.intent.action.MAIN"
             android:targetClass="io.nekohasekai.sagernet.ui.ScannerActivity"
-            android:targetPackage="moe.nb4a" />
+            android:targetPackage="com.nb4a" />
     </shortcut>
 </shortcuts>
