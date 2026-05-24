@@ -19,6 +19,7 @@ import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean;
 import io.nekohasekai.sagernet.fmt.shadowsocksr.ShadowsocksRBean;
 import moe.matsuri.nb4a.proxy.anytls.AnyTLSBean;
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean;
+import io.nekohasekai.sagernet.fmt.snell.SnellBean;
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean;
 import io.nekohasekai.sagernet.fmt.ssh.SSHBean;
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean;
@@ -163,6 +164,11 @@ public class KryoConverters {
         return deserialize(new AnyTLSBean(), bytes);
     }
 
+    @TypeConverter
+    public static SnellBean snellDeserialize(byte[] bytes) {
+        if (JavaUtil.isEmpty(bytes)) return null;
+        return deserialize(new SnellBean(), bytes);
+    }
 
     @TypeConverter
     public static ChainBean chainDeserialize(byte[] bytes) {

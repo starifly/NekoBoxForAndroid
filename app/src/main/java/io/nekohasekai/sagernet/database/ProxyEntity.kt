@@ -20,6 +20,8 @@ import io.nekohasekai.sagernet.fmt.shadowsocks.*
 import io.nekohasekai.sagernet.fmt.shadowsocksr.ShadowsocksRBean
 import io.nekohasekai.sagernet.fmt.shadowsocksr.toUri
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
+import io.nekohasekai.sagernet.fmt.snell.SnellBean
+import io.nekohasekai.sagernet.fmt.snell.toUri
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
 import io.nekohasekai.sagernet.fmt.socks.toUri
 import io.nekohasekai.sagernet.fmt.ssh.SSHBean
@@ -78,6 +80,7 @@ data class ProxyEntity(
     var chainBean: ChainBean? = null,
     var nekoBean: NekoBean? = null,
     var configBean: ConfigBean? = null,
+    var snellBean: SnellBean? = null,
 ) : Serializable() {
 
     companion object {
@@ -99,6 +102,7 @@ data class ProxyEntity(
         const val TYPE_MIERU = 21
         const val TYPE_ANYTLS = 22
         const val TYPE_JUICITY = 23
+        const val TYPE_SNELL = 24
 
         const val TYPE_CONFIG = 998
         const val TYPE_NEKO = 999
@@ -188,6 +192,7 @@ data class ProxyEntity(
             TYPE_CHAIN -> chainBean = KryoConverters.chainDeserialize(byteArray)
             TYPE_NEKO -> nekoBean = KryoConverters.nekoDeserialize(byteArray)
             TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
+            TYPE_SNELL -> snellBean = KryoConverters.snellDeserialize(byteArray)
         }
     }
 
@@ -211,6 +216,7 @@ data class ProxyEntity(
         TYPE_CHAIN -> chainName
         TYPE_NEKO -> nekoBean!!.displayType()
         TYPE_CONFIG -> configBean!!.displayType()
+        TYPE_SNELL -> "Snell"
         else -> "Undefined type $type"
     }
 
@@ -238,6 +244,7 @@ data class ProxyEntity(
             TYPE_CHAIN -> chainBean
             TYPE_NEKO -> nekoBean
             TYPE_CONFIG -> configBean
+            TYPE_SNELL -> snellBean
             else -> error("Undefined type $type")
         } ?: error("Null ${displayType()} profile")
     }
@@ -274,6 +281,7 @@ data class ProxyEntity(
             is TuicBean -> toUri()
             is JuicityBean -> toUri()
             is AnyTLSBean -> toUri()
+            is SnellBean -> toUri()
             is NekoBean -> ""
             else -> toUniversalLink()
         }
@@ -511,6 +519,11 @@ data class ProxyEntity(
                 anyTLSBean = bean
             }
 
+            is SnellBean -> {
+                type = TYPE_SNELL
+                snellBean = bean
+            }
+
             is ChainBean -> {
                 type = TYPE_CHAIN
                 chainBean = bean
@@ -552,6 +565,7 @@ data class ProxyEntity(
                 TYPE_ANYTLS -> AnyTLSSettingsActivity::class.java
                 TYPE_CHAIN -> ChainSettingsActivity::class.java
                 TYPE_CONFIG -> ConfigSettingActivity::class.java
+                TYPE_SNELL -> SnellSettingsActivity::class.java
                 else -> throw IllegalArgumentException()
             }
         ).apply {

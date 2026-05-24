@@ -12,6 +12,7 @@ import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.parseShadowsocks
 import io.nekohasekai.sagernet.fmt.shadowsocksr.ShadowsocksRBean
 import io.nekohasekai.sagernet.fmt.shadowsocksr.parseShadowsocksR
+import io.nekohasekai.sagernet.fmt.snell.parseClashSnell
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.fmt.trojan_go.parseTrojanGo
@@ -807,6 +808,11 @@ object RawUpdater : GroupUpdater() {
                                     bean.sni = bean.serverAddress
                                 }
                             }
+                            proxies.add(bean)
+                        }
+
+                        "snell" -> {
+                            val bean = parseClashSnell(proxy)
                             proxies.add(bean)
                         }
                     }

@@ -662,4 +662,15 @@
     <string name="vless_encryption_hint">mlkem768x25519plus.native.0rtt.KEY1.KEY2...</string>
     <string name="app_list_permission_denied">Unable to read installed apps.\nThis is usually because the system has restricted app read permissions.\nPlease grant permissions in the system settings.</string>
     <string name="open_app_settings">Open System Settings</string>
+
+    <!-- Snell Protocol -->
+    <string name="action_snell">Snell</string>
+    <string name="snell_psk">密钥</string>
+    <string name="snell_version">版本</string>
+    <string name="snell_network">协议</string>
+    <string name="snell_obfs_mode">Obfs 模式</string>
+    <string name="snell_obfs_host">Obfs 主机</string>
+    <string name="snell_reuse">Reuse</string>
+    <string name="snell_reuse_summary">v4/v5 only</string>
+
 </resources>
