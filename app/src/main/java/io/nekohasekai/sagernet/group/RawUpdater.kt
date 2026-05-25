@@ -621,6 +621,9 @@ object RawUpdater : GroupUpdater() {
                                             when (echOpt.key) {
                                                 "enable" -> bean.enableECH =
                                                     echOpt.value.toString() == "true"
+
+                                                "config" -> bean.echConfig =
+                                                    echOpt.value?.toString()
                                             }
                                         }
                                     }
