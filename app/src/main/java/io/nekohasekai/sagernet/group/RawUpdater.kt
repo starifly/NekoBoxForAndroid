@@ -380,6 +380,10 @@ object RawUpdater : GroupUpdater() {
                                         }
                                     }
 
+                                    "encryption" -> if (bean is VMessBean && bean.isVLESS) {
+                                        bean.vlessEncryption = opt.value?.toString() ?: ""
+                                    }
+
                                     "packet-encoding" -> if (bean is VMessBean) {
                                         bean.packetEncoding = when ((opt.value as? String)) {
                                             "packetaddr" -> 1
@@ -527,6 +531,45 @@ object RawUpdater : GroupUpdater() {
                                             }
                                             xhttpOpts["sc-min-posts-interval-ms"]?.toString()?.let {
                                                 extra.put("sc_min_posts_interval_ms", it)
+                                            }
+                                            xhttpOpts["x-padding-obfs-mode"]?.let {
+                                                extra.put("x_padding_obfs_mode", it)
+                                            }
+                                            xhttpOpts["x-padding-key"]?.toString()?.let {
+                                                extra.put("x_padding_key", it)
+                                            }
+                                            xhttpOpts["x-padding-header"]?.toString()?.let {
+                                                extra.put("x_padding_header", it)
+                                            }
+                                            xhttpOpts["x-padding-placement"]?.toString()?.let {
+                                                extra.put("x_padding_placement", it)
+                                            }
+                                            xhttpOpts["x-padding-method"]?.toString()?.let {
+                                                extra.put("x_padding_method", it)
+                                            }
+                                            xhttpOpts["uplink-http-method"]?.toString()?.let {
+                                                extra.put("uplink_http_method", it)
+                                            }
+                                            xhttpOpts["session-placement"]?.toString()?.let {
+                                                extra.put("session_placement", it)
+                                            }
+                                            xhttpOpts["session-key"]?.toString()?.let {
+                                                extra.put("session_key", it)
+                                            }
+                                            xhttpOpts["seq-placement"]?.toString()?.let {
+                                                extra.put("seq_placement", it)
+                                            }
+                                            xhttpOpts["seq-key"]?.toString()?.let {
+                                                extra.put("seq_key", it)
+                                            }
+                                            xhttpOpts["uplink-data-placement"]?.toString()?.let {
+                                                extra.put("uplink_data_placement", it)
+                                            }
+                                            xhttpOpts["uplink-data-key"]?.toString()?.let {
+                                                extra.put("uplink_data_key", it)
+                                            }
+                                            xhttpOpts["uplink-chunk-size"]?.toString()?.let {
+                                                extra.put("uplink_chunk_size", it)
                                             }
                                             (xhttpOpts["reuse-settings"] as? Map<*, *>)?.let { reuseSettings ->
                                                 val xmux = JSONObject()
