@@ -1,7 +1,7 @@
 package io.nekohasekai.sagernet.fmt.snell
 
-import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
 import io.nekohasekai.sagernet.ktx.urlSafe
+import io.nekohasekai.sagernet.ktx.unUrlSafe
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 // URI 格式: snell://base64(psk)@server:port?version=4&obfs-mode=http&obfs-host=bing.com&reuse=true&network=tcp#name
@@ -12,7 +12,7 @@ fun parseSnell(url: String): SnellBean {
     return SnellBean().apply {
         serverAddress = link.host
         serverPort = link.port
-        psk = link.username.decodeBase64UrlSafe()
+        psk = link.username.unUrlSafe()
         name = link.fragment ?: ""
 
         link.queryParameter("version")?.toIntOrNull()?.let {
