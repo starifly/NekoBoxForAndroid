@@ -54,15 +54,18 @@ class SnellSettingsActivity : ProfileSettingsActivity<SnellBean>() {
         val versionPref = findPreference<SimpleMenuPreference>("version")!!
         val networkPref = findPreference<SimpleMenuPreference>("network")!!
         val reusePref = findPreference<Preference>("reuse")!!
+        val obfsModePref = findPreference<SimpleMenuPreference>("obfsMode")!!
 
         val initialVersion = versionPref.value?.toIntOrNull() ?: 4
         updateNetworkOptions(initialVersion, networkPref)
         updateReuseEnabled(initialVersion, reusePref)
+        updateObfsModeOptions(initialVersion, obfsModePref)
 
         versionPref.setOnPreferenceChangeListener { _, newValue ->
             val newVersion = (newValue as? String)?.toIntOrNull() ?: 4
             updateNetworkOptions(newVersion, networkPref)
             updateReuseEnabled(newVersion, reusePref)
+            updateObfsModeOptions(newVersion, obfsModePref)
             true
         }
     }
@@ -82,6 +85,19 @@ class SnellSettingsActivity : ProfileSettingsActivity<SnellBean>() {
 
     private fun updateReuseEnabled(version: Int, reusePref: Preference) {
         reusePref.isEnabled = version >= 4
+    }
+
+    private fun updateObfsModeOptions(version: Int, obfsModePref: SimpleMenuPreference) {
+        if (version >= 4) {
+            obfsModePref.entries = arrayOf("None", "HTTP")
+            obfsModePref.entryValues = arrayOf("", "http")
+            if (obfsModePref.value == "tls") {
+                obfsModePref.value = ""
+            }
+        } else {
+            obfsModePref.setEntries(R.array.snell_obfs_modes_entry)
+            obfsModePref.setEntryValues(R.array.snell_obfs_modes_value)
+        }
     }
 
 }

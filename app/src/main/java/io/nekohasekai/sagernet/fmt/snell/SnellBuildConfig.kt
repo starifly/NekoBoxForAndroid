@@ -16,8 +16,8 @@ fun buildSingBoxOutboundSnellBean(bean: SnellBean): SingBoxOptions.Outbound_Snel
         }
 
         if (bean.obfsMode != null && bean.obfsMode.isNotBlank()) {
-            obfs_mode = bean.obfsMode
-            if (bean.obfsHost != null && bean.obfsHost.isNotBlank()) {
+            obfs_mode = if (bean.version != null && bean.version >= 4 && bean.obfsMode == "tls") "" else bean.obfsMode
+            if (obfs_mode.isNotBlank() && bean.obfsHost != null && bean.obfsHost.isNotBlank()) {
                 obfs_host = bean.obfsHost
             }
         }
