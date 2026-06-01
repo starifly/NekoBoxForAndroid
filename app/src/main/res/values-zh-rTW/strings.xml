@@ -144,12 +144,6 @@
     <string name="share_qr_nfc">QR 碼</string>
     <string name="add_profile_methods_scan_qr_code">掃描 QR 碼</string>
     <string name="add_profile_methods_manual_settings">手動設定</string>
-    <plurals name="removed">
-        <item quantity="other">已移除 %d 個項目</item>
-    </plurals>
-    <plurals name="added">
-        <item quantity="other">已新增 %d 個代理</item>
-    </plurals>
     <string name="undo">復原</string>
     <!-- tasker -->
     <!-- status -->
@@ -396,7 +390,6 @@
     <string name="resolve_destination_summary">如果目的地位址是一個網域，則基於 IPv6 策略傳出。</string>
     <string name="destination_override_summary">使用被偵測到的網域複寫目的地位址，而不是僅用於路由</string>
     <string name="route_opt_block_analysis">封鎖分析</string>
-    <string name="route_play_store">%s Google Play商店規則</string>
     <string name="naive_insecure_concurrency">不安全並發</string>
     <string name="stun_test">NAT 行為尋找</string>
     <string name="naive_insecure_concurrency_summary">使用N個並發的隧道能使網路條件較差时更加可用。但數量越多，越易被偵測，安全性越低。由於本項目致力於面對流量分析的安全性，以不安全的方式使用違背了其初忠。
@@ -439,7 +432,6 @@
     <string name="route_bypass_domain">%s 的網域規則</string>
     <string name="route_play_store">%s 的 Play 商店規則</string>
     <string name="route_bypass_ip">%s 的 IP 規則</string>
-    <string name="route_opt_block_analysis">封鎖分析</string>
     <string name="route_opt_block_quic">封鎖 QUIC</string>
     <string name="mux_sum">Mux（多工）旨在降低 TCP 握手延遲，而非提高連線吞吐量。使用 Mux 觀看影片、下載或進行測速通常會適得其反。如果伺服器不支援，您將無法存取網際網路。</string>
     <string name="mux_mode">模式</string>
@@ -454,10 +446,8 @@
     <string name="proxied_apps_summary">為所選應用程式設定 VPN 模式</string>
     <string name="auto_connect_summary">如果代理先前正在執行，則在開機/應用程式更新時自動啟用</string>
     <string name="forward_success">代理已啟動。</string>
-    <string name="stopping">正在關閉…</string>
     <string name="vpn_permission_denied">拒絕建立 VPN 服務的權限</string>
     <string name="reboot_required">無法啟動 VPN 服務。您可能需要重新啟動您的裝置。</string>
-    <string name="add_profile_methods_manual_settings">手動設定</string>
     <plurals name="removed">
         <item quantity="one">已移除</item>
         <item quantity="other">已移除 %d 個項目</item>
@@ -476,22 +466,16 @@
     <string name="ignore_battery_optimizations_sum">移除部分限制</string>
     <string name="plugin_untrusted">警告：此外掛程式似乎並非來自已知的信任來源。</string>
     <string name="plugin_auto_connect_unlock_only">此外掛程式可能無法與自動連線配合工作</string>
-    <string name="ss_cat">Shadowsocks 設定</string>
     <string name="unsaved_changes_prompt">變更尚未儲存。是否要儲存？</string>
     <string name="need_reload">重新載入代理服務以套用變更</string>
     <string name="route_warn">在新增自訂規則之前，請確保您已閱讀過文件，否則您可能無法連線到網際網路。</string>
-    <string name="lines">%d 行</string>
-    <string name="night_mode">夜間模式</string>
-    <string name="follow_system">跟隨系統</string>
     <string name="enable_log">啟用日誌</string>
     <string name="enable_log_sum">用於除錯目的</string>
-    <string name="random">隨機</string>
     <string name="probe_interval">平衡器觀測間隔</string>
     <string name="unavailable">不可用</string>
     <string name="always_show_address">總是顯示位址</string>
     <string name="always_show_address_sum">總是在設定卡片上顯示伺服器位址</string>
     <string name="clear_traffic_statistics">清除流量統計</string>
-    <string name="connection_test_clear_results">清除測試結果</string>
     <string name="connection_test_tcp_ping_unavailable">TCPing 不可用</string>
     <string name="connection_test_icmp_ping_unavailable">ICMPing 不可用</string>
     <string name="connection_test_domain_not_found">找不到網域</string>
@@ -503,11 +487,6 @@
     <string name="strict_route">嚴格路由</string>
     <string name="protocol_settings">協定設定</string>
     <string name="trojan_provider">Trojan 提供者</string>
-    <string name="group_basic">基本</string>
-    <string name="group_settings">群組設定</string>
-    <string name="subscription_settings">訂閱設定</string>
-    <string name="group_type">群組類型</string>
-    <string name="subscription_type">訂閱類型</string>
     <string name="delete_group_prompt">您確定要移除此群組嗎？</string>
     <string name="force_resolve">強制解析</string>
     <string name="force_resolve_sum">更新時將所有網域名稱解析為 IP 位址。如果可行，將自動附加 Host 和 SNI</string>
@@ -519,14 +498,9 @@
     <string name="filter_regex">篩選器 (正則表達式)</string>
     <string name="raw">原始（Raw）</string>
     <string name="update_settings">更新設定</string>
-    <string name="auto_update">自動更新</string>
     <string name="auto_update_delay">自動更新延遲（分鐘）</string>
-    <string name="update_when_connected_only">僅在已連線時更新</string>
-    <string name="update_when_connected_only_sum">防止 IP 位址洩漏</string>
     <string name="subscription_user_agent">UserAgent（使用者代理）</string>
-    <string name="confirm">確認</string>
     <string name="missing_plugin">缺少外掛程式</string>
     <string name="profile_requiring_plugin">設定檔 %1$s 需要安裝 %2$s 外掛程式，但未找到。</string>
     <string name="action_learn_more">了解更多</string>
-    <string name="action_download">下載</string>
 </resources>
