@@ -36,15 +36,12 @@
     <string name="group_no_difference">%s: 沒有變化</string>
     <string name="group_updated">%s: 更新了 %d 個代理</string>
     <string name="group_show_diff">變化</string>
-    <string name="group_diff">變化 (%s)</string>
     <string name="group_delete_confirm_prompt">您真的希望刪除這個群組嗎？</string>
     <string name="group_added">新增：
 \n%s</string>
     <string name="group_changed">更新：
 \n%s</string>
     <string name="group_deleted">刪除：
-\n%s</string>
-    <string name="group_duplicate">重複：
 \n%s</string>
     <!-- misc -->
     <string name="service_mode">執行模式</string>
@@ -207,8 +204,7 @@
     <string name="show_stop">顯示停止按鈕</string>
     <string name="cag_misc">其他設定</string>
     <string name="port_transproxy">透明代理連接埠</string>
-    <string name="group_duplicate">重複：
-\n%s</string>
+    <string name="group_duplicate">重複：\n%s</string>
     <string name="group_diff">差異（%s）</string>
     <string name="tile_title">切換器</string>
     <string name="group_default">未分組</string>
@@ -423,11 +419,6 @@
     <string name="backup_summary">如果路由規則不與設定檔一起備份，則自訂出站將丟失。</string>
     <string name="backup_not_file">不是一個備份檔案，預計 .json，但 %s</string>
     <string name="packet_encoding">封包編碼</string>
-    <string name="update_all_subscription">更新所有訂閱</string>
-    <string name="layout">版面配置</string>
-    <string name="layout_single_column">單欄</string>
-    <string name="layout_double_column">雙欄</string>
-    <string name="sort_and_layout">排序與版面配置</string>
     <string name="group_status_proxies_subscription">%1$d 個代理 | 更新於 %2$s</string>
     <string name="group_show_diff">顯示差異</string>
     <string name="group_delete_confirm_prompt">您確定要移除此群組嗎？</string>
