@@ -26,22 +26,22 @@
     <!-- group -->
     <string name="group_name">群组名称</string>
     <string name="group_update">更新</string>
-    <string name="group_subscription_link">订阅链接</string>
-    <string name="group_name_required">需要群组名称</string>
-    <string name="group_create">建立群组</string>
-    <string name="group_create_subscription">建立订阅</string>
-    <string name="update_all_subscription">更新所有订阅</string>
-    <string name="group_edit">编辑群组</string>
-    <string name="group_edit_subscription">编辑订阅</string>
-    <string name="layout">布局</string>
-    <string name="layout_single_column">单栏</string>
-    <string name="layout_double_column">双栏</string>
-    <string name="sort_and_layout">排序与布局</string>
-    <string name="group_status_empty">空群组</string>
+    <string name="group_subscription_link">訂閱連結</string>
+    <string name="group_name_required">需要群组名稱</string>
+    <string name="group_create">創建群組</string>
+    <string name="group_create_subscription">建立訂閱</string>
+    <string name="update_all_subscription">更新所有訂閱</string>
+    <string name="group_edit">編輯群組</string>
+    <string name="group_edit_subscription">編輯訂閱</string>
+    <string name="layout">版面配置</string>
+    <string name="layout_single_column">單列</string>
+    <string name="layout_double_column">雙列</string>
+    <string name="sort_and_layout">排序与佈局</string>
+    <string name="group_status_empty">空群組</string>
     <string name="group_status_empty_subscription">尚未更新</string>
-    <string name="group_status_proxies">%d 个代理</string>
-    <string name="group_status_proxies_subscription">%d 个代理 | 更新于 %s</string>
-    <string name="group_no_difference">%s: 无差异</string>
+    <string name="group_status_proxies">%d 個代理</string>
+    <string name="group_status_proxies_subscription">%d 個代理 | 更新於 %s</string>
+    <string name="group_no_difference">%s: 無差異</string>
     <string name="group_updated">%s：已更新 %d 個代理</string>
     <string name="group_show_diff">差異</string>
     <string name="group_diff">差異 (%s)</string>
@@ -122,7 +122,7 @@
     <string name="kcp_mtu">mKCP MTU</string>
     <string name="kcp_tti">mKCP TTI</string>
     <string name="kcp_cwnd_multiplier">CWND 乘數</string>
-    <string name="grpc_service_name">gRPC ServiceName</string>
+    <string name="grpc_service_name">gRPC 服務名稱</string>
     <string name="tls">使用 TLS</string>
     <string name="sni">伺服器名稱指示</string>
     <string name="alpn">應用層協定協商</string>
@@ -226,7 +226,7 @@
     <string name="circular_reference">循環引用</string>
     <string name="circular_reference_sum">路由不能包含自身。</string>
     <string name="clear_profiles">清除</string>
-    <string name="action_create_group">空群组</string>
+    <string name="action_create_group">空群組</string>
     <string name="action_from_link">從訂閱</string>
     <string name="action_scan_china_apps">掃描中國應用</string>
     <string name="action_export_file">導出到文件</string>
@@ -401,7 +401,7 @@
     <string name="copy_success">複製成功！</string>
     <string name="copy_failed">複製失敗。</string>
     <string name="app_no_launcher">此應用程式沒有介面。</string>
-    <string name="route_for">Rule for %s</string>
+    <string name="route_for">%s 的規則</string>
     <string name="route_need_vpn">路由規則 %s 依賴 VPN 才能生效，因此
         被忽略。</string>
     <string name="profile_traffic_statistics">設定檔流量統計</string>
