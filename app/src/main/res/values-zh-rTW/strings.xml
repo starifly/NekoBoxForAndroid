@@ -208,10 +208,8 @@
     <string name="group_diff">差異（%s）</string>
     <string name="tile_title">切換器</string>
     <string name="group_default">未分組</string>
-    <string name="version_x">版本 (%s)</string>
     <string name="extra_headers">額外標頭</string>
     <string name="config_type">設定類型</string>
-    <string name="theme">主題</string>
     <string name="edit_config">編輯設定</string>
     <string name="ipv6">IPv6 路由</string>
     <string name="prefer">優先</string>
@@ -531,6 +529,4 @@
     <string name="profile_requiring_plugin">設定檔 %1$s 需要安裝 %2$s 外掛程式，但未找到。</string>
     <string name="action_learn_more">了解更多</string>
     <string name="action_download">下載</string>
-    <string name="install_from_play_store">從 Play 商店安裝</string>
-    <string name="install_from_fdroid">從 F-Droid 安装</string>
 </resources>
