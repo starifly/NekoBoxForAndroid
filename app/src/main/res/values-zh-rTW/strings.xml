@@ -12,7 +12,6 @@
     <string name="menu_group">群組</string>
     <string name="menu_about">關於</string>
     <string name="theme">主題</string>
-    <string name="document">文檔</string>
     <string name="quick_toggle">切換</string>
     <string name="quick_enable">啟用</string>
     <string name="quick_disable">停用</string>
@@ -178,7 +177,7 @@
     <string name="no">否</string>
     <string name="apply">套用</string>
     <string name="license">授權條款</string>
-    <string name="document">文件</string>
+    <string name="document">文檔</string>
     <string name="early_data_header_name">前置資料標頭</string>
     <string name="certificates">憑證</string>
     <string name="alpn">應用層通訊協定協商</string>
