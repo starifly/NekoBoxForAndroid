@@ -34,7 +34,6 @@
     <string name="group_status_proxies">%d 個代理</string>
     <string name="group_no_difference">%s: 沒有變化</string>
     <string name="group_updated">%s: 更新了 %d 個代理</string>
-    <string name="group_delete_confirm_prompt">您真的希望刪除這個群組嗎？</string>
     <string name="group_added">新增：
 \n%s</string>
     <string name="group_changed">更新：
@@ -48,7 +47,6 @@
     <string name="port_http">HTTP 代理連接埠</string>
     <string name="port_local_dns">本地 DNS 連接埠</string>
     <string name="allow_access">允許來自區域網路的連線</string>
-    <string name="allow_access_sum">繫結傳入伺服器至 0.0.0.0</string>
     <string name="cag_dns">DNS 設定</string>
     <string name="cag_route">路由設定</string>
     <string name="inbound_settings">傳入設定</string>
@@ -59,14 +57,10 @@
     <string name="ws_browser_forwarding_sum">轉傳對應的 WebSocket 連線至瀏覽器。</string>
     <string name="speed_interval">速度通知更新間隔</string>
     <string name="traffic">%1$s↑ %2$s↓</string>
-    <string name="speed_detail">代理： %1$s↑ %2$s↓
-\n直連： %3$s↑ %4$s↓</string>
     <string name="speed">%s/s</string>
     <string name="connection_test_testing">正在測試…</string>
-    <string name="connection_test_available">成功：HTTPS 握手花費 %dms</string>
     <string name="connection_test_error">失敗：%s</string>
     <string name="connection_test_fail">網路不可用</string>
-    <string name="connection_test_error_status_code">錯誤碼：#%d</string>
     <!-- proxy category -->
     <string name="profile_name">設定檔名稱</string>
     <string name="server_address">伺服器</string>
@@ -101,13 +95,11 @@
     <string name="bypass_apps">略過</string>
     <string name="show_system_apps">顯示系統應用程式</string>
     <string name="auto_connect">自動連線</string>
-    <string name="auto_connect_summary">如果代理在開機或應用更新前正在執行則自動啟動</string>
     <string name="direct_boot_aware">允許螢幕鎖定時切換</string>
     <string name="direct_boot_aware_summary">您選取的設定檔資訊將受到較少保護</string>
     <!-- notification category -->
     <string name="service_vpn">VPN 服務</string>
     <string name="service_proxy">代理服務</string>
-    <string name="forward_success">SagerNet 已啟動。</string>
     <string name="invalid_server">伺服器名稱無效</string>
     <string name="stop">停止</string>
     <string name="stopping">正在關閉…</string>
@@ -158,10 +150,7 @@
     <string name="plugin_configure">設定…</string>
     <string name="plugin_disabled">已停用</string>
     <string name="plugin_unknown">未知外掛程式 %s</string>
-    <string name="plugin_untrusted">警告：此外掛程式並非來自可靠的可信來源。</string>
-    <string name="plugin_auto_connect_unlock_only">此外掛程式可能不支援自動連線</string>
     <string name="proxy_cat">伺服器設定</string>
-    <string name="unsaved_changes_prompt">要儲存變更嗎？</string>
     <string name="yes">是</string>
     <string name="no">否</string>
     <string name="apply">套用</string>
@@ -175,7 +164,6 @@
     <string name="http_host">HTTP 主機</string>
     <string name="ws_path">WebSocket 路徑</string>
     <string name="ws_host">WebSocket 主機</string>
-    <string name="security">傳輸層安全性協定</string>
     <string name="key_opt">金鑰（選用）</string>
     <string name="username">使用者名稱</string>
     <string name="connection_test_url">連線測試 URL</string>
@@ -215,8 +203,7 @@
     <string name="route_profile">選取設定檔…</string>
     <string name="empty_route">空白路由規則</string>
     <string name="empty_route_notice">在儲存前設定一些規則</string>
-    <string name="route_bypass_domain">%s 網域規則</string>
-    <string name="route_bypass_ip">%s IP 規則</string>
+    <string name="route_bypass_domain">%s 的網域規則</string>
     <string name="route_reset">重設</string>
     <string name="route_manage_assets">管理路由資源</string>
     <string name="route_assets">資源</string>
@@ -253,12 +240,8 @@
     <string name="no_proxies_found_in_file">未在此檔案中找到代理</string>
     <string name="no_proxies_found_in_clipboard">未在剪貼簿中找到代理</string>
     <string name="deduplication">重複資料刪除</string>
-    <string name="donate">捐贈</string>
     <string name="ignore_battery_optimizations">忽略電池效能最佳化</string>
-    <string name="ignore_battery_optimizations_sum">移除一些限制</string>
     <string name="ss_cat">Shadowsocks 設定</string>
-    <string name="need_reload">重新載入代理服務以套用修改</string>
-    <string name="route_warn">請在新增客製化規則前閱讀文件，否則您可能會無法連線至網際網路。</string>
     <string name="lines">%d 行</string>
     <string name="night_mode">夜間模式</string>
     <string name="follow_system">跟隨系統</string>
@@ -272,22 +255,17 @@
     <string name="api_port">API 連接埠</string>
     <string name="probe_interval">負載平衡器觀測間隔</string>
     <string name="standard">標準</string>
-    <string name="unavailable">無法使用</string>
     <string name="always_show_address">始終顯示位址</string>
     <string name="always_show_address_sum">使用在設定檔卡片中顯示伺服器位址</string>
     <string name="clear_traffic_statistics">清除流量統計資料</string>
     <string name="connection_test">連線測試</string>
-    <string name="connection_test_tcp_ping_unavailable">TCPing 無法使用</string>
     <string name="connection_test_clear_results">清除測試結果</string>
-    <string name="connection_test_icmp_ping_unavailable">ICMPing 無法使用</string>
-    <string name="connection_test_domain_not_found">網域不存在</string>
     <string name="connection_test_refused">連線被拒</string>
     <string name="donate_info">貓貓很可愛 請給貓貓錢</string>
     <string name="connection_test_unreachable">無法連線</string>
     <string name="connection_test_timeout_error">逾時</string>
     <string name="append_http_proxy">為 VPN 附加 HTTP 代理</string>
     <string name="append_http_proxy_sum">HTTP 代理將直接被支援的瀏覽器/應用程式使用，而無需經過虛擬網路卡（Android 10+）</string>
-    <string name="trojan_provider">Trojan 提供程式</string>
     <string name="protocol_settings">協議設定</string>
     <string name="group_basic">基本</string>
     <string name="group_settings">群組設定</string>
@@ -295,7 +273,6 @@
     <string name="subscription_settings">訂閱設定</string>
     <string name="group_type">群組類型</string>
     <string name="subscription_type">訂閱類型</string>
-    <string name="delete_group_prompt">您真的希望移除此群組嗎？</string>
     <string name="deduplication_sum">在更新時移除重複的設定檔</string>
     <string name="raw">原始</string>
     <string name="update_settings">更新設定</string>
@@ -305,7 +282,6 @@
     <string name="update_when_connected_only_sum">防止 IP 位址洩漏</string>
     <string name="subscription_user_agent">使用者代理</string>
     <string name="confirm">確認</string>
-    <string name="missing_plugin">遺失外掛程式</string>
     <string name="profile_requiring_plugin">設定檔 %s 需要外掛程式 %s，但其未被安裝。</string>
     <string name="action_learn_more">深入瞭解</string>
     <string name="action_download">下載</string>
@@ -409,23 +385,13 @@
     <string name="group_status_proxies_subscription">%1$d 個代理 | 更新於 %2$s</string>
     <string name="group_show_diff">差異</string>
     <string name="group_delete_confirm_prompt">您確定要移除此群組嗎？</string>
-    <string name="group_added">已新增：\n%s</string>
-    <string name="group_changed">已更新：\n%s</string>
-    <string name="group_deleted">已刪除：\n%s</string>
-    <string name="service_mode_proxy">僅限代理</string>
     <string name="allow_access_sum">將傳入伺服器綁定至 0.0.0.0</string>
-    <string name="require_http">啟用 HTTP 傳入</string>
     <string name="speed_detail">代理： %1$s↑ %2$s↓\n直連： %3$s↑ %4$s↓</string>
     <string name="connection_test_available">成功：HTTPS 握手耗時 %dms</string>
     <string name="connection_test_error_status_code">錯誤代碼：#%d</string>
     <string name="enable_fakedns">啟用 FakeDNS</string>
     <string name="fakedns_message">可能會導致代理停止後，其他應用程式需要重新啟動才能重新連線網路</string>
-    <string name="require_transproxy">啟用透明代理傳入</string>
-    <string name="username_opt">使用者名稱（選填）</string>
-    <string name="password_opt">密碼（選填）</string>
     <string name="security">傳輸層加密</string>
-    <string name="early_data_header_name">早期數據標頭名稱</string>
-    <string name="route_bypass_domain">%s 的網域規則</string>
     <string name="route_play_store">%s 的 Play 商店規則</string>
     <string name="route_bypass_ip">%s 的 IP 規則</string>
     <string name="route_opt_block_quic">封鎖 QUIC</string>
@@ -438,12 +404,8 @@
     <string name="mux_brutal">TCP Brutal</string>
     <string name="mux_brutal_up_mbps">上傳 (Mbps)</string>
     <string name="mux_brutal_down_mbps">下載 (Mbps)</string>
-    <string name="tcp_keep_alive_interval">TCP 保持存活封包發送間隔</string>
-    <string name="proxied_apps_summary">為所選應用程式設定 VPN 模式</string>
     <string name="auto_connect_summary">如果代理先前正在執行，則在開機/應用程式更新時自動啟用</string>
     <string name="forward_success">代理已啟動。</string>
-    <string name="vpn_permission_denied">拒絕建立 VPN 服務的權限</string>
-    <string name="reboot_required">無法啟動 VPN 服務。您可能需要重新啟動您的裝置。</string>
     <plurals name="removed">
         <item quantity="one">已移除</item>
         <item quantity="other">已移除 %d 個項目</item>
@@ -452,36 +414,18 @@
         <item quantity="one">已新增</item>
         <item quantity="other">已新增 %d 個代理</item>
     </plurals>
-    <string name="no_proxies_found_in_subscription">訂閱中未找到任何代理</string>
-    <string name="no_proxies_found_in_file">檔案中未找到任何代理</string>
-    <string name="no_proxies_found_in_clipboard">剪貼簿中未找到任何代理</string>
-    <string name="deduplication">去重（刪除重複項）</string>
     <string name="donate">贊助</string>
-    <string name="donate_info">我愛錢</string>
-    <string name="ignore_battery_optimizations">忽略電池最佳化</string>
     <string name="ignore_battery_optimizations_sum">移除部分限制</string>
     <string name="plugin_untrusted">警告：此外掛程式似乎並非來自已知的信任來源。</string>
     <string name="plugin_auto_connect_unlock_only">此外掛程式可能無法與自動連線配合工作</string>
     <string name="unsaved_changes_prompt">變更尚未儲存。是否要儲存？</string>
     <string name="need_reload">重新載入代理服務以套用變更</string>
-    <string name="route_warn">在新增自訂規則之前，請確保您已閱讀過文件，否則您可能無法連線到網際網路。</string>
-    <string name="enable_log">啟用日誌</string>
-    <string name="enable_log_sum">用於除錯目的</string>
-    <string name="probe_interval">平衡器觀測間隔</string>
+    <string name="route_warn">在新增自訂規則之前，請確保您已閱讀過文檔，否則您可能無法連線到網際網路。</string>
     <string name="unavailable">不可用</string>
-    <string name="always_show_address">總是顯示位址</string>
-    <string name="always_show_address_sum">總是在設定卡片上顯示伺服器位址</string>
-    <string name="clear_traffic_statistics">清除流量統計</string>
     <string name="connection_test_tcp_ping_unavailable">TCPing 不可用</string>
     <string name="connection_test_icmp_ping_unavailable">ICMPing 不可用</string>
     <string name="connection_test_domain_not_found">找不到網域</string>
-    <string name="connection_test_refused">連線被拒絕</string>
-    <string name="connection_test_unreachable">無法連線（不可達）</string>
-    <string name="connection_test_timeout_error">超時</string>
-    <string name="append_http_proxy">附加 HTTP 代理至 VPN</string>
-    <string name="append_http_proxy_sum">HTTP 代理將直接被（瀏覽器/某些支援的應用程式）使用，而不通過虛擬網卡裝置 (Android 10+)</string>
     <string name="strict_route">嚴格路由</string>
-    <string name="protocol_settings">協定設定</string>
     <string name="trojan_provider">Trojan 提供者</string>
     <string name="delete_group_prompt">您確定要移除此群組嗎？</string>
     <string name="force_resolve">強制解析</string>
@@ -491,10 +435,5 @@
     <string name="filter_include">包含</string>
     <string name="filter_exclude">排除</string>
     <string name="filter_regex">篩選器 (正則表達式)</string>
-    <string name="raw">原始（Raw）</string>
-    <string name="auto_update_delay">自動更新延遲（分鐘）</string>
-    <string name="subscription_user_agent">UserAgent（使用者代理）</string>
     <string name="missing_plugin">缺少外掛程式</string>
-    <string name="profile_requiring_plugin">設定檔 %1$s 需要安裝 %2$s 外掛程式，但未找到。</string>
-    <string name="action_learn_more">了解更多</string>
 </resources>
