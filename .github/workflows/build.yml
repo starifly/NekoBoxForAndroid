@@ -62,15 +62,20 @@ jobs:
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
           echo "ndk.dir=${ANDROID_HOME}/ndk/25.0.8775105" >> local.properties
           export LOCAL_PROPERTIES="${{ secrets.LOCAL_PROPERTIES }}"
+          
+          # 1. 核心修正：先把原作者可能殘留或影響的舊密鑰文件強制刪除
+          rm -rf release.keystore
+          
+          # 2. 執行原作者的初始化腳本（此時沒有舊密鑰文件干擾）
           ./run init action gradle
           
-          # 1. 現場生成密鑰並直接覆蓋根目錄的 release.keystore
+          # 3. 現場生成一個密碼為 android 的全新密鑰文件，直接叫 release.keystore
           keytool -genkey -v -keystore release.keystore -storepass android -alias mykey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Build,O=Neko,C=US"
           
-          # 2. 使用配對好的環境變量進行打包
+          # 4. 使用配對好的環境變量進行打包
           KEYSTORE_PASS="android" ALIAS_NAME="mykey" ALIAS_PASS="android" ./gradlew app:assembleOssRelease
           
-          # 3. 尋找 APK 路徑並寫入環境變量
+          # 5. 尋找 APK 路徑並寫入環境變量
           APK=$(find app/build/outputs/apk -name '*arm64-v8a*.apk')
           APK=$(dirname $APK)
           echo "APK=$APK" >> $GITHUB_ENV
