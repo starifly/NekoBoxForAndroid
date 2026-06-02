@@ -12,7 +12,7 @@
     <string name="menu_group">分組</string>
     <string name="menu_about">關於</string>
     <string name="theme">主題</string>
-    <string name="document">文件</string>
+    <string name="document">文檔</string>
     <string name="group_default">未分組</string>
     <string name="quick_toggle">切換</string>
     <string name="quick_enable">啟用</string>
@@ -290,7 +290,7 @@
     <string name="apply">套用</string>
     <string name="need_reload">重新載入代理服務以套用變更</string>
     <string name="license">授權</string>
-    <string name="route_warn">在新增自訂規則之前，請確定您已閱讀文件，否則可能無法連線到網際網路。</string>
+    <string name="route_warn">在新增自訂規則之前，請確定您已閱讀文檔，否則可能無法連線到網際網路。</string>
     <string name="lines">%d 行</string>
     <string name="night_mode">夜間模式</string>
     <string name="follow_system">跟隨系統</string>
