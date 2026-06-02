@@ -9,7 +9,7 @@
     <string name="version_x">版本 (%s)</string>
     <string name="logcat">匯出除錯資訊</string>
     <string name="menu_configuration">設定</string>
-    <string name="menu_group">群組</string>
+    <string name="menu_group">分組</string>
     <string name="menu_about">關於</string>
     <string name="theme">主題</string>
     <string name="document">文件</string>
@@ -313,19 +313,19 @@
     <string name="connection_test_tcp_ping_unavailable">TCPing 不可用</string>
     <string name="connection_test_icmp_ping_unavailable">ICMPing 不可用</string>
     <string name="connection_test_domain_not_found">找不到域名</string>
-    <string name="connection_test_refused">連接被拒絕</string>
+    <string name="connection_test_refused">連線被拒</string>
     <string name="connection_test_unreachable">無法訪問</string>
     <string name="connection_test_timeout_error">超時</string>
     <string name="append_http_proxy">附加 HTTP 代理到 VPN</string>
-    <string name="append_http_proxy_sum">HTTP 代理將直接由瀏覽器/某些支援的應用程式使用，而不經過虛擬網路卡裝置（Android 10+）</string>
+    <string name="append_http_proxy_sum">HTTP 代理將直接由（瀏覽器 / 某些支援的應用程式）使用，而不經過虛擬網路卡裝置（Android 10+）</string>
     <string name="strict_route">嚴格路由</string>
-    <string name="protocol_settings">協定設定</string>
+    <string name="protocol_settings">協議設定</string>
     <string name="trojan_provider">Trojan 提供者</string>
-    <string name="group_basic">基本</string>
-    <string name="group_settings">群組設定</string>
+    <string name="group_basic">基礎</string>
+    <string name="group_settings">分組設置</string>
     <string name="subscription">訂閱</string>
     <string name="subscription_settings">訂閱設定</string>
-    <string name="group_type">群組類型</string>
+    <string name="group_type">分組類型</string>
     <string name="subscription_type">訂閱類型</string>
     <string name="delete_group_prompt">您確定要移除此群組嗎？</string>
     <string name="force_resolve">強制解析</string>
@@ -516,8 +516,8 @@
     <string name="ech_config">ECH 配置</string>
     <string name="http_upgrade_host">HTTPUpgrade 主機</string>
     <string name="http_upgrade_path">HTTPUpgrade 路徑</string>
-    <string name="update_current_subscription">更新目前群組的訂閱</string>
-    <string name="group_not_subscription">群組類型不是訂閱</string>
+    <string name="update_current_subscription">更新目前分組的訂閱</string>
+    <string name="group_not_subscription">分組類型不是訂閱</string>
     <string name="allow_insecure_on_request_sum">更新訂閱時
         停用憑證檢查</string>
     <string name="global_allow_insecure">始終允許不安全連線</string>
@@ -575,7 +575,7 @@
     <string name="update_dialog_message">目前版本：%1$s\n可用版本：%2$s\n您要下載嗎？</string>
     <string name="check_update_no">檢查成功，但無更新。</string>
     <string name="reset_settings">還原預設設定</string>
-    <string name="reset_settings_message">還原預設設定，但節點和群組等資料將保留。若要完全清除資料，請直接在系統設定中清除應用程式資料。</string>
+    <string name="reset_settings_message">還原預設設定，但節點和分組等資料將保留。若要完全清除資料，請直接在系統設定中清除應用程式資料。</string>
     <string name="minimize">最小化</string>
     <string name="xhttp_host">XHTTP 主機</string>
     <string name="xhttp_path">XHTTP 路徑</string>
@@ -596,5 +596,5 @@
     <string name="snell_obfs_mode">Obfs 模式</string>
     <string name="snell_obfs_host">Obfs 主機</string>
     <string name="snell_reuse">重用</string>
-    <string name="snell_reuse_summary">僅限 v4/v5</string>
+    <string name="snell_reuse_summary">僅限 v4 / v5</string>
 </resources>
