@@ -319,7 +319,7 @@
     <string name="append_http_proxy">附加 HTTP 代理到 VPN</string>
     <string name="append_http_proxy_sum">HTTP 代理將直接由（瀏覽器 / 某些支援的應用程式）使用，而不經過虛擬網路卡裝置（Android 10+）</string>
     <string name="strict_route">嚴格路由</string>
-    <string name="protocol_settings">協議設定</string>
+    <string name="protocol_settings">協定設定</string>
     <string name="trojan_provider">Trojan 提供者</string>
     <string name="group_basic">基礎</string>
     <string name="group_settings">分組設置</string>
@@ -356,7 +356,7 @@
     <string name="update_subscription_warning">代理未連線，確定要
         繼續更新嗎？</string>
     <string name="ooc_warning">警告</string>
-    <string name="ooc_missing_protocol">此訂閱需要支援協議 %s，但找不到該協議。不支援的設定檔將被忽略。</string>
+    <string name="ooc_missing_protocol">此訂閱需要支援協定 %s，但找不到該協議。不支援的設定檔將被忽略。</string>
     <string name="service_subscription">訂閱更新服務</string>
     <string name="subscription_update">訂閱更新</string>
     <string name="subscription_update_message">正在更新 %s …</string>
@@ -397,7 +397,7 @@
     <string name="open_app">開啟應用程式</string>
     <string name="open_settings">開啟設定</string>
     <string name="open_market">開啟商店</string>
-    <string name="create_rule">建立規則</string>
+    <string name="create_rule">創建規則</string>
     <string name="copy_success">複製成功！</string>
     <string name="copy_failed">複製失敗。</string>
     <string name="app_no_launcher">此應用程式沒有介面。</string>
@@ -416,18 +416,18 @@
     <string name="translate_platform">翻譯平台</string>
     <string name="menu_tools">工具</string>
     <string name="menu_log">日誌</string>
-    <string name="clear_logcat">清除 Logcat</string>
+    <string name="clear_logcat">清除日誌信息</string>
     <string name="wireguard_local_address">本機位址</string>
     <string name="wireguard_public_key">對端公鑰</string>
     <string name="wireguard_psk">對端預共享金鑰</string>
-    <string name="warp_license">CloudFlare Warp 是免費的 WireGuard VPN 提供者。使用即表示您同意服務條款。</string>
-    <string name="warp_generate">產生配置</string>
-    <string name="generating">產生中…</string>
+    <string name="warp_license">CloudFlare Warp 是免費的 WireGuard VPN 提供者。使用即表示您同意其服務條款。</string>
+    <string name="warp_generate">生成配置</string>
+    <string name="generating">生成中…</string>
     <string name="tun_implementation">TUN 實作</string>
-    <string name="destination_override">覆蓋目的地</string>
+    <string name="destination_override">覆寫目的地位址</string>
     <string name="destination_override_summary">使用嗅探到的域名覆蓋目的地位址，不僅用於路由</string>
-    <string name="resolve_destination">解析目標</string>
-    <string name="resolve_destination_summary">若目標地址為域名，則根據 IPv6 策略傳送（與 FakeDNS 衝突）</string>
+    <string name="resolve_destination">解析目的地位址</string>
+    <string name="resolve_destination_summary">若目的地位址為域名，則根據 IPv6 策略傳送（與 FakeDNS 衝突）</string>
     <string name="pcap_notice">Pcap 檔案將儲存至 %s</string>
     <string name="naive_insecure_concurrency">不安全的並發</string>
     <string name="naive_insecure_concurrency_summary">使用 N 條並發隧道路由，以在惡劣網路條件下更穩健。更多連線會使隧道更容易被偵測且安全性降低。本專案致力於提供最強的流量分析防護。以不安全的方式使用它將違背其目的。\n\n如果您必須使用此功能，請先嘗試 N=2 以查看是否能解決問題。強烈建議不要在此使用超過 4 條連線。</string>
@@ -450,8 +450,8 @@
     <string name="backup_import_summary">匯入將會覆蓋現有資料。</string>
     <string name="backup_importing">正在匯入…</string>
     <string name="packet_encoding">封包編碼</string>
-    <string name="acquire_wake_lock">獲取 WakeLock</string>
-    <string name="release_wake_lock">釋放 WakeLock</string>
+    <string name="acquire_wake_lock">獲取喚醒鎖</string>
+    <string name="release_wake_lock">釋放喚醒鎖</string>
     <string name="acquire_wake_lock_summary">保持 CPU 喚醒</string>
     <string name="hide_from_recent_apps">從最近任務中隱藏</string>
     <string name="hide_from_recent_apps_summary">在背景運行時從最近任務中隱藏應用</string>
@@ -459,23 +459,23 @@
     <string name="custom_rules_provider">自訂</string>
     <string name="rules_geosite_url">geosite URL</string>
     <string name="rules_geoip_url">geoip URL</string>
-    <string name="tuic_udp_relay_mode">UDP 中继模式</string>
-    <string name="tuic_congestion_controller">拥塞控制器</string>
-    <string name="tuic_disable_sni">禁用 SNI</string>
-    <string name="tuic_reduce_rtt">启用 0-RTT QUIC 握手</string>
-    <string name="pinned_certchain_sha256">固定证书 SHA256</string>
+    <string name="tuic_udp_relay_mode">UDP 中繼模式</string>
+    <string name="tuic_congestion_controller">擁擠控制器</string>
+    <string name="tuic_disable_sni">停用 SNI</string>
+    <string name="tuic_reduce_rtt">啓用 0-RTT QUIC 握手</string>
+    <string name="pinned_certchain_sha256">固定憑證 SHA256</string>
     <string name="please_update">您的 APP 版本過舊 (%s)。將在 %s 停止運作。請
         更新！</string>
     <string name="please_update_force">您的 APP 版本過舊 (%s)。已在 %s 停止運作。
         請更新！</string>
-    <string name="connection_test_delete_unavailable">清除不可用</string>
+    <string name="connection_test_delete_unavailable">清除不可用的</string>
     <string name="move">移動</string>
     <string name="exe_prefer_provider">外掛程式偏好提供者</string>
-    <string name="create_shortcut">建立捷徑</string>
+    <string name="create_shortcut">創建捷徑</string>
     <string name="app_tls_version">訂閱最小 TLS 版本</string>
     <string name="hop_interval">端口跳躍間隔（秒）</string>
     <string name="domain_strategy_for_remote">遠端網域策略</string>
-    <string name="domain_strategy_for_direct">直連的域名策略</string>
+    <string name="domain_strategy_for_direct">直連域名策略</string>
     <string name="domain_strategy_for_server">伺服器位址的域名策略</string>
     <string name="show_bottom_bar">像 SagerNet 一樣顯示底部欄</string>
     <string name="utls_fingerprint">uTLS 指紋</string>
@@ -487,28 +487,28 @@
     <string name="enable_clash_api">啟用 Clash API</string>
     <string name="log_level">日誌級別</string>
     <string name="enable_clash_api_summary">在 127.0.0.1:9090 提供 Clash API 和 yacd 面板</string>
-    <string name="xtls_flow">Flow (VLESS 子協議)</string>
+    <string name="xtls_flow">Flow (VLESS 子協定)</string>
     <string name="ads">廣告</string>
     <string name="bypass_lan_in_core">在核心中繞過區域網路</string>
     <string name="need_restart">重新啟動應用程式以套用變更</string>
     <string name="use_selector">使用選擇器</string>
     <string name="front_proxy">前端代理</string>
     <string name="landing_proxy">落地代理</string>
-    <string name="protocol_version">協議版本</string>
+    <string name="protocol_version">協定版本</string>
     <string name="share_subscription">共享訂閱</string>
     <string name="show_group_in_notification">在通知中顯示分組名稱</string>
-    <string name="reset_connections">重置連接</string>
-    <string name="remove_duplicate">移除重複服務器</string>
+    <string name="reset_connections">重設連線</string>
+    <string name="remove_duplicate">移除重複伺服器</string>
     <string name="mtu_help">長按偏好設定以自訂 MTU。</string>
     <string name="log_level_help">長按偏好設定以設定緩衝區大小。</string>
     <string name="tls_camouflage_settings">TLS 偽裝設定</string>
     <string name="test_concurrency">測試並發</string>
-    <string name="mux_type">Mux 協議</string>
+    <string name="mux_type">Mux 協定</string>
     <string name="sniff_routing">嗅探結果用於路由</string>
-    <string name="sniff_override">嗅探結果用於目的地</string>
-    <string name="resolve_server">根據 IPv6 策略解析服務器地址</string>
-    <string name="auto_select_proxy_apps">自動選擇代理應用</string>
-    <string name="auto_select_proxy_apps_message">自動選擇代理應用，這將清除您
+    <string name="sniff_override">嗅探結果用於目的地位址</string>
+    <string name="resolve_server">根據 IPv6 策略解析伺服器地址</string>
+    <string name="auto_select_proxy_apps">自動選擇代理應用程式</string>
+    <string name="auto_select_proxy_apps_message">自動選擇代理應用程式，這將清除您
         目前的選擇。</string>
     <string name="enable_ech">啟用 ECH</string>
     <string name="enable_ech_sum">啟用加密客戶端 Hello</string>
@@ -543,7 +543,7 @@
     <string name="webdav_restore_failed">從 WebDAV 還原失敗：%s</string>
     <string name="webdav_server_empty">請先設定 WebDAV 伺服器</string>
     <string name="webdav_auth_error">認證失敗：無效的使用者名稱或密碼</string>
-    <string name="webdav_permission_denied">權限不足</string>
+    <string name="webdav_permission_denied">權限遭拒</string>
     <string name="webdav_server_not_found">找不到伺服器</string>
     <string name="webdav_server_error">伺服器錯誤</string>
     <string name="webdav_connect_failed">連線失敗，代碼：%d</string>
@@ -552,13 +552,13 @@
     <string name="global_mode_summary">繞過所有路由規則，通過當前節點代理所有流量</string>
     <string name="mux_preference">多路復用</string>
     <string name="padding">填充</string>
-    <string name="network_change_reset_connections">網路變更時重置出站連線</string>
-    <string name="wake_reset_connections">裝置從休眠喚醒時重置出站連線</string>
+    <string name="network_change_reset_connections">網路變更時重設出站連線</string>
+    <string name="wake_reset_connections">裝置從休眠喚醒時重設出站連線</string>
     <string name="backup_in_progress">備份已在進行中</string>
     <string name="restore_in_progress">還原已在進行中</string>
     <string name="restore_cancelled">還原操作已取消</string>
     <string name="ruleset_update_interval">規則集更新間隔</string>
-    <string name="ruleset_update_interval_summary">遠端規則集的更新間隔。範例：1h、30m、3600s。設為 0 以停用自動更新</string>
+    <string name="ruleset_update_interval_summary">遠端規則集的更新間隔。範例：1 小時、30 分鐘、3600 秒。設為 0 以停用自動更新</string>
     <string name="ruleset_prefix_error">規則集格式錯誤：必須以 rsip: 或 rssite: 開頭</string>
     <string name="clear_cache">清除快取</string>
     <string name="clear_cache_summary">清除應用程式快取檔案以修復一些異常問題</string>
@@ -571,7 +571,7 @@
     <string name="preview_version_hint">此應用程式為預覽版本，可能包含許多問題。如果您不想測試，請前往 GitHub 下載正式版本！</string>
     <string name="check_update_preview">檢查預覽版本更新</string>
     <string name="check_update_release">檢查正式版本更新</string>
-    <string name="update_dialog_title">有新版本可用</string>
+    <string name="update_dialog_title">發現新版本</string>
     <string name="update_dialog_message">目前版本：%1$s\n可用版本：%2$s\n您要下載嗎？</string>
     <string name="check_update_no">檢查成功，但無更新。</string>
     <string name="reset_settings">還原預設設定</string>
@@ -595,6 +595,6 @@
     <string name="snell_network">協議</string>
     <string name="snell_obfs_mode">Obfs 模式</string>
     <string name="snell_obfs_host">Obfs 主機</string>
-    <string name="snell_reuse">重用</string>
+    <string name="snell_reuse">復用</string>
     <string name="snell_reuse_summary">僅限 v4 / v5</string>
 </resources>
