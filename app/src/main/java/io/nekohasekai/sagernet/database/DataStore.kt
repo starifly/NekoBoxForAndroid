@@ -138,10 +138,24 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         get() = getLocalPort(Key.MIXED_PORT, 2080)
         set(value) = saveLocalPort(Key.MIXED_PORT, value)
 
+    // Random secret for local mixed inbound authentication.
+    // Prevents other apps on the device from connecting to the proxy directly
+    // (bypassing VpnService) and discovering the real server IP.
+    val mixedSecret: String
+        get() {
+            val existing = configurationStore.getString(Key.MIXED_SECRET)
+            if (!existing.isNullOrEmpty()) return existing
+            val generated = java.util.UUID.randomUUID().toString().replace("-", "")
+            configurationStore.putString(Key.MIXED_SECRET, generated)
+            return generated
+        }
+
     fun initGlobal() {
         if (configurationStore.getString(Key.MIXED_PORT) == null) {
             mixedPort = mixedPort
         }
+        // Ensure secret is generated on first run
+        mixedSecret
     }
 
 

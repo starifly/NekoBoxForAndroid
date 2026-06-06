@@ -41,6 +41,7 @@ object Key {
     const val CONCURRENT_DIAL = "concurrentDial"
 
     const val MIXED_PORT = "mixedPort"
+    const val MIXED_SECRET = "mixedSecret"
     const val ALLOW_ACCESS = "allowAccess"
     const val SPEED_INTERVAL = "speedInterval"
     const val SHOW_DIRECT_SPEED = "showDirectSpeed"

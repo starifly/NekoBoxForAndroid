@@ -254,6 +254,12 @@ fun buildConfig(
                 domain_strategy = genDomainStrategy(DataStore.resolveDestination)
                 sniff = needSniff
                 sniff_override_destination = needSniffOverride
+                // Fix: add random auth to prevent any app on device from using this proxy
+                // directly (bypassing VpnService) and leaking the real server IP.
+                users = listOf(User().also { u ->
+                    u.username = "neko"
+                    u.password = DataStore.mixedSecret
+                })
             })
         }
 

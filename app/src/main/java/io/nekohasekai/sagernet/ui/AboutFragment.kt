@@ -216,7 +216,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                 try {
                     val client = Libcore.newHttpClient().apply {
                         modernTLS()
-                        trySocks5(DataStore.mixedPort)
+                        trySocks5(DataStore.mixedPort, "neko", DataStore.mixedSecret)
                     }
                     val response = client.newRequest().apply {
                         if (checkPreview) {

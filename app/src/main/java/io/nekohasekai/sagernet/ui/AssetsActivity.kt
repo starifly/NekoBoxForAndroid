@@ -282,7 +282,7 @@ class AssetsActivity : ThemedActivity() {
         val client = Libcore.newHttpClient().apply {
             modernTLS()
             keepAlive()
-            trySocks5(DataStore.mixedPort)
+            trySocks5(DataStore.mixedPort, "neko", DataStore.mixedSecret)
         }
 
         try {
@@ -345,7 +345,7 @@ class AssetsActivity : ThemedActivity() {
         val client = Libcore.newHttpClient().apply {
             modernTLS()
             keepAlive()
-            trySocks5(DataStore.mixedPort)
+            trySocks5(DataStore.mixedPort, "neko", DataStore.mixedSecret)
         }
         try {
             val response = client.newRequest().apply {
