@@ -15,6 +15,7 @@ import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.ktx.*
+import io.nekohasekai.sagernet.utils.AppLocale
 import io.nekohasekai.sagernet.utils.Theme
 import moe.matsuri.nb4a.ui.*
 import android.os.Handler
@@ -63,6 +64,11 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         nightTheme.setOnPreferenceChangeListener { _, newTheme ->
             Theme.currentNightMode = (newTheme as String).toInt()
             Theme.applyNightTheme()
+            true
+        }
+        val appLanguage = findPreference<SimpleMenuPreference>(Key.APP_LANGUAGE)!!
+        appLanguage.setOnPreferenceChangeListener { _, newValue ->
+            AppLocale.apply(newValue as String)
             true
         }
         val mixedPort = findPreference<EditTextPreference>(Key.MIXED_PORT)!!

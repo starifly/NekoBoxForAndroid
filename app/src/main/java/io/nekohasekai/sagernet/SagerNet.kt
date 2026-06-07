@@ -81,6 +81,7 @@ class SagerNet : Application(),
         if (isMainProcess) {
             Theme.apply(this)
             Theme.applyNightTheme()
+            AppLocale.apply()
             runOnDefaultDispatcher {
                 DefaultNetworkListener.start(this) {
                     underlyingNetwork = it
