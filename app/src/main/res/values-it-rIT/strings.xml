@@ -300,6 +300,7 @@
         altrimenti potresti non riuscire a connetterti a Internet.</string>
     <string name="lines">%d righe</string>
     <string name="night_mode">Modalità notte</string>
+    <string name="language">Language</string>
     <string name="follow_system">Segui sistema</string>
     <string name="enable">Abilita</string>
     <string name="disable">Disabilita</string>
