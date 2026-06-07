@@ -96,7 +96,7 @@ jobs:
           echo "APK=$APK" >> $GITHUB_ENV
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
-          name: NekoBoxs
+          name: APKs
           path: ${{ env.APK }}
