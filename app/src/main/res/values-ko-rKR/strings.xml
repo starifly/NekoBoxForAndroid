@@ -294,7 +294,7 @@
         그렇지 않으면 인터넷에 연결하지 못할 수 있습니다.</string>
     <string name="lines">%d 줄</string>
     <string name="night_mode">야간 모드</string>
-    <string name="language">Language</string>
+    <string name="language">언어</string>
     <string name="follow_system">시스템 따르기</string>
     <string name="enable">활성화</string>
     <string name="disable">비활성화</string>
