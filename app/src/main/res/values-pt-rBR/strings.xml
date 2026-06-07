@@ -299,6 +299,7 @@
         caso contrário, você pode não conseguir se conectar à Internet.</string>
     <string name="lines">%d Linhas</string>
     <string name="night_mode">Modo Noturno</string>
+    <string name="language">Language</string>
     <string name="follow_system">Seguir Sistema</string>
     <string name="enable">Ativar</string>
     <string name="disable">Desativar</string>
