@@ -299,7 +299,7 @@
         aksi halde internete bağlanamayabilirsiniz.</string>
     <string name="lines">%d Satır</string>
     <string name="night_mode">Gece Modu</string>
-    <string name="language">Language</string>
+    <string name="language">Lisan</string>
     <string name="follow_system">Sistemi Takip Et</string>
     <string name="enable">Etkinleştir</string>
     <string name="disable">Devre dışı bırak</string>
@@ -590,7 +590,7 @@
     <string name="xhttp_extra">XHTTP Ekstra</string>
     <string name="xhttp_settings">XHTTP Ayarları</string>
     <string name="vless_encryption">Şifreleme</string>
-    <string name="vless_encryption_hint">mlkem768x25519plus.native.0rtt.KEY1.KEY2...</string>
+    <string name="vless_encryption_hint">...0...</string>
     <string name="app_list_permission_denied">Yüklü uygulamalar okunamıyor.\nBu genellikle sistemin uygulama okuma izinlerini kısıtlamış olmasından kaynaklanır.\nLütfen sistem ayarlarından izin verin.</string>
     <string name="open_app_settings">Sistem Ayarlarını Aç</string>
     <!-- Snell Protocol -->
