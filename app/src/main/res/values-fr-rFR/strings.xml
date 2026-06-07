@@ -304,6 +304,7 @@
         sinon vous pourriez ne pas pouvoir vous connecter à Internet.</string>
     <string name="lines">%d lignes</string>
     <string name="night_mode">Mode nuit</string>
+    <string name="language">Language</string>
     <string name="follow_system">Suivre le système</string>
     <string name="enable">Activer</string>
     <string name="disable">Désactiver</string>
