@@ -304,6 +304,7 @@
         وإلا فقد لا تتمكن من الاتصال بالإنترنت.</string>
     <string name="lines">%d خطوط</string>
     <string name="night_mode">الوضع الليلي</string>
+    <string name="language">اللّغة</string>
     <string name="follow_system">اتباع النظام</string>
     <string name="enable">تمكين</string>
     <string name="disable">تعطيل</string>

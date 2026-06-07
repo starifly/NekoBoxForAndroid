@@ -306,6 +306,7 @@
         інакше ви можете не мати доступу до Інтернету.</string>
     <string name="lines">%d рядків</string>
     <string name="night_mode">Нічний режим</string>
+    <string name="language">Мова</string>
     <string name="follow_system">За системою</string>
     <string name="enable">Увімкнути</string>
     <string name="disable">Вимкнути</string>

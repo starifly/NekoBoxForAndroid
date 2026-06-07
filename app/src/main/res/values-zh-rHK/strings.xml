@@ -297,6 +297,7 @@
     <string name="route_warn">新增自訂規則前，請確保已閱讀文件，否則可能無法連線到互聯網。</string>
     <string name="lines">%d 行</string>
     <string name="night_mode">夜間模式</string>
+    <string name="language">語言</string>
     <string name="follow_system">跟隨系統</string>
     <string name="enable">啟用</string>
     <string name="disable">停用</string>

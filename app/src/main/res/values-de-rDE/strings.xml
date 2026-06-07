@@ -296,6 +296,7 @@
     <string name="route_warn">Stellen Sie sicher, dass Sie die Dokumentation gelesen haben, bevor Sie benutzerdefinierte Regeln hinzufügen, da Sie sonst möglicherweise keine Verbindung zum Internet herstellen können.</string>
     <string name="lines">%d Zeilen</string>
     <string name="night_mode">Nachtmodus</string>
+    <string name="language">Sprache</string>
     <string name="follow_system">System folgen</string>
     <string name="enable">Aktivieren</string>
     <string name="disable">Deaktivieren</string>

@@ -298,6 +298,7 @@
     <string name="route_warn">Пераканайцеся, што вы прачыталі дакументацыю перад даданнем уласных правілаў, інакш вы можаце страціць магчымасць падключэння да Інтэрнэту.</string>
     <string name="lines">%d ліній</string>
     <string name="night_mode">Начны рэжым</string>
+    <string name="language">Мова</string>
     <string name="follow_system">Следаваць сістэме</string>
     <string name="enable">Уключыць</string>
     <string name="disable">Выключыць</string>

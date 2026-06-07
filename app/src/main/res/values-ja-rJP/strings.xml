@@ -294,6 +294,7 @@
         そうしないと、インターネットに接続できなくなる可能性があります。</string>
     <string name="lines">%d 行</string>
     <string name="night_mode">ナイトモード</string>
+    <string name="language">言語</string>
     <string name="follow_system">システムに従う</string>
     <string name="enable">有効</string>
     <string name="disable">無効</string>

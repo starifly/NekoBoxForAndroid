@@ -298,6 +298,7 @@
     <string name="route_warn">Sørg for at du har lest dokumentasjonen før du legger til egne regler, ellers kan du miste internettforbindelsen.</string>
     <string name="lines">%d linjer</string>
     <string name="night_mode">Nattmodus</string>
+    <string name="language">Språk</string>
     <string name="follow_system">Følg system</string>
     <string name="enable">Aktiver</string>
     <string name="disable">Deaktiver</string>
