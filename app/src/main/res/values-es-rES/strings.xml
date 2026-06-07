@@ -300,6 +300,7 @@
     <string name="route_warn">Asegúrate de haber leído la documentación antes de agregar reglas personalizadas, de lo contrario podrías no poder conectarte a Internet.</string>
     <string name="lines">%d Líneas</string>
     <string name="night_mode">Modo nocturno</string>
+    <string name="language">Language</string>
     <string name="follow_system">Seguir sistema</string>
     <string name="enable">Habilitar</string>
     <string name="disable">Deshabilitar</string>
