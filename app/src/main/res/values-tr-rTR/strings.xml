@@ -299,6 +299,7 @@
         aksi halde internete bağlanamayabilirsiniz.</string>
     <string name="lines">%d Satır</string>
     <string name="night_mode">Gece Modu</string>
+    <string name="language">Language</string>
     <string name="follow_system">Sistemi Takip Et</string>
     <string name="enable">Etkinleştir</string>
     <string name="disable">Devre dışı bırak</string>
