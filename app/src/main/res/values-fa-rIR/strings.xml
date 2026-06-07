@@ -299,6 +299,7 @@
     <string name="route_warn">مطمئن شوید قبل از افزودن قوانین سفارشی، مستندات را مطالعه کرده‌اید، در غیر این صورت ممکن است نتوانید به اینترنت متصل شوید.</string>
     <string name="lines">%d خط</string>
     <string name="night_mode">حالت شب</string>
+    <string name="language">Language</string>
     <string name="follow_system">پیروی از سیستم</string>
     <string name="enable">فعال</string>
     <string name="disable">غیرفعال</string>
