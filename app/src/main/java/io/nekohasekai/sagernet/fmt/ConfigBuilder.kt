@@ -254,6 +254,14 @@ fun buildConfig(
                 domain_strategy = genDomainStrategy(DataStore.resolveDestination)
                 sniff = needSniff
                 sniff_override_destination = needSniffOverride
+                // In VPN mode the inbound is internal; protect it with credentials
+                // so that VPN-excluded apps cannot bypass the tunnel via the proxy port.
+                if (isVPN) {
+                    users = listOf(User().also { u ->
+                        u.username = "neko"
+                        u.password = DataStore.mixedSecret
+                    })
+                }
             })
         }
 

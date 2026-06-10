@@ -216,7 +216,11 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                 try {
                     val client = Libcore.newHttpClient().apply {
                         modernTLS()
-                        trySocks5(DataStore.mixedPort)
+                        trySocks5(
+                            DataStore.mixedPort,
+                            if (DataStore.runningAsVPN) "neko" else "",
+                            if (DataStore.runningAsVPN) DataStore.mixedSecret else ""
+                        )
                     }
                     val response = client.newRequest().apply {
                         if (checkPreview) {
