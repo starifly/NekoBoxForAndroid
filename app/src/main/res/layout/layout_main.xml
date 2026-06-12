@@ -5,6 +5,7 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    app:statusBarBackground="@android:color/transparent"
     tools:openDrawer="start">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -103,22 +104,34 @@
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
         style="@style/Widget.Design.NavigationView"
+        app:insetForeground="@android:color/transparent"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         app:itemIconTint="@color/navigation_icon"
+        app:itemShapeAppearance="@style/ShapeAppearance.SagerNet.NavItem"
+        app:itemShapeFillColor="@color/nav_item_fill"
+        app:itemShapeInsetStart="8dp"
+        app:itemShapeInsetEnd="8dp"
+        app:itemShapeInsetTop="3dp"
+        app:itemShapeInsetBottom="3dp"
         app:itemTextColor="@color/navigation_icon"
         app:menu="@menu/main_drawer_menu" />
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view_black"
         style="@style/Widget.Design.NavigationView"
+        app:insetForeground="@android:color/transparent"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         app:itemIconTint="@color/navigation_icon"
-        app:itemShapeAppearance="@style/ShapeAppearance.MaterialComponents.MediumComponent"
+        app:itemShapeAppearance="@style/ShapeAppearance.SagerNet.NavItem"
         app:itemShapeFillColor="@color/navigation_item"
+        app:itemShapeInsetStart="8dp"
+        app:itemShapeInsetEnd="8dp"
+        app:itemShapeInsetTop="3dp"
+        app:itemShapeInsetBottom="3dp"
         app:itemTextColor="@color/navigation_icon"
         app:menu="@menu/main_drawer_menu" />
 

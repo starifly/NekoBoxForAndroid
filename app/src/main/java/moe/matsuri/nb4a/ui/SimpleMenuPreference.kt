@@ -17,12 +17,12 @@
 package moe.matsuri.nb4a.ui
 
 import android.content.Context
+import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Spinner
-import androidx.core.content.ContextCompat
 import androidx.preference.DropDownPreference
 import androidx.preference.PreferenceViewHolder
 import io.nekohasekai.sagernet.R
@@ -48,6 +48,7 @@ open class SimpleMenuPreference
         super.onBindViewHolder(holder)
         val mSpinner = holder.itemView.findViewById<Spinner>(R.id.spinner)
         mSpinner.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
+        mSpinner.setPopupBackgroundResource(R.drawable.bg_spinner_dropdown)
     }
 
     override fun createAdapter(): ArrayAdapter<CharSequence?> {
@@ -68,17 +69,40 @@ open class SimpleMenuPreference
 
         var currentPosition = -1
 
+        private val radius = 12f * context.resources.displayMetrics.density
+        private val selectedColor = context.getColorAttr(R.attr.colorMaterial100)
+
+        private val topDrawable = GradientDrawable().apply {
+            setColor(selectedColor)
+            cornerRadii = floatArrayOf(radius, radius, radius, radius, 0f, 0f, 0f, 0f)
+        }
+
+        private val bottomDrawable = GradientDrawable().apply {
+            setColor(selectedColor)
+            cornerRadii = floatArrayOf(0f, 0f, 0f, 0f, radius, radius, radius, radius)
+        }
+
+        private val middleDrawable = GradientDrawable().apply {
+            setColor(selectedColor)
+        }
+
+        private val singleDrawable = GradientDrawable().apply {
+            setColor(selectedColor)
+            cornerRadii = floatArrayOf(radius, radius, radius, radius, radius, radius, radius, radius)
+        }
+
         override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
             val view: View = super.getDropDownView(position, convertView, parent)
+
             if (position == currentPosition) {
-                view.setBackgroundColor(context.getColorAttr(R.attr.colorMaterial100))
+                view.background = when {
+                    position == 0 && count == 1 -> singleDrawable
+                    position == 0 -> topDrawable
+                    position == count - 1 -> bottomDrawable
+                    else -> middleDrawable
+                }
             } else {
-                view.setBackgroundColor(
-                    ContextCompat.getColor(
-                        context,
-                        R.color.preference_simple_menu_background
-                    )
-                )
+                view.background = null
             }
             return view
         }

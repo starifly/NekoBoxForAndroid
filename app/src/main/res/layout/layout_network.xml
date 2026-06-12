@@ -10,8 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:clickable="true"
-        android:focusable="true"
-        app:cardElevation="2dp">
+        android:focusable="true">
 
         <LinearLayout
             android:layout_width="match_parent"
