@@ -25,6 +25,7 @@
         <item>@color/material_grey_500</item>
         <item>@color/material_blue_grey_500</item>
         <item>@color/material_light_black</item>
+        <item>@color/color_verdant_mint</item>
     </integer-array>
 
     <color name="material_amber_100">#FFECB3</color>
@@ -284,10 +285,24 @@
     <color name="fab_color_progress">@color/material_light_black</color>
 
     <color name="color_pink_ssr">#fb7299</color>
+    <color name="color_verdant_mint">#00B96B</color>
+    <color name="color_verdant_mint_dark">#00875E</color>
+    <color name="color_verdant_mint_accent">#00D685</color>
+    <color name="color_verdant_mint_100">#B4D7C6</color>
+    <color name="color_verdant_mint_300">#509177</color>
 
     <color name="color_ng_black_accent">#9E9E9E</color>
     <color name="color_ng_black_primary">#2B2B2B</color>
 
+    <!-- 路由规则类型颜色（日间）-->
+    <color name="color_route_block">#E53935</color>   <!-- 屏蔽：红色 -->
+    <color name="color_route_direct">#43A047</color>  <!-- 直连：绿色 -->
+    <color name="color_route_proxy">#1E88E5</color>   <!-- 代理：蓝色 -->
+    <color name="color_route_config">#8E24AA</color>  <!-- 配置：紫色 -->
+
     <color name="preference_simple_menu_background">#FAFAFA</color>
+
+    <!-- 卡片默认细边框：约 12% 黑（低对比分隔线），夜间见 values-night/colors.xml -->
+    <color name="card_stroke">#1F000000</color>
 
 </resources>

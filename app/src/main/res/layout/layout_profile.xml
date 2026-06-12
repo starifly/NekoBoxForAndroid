@@ -8,7 +8,7 @@
     android:layout_margin="2dp"
     android:clickable="true"
     android:focusable="true"
-    app:cardElevation="2dp">
+    app:cardCornerRadius="@dimen/profile_card_corner_radius">
 
     <LinearLayout
         android:id="@+id/content_lin"
@@ -16,15 +16,6 @@
         android:layout_height="wrap_content"
         android:focusable="true"
         android:orientation="horizontal">
-
-        <LinearLayout
-            android:id="@+id/selected_view"
-            android:layout_width="4dp"
-            android:layout_height="match_parent"
-            android:background="?colorPrimary"
-            android:orientation="horizontal"
-            android:visibility="invisible"
-            tools:visibility="visible" />
 
         <LinearLayout
 

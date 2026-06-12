@@ -2,4 +2,12 @@
 <resources>
     <color name="fab_color_progress">@color/material_light_white</color>
     <color name="preference_simple_menu_background">#303030</color>
+    <!-- 卡片默认细边框：约 12% 白 -->
+    <color name="card_stroke">#1FFFFFFF</color>
+
+    <!-- 路由规则类型颜色（夜间，稍浅） -->
+    <color name="color_route_block">#EF5350</color>   <!-- 屏蔽：浅红 -->
+    <color name="color_route_direct">#66BB6A</color>  <!-- 直连：浅绿 -->
+    <color name="color_route_proxy">#42A5F5</color>   <!-- 代理：浅蓝 -->
+    <color name="color_route_config">#AB47BC</color>  <!-- 配置：浅紫 -->
 </resources>

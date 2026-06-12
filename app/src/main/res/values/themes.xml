@@ -39,12 +39,19 @@
         </item>
 
         <item name="alertDialogTheme">
-            @style/ThemeOverlay.MaterialComponents.MaterialAlertDialog.SagerNet
+            @style/ThemeOverlay.SagerNet.AlertDialog
         </item>
 
         <item name="materialAlertDialogTheme">
             @style/ThemeOverlay.MaterialComponents.MaterialAlertDialog.SagerNet
         </item>
+
+        <item name="materialCardViewStyle">@style/Widget.SagerNet.CardView</item>
+        <item name="textInputStyle">@style/Widget.SagerNet.TextInputLayout</item>
+        <item name="popupMenuStyle">@style/Widget.SagerNet.PopupMenu</item>
+        <item name="actionOverflowMenuStyle">@style/Widget.SagerNet.PopupMenu.Overflow</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.SagerNet.BottomSheetDialog</item>
+        <item name="materialButtonStyle">@style/Widget.SagerNet.Button</item>
 
     </style>
 
@@ -87,12 +94,21 @@
         </item>
 
         <item name="alertDialogTheme">
-            @style/ThemeOverlay.MaterialComponents.MaterialAlertDialog.SagerNet
+            @style/ThemeOverlay.SagerNet.AlertDialog
         </item>
 
         <item name="materialAlertDialogTheme">
             @style/ThemeOverlay.MaterialComponents.MaterialAlertDialog.SagerNet
         </item>
+
+        <item name="materialCardViewStyle">@style/Widget.SagerNet.CardView</item>
+        <item name="textInputStyle">@style/Widget.SagerNet.TextInputLayout</item>
+        <item name="popupMenuStyle">@style/Widget.SagerNet.PopupMenu</item>
+        <item name="actionOverflowMenuStyle">@style/Widget.SagerNet.PopupMenu.Overflow</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.SagerNet.BottomSheetDialog</item>
+        <item name="materialButtonStyle">@style/Widget.SagerNet.Button</item>
+
+        <item name="android:dialogCornerRadius">@dimen/dialog_corner_radius</item>
 
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 
@@ -104,6 +120,7 @@
     </style>
 
     <style name="ThemeOverlay.MaterialComponents.MaterialAlertDialog.SagerNet">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.SagerNet.Dialog</item>
         <item name="buttonBarPositiveButtonStyle">
             @style/Widget.MaterialComponents.Button.TextButton.Dialog.Primary
         </item>
@@ -130,6 +147,72 @@
         <item name="android:textColor">@color/chip_text_color</item>
         <item name="checkedIconTint">?primaryOrTextPrimary</item>
         <item name="rippleColor">@color/chip_ripple_color</item>
+    </style>
+
+    <style name="Widget.SagerNet.CardView" parent="Widget.MaterialComponents.CardView">
+        <item name="cardElevation">0dp</item>
+        <item name="cardCornerRadius">@dimen/card_corner_radius</item>
+        <item name="strokeColor">@color/card_stroke</item>
+        <item name="strokeWidth">@dimen/card_stroke_width</item>
+        <item name="cardBackgroundColor">?attr/colorSurface</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.SagerNet.Dialog" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/dialog_corner_radius</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.SagerNet.Input" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/input_corner_radius</item>
+    </style>
+    <style name="Widget.SagerNet.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.SagerNet.Input</item>
+    </style>
+
+    <style name="PopupMenuAnimation">
+        <item name="android:windowEnterAnimation">@anim/popup_enter</item>
+        <item name="android:windowExitAnimation">@anim/popup_exit</item>
+    </style>
+
+    <style name="Widget.SagerNet.PopupMenu" parent="Widget.MaterialComponents.PopupMenu">
+        <item name="android:popupBackground">@drawable/bg_popup_menu</item>
+        <item name="android:popupAnimationStyle">@style/PopupMenuAnimation</item>
+    </style>
+    <style name="Widget.SagerNet.PopupMenu.Overflow" parent="Widget.MaterialComponents.PopupMenu.Overflow">
+        <item name="android:popupBackground">@drawable/bg_popup_menu</item>
+        <item name="android:popupAnimationStyle">@style/PopupMenuAnimation</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.SagerNet.BottomSheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">@dimen/dialog_corner_radius</item>
+        <item name="cornerSizeTopRight">@dimen/dialog_corner_radius</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+    <style name="Widget.SagerNet.BottomSheet" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.SagerNet.BottomSheet</item>
+    </style>
+    <style name="ThemeOverlay.SagerNet.BottomSheetDialog" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.SagerNet.BottomSheet</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.SagerNet.Button" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/button_corner_radius</item>
+    </style>
+    <style name="Widget.SagerNet.Button" parent="Widget.MaterialComponents.Button">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.SagerNet.Button</item>
+    </style>
+
+    <style name="ShapeAppearance.SagerNet.NavItem" parent="ShapeAppearance.MaterialComponents.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/nav_item_corner_radius</item>
+    </style>
+
+    <style name="ThemeOverlay.SagerNet.AlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog.SagerNet">
+        <item name="android:windowBackground">@drawable/bg_dialog</item>
     </style>
 
     <style name="Theme.SagerNet.Pink_SSR" parent="Theme.SagerNet">
@@ -455,6 +538,14 @@
         <item name="primaryOrTextPrimary">?android:textColorPrimary</item>
     </style>
 
+    <style name="Theme.SagerNet.VerdantMint" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/color_verdant_mint</item>
+        <item name="colorPrimaryDark">@color/color_verdant_mint_dark</item>
+        <item name="colorAccent">@color/color_verdant_mint_accent</item>
+        <item name="colorMaterial100">@color/color_verdant_mint_100</item>
+        <item name="colorMaterial300">@color/color_verdant_mint_300</item>
+    </style>
+
     <style name="Theme.SagerNet.Dialog.Black" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/color_ng_black_primary</item>
         <item name="colorPrimaryDark">@color/color_ng_black_primary</item>
@@ -470,6 +561,14 @@
         <item name="accentOrTextPrimary">?android:textColorPrimary</item>
         <item name="primaryOrTextSecondary">?android:textColorSecondary</item>
         <item name="primaryOrTextPrimary">?android:textColorPrimary</item>
+    </style>
+
+    <style name="Theme.SagerNet.Dialog.VerdantMint" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/color_verdant_mint</item>
+        <item name="colorPrimaryDark">@color/color_verdant_mint_dark</item>
+        <item name="colorAccent">@color/color_verdant_mint_accent</item>
+        <item name="colorMaterial100">@color/color_verdant_mint_100</item>
+        <item name="colorMaterial300">@color/color_verdant_mint_300</item>
     </style>
 
     <style name="Theme.Start" parent="Theme.MaterialComponents.DayNight">

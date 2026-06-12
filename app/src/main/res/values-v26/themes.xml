@@ -41,12 +41,19 @@
         </item>
 
         <item name="alertDialogTheme">
-            @style/ThemeOverlay.MaterialComponents.MaterialAlertDialog.SagerNet
+            @style/ThemeOverlay.SagerNet.AlertDialog
         </item>
 
         <item name="materialAlertDialogTheme">
             @style/ThemeOverlay.MaterialComponents.MaterialAlertDialog.SagerNet
         </item>
+
+        <item name="materialCardViewStyle">@style/Widget.SagerNet.CardView</item>
+        <item name="textInputStyle">@style/Widget.SagerNet.TextInputLayout</item>
+        <item name="popupMenuStyle">@style/Widget.SagerNet.PopupMenu</item>
+        <item name="actionOverflowMenuStyle">@style/Widget.SagerNet.PopupMenu.Overflow</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.SagerNet.BottomSheetDialog</item>
+        <item name="materialButtonStyle">@style/Widget.SagerNet.Button</item>
 
     </style>
 </resources>
