@@ -257,4 +257,4 @@ Web Dashboard:
 
 ## Contributors
 
-![Contributors](https://contrib.rocks/image?starifly/NekoBoxForAndroid)
+![Contributors](https://contrib.rocks/image?repo=starifly/NekoBoxForAndroid)
