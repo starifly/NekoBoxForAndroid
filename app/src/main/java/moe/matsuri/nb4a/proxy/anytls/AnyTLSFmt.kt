@@ -44,7 +44,11 @@ fun buildSingBoxOutboundAnyTLSBean(bean: AnyTLSBean): SingBoxOptions.Outbound_An
                 // In new version, some complex options will be deprecated, so we just do this.
                 ech = SingBoxOptions.OutboundECHOptions().apply {
                     enabled = true
-                    config = listOf(it)
+                    config = if (it.contains("BEGIN ECH CONFIGS")) {
+                        listOf(it)
+                    } else {
+                        listOf("-----BEGIN ECH CONFIGS-----", it.trim(), "-----END ECH CONFIGS-----")
+                    }
                 }
             }
         }
