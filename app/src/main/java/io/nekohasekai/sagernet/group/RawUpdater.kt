@@ -63,8 +63,8 @@ object RawUpdater : GroupUpdater() {
             val response = Libcore.newHttpClient().apply {
                 trySocks5(
                     DataStore.mixedPort,
-                    if (DataStore.runningAsVPN) "neko" else "",
-                    if (DataStore.runningAsVPN) DataStore.mixedSecret else ""
+                    DataStore.mixedInboundUser,
+                    DataStore.mixedInboundPass
                 )
                 tryH3Direct()
                 when (DataStore.appTLSVersion) {

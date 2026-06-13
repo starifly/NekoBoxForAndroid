@@ -4,7 +4,6 @@ import android.os.SystemClock
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.bg.AbstractInstance
 import io.nekohasekai.sagernet.bg.GuardedProcessPool
-import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.fmt.ConfigBuildResult
@@ -47,12 +46,7 @@ abstract class BoxInstance(
 
     protected open fun buildConfig() {
         config = buildConfig(profile)
-        // Snapshot the VPN mode that was baked into the config so that
-        // HTTP clients can use the correct credentials for the mixed inbound.
-        // Reading serviceMode here is consistent with the isVPN local variable
-        // inside buildConfig(profile), since both execute in the same thread
-        // before the box starts.
-        DataStore.runningAsVPN = DataStore.serviceMode == Key.MODE_VPN
+        DataStore.mixedInboundAuthed = DataStore.mixedInboundNeedsAuth
     }
 
     protected open suspend fun loadConfig() {

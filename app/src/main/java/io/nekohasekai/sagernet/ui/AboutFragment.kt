@@ -218,8 +218,8 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                         modernTLS()
                         trySocks5(
                             DataStore.mixedPort,
-                            if (DataStore.runningAsVPN) "neko" else "",
-                            if (DataStore.runningAsVPN) DataStore.mixedSecret else ""
+                            DataStore.mixedInboundUser,
+                            DataStore.mixedInboundPass
                         )
                     }
                     val response = client.newRequest().apply {

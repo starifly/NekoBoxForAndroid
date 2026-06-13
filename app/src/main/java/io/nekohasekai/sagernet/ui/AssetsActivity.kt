@@ -284,8 +284,8 @@ class AssetsActivity : ThemedActivity() {
             keepAlive()
             trySocks5(
                 DataStore.mixedPort,
-                if (DataStore.runningAsVPN) "neko" else "",
-                if (DataStore.runningAsVPN) DataStore.mixedSecret else ""
+                DataStore.mixedInboundUser,
+                DataStore.mixedInboundPass
             )
         }
 
@@ -351,8 +351,8 @@ class AssetsActivity : ThemedActivity() {
             keepAlive()
             trySocks5(
                 DataStore.mixedPort,
-                if (DataStore.runningAsVPN) "neko" else "",
-                if (DataStore.runningAsVPN) DataStore.mixedSecret else ""
+                DataStore.mixedInboundUser,
+                DataStore.mixedInboundPass
             )
         }
         try {

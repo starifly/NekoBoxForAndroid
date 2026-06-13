@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.database
 
 import android.os.Binder
+import android.os.Build
 import androidx.preference.PreferenceDataStore
 import io.nekohasekai.sagernet.CONNECTION_TEST_URL
 import io.nekohasekai.sagernet.GroupType
@@ -27,11 +28,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     @Volatile
     var serviceState = BaseService.State.Idle
 
-    // Runtime flag: true when the service is running in VPN mode.
-    // Set once in BoxInstance.buildConfig(), cleared in BaseService.stopRunner().
-    // @Volatile ensures visibility across threads without locks.
     @Volatile
-    var runningAsVPN: Boolean = false
+    var mixedInboundAuthed: Boolean = false
 
     val configurationStore = RoomPreferenceDataStore(PublicDatabase.kvPairDao)
     val profileCacheStore = RoomPreferenceDataStore(TempDatabase.profileCacheDao)
@@ -140,14 +138,12 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     // hopefully hashCode = mHandle doesn't change, currently this is true from KitKat to Nougat
     private val userIndex by lazy { Binder.getCallingUserHandle().hashCode() }
-    // Random secret for the mixed inbound in VPN mode.
-    // Lazily generated on first access and persisted to survive app restarts.
     val mixedSecret: String
-        get() {
-            var s = configurationStore.getString("mixedSecret")
+        @Synchronized get() {
+            var s = configurationStore.getString(Key.MIXED_SECRET)
             if (s.isNullOrEmpty()) {
                 s = java.util.UUID.randomUUID().toString().replace("-", "")
-                configurationStore.putString("mixedSecret", s)
+                configurationStore.putString(Key.MIXED_SECRET, s)
             }
             return s
         }
@@ -156,17 +152,16 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         get() = getLocalPort(Key.MIXED_PORT, 2080)
         set(value) = saveLocalPort(Key.MIXED_PORT, value)
 
+    val mixedInboundNeedsAuth: Boolean
+        get() = serviceMode == Key.MODE_VPN &&
+            !(appendHttpProxy && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+
+    val mixedInboundUser: String get() = if (mixedInboundAuthed) Key.MIXED_USERNAME else ""
+    val mixedInboundPass: String get() = if (mixedInboundAuthed) mixedSecret else ""
+
     fun initGlobal() {
         if (configurationStore.getString(Key.MIXED_PORT) == null) {
             mixedPort = mixedPort
-        }
-        // Pre-generate the VPN inbound secret so it is ready before the service
-        // starts, even if the user never opens Settings.
-        if (configurationStore.getString("mixedSecret").isNullOrEmpty()) {
-            configurationStore.putString(
-                "mixedSecret",
-                java.util.UUID.randomUUID().toString().replace("-", "")
-            )
         }
     }
 
