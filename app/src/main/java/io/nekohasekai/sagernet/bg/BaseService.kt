@@ -236,6 +236,7 @@ class BaseService {
         fun stopRunner(restart: Boolean = false, msg: String? = null) {
             DataStore.baseService = null
             DataStore.vpnService = null
+            DataStore.mixedInboundAuthed = false
 
             if (data.state == State.Stopping) return
             data.notification?.destroy()

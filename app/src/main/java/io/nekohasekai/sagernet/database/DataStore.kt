@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.database
 
 import android.os.Binder
+import android.os.Build
 import androidx.preference.PreferenceDataStore
 import io.nekohasekai.sagernet.CONNECTION_TEST_URL
 import io.nekohasekai.sagernet.GroupType
@@ -26,6 +27,9 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     // share service state in main & bg process
     @Volatile
     var serviceState = BaseService.State.Idle
+
+    @Volatile
+    var mixedInboundAuthed: Boolean = false
 
     val configurationStore = RoomPreferenceDataStore(PublicDatabase.kvPairDao)
     val profileCacheStore = RoomPreferenceDataStore(TempDatabase.profileCacheDao)
@@ -134,9 +138,26 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     // hopefully hashCode = mHandle doesn't change, currently this is true from KitKat to Nougat
     private val userIndex by lazy { Binder.getCallingUserHandle().hashCode() }
+    val mixedSecret: String
+        @Synchronized get() {
+            var s = configurationStore.getString(Key.MIXED_SECRET)
+            if (s.isNullOrEmpty()) {
+                s = java.util.UUID.randomUUID().toString().replace("-", "")
+                configurationStore.putString(Key.MIXED_SECRET, s)
+            }
+            return s
+        }
+
     var mixedPort: Int
         get() = getLocalPort(Key.MIXED_PORT, 2080)
         set(value) = saveLocalPort(Key.MIXED_PORT, value)
+
+    val mixedInboundNeedsAuth: Boolean
+        get() = serviceMode == Key.MODE_VPN &&
+            !(appendHttpProxy && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+
+    val mixedInboundUser: String get() = if (mixedInboundAuthed) Key.MIXED_USERNAME else ""
+    val mixedInboundPass: String get() = if (mixedInboundAuthed) mixedSecret else ""
 
     fun initGlobal() {
         if (configurationStore.getString(Key.MIXED_PORT) == null) {

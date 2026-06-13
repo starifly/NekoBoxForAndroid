@@ -291,6 +291,9 @@
     <string name="connection_test_timeout_error">逾時</string>
     <string name="append_http_proxy">為 VPN 附加 HTTP 代理</string>
     <string name="append_http_proxy_sum">HTTP 代理將直接被支援的瀏覽器/應用程式使用，而無需經過虛擬網路卡（Android 10+）</string>
+    <string name="append_http_proxy_security_title">安全提示</string>
+    <string name="append_http_proxy_security_message">開啟後，本機其他應用程式可以直接使用本機代理連接埠。\n\n建議：僅在你信任所有已安裝應用程式時開啟。</string>
+    <string name="enable_anyway">仍然開啟</string>
     <string name="trojan_provider">Trojan 提供程式</string>
     <string name="protocol_settings">協議設定</string>
     <string name="group_basic">基本</string>
