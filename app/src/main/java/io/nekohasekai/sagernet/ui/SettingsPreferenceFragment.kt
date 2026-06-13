@@ -175,7 +175,23 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
 
         mixedPort.onPreferenceChangeListener = reloadListener
-        appendHttpProxy.onPreferenceChangeListener = reloadListener
+        appendHttpProxy.setOnPreferenceChangeListener { _, newValue ->
+            if (newValue as Boolean) {
+                MaterialAlertDialogBuilder(requireContext()).apply {
+                    setTitle(R.string.append_http_proxy_security_title)
+                    setMessage(R.string.append_http_proxy_security_message)
+                    setNegativeButton(android.R.string.cancel, null)
+                    setPositiveButton(R.string.enable_anyway) { _, _ ->
+                        appendHttpProxy.isChecked = true
+                        needReload()
+                    }
+                }.show()
+                false
+            } else {
+                needReload()
+                true
+            }
+        }
         strictRoute.onPreferenceChangeListener = reloadListener
         showDirectSpeed.onPreferenceChangeListener = reloadListener
         trafficSniffing.onPreferenceChangeListener = reloadListener

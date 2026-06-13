@@ -303,6 +303,9 @@
     <string name="connection_test_timeout_error">タイムアウト</string>
     <string name="append_http_proxy">VPN に HTTP プロキシを追加</string>
     <string name="append_http_proxy_sum">HTTP プロキシは仮想 NIC デバイスを経由せず、(ブラウザ/一部の対応アプリ) から直接使用されます (Android 10+)</string>
+    <string name="append_http_proxy_security_title">セキュリティに関する通知</string>
+    <string name="append_http_proxy_security_message">有効にすると、このデバイス上の他のアプリがローカルプロキシポートを直接使用できるようになります。\n\n推奨：インストールされているすべてのアプリを信頼している場合にのみ有効にしてください。</string>
+    <string name="enable_anyway">それでも有効にする</string>
     <string name="strict_route">厳格なルーティング</string>
     <string name="protocol_settings">プロトコル設定</string>
     <string name="trojan_provider">Trojan プロバイダー</string>
