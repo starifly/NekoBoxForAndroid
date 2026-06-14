@@ -1857,8 +1857,10 @@ class ConfigurationFragment @JvmOverloads constructor(
                     profileStatus.setOnClickListener {
                         alert(err).tryToShow()
                     }
+                    profileStatus.isFocusable = false
                 } else {
-                    profileStatus.setOnClickListener(null)
+                    profileStatus.setOnClickListener { }
+                    profileStatus.isFocusable = false
                 }
 
                 editButton.setOnClickListener {
