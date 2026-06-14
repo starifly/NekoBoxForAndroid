@@ -102,7 +102,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="?colorSecondary"
+                    android:textColor="?android:textColorSecondary"
                     android:visibility="gone"
                     tools:text="@string/subscription_traffic" />
 
@@ -111,7 +111,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="?colorSecondary"
+                    android:textColor="?android:textColorSecondary"
                     tools:text="@string/group_status_empty" />
 
             </LinearLayout>
@@ -123,7 +123,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:text="@string/group_update"
-                android:textColor="?colorSecondary" />
+                android:textColor="?android:textColorSecondary" />
         </LinearLayout>
 
     </LinearLayout>
