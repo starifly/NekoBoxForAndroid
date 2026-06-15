@@ -76,7 +76,7 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         }
         binding.textview.text = span
         binding.textview.clearFocus()
-        // 等 textview 完成最终 layout 再滚动到底部
+        // wait for the textview to finish its final layout before scrolling to the bottom
         binding.textview.doOnLayout {
             binding.scroolview.scrollTo(0, binding.textview.height)
         }

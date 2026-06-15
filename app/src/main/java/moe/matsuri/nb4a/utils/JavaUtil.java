@@ -80,7 +80,7 @@ public class JavaUtil {
             String huaweiWebViewDir = "/app_hws_webview";
             String lockFile = "/webview_data.lock";
             String processName = Application.getProcessName();
-            if (!BuildConfig.APPLICATION_ID.equals(processName)) {//判断不等于默认进程名称
+            if (!BuildConfig.APPLICATION_ID.equals(processName)) {//check if not equal to the default process name
                 suffix = TextUtils.isEmpty(processName) ? context.getPackageName() : processName;
                 WebView.setDataDirectorySuffix(suffix);
                 suffix = "_" + suffix;
@@ -89,11 +89,11 @@ public class JavaUtil {
                     pathSet.add(dataPath + huaweiWebViewDir + suffix + lockFile);
                 }
             } else {
-                //主进程
+                //main process
                 suffix = "_" + processName;
-                pathSet.add(dataPath + webViewDir + lockFile);//默认未添加进程名后缀
-                pathSet.add(dataPath + webViewDir + suffix + lockFile);//系统自动添加了进程名后缀
-                if (checkIsHuaweiRom()) {//部分华为手机更改了webview目录名
+                pathSet.add(dataPath + webViewDir + lockFile);// path variant without the process-name suffix
+                pathSet.add(dataPath + webViewDir + suffix + lockFile);// path variant with the process-name suffix (device-dependent)
+                if (checkIsHuaweiRom()) {//some Huawei phones changed the webview directory name
                     pathSet.add(dataPath + huaweiWebViewDir + lockFile);
                     pathSet.add(dataPath + huaweiWebViewDir + suffix + lockFile);
                 }

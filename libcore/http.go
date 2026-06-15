@@ -288,7 +288,7 @@ func (r *httpRequest) doH3Direct() (HTTPResponse, error) {
 			defer func() {
 				if successCount.Load() == 0 {
 					if failedCount.Add(1) >= uint32(len(funcs)) {
-						// 全部失败了
+						// all failed
 						cancel()
 					}
 				}
@@ -302,7 +302,7 @@ func (r *httpRequest) doH3Direct() (HTTPResponse, error) {
 				t = "h3"
 			}
 
-			// 执行HTTP请求
+			// execute the HTTP request
 			rsp, err := f()
 			if rsp == nil || err != nil {
 				mu.Lock()
@@ -314,7 +314,7 @@ func (r *httpRequest) doH3Direct() (HTTPResponse, error) {
 				return
 			}
 
-			// 处理 HTTP 状态码
+			// handle the HTTP status code
 			if rsp.StatusCode != http.StatusOK {
 				hr := &httpResponse{Response: rsp}
 				err = fmt.Errorf("%s: %s", t, hr.errorString())
@@ -326,7 +326,7 @@ func (r *httpRequest) doH3Direct() (HTTPResponse, error) {
 
 			select {
 			case successCh <- rsp:
-				// 第一个成功的请求，不要关闭 body
+				// first successful request, don't close the body
 				successCount.Add(1)
 			default:
 				rsp.Body.Close()

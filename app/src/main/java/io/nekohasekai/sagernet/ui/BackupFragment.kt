@@ -62,7 +62,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
         super.onDestroyView()
         snackbar?.dismiss()
         snackbar = null
-        // 如果正在进行恢复操作，取消它
+        // if a restore operation is in progress, cancel it
         if (isRestoreInProgress) {
             restoreJob?.cancel()
             restoreJob = null
@@ -189,25 +189,25 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
             try {
                 isWebDAVBackup = true
                 val backupData = doBackup(
-                    true,  // 备份配置和分组
-                    true,  // 备份路由规则
-                    true   // 备份设置
+                    true,  // back up configs and groups
+                    true,  // back up route rules
+                    true   // back up settings
                 )
                 isWebDAVBackup = false
                 
                 val client = OkHttpClient()
 
-                // 规范化 URL
+                // normalize URL
                 val baseUrl = DataStore.webdavServer!!.trimEnd('/')
                 val path = DataStore.webdavPath?.trim('/')?.takeIf { it.isNotEmpty() } ?: "Nekobox"
 
-                // 使用英文格式的时间戳作为文件名，修改后缀为 .zip
+                // use an English-formatted timestamp as the file name, with a .zip suffix
                 val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
                 val version = BuildConfig.VERSION_NAME
                 val fileName = "nekobox_backup_${version}_$timestamp.zip"
 
-                // 确保 baseUrl 是有效的且使用 TLS 的 URL
-                // (WebDAV 备份包含所有配置密钥，禁止明文 http://)
+                // ensure baseUrl is a valid URL that uses TLS
+                // (WebDAV backup contains all config keys, plaintext http:// is forbidden)
                 val baseHttpUrl = WebDAVSecurity.requireSecureUrl(baseUrl)
 
                 val dirUrl = baseHttpUrl.newBuilder().apply {
@@ -223,7 +223,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 Logs.d("WebDAV backup - Directory URL: $dirUrl")
                 Logs.d("WebDAV backup - File URL: $fileUrl")
 
-                // 先检查目录是否存在
+                // first check whether the directory exists
                 val propfindRequest = Request.Builder()
                     .url(dirUrl)
                     .method("PROPFIND", null)
@@ -239,7 +239,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     Logs.d("WebDAV backup - PROPFIND response: ${response.code}")
                     when (response.code) {
                         404 -> needCreateDir = true
-                        207 -> needCreateDir = false // 目录存在
+                        207 -> needCreateDir = false // directory exists
                         401 -> throw Exception("Authentication failed")
                         else -> {
                             if (!response.isSuccessful) {
@@ -251,7 +251,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     }
                 }
 
-                // 如果需要，创建目录
+                // create the directory if needed
                 if (needCreateDir) {
                     Logs.d("WebDAV backup - Creating directory")
                     val mkcolRequest = Request.Builder()
@@ -272,7 +272,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     }
                 }
 
-                // 上传文件时使用正确的 Content-Type
+                // use the correct Content-Type when uploading the file
                 val putRequest = Request.Builder()
                     .url(fileUrl)
                     .put(backupData.toRequestBody("application/zip".toMediaType()))
@@ -297,7 +297,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     MessageStore.showMessage(activity, R.string.webdav_backup_success)
                 }
             } catch (e: Exception) {
-                isWebDAVBackup = false  // 确保发生异常时也重置标志
+                isWebDAVBackup = false  // ensure the flag is reset even when an exception occurs
                 Logs.w(e)
 
                 val errorMessage = try {
@@ -332,7 +332,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 val baseUrl = DataStore.webdavServer!!.trimEnd('/')
                 val path = DataStore.webdavPath?.trim('/')?.takeIf { it.isNotEmpty() } ?: "Nekobox"
 
-                // WebDAV 备份包含所有配置密钥，禁止明文 http://
+                // WebDAV backup contains all config keys, plaintext http:// is forbidden
                 val baseHttpUrl = WebDAVSecurity.requireSecureUrl(baseUrl)
 
                 val dirUrl = baseHttpUrl.newBuilder().apply {
@@ -343,7 +343,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
 
                 Logs.d("WebDAV restore - Directory URL: $dirUrl")
 
-                // 先列出目录内容找到最新的备份文件
+                // first list the directory contents to find the latest backup file
                 val propfindRequest = Request.Builder()
                     .url(dirUrl)
                     .method("PROPFIND", null)
@@ -354,7 +354,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     .header("Depth", "1")
                     .build()
 
-                // 获取最新的备份文件名
+                // get the latest backup file name
                 val latestBackup = client.newCall(propfindRequest).execute().use { response ->
                     if (!response.isSuccessful && response.code != 207) {
                         val errorBody = response.body?.string()
@@ -394,7 +394,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     } ?: throw Exception("No backup found")
                 }
 
-                // 下载最新的备份文件
+                // download the latest backup file
                 val fileUrl = dirUrl.newBuilder()
                     .addPathSegment(latestBackup)
                     .build()
@@ -420,9 +420,9 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
 
                 Logs.d("WebDAV restore - Successfully downloaded backup file, size: ${content.size}")
 
-                // 根据文件类型处理内容
+                // process the content based on file type
                 val backupContent = if (latestBackup.endsWith(".zip")) {
-                    // ZIP 文件处理
+                    // ZIP file handling
                     ZipInputStream(content.inputStream()).use { zis ->
                         zis.nextEntry?.let { entry ->
                             if (entry.name.endsWith(".json")) {
@@ -433,14 +433,14 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                         } ?: throw Exception("Invalid backup file format")
                     }
                 } else {
-                    // JSON 文件处理
+                    // JSON file handling
                     content.toString(Charsets.UTF_8)
                 }
 
-                // 解析并导入备份数据
+                // parse and import the backup data
                 val json = JSONObject(backupContent)
                 onMainDispatcher {
-                    // 如果 Fragment 已经被销毁，取消恢复操作
+                    // if the Fragment has been destroyed, cancel the restore operation
                     if (!isAdded) {
                         MessageStore.showMessage(activity, R.string.restore_cancelled)
                         return@onMainDispatcher
@@ -470,7 +470,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                                 .show()
                             runOnDefaultDispatcher {
                                 runCatching {
-                                    // 再次检查是否已被取消
+                                    // check again whether it has been cancelled
                                     if (!isAdded) {
                                         MessageStore.showMessage(activity, R.string.restore_cancelled)
                                         return@runOnDefaultDispatcher
@@ -566,19 +566,19 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                         method = ZipEntry.DEFLATED
                     }
                     
-                    // 写入数据
+                    // write data
                     zos.putNextEntry(entry)
                     val bytes = jsonContent.toByteArray(Charsets.UTF_8)
                     zos.write(bytes)
                     zos.closeEntry()
                     
-                    // 确保所有数据都被写入和压缩
+                    // ensure all data is written and compressed
                     zos.finish()
                 }
                 bos.toByteArray()
             }
         } else {
-            // 本地导出和分享功能使用 JSON 格式
+            // local export and share functionality uses JSON format
             jsonContent.toByteArray()
         }
     }

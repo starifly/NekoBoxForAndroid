@@ -56,7 +56,7 @@ func (p *platformLocalDNSTransport) Close() error {
 
 func (p *platformLocalDNSTransport) Exchange(ctx context.Context, message *mDNS.Msg) (*mDNS.Msg, error) {
 	if p.raw && rawQueryFunc != nil {
-		// Raw - Android 10 及以上才有
+		// Raw - only available on Android 10 and above
 
 		messageBytes, err := message.Pack()
 		if err != nil {
@@ -73,7 +73,7 @@ func (p *platformLocalDNSTransport) Exchange(ctx context.Context, message *mDNS.
 		}
 		return responseMessage, nil
 	} else {
-		// Lookup - Android 10 以下
+		// Lookup - below Android 10
 
 		question := message.Question[0]
 		var network string

@@ -28,10 +28,10 @@ func extractAssets() {
 	extract(yacdDstFolder)
 }
 
-// 这里解压的是 apk 里面的
+// this extracts the ones inside the apk
 func extractAssetName(name string, useOfficialAssets bool) error {
-	// 支持非官方源的，就是 replaceable，放 Android 目录
-	// 不支持非官方源的，就放 file 目录
+	// those that support unofficial sources are replaceable, placed in the Android directory
+	// those that don't support unofficial sources go in the file directory
 	replaceable := true
 
 	var version string
@@ -83,7 +83,7 @@ func extractAssetName(name string, useOfficialAssets bool) error {
 		// assetFileMissing
 		doExtract = true
 	} else if useOfficialAssets || !replaceable {
-		// 官方源升级
+		// official source upgrade
 		b, err := os.ReadFile(dir + version)
 		if err != nil {
 			// versionFileMissing
@@ -104,7 +104,7 @@ func extractAssetName(name string, useOfficialAssets bool) error {
 			}
 		}
 	} else {
-		//非官方源不升级
+		//unofficial sources are not upgraded
 	}
 
 	if !doExtract {

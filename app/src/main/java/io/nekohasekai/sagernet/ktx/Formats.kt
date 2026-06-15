@@ -88,7 +88,7 @@ fun JSONObject.getBool(name: String): Boolean? {
 }
 
 
-// 重名了喵
+// name collision, nya
 fun JSONObject.getIntNya(name: String): Int? {
     return try {
         getInt(name)

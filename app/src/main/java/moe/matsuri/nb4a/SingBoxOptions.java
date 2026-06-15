@@ -33,7 +33,7 @@ public class SingBoxOptions {
 
     public static class SingBoxOption {
 
-        public transient Map<String, Object> _hack_config_map; // 仍然用普通json方式合并，所以Object内不要使用 _hack
+        public transient Map<String, Object> _hack_config_map; // still merged using the normal json approach, so don't use _hack inside Object
 
         public transient String _hack_custom_config;
 
@@ -65,16 +65,16 @@ public class SingBoxOptions {
         }
     }
 
-    // 自定义序列化器
+    // custom serializer
     public static class SingBoxOptionSerializer implements JsonSerializer<SingBoxOption> {
         @Override
         public JsonElement serialize(SingBoxOption src, Type typeOfSrc, JsonSerializationContext context) {
-            // 拿到原始的 delegate（默认序列化器）
+            // get the original delegate (default serializer)
             TypeAdapter<?> delegate = gsonSingbox.getDelegateAdapter(
                     new TypeAdapterFactory() {
                         @Override
                         public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
-                            return null; // 返回 null，表示只作为“跳过当前自定义”的 marker
+                            return null; // return null, serving only as a marker for "skip current custom"
                         }
                     },
                     TypeToken.get(src.getClass())
@@ -4719,7 +4719,7 @@ public class SingBoxOptions {
 
     }
 
-    // sing-box Options 生成器已经坏了，以下是从 husi 抄的
+    // the sing-box Options generator is already broken; the following is copied from husi
 
     public static class Outbound_AnyTLSOptions extends Outbound {
 

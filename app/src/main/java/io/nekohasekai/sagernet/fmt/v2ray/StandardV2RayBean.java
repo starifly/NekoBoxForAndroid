@@ -143,7 +143,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
 
         if (JavaUtil.isNullOrBlank(mKcpSeed)) mKcpSeed = "";
         if (JavaUtil.isNullOrBlank(headerType)) headerType = "none";
-        // kcpMtu、kcpTti 和 kcpCwndMultiplier 保持 null，不设置默认值
+        // kcpMtu, kcpTti and kcpCwndMultiplier stay null, no default values set
     }
 
     @Override
@@ -265,7 +265,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
             case "grpc": {
                 path = input.readString();
                 if (version < 4) {
-                    // 解决老版本数据的读取问题
+                    // fix the reading issue with old version data
                     input.readString();
                     input.readString();
                 }
@@ -327,13 +327,13 @@ public abstract class StandardV2RayBean extends AbstractBean {
                 }
             }
         } else if (version == 0) {
-            // 从老版本升级上来但是 version == 0, 可能有 enableECH 也可能没有，需要做判断
-            int position = input.getByteBuffer().position(); // 当前位置
+            // upgraded from an old version but version == 0; may or may not have enableECH, so a check is needed
+            int position = input.getByteBuffer().position(); // current position
 
             boolean tmpEnableECH = input.readBoolean();
             int tmpPacketEncoding = input.readInt();
 
-            input.setPosition(position); // 读后归位
+            input.setPosition(position); // reset position after reading
 
             if (tmpPacketEncoding != 1 && tmpPacketEncoding != 2) {
                 enableECH = tmpEnableECH;
@@ -342,7 +342,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
                     input.readBoolean();
                     echConfig = input.readString();
                 }
-            } // 否则后一位就是 packetEncoding
+            } // otherwise the next field is packetEncoding
         }
 
         packetEncoding = input.readInt();

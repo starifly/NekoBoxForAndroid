@@ -170,11 +170,11 @@ fun SingBoxOptions.Rule_DefaultOptions.checkEmpty(): Boolean {
 fun processRulesetUrl(origUrl: String): Pair<String, Boolean> {
     return when {
         origUrl.startsWith("rsip:") -> {
-            // IP类型ruleset
+            // IP-type ruleset
             Pair(origUrl.substring(5), true)
         }
         origUrl.startsWith("rssite:") -> {
-            // 域名类型ruleset
+            // domain-type ruleset
             Pair(origUrl.substring(7), false)
         }
         else -> {
@@ -187,7 +187,7 @@ fun generateRemoteRuleSet(url: String, ruleSets: MutableList<RuleSet>, updateInt
     val hashCode = kotlin.math.abs(url.hashCode())
     val tag = "ruleset-$hashCode"
     
-    // 添加到规则集列表
+    // add to the rule set list
     ruleSets.add(RuleSet().apply {
         type = "remote"
         this.tag = tag

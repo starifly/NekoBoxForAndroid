@@ -158,7 +158,7 @@ func (w *boxPlatformInterfaceWrapper) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-// 日志
+// logging
 
 type boxPlatformLogWriterWrapper struct {
 }

@@ -272,7 +272,7 @@ fun buildConfig(
             rules = mutableListOf()
             rule_set = mutableListOf()
 
-            // 添加并发拨号设置
+            // add concurrent dial setting
              concurrent_dial = DataStore.concurrentDial
         }
 
@@ -534,11 +534,11 @@ fun buildConfig(
 
         val mainProxyTag = (if (buildSelector) TAG_PROXY else tagMap[proxy.id]) ?: TAG_PROXY
 
-        // 在应用用户规则之前检查全局模式
+        // check global mode before applying user rules
         if (!forTest && DataStore.globalMode) {
-            // 全局模式下的规则处理
+            // rule handling in global mode
             
-            // 绕过内部网络（如果启用）
+            // bypass internal networks (if enabled)
             if (DataStore.bypassLan) {
                 route.rules.add(Rule_DefaultOptions().apply {
                     ip_cidr = listOf(
@@ -568,7 +568,7 @@ fun buildConfig(
 
             route.final_ = mainProxyTag
         } else {
-            // 应用用户规则
+            // apply user rules
             for (rule in extraRules) {
                 if (rule.packages.isNotEmpty()) {
                     PackageCache.awaitLoadSync()
@@ -601,10 +601,10 @@ fun buildConfig(
                     
                     if (rule_set != null) generateRuleSet(rule_set, ruleSets)
                     
-		    // 存储ruleset标签和类型信息
+		    // store ruleset tag and type info
                     val rulesetTags = mutableListOf<Pair<String, Boolean>>()
                     
-                    // 处理远程ruleset
+                    // handle remote ruleset
                     if (rule.ruleset.isNotBlank()) {
                         val rulesetUrls = rule.ruleset.listByLineOrComma()
                         rulesetUrls.forEach { origUrl ->
@@ -665,7 +665,7 @@ fun buildConfig(
                             
                             if (rule_set != null && rulesetTags.isNotEmpty()) {
                                 for (tag in rule_set) {
-                                    // 只处理ruleset标签，且必须是非IP类型
+                                    // only handle ruleset tags, and they must be non-IP type
                                     val tagInfo = rulesetTags.find { it.first == tag }
                                     if (tag.startsWith("ruleset-") && tagInfo != null && !tagInfo.second) {
                                         userDNSRuleList += DNSRule_DefaultOptions().apply {
@@ -749,7 +749,7 @@ fun buildConfig(
                             Toast.LENGTH_LONG
                         ).show()
                     } else {
-                        // block 改用新的写法
+                        // block now uses the new approach
                         if (ruleObj.outbound == TAG_BLOCK) {
                             ruleObj.outbound = null
                             ruleObj.action = "reject"
@@ -761,7 +761,7 @@ fun buildConfig(
             }
         }
 
-        // 对 rule_set tag 去重
+        // deduplicate rule_set tags
         if (route.rule_set != null) {
             route.rule_set = route.rule_set.distinctBy { it.tag }
         }

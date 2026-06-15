@@ -239,7 +239,7 @@ class GroupSettingsActivity(
                     val group = ProxyGroup()
                     group.init()
                     
-                    // 如果有订阅链接，设置为订阅类型并填充链接
+                    // if there's a subscription link, set it to subscription type and fill in the link
                     if (!subscriptionLink.isNullOrEmpty()) {
                         DataStore.groupType = GroupType.SUBSCRIPTION
                         DataStore.subscriptionLink = subscriptionLink

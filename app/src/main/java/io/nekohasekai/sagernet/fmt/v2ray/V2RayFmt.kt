@@ -316,7 +316,7 @@ fun StandardV2RayBean.parseDuckSoft(url: HttpUrl) {
     }
 }
 
-// 不确定是谁的格式
+// not sure whose format this is
 private fun tryResolveVmess4Kitsunebi(server: String): VMessBean {
     // vmess://YXV0bzo1YWY1ZDBlYy02ZWEwLTNjNDMtOTNkYi1jYTMwMDg1MDNiZGJAMTgzLjIzMi41Ni4xNjE6MTIwMg
     // ?remarks=*%F0%9F%87%AF%F0%9F%87%B5JP%20-355%20TG@moon365free&obfsParam=%7B%22Host%22:%22183.232.56.161%22%7D&path=/v2ray&obfs=websocket&alterId=0
@@ -772,7 +772,7 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
         insecure = bean.allowInsecure || DataStore.globalAllowInsecure
         if (bean.sni.isNotBlank()) server_name = bean.sni
         if (bean.alpn.isNotBlank()) {
-            // 当传输协议为WebSocket时，过滤掉h2和h3
+            // when the transport protocol is WebSocket, filter out h2 and h3
             val alpnList = bean.alpn.listByLineOrComma()
             if (bean.type == "ws") {
                 val filtered = alpnList.filter { it == "http/1.1" }

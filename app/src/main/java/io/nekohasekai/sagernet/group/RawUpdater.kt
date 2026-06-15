@@ -84,7 +84,7 @@ object RawUpdater : GroupUpdater() {
             subscription.subscriptionUserinfo =
                 Util.getStringBox(response.getHeader("Subscription-Userinfo"))
 
-            // 修改默认名字
+            // modify the default name
             if (proxyGroup.name?.startsWith("Subscription #") == true) {
                 var remoteName = Util.getStringBox(response.getHeader("content-disposition"))
                 if (remoteName.isNotBlank()) {
@@ -182,7 +182,7 @@ object RawUpdater : GroupUpdater() {
             if (toReplace.contains(name)) {
                 val entity = toReplace[name]!!
                 val existsBean = entity.requireBean()
-                // 更新订阅，保留自定义覆写设置
+                // update subscription, preserving custom override settings
                 bean.customOutboundJson = existsBean.customOutboundJson
                 bean.customConfigJson = existsBean.customConfigJson
                 when {

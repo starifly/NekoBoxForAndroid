@@ -52,7 +52,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
 
     class WebDAVSettingsFragment : PreferenceFragmentCompat(), PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
         private var lastClickTime = 0L
-        private val DEBOUNCE_TIME = 1000L  // 1秒内不允许重复点击
+        private val DEBOUNCE_TIME = 1000L  // no repeated clicks allowed within 1 second
         private var isFragmentAlive = true
 
         private fun isClickAllowed(): Boolean {
@@ -95,7 +95,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                     editText.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
                     editText.setSelection(editText.text.length)
                 }
-                // 使用与其他密码字段一致的隐藏摘要样式
+                // use the hidden summary style consistent with other password fields
                 summaryProvider = GroupSettingsActivity.PasswordSummaryProvider
             }
             
@@ -134,7 +134,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                         .writeTimeout(10, TimeUnit.SECONDS)
                         .build()
 
-                    // 首先测试连接和认证
+                    // first test connection and authentication
                     val authRequest = Request.Builder()
                         .url(secureUrl)
                         .method("PROPFIND", null)
@@ -161,7 +161,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                         throw Exception(getString(R.string.webdav_connect_failed, response.code))
                     }
 
-                    // 如果认证成功，再测试目录操作
+                    // if authentication succeeds, then test directory operations
                     val path = (DataStore.webdavPath ?: "").trim('/')
                     if (path.isNotBlank()) {
                         val dirUrl = secureUrl.newBuilder().apply {
@@ -183,7 +183,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                             .build()
 
                         val dirResponse = client.newCall(dirRequest).execute()
-                        if (!dirResponse.isSuccessful && dirResponse.code != 405) {  // 405 表示目录已存在
+                        if (!dirResponse.isSuccessful && dirResponse.code != 405) {  // 405 means the directory already exists
                             throw Exception(getString(R.string.webdav_create_dir_failed))
                         }
                     }

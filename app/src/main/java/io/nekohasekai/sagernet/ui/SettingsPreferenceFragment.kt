@@ -221,7 +221,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
         enableTLSFragment.onPreferenceChangeListener = reloadListener
 
-        // 恢复默认设置功能
+        // reset to default settings feature
         val resetSettings = findPreference<Preference>("resetSettings")!!
         resetSettings.setOnPreferenceClickListener {
             MaterialAlertDialogBuilder(requireContext()).apply {
@@ -236,7 +236,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             true
         }
 
-        // 清理缓存功能
+        // clear cache feature
         val clearCache = findPreference<Preference>(Key.CLEAR_CACHE)!!
         clearCache.setOnPreferenceClickListener {
             MaterialAlertDialogBuilder(requireContext()).apply {

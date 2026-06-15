@@ -125,7 +125,7 @@ object LocalResolverImpl : LocalDNSTransport {
             }
         } else {
             runOnIoDispatcher {
-                // 老版本系统，继续用阻塞的 InetAddress
+                // older system version, continue using the blocking InetAddress
                 try {
                     val u = SagerNet.underlyingNetwork
                     val answer = try {

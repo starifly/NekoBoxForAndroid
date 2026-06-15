@@ -662,12 +662,12 @@ class ConfigurationFragment @JvmOverloads constructor(
                 if (DataStore.serviceState.canStop) {
                     runOnDefaultDispatcher {
                         try {
-                            // 等待一段时间确保配置已保存
+                            // wait a while to ensure the config has been saved
                             delay(500)
                             snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {
                                 runOnDefaultDispatcher {
                                     try {
-                                        // 再次等待确保配置已保存
+                                        // wait again to ensure the config has been saved
                                         delay(100)
                                         SagerNet.reloadService()
                                     } catch (e: Exception) {
