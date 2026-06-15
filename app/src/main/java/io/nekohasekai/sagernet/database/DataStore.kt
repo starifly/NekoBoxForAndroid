@@ -153,8 +153,16 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         set(value) = saveLocalPort(Key.MIXED_PORT, value)
 
     val mixedInboundNeedsAuth: Boolean
-        get() = serviceMode == Key.MODE_VPN &&
-            !(appendHttpProxy && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+        get() =
+            // When the inbound is exposed to the LAN (bind 0.0.0.0 via allowAccess),
+            // authentication is mandatory so the proxy is never an open relay. This
+            // holds in both VPN and Proxy service modes and overrides appendHttpProxy.
+            allowAccess ||
+                // Loopback-only inbound: keep the prior behavior. In VPN mode the
+                // inbound is authenticated, except when appendHttpProxy is active on
+                // Android Q+ (the system HTTP proxy cannot supply credentials).
+                (serviceMode == Key.MODE_VPN &&
+                    !(appendHttpProxy && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q))
 
     val mixedInboundUser: String get() = if (mixedInboundAuthed) Key.MIXED_USERNAME else ""
     val mixedInboundPass: String get() = if (mixedInboundAuthed) mixedSecret else ""

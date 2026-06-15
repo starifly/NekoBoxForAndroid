@@ -189,7 +189,18 @@ class VpnService : BaseVpnService(),
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && DataStore.appendHttpProxy) {
-            builder.setHttpProxy(ProxyInfo.buildDirectProxy(LOCALHOST, DataStore.mixedPort))
+            if (DataStore.allowAccess) {
+                // When LAN access is enabled the mixed inbound requires authentication
+                // (see DataStore.mixedInboundNeedsAuth). Android's system HTTP proxy
+                // cannot supply credentials, so registering it here would just fail.
+                // Skip it instead of weakening inbound auth and exposing an open LAN proxy.
+                Logs.w(
+                    "Append HTTP proxy was skipped because LAN access requires proxy " +
+                        "authentication. Disable Allow LAN access to use system HTTP proxy."
+                )
+            } else {
+                builder.setHttpProxy(ProxyInfo.buildDirectProxy(LOCALHOST, DataStore.mixedPort))
+            }
         }
 
         metered = DataStore.meteredNetwork
