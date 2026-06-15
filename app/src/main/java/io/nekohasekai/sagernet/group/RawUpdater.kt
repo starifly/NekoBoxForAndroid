@@ -32,8 +32,9 @@ import org.ini4j.Ini
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
-import org.yaml.snakeyaml.TypeDescription
+import org.yaml.snakeyaml.LoaderOptions
 import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.constructor.SafeConstructor
 import org.yaml.snakeyaml.error.YAMLException
 import java.io.StringReader
 import androidx.core.net.toUri
@@ -254,9 +255,23 @@ object RawUpdater : GroupUpdater() {
 
             try {
 
-                val yaml = Yaml().apply {
-                    addTypeDescription(TypeDescription(String::class.java, "str"))
-                }.loadAs(text, Map::class.java)
+                // Parse untrusted subscription YAML safely.
+                // SafeConstructor only produces standard types (Map/List/String/
+                // Number/Boolean/null) and rejects custom/global tags such as
+                // !!javax..., preventing arbitrary class instantiation
+                // (CVE-2022-1471 style gadget chains). A code-point limit bounds
+                // input size to mitigate decompression/billion-laughs style DoS.
+                // Note: load() is used instead of loadAs(..., Map::class.java)
+                // because SafeConstructor cannot construct an explicit root type
+                // tag; a YAML mapping is returned as a LinkedHashMap natively.
+                val loaderOptions = LoaderOptions().apply {
+                    codePointLimit = 10 * 1024 * 1024 // 10 MiB
+                }
+                // In SnakeYAML 2.x, Yaml(BaseConstructor) adopts the constructor's
+                // LoaderOptions (getLoadingConfig()), so codePointLimit set above is
+                // enforced during parsing (verified: input over the limit throws).
+                val yaml = Yaml(SafeConstructor(loaderOptions)).load<Any?>(text) as? Map<String, Any?>
+                    ?: error(app.getString(R.string.no_proxies_found_in_file))
 
                 val globalClientFingerprint = yaml["global-client-fingerprint"]?.toString() ?: ""
 
