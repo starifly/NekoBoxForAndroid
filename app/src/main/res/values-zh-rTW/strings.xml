@@ -543,6 +543,7 @@
     <string name="webdav_server_error">伺服器錯誤</string>
     <string name="webdav_connect_failed">連線失敗，錯誤程式碼：%d</string>
     <string name="webdav_create_dir_failed">無法建立或訪問備份目錄</string>
+    <string name="webdav_insecure_url">WebDAV 伺服器位址不安全。請使用 https:// 位址；使用 http:// 會以明文傳輸您的憑證與備份（包含所有設定金鑰）。</string>
     <string name="global_mode">全域性模式</string>
     <string name="global_mode_summary">繞過所有路由規則,所有流量都透過當前節點</string>
     <string name="network_change_reset_connections">當網路發生變化時重置出站連線</string>

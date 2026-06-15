@@ -19,12 +19,10 @@ import kotlinx.coroutines.launch
 import okhttp3.Credentials
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.net.URL
 import com.google.android.material.snackbar.Snackbar
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 class WebDAVSettingsActivity : ThemedActivity() {
     
@@ -127,7 +125,9 @@ class WebDAVSettingsActivity : ThemedActivity() {
                         throw Exception(getString(R.string.webdav_server_empty))
                     }
 
-                    val url = URL(server)
+                    // Reject plain http:// — the test sends Basic-auth credentials.
+                    val secureUrl = WebDAVSecurity.requireSecureUrl(server)
+
                     val client = OkHttpClient.Builder()
                         .connectTimeout(10, TimeUnit.SECONDS)
                         .readTimeout(10, TimeUnit.SECONDS)
@@ -136,7 +136,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
 
                     // 首先测试连接和认证
                     val authRequest = Request.Builder()
-                        .url(url)
+                        .url(secureUrl)
                         .method("PROPFIND", null)
                         .apply {
                             val credentials = Credentials.basic(
@@ -164,10 +164,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                     // 如果认证成功，再测试目录操作
                     val path = (DataStore.webdavPath ?: "").trim('/')
                     if (path.isNotBlank()) {
-                        val baseHttpUrl = server.toHttpUrlOrNull()
-                            ?: throw Exception(getString(R.string.webdav_server_not_found))
-
-                        val dirUrl = baseHttpUrl.newBuilder().apply {
+                        val dirUrl = secureUrl.newBuilder().apply {
                             path.split('/').filter { it.isNotEmpty() }.forEach { segment ->
                                 addPathSegment(segment)
                             }

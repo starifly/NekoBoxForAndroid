@@ -525,6 +525,7 @@
     <string name="webdav_server_error">サーバーエラー</string>
     <string name="webdav_connect_failed">接続に失敗しました。コード: %d</string>
     <string name="webdav_create_dir_failed">バックアップディレクトリの作成またはアクセスに失敗しました</string>
+    <string name="webdav_insecure_url">WebDAVサーバーのURLが安全ではありません。https://アドレスを使用してください。http://を使用すると、認証情報とバックアップ（すべてのプロファイルのシークレットを含む）が平文で送信されます。</string>
     <string name="global_mode">グローバルモード</string>
     <string name="global_mode_summary">すべてのルーティングルールをバイパスし、すべてのトラフィックを現在のノード経由でプロキシします</string>
     <string name="mux_preference">マルチプレックス</string>

@@ -592,6 +592,7 @@
     <string name="webdav_server_error">خطای سرور</string>
     <string name="webdav_connect_failed">اتصال ناموفق بود با کد: %d</string>
     <string name="webdav_create_dir_failed">ایجاد یا دسترسی به پوشهٔ پشتیبان ناموفق بود</string>
+    <string name="webdav_insecure_url">نشانی سرور WebDAV ناامن است. از نشانی https:// استفاده کنید؛ استفاده از http:// اطلاعات ورود و پشتیبان (شامل تمام رمزهای پروفایل) را به‌صورت متن‌ساده منتقل می‌کند.</string>
     <string name="global_mode">حالت سراسری</string>
     <string name="global_mode_summary">دور زدن همهٔ قواعد مسیریابی و عبور همهٔ ترافیک از گرهٔ فعلی</string>
     <string name="mux_preference">Multiplex</string>

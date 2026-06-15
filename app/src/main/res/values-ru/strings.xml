@@ -599,6 +599,7 @@
     <string name="webdav_server_error">Ошибка сервера</string>
     <string name="webdav_connect_failed">Не удалось соединиться, код: %d</string>
     <string name="webdav_create_dir_failed">Не удалось создать каталог резервных копий или получить к нему доступ</string>
+    <string name="webdav_insecure_url">Небезопасный URL WebDAV-сервера. Используйте адрес https://; при использовании http:// учётные данные и резервная копия (содержащая все секреты профилей) передаются в открытом виде.</string>
     <string name="global_mode">Глобальный режим</string>
     <string name="global_mode_summary">Обходить все правила маршрутизации и направлять весь трафик через текущий узел</string>
     <string name="backup_in_progress">Резервное копирование уже выполняется</string>

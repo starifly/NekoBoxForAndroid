@@ -519,6 +519,7 @@
     <string name="webdav_server_error">서버 오류</string>
     <string name="webdav_connect_failed">연결 실패, 코드: %d</string>
     <string name="webdav_create_dir_failed">백업 디렉터리를 만들거나 접근하지 못했습니다</string>
+    <string name="webdav_insecure_url">안전하지 않은 WebDAV 서버 주소입니다. https:// 주소를 사용하세요. http://를 사용하면 자격 증명과 백업(모든 프로필 비밀 포함)이 평문으로 전송됩니다.</string>
     <string name="global_mode">글로벌 모드</string>
     <string name="global_mode_summary">모든 라우팅 규칙을 바이패스하고 모든 트래픽을 현재 노드를 통해 프록시합니다</string>
     <string name="mux_preference">멀티플렉스</string>
