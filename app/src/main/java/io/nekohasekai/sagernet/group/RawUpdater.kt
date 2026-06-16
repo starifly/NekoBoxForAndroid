@@ -1,6 +1,8 @@
 package io.nekohasekai.sagernet.group
 
 import android.annotation.SuppressLint
+import android.os.Build
+import android.provider.Settings
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SubscriptionFilterMode
 import io.nekohasekai.sagernet.database.*
@@ -40,6 +42,44 @@ import androidx.core.net.toUri
 @Suppress("EXPERIMENTAL_API_USAGE")
 object RawUpdater : GroupUpdater() {
 
+    private fun buildHwidHeaders(customParams: String?): Map<String, String> {
+        val params = if (customParams.isNullOrBlank()) {
+            mapOf(
+                "hwid" to (Settings.Secure.getString(app.contentResolver, Settings.Secure.ANDROID_ID) ?: ""),
+                "os" to "Android",
+                "osversion" to Build.VERSION.RELEASE.orEmpty(),
+                "model" to listOf(Build.MANUFACTURER, Build.MODEL)
+                    .filter { it.isNotBlank() }
+                    .joinToString(" ")
+            )
+        } else {
+            buildMap {
+                customParams.split(',').forEach { pair ->
+                    val trimmed = pair.trim()
+                    val separator = trimmed.indexOf('=')
+                    if (separator <= 0) return@forEach
+                    val key = trimmed.substring(0, separator).trim().lowercase()
+                    val value = trimmed.substring(separator + 1).trim()
+                    if (key in allowedHwidParams && value.isValidHeaderValue()) {
+                        put(key, value)
+                    }
+                }
+            }
+        }
+        return buildMap {
+            params["hwid"]?.takeIf { it.isNotBlank() }?.let { put("x-hwid", it) }
+            params["os"]?.takeIf { it.isNotBlank() }?.let { put("x-device-os", it) }
+            params["osversion"]?.takeIf { it.isNotBlank() }?.let { put("x-ver-os", it) }
+            params["model"]?.takeIf { it.isNotBlank() }?.let { put("x-device-model", it) }
+        }
+    }
+
+    private val allowedHwidParams = setOf("hwid", "os", "osversion", "model")
+
+    private fun String.isValidHeaderValue(): Boolean {
+        return isNotEmpty() && length < 1000 && none { it == '\n' || it == '\r' }
+    }
+
     @SuppressLint("Recycle")
     override suspend fun doUpdate(
         proxyGroup: ProxyGroup,
@@ -71,6 +111,12 @@ object RawUpdater : GroupUpdater() {
                 }
                 setURL(subscription.link)
                 setUserAgent(subscription.customUserAgent.takeIf { it.isNotBlank() } ?: USER_AGENT)
+                if (subscription.sendHwid == true) {
+                    val hwidHeaders = buildHwidHeaders(subscription.customHwidParams)
+                    for ((key, value) in hwidHeaders) {
+                        setHeader(key, value)
+                    }
+                }
             }.execute()
             proxies = parseRaw(Util.getStringBox(response.contentString))
                 ?: error(app.getString(R.string.no_proxies_found))

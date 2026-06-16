@@ -381,6 +381,10 @@
     <string name="update_when_connected_only">Update only when connected</string>
     <string name="update_when_connected_only_sum">Prevent IP address leakage</string>
     <string name="subscription_user_agent">UserAgent</string>
+    <string name="subscription_send_hwid">Send HWID</string>
+    <string name="subscription_send_hwid_summary">Send HWID, Android version, and device model when updating this subscription</string>
+    <string name="subscription_custom_hwid_params">Custom HWID parameters</string>
+    <string name="subscription_custom_hwid_params_summary">Format: hwid=value,os=value,osVersion=value,model=value. Leave empty to use this device values; when filled, only listed values are sent.</string>
     <string name="confirm">Confirm</string>
     <string name="missing_plugin">Missing Plugin</string>
     <string name="profile_requiring_plugin">Profile %s requires the %s plugin to be installed, but
