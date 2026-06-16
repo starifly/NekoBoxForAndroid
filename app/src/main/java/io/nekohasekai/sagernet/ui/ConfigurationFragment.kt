@@ -87,6 +87,7 @@ import io.nekohasekai.sagernet.plugin.PluginManager
 import io.nekohasekai.sagernet.ui.profile.ChainSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.HttpSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.HysteriaSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.MasterDnsVpnSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.JuicitySettingsActivity
 import io.nekohasekai.sagernet.ui.profile.MieruSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.NaiveSettingsActivity
@@ -488,6 +489,10 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             R.id.action_new_snell -> {
                 startActivity(Intent(requireActivity(), SnellSettingsActivity::class.java))
+            }
+
+            R.id.action_new_masterdnsvpn -> {
+                startActivity(Intent(requireActivity(), MasterDnsVpnSettingsActivity::class.java))
             }
 
             R.id.action_new_wg -> {

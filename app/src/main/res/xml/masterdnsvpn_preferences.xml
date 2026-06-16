@@ -1,0 +1,126 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <EditTextPreference
+        app:icon="@drawable/ic_social_emoji_symbols"
+        app:key="profileName"
+        app:title="@string/profile_name"
+        app:useSimpleSummaryProvider="true" />
+
+    <PreferenceCategory app:title="@string/proxy_cat">
+
+        <EditTextPreference
+            app:icon="@drawable/ic_hardware_router"
+            app:key="mdvDomains"
+            app:title="@string/mdv_domains"
+            app:useSimpleSummaryProvider="true" />
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+            app:defaultValue="1"
+            app:entries="@array/mdv_encryption_method"
+            app:entryValues="@array/mdv_encryption_method_value"
+            app:icon="@drawable/ic_settings_password"
+            app:key="mdvEncryptionMethod"
+            app:title="@string/mdv_encryption_method"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:dialogLayout="@layout/layout_password_dialog"
+            app:icon="@drawable/ic_settings_password"
+            app:key="mdvEncryptionKey"
+            app:title="@string/mdv_encryption_key" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_dns_24"
+            app:key="mdvResolvers"
+            app:title="@string/mdv_resolvers"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/mdv_resilience_cat">
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+            app:defaultValue="3"
+            app:entries="@array/mdv_balancing_strategy"
+            app:entryValues="@array/mdv_balancing_strategy_value"
+            app:icon="@drawable/ic_baseline_compare_arrows_24"
+            app:key="mdvBalancingStrategy"
+            app:title="@string/mdv_balancing_strategy"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_layers_24"
+            app:key="mdvPacketDup"
+            app:title="@string/mdv_packet_dup"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_layers_24"
+            app:key="mdvSetupPacketDup"
+            app:title="@string/mdv_setup_packet_dup"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+            app:key="mdvAutoDisableTimeout"
+            app:title="@string/mdv_auto_disable_timeout" />
+        <SwitchPreference
+            app:key="mdvAutoRemoveLowMtu"
+            app:title="@string/mdv_auto_remove_low_mtu" />
+        <SwitchPreference
+            app:key="mdvBaseEncode"
+            app:title="@string/mdv_base_encode" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/mdv_compression_cat">
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+            app:defaultValue="0"
+            app:entries="@array/mdv_compression_type"
+            app:entryValues="@array/mdv_compression_type_value"
+            app:icon="@drawable/ic_baseline_transform_24"
+            app:key="mdvUploadCompression"
+            app:title="@string/mdv_upload_compression"
+            app:useSimpleSummaryProvider="true" />
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+            app:defaultValue="0"
+            app:entries="@array/mdv_compression_type"
+            app:entryValues="@array/mdv_compression_type_value"
+            app:icon="@drawable/ic_baseline_transform_24"
+            app:key="mdvDownloadCompression"
+            app:title="@string/mdv_download_compression"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="mdvCompressionMinSize"
+            app:title="@string/mdv_compression_min_size"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/mdv_mtu_cat">
+        <EditTextPreference
+            app:key="mdvMinUploadMtu"
+            app:title="@string/mdv_min_upload_mtu"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="mdvMinDownloadMtu"
+            app:title="@string/mdv_min_download_mtu"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="mdvMaxUploadMtu"
+            app:title="@string/mdv_max_upload_mtu"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="mdvMaxDownloadMtu"
+            app:title="@string/mdv_max_download_mtu"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/mdv_misc_cat">
+        <SwitchPreference
+            app:key="mdvLocalDnsEnabled"
+            app:title="@string/mdv_local_dns_enabled" />
+        <EditTextPreference
+            app:key="mdvLocalDnsPort"
+            app:title="@string/mdv_local_dns_port"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="mdvLogLevel"
+            app:title="@string/mdv_log_level"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="mdvAdvancedJson"
+            app:title="@string/mdv_advanced_json"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

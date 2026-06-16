@@ -529,6 +529,55 @@
         <item>2</item>
     </string-array>
 
+    <string-array name="mdv_encryption_method">
+        <item>None</item>
+        <item>XOR</item>
+        <item>ChaCha20</item>
+        <item>AES-128-GCM</item>
+        <item>AES-192-GCM</item>
+        <item>AES-256-GCM</item>
+    </string-array>
+    <string-array name="mdv_encryption_method_value">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </string-array>
+    <string-array name="mdv_balancing_strategy">
+        <item>Random</item>
+        <item>Round Robin</item>
+        <item>Least Loss</item>
+        <item>Lowest Latency</item>
+        <item>Hybrid Score</item>
+        <item>Loss Then Latency</item>
+        <item>Least Loss Top Random</item>
+        <item>Least Loss Top Round Robin</item>
+    </string-array>
+    <string-array name="mdv_balancing_strategy_value">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+    </string-array>
+    <string-array name="mdv_compression_type">
+        <item>OFF</item>
+        <item>ZSTD</item>
+        <item>LZ4</item>
+        <item>ZLIB</item>
+    </string-array>
+    <string-array name="mdv_compression_type_value">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
     <string-array name="tuic_version">
         <item>5</item>
         <item>4</item>

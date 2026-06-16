@@ -11,6 +11,9 @@ import io.nekohasekai.sagernet.fmt.buildConfig
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.fmt.hysteria.buildHysteria1Config
 import io.nekohasekai.sagernet.fmt.hysteria.buildHysteria2SidecarConfig
+import io.nekohasekai.sagernet.fmt.masterdnsvpn.MasterDnsVpnBean
+import io.nekohasekai.sagernet.fmt.masterdnsvpn.buildMasterDnsVpnConfig
+import io.nekohasekai.sagernet.fmt.masterdnsvpn.resolverLines
 import io.nekohasekai.sagernet.fmt.mieru.MieruBean
 import io.nekohasekai.sagernet.fmt.mieru.buildMieruConfig
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
@@ -97,6 +100,13 @@ abstract class BoxInstance(
                                 }
                             }
                         }
+                    }
+
+                    is MasterDnsVpnBean -> {
+                        initPlugin("masterdnsvpn-plugin")
+                        pluginConfigs[port] = profile.type to bean.buildMasterDnsVpnConfig(
+                            port, File(app.noBackupFilesDir, "protect_path").absolutePath
+                        )
                     }
                 }
             }
@@ -231,6 +241,26 @@ abstract class BoxInstance(
                         if (bean.protocol == HysteriaBean.PROTOCOL_FAKETCP) {
                             commands.addAll(0, listOf("su", "-c"))
                         }
+
+                        processes.start(commands)
+                    }
+
+                    bean is MasterDnsVpnBean -> {
+                        val ts = SystemClock.elapsedRealtime()
+                        val configFile = File(cacheDir, "masterdnsvpn_$ts.json")
+                        configFile.parentFile?.mkdirs()
+                        configFile.writeText(config)
+                        cacheFiles.add(configFile)
+
+                        val resolversFile = File(cacheDir, "masterdnsvpn_${ts}_resolvers.txt")
+                        resolversFile.writeText(bean.resolverLines())
+                        cacheFiles.add(resolversFile)
+
+                        val commands = mutableListOf(
+                            initPlugin("masterdnsvpn-plugin").path,
+                            "-json", configFile.absolutePath,
+                            "-resolvers", resolversFile.absolutePath,
+                        )
 
                         processes.start(commands)
                     }
