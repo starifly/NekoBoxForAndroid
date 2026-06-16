@@ -134,6 +134,7 @@
                 <data android:scheme="naive+https" />
                 <data android:scheme="naive+quic" />
                 <data android:scheme="hysteria" />
+                <data android:scheme="masterdns" />
 
             </intent-filter>
 
