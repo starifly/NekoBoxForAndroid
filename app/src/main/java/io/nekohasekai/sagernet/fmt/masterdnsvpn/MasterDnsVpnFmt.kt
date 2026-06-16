@@ -71,12 +71,22 @@ fun MasterDnsVpnBean.buildMasterDnsVpnConfig(port: Int, protectPath: String): St
         put("FD_CONTROL_UNIX_SOCKET", protectPath)
     }
 
-    // Merge the advanced JSON override last so it can set/replace any key.
+    // Merge the advanced JSON override last so it can set/replace tuning keys, but never
+    // safety-critical ones: the protect socket and the loopback SOCKS listener must stay
+    // as generated, or VPN-mode socket protection / routing would silently break.
     if (advancedJson.isNotBlank()) {
         // Malformed override JSON must not crash config generation / VPN start.
         try {
+            val protectedKeys = setOf(
+                "FD_CONTROL_UNIX_SOCKET", "LISTEN_IP", "LISTEN_PORT",
+                "PROTOCOL_TYPE", "SOCKS5_AUTH",
+            )
             val extra = JSONObject(advancedJson)
             for (key in extra.keys()) {
+                if (key in protectedKeys) {
+                    Logs.w("MasterDnsVPN: ignoring protected key '$key' in advanced JSON override")
+                    continue
+                }
                 cfg.put(key, extra.get(key))
             }
         } catch (e: Exception) {
