@@ -5,7 +5,7 @@ on:
 env:
   MIERU_VERSION: v3.34.0
   HYSTERIA_VERSION: v2.9.2
-  MDV_REF: android-vpnservice-protect-hook
+  MDVPN_REF: android-vpnservice-protect-hook
 permissions:
   contents: read
 jobs:
@@ -48,7 +48,7 @@ jobs:
         with:
           path: |
             app/executableSo
-          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-${{ env.MDV_REF }}-sidecars
+          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-${{ env.MDVPN_REF }}-sidecars
       - name: Install Golang
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-go@v6
@@ -90,7 +90,7 @@ jobs:
         with:
           path: |
             app/executableSo
-          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-${{ env.MDV_REF }}-sidecars
+          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-${{ env.MDVPN_REF }}-sidecars
       - name: Verify Sidecar Artifacts
         run: |
           for abi in arm64-v8a armeabi-v7a x86 x86_64; do
