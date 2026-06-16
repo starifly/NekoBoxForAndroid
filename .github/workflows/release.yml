@@ -10,6 +10,9 @@ on:
         required: false
 env:
   MIERU_VERSION: v3.34.0
+  HYSTERIA_VERSION: v2.9.2
+permissions:
+  contents: write
 jobs:
   libcore:
     name: Native Build (LibCore)
@@ -36,21 +39,21 @@ jobs:
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./run lib core
-  mieru:
-    name: Native Build (Mieru)
+  sidecars:
+    name: Native Build (Sidecars)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-      - name: Mieru Status
-        run: cat buildScript/lib/mieru.sh buildScript/init/env.sh buildScript/init/env_ndk.sh | sha1sum > mieru_status
-      - name: Mieru Cache
+      - name: Sidecars Status
+        run: cat buildScript/lib/mieru.sh buildScript/lib/hysteria2.sh buildScript/init/env.sh buildScript/init/env_ndk.sh | sha1sum > sidecars_status
+      - name: Sidecars Cache
         id: cache
         uses: actions/cache@v5
         with:
           path: |
             app/executableSo
-          key: ${{ hashFiles('.github/workflows/*', 'mieru_status') }}-${{ env.MIERU_VERSION }}-mieru
+          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-sidecars
       - name: Install Golang
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-go@v6
@@ -59,12 +62,15 @@ jobs:
       - name: Mieru Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./run lib mieru
+      - name: Hysteria2 Download
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ./run lib hysteria2
   build:
     name: Build OSS APK
     runs-on: ubuntu-latest
     needs:
       - libcore
-      - mieru
+      - sidecars
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -78,22 +84,24 @@ jobs:
           path: |
             app/libs/libcore.aar
           key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
-      - name: Mieru Status
-        run: cat buildScript/lib/mieru.sh buildScript/init/env.sh buildScript/init/env_ndk.sh | sha1sum > mieru_status
-      - name: Mieru Cache
-        id: mieru-cache
+      - name: Sidecars Status
+        run: cat buildScript/lib/mieru.sh buildScript/lib/hysteria2.sh buildScript/init/env.sh buildScript/init/env_ndk.sh | sha1sum > sidecars_status
+      - name: Sidecars Cache
+        id: sidecars-cache
         uses: actions/cache@v5
         with:
           path: |
             app/executableSo
-          key: ${{ hashFiles('.github/workflows/*', 'mieru_status') }}-${{ env.MIERU_VERSION }}-mieru
-      - name: Verify Mieru Artifacts
+          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-sidecars
+      - name: Verify Sidecar Artifacts
         run: |
           for abi in arm64-v8a armeabi-v7a x86 x86_64; do
-            if [ ! -f "app/executableSo/$abi/libmieru.so" ]; then
-              echo "Error: missing app/executableSo/$abi/libmieru.so (Mieru cache miss)" >&2
-              exit 1
-            fi
+            for so in libmieru.so libhysteria2.so; do
+              if [ ! -f "app/executableSo/$abi/$so" ]; then
+                echo "Error: missing app/executableSo/$abi/$so (sidecar cache miss)" >&2
+                exit 1
+              fi
+            done
           done
       - name: Gradle cache
         uses: actions/cache@v5

@@ -95,6 +95,20 @@ fun parseHysteria2(url: String): HysteriaBean {
         link.queryParameter("obfs-password")?.also {
             obfuscation = it
         }
+        // obfs type: salamander (default when password present) or gecko.
+        link.queryParameter("obfs")?.also {
+            hysteria2ObfsType = when (it.lowercase()) {
+                "gecko" -> HysteriaBean.OBFS_GECKO
+                "salamander" -> HysteriaBean.OBFS_SALAMANDER
+                else -> HysteriaBean.OBFS_NONE
+            }
+        }
+        link.queryParameter("obfs-min-packet-size")?.toIntOrNull()?.also {
+            geckoMinPacketSize = it
+        }
+        link.queryParameter("obfs-max-packet-size")?.toIntOrNull()?.also {
+            geckoMaxPacketSize = it
+        }
 //        link.queryParameter("pinSHA256")?.also {
 //            // TODO your box do not support it
 //        }
@@ -156,9 +170,20 @@ fun HysteriaBean.toUri(): String {
         if (sni.isNotBlank()) {
             builder.addQueryParameter("sni", sni)
         }
-        if (obfuscation.isNotBlank()) {
-            builder.addQueryParameter("obfs", "salamander")
-            builder.addQueryParameter("obfs-password", obfuscation)
+        if (obfuscation.isNotBlank() && hysteria2ObfsType != HysteriaBean.OBFS_NONE) {
+            when (hysteria2ObfsType) {
+                HysteriaBean.OBFS_GECKO -> {
+                    builder.addQueryParameter("obfs", "gecko")
+                    builder.addQueryParameter("obfs-password", obfuscation)
+                    builder.addQueryParameter("obfs-min-packet-size", geckoMinPacketSize.toString())
+                    builder.addQueryParameter("obfs-max-packet-size", geckoMaxPacketSize.toString())
+                }
+
+                else -> {
+                    builder.addQueryParameter("obfs", "salamander")
+                    builder.addQueryParameter("obfs-password", obfuscation)
+                }
+            }
         }
     }
     return builder.toLink(if (protocolVersion == 2) "hy2" else "hysteria")
@@ -269,6 +294,9 @@ fun getFirstPort(portStr: String): Int {
 
 fun HysteriaBean.canUseSingBox(): Boolean {
     if (protocol != HysteriaBean.PROTOCOL_UDP) return false
+    // The starifly sing-box core only supports Salamander obfs. Gecko obfs is provided by
+    // the bundled official hysteria binary sidecar, so force the external path for Gecko.
+    if (protocolVersion == 2 && hysteria2ObfsType == HysteriaBean.OBFS_GECKO) return false
     return true
 }
 
@@ -325,7 +353,9 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.SingBox
             hop_interval = "${bean.hopInterval}s"
             up_mbps = bean.uploadMbps
             down_mbps = bean.downloadMbps
-            if (bean.obfuscation.isNotBlank()) {
+            if (bean.obfuscation.isNotBlank() && bean.hysteria2ObfsType != HysteriaBean.OBFS_NONE) {
+                // Native sing-box core only supports Salamander; Gecko goes through the
+                // bundled hysteria binary sidecar (canUseSingBox() == false for Gecko).
                 obfs = SingBoxOptions.Hysteria2Obfs().apply {
                     type = "salamander"
                     password = bean.obfuscation
@@ -365,4 +395,75 @@ fun hopPortsToSingboxList(s: String): List<String> {
             null
         }
     }
+}
+
+/**
+ * Builds a config for the bundled official apernet/hysteria client binary (sidecar),
+ * used for Hysteria2 profiles with Gecko obfs (which the native sing-box core can't do).
+ *
+ * Emitted as JSON (hysteria uses viper, which detects format by the .json extension).
+ * The client's upstream QUIC sockets are protected from the VPN via
+ * quic.sockopts.fdControlUnixSocket, pointing at libcore's protect_server socket
+ * ("protect_path" in the process working dir). It exposes a loopback-only SOCKS5 listener
+ * that the generated sing-box "socks" outbound dials (no auth, matching the other sidecars).
+ *
+ * @param port local SOCKS5 port for the sidecar to listen on (== sing-box outbound port).
+ * @param protectPath absolute path to libcore's protect unix socket.
+ */
+fun HysteriaBean.buildHysteria2SidecarConfig(
+    port: Int,
+    protectPath: String,
+): String {
+    if (protocolVersion != 2) {
+        throw Exception("error version: $protocolVersion")
+    }
+    var realSni = sni
+    if (realSni.isBlank() && !serverAddress.isIpAddress()) {
+        realSni = serverAddress
+    }
+    return JSONObject().apply {
+        put("server", "$serverAddress:$serverPorts")
+        if (authPayload.isNotBlank()) put("auth", authPayload)
+        put("tls", JSONObject().apply {
+            if (realSni.isNotBlank()) put("sni", realSni)
+            put("insecure", allowInsecure || DataStore.globalAllowInsecure)
+            if (caText.isNotBlank()) put("ca", caText)
+        })
+        if (hysteria2ObfsType == HysteriaBean.OBFS_GECKO && obfuscation.isNotBlank()) {
+            // Clamp to hysteria's accepted bounds: 1 <= min <= max <= 2048.
+            val min = geckoMinPacketSize.coerceIn(1, 2048)
+            val max = geckoMaxPacketSize.coerceIn(min, 2048)
+            put("obfs", JSONObject().apply {
+                put("type", "gecko")
+                put("gecko", JSONObject().apply {
+                    put("password", obfuscation)
+                    put("minPacketSize", min)
+                    put("maxPacketSize", max)
+                })
+            })
+        } else if (hysteria2ObfsType == HysteriaBean.OBFS_SALAMANDER && obfuscation.isNotBlank()) {
+            put("obfs", JSONObject().apply {
+                put("type", "salamander")
+                put("salamander", JSONObject().apply {
+                    put("password", obfuscation)
+                })
+            })
+        }
+        if (uploadMbps > 0 || downloadMbps > 0) {
+            put("bandwidth", JSONObject().apply {
+                if (uploadMbps > 0) put("up", "$uploadMbps mbps")
+                if (downloadMbps > 0) put("down", "$downloadMbps mbps")
+            })
+        }
+        put("quic", JSONObject().apply {
+            put("sockopts", JSONObject().apply {
+                put("fdControlUnixSocket", protectPath)
+            })
+        })
+        put("socks5", JSONObject().apply {
+            put("listen", "$LOCALHOST:$port")
+            put("disableUDP", false)
+        })
+        put("lazy", true)
+    }.toStringPretty()
 }

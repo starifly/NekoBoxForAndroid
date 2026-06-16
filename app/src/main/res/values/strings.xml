@@ -421,6 +421,9 @@
     <string name="select_apps">Select Applications</string>
     <string name="apps_message">%d Applications</string>
     <string name="hysteria_obfs">Obfuscation Password</string>
+    <string name="hysteria2_obfs_type">Obfuscation Type</string>
+    <string name="hysteria2_gecko_min_packet">Gecko Min Packet Size</string>
+    <string name="hysteria2_gecko_max_packet">Gecko Max Packet Size</string>
     <string name="hysteria_auth_type">Authentication Type</string>
     <string name="hysteria_auth_payload">Authentication Payload</string>
     <string name="hysteria_upload_mbps">Max Upload Speed (in Mbps)</string>

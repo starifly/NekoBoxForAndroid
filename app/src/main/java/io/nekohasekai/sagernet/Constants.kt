@@ -129,6 +129,10 @@ object Key {
     const val SERVER_DISABLE_MTU_DISCOVERY = "serverDisableMtuDiscovery"
     const val SERVER_HOP_INTERVAL = "hopInterval"
 
+    const val SERVER_HY2_OBFS_TYPE = "serverHy2ObfsType"
+    const val SERVER_HY2_GECKO_MIN_PACKET = "serverHy2GeckoMinPacket"
+    const val SERVER_HY2_GECKO_MAX_PACKET = "serverHy2GeckoMaxPacket"
+
     const val SERVER_PRIVATE_KEY = "serverPrivateKey"
     const val SERVER_INSECURE_CONCURRENCY = "serverInsecureConcurrency"
 

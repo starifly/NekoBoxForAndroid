@@ -252,6 +252,10 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverDisableMtuDiscovery by profileCacheStore.boolean(Key.SERVER_DISABLE_MTU_DISCOVERY)
     var serverHopInterval by profileCacheStore.stringToInt(Key.SERVER_HOP_INTERVAL) { 10 }
 
+    var serverHy2ObfsType by profileCacheStore.stringToInt(Key.SERVER_HY2_OBFS_TYPE)
+    var serverHy2GeckoMinPacket by profileCacheStore.stringToInt(Key.SERVER_HY2_GECKO_MIN_PACKET) { 512 }
+    var serverHy2GeckoMaxPacket by profileCacheStore.stringToInt(Key.SERVER_HY2_GECKO_MAX_PACKET) { 1200 }
+
     var protocolVersion by profileCacheStore.stringToInt(Key.PROTOCOL_VERSION) { 2 } // default is SOCKS5
 
     var serverProtocolInt by profileCacheStore.stringToInt(Key.SERVER_PROTOCOL)

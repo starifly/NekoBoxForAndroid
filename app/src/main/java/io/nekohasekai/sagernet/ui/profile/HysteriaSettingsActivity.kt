@@ -22,6 +22,9 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         DataStore.serverAddress = serverAddress
         DataStore.serverPorts = serverPorts
         DataStore.serverObfs = obfuscation
+        DataStore.serverHy2ObfsType = hysteria2ObfsType
+        DataStore.serverHy2GeckoMinPacket = geckoMinPacketSize
+        DataStore.serverHy2GeckoMaxPacket = geckoMaxPacketSize
         DataStore.serverAuthType = authPayloadType
         DataStore.serverProtocolInt = protocol
         DataStore.serverPassword = authPayload
@@ -43,6 +46,9 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         serverAddress = DataStore.serverAddress
         serverPorts = DataStore.serverPorts
         obfuscation = DataStore.serverObfs
+        hysteria2ObfsType = DataStore.serverHy2ObfsType
+        geckoMinPacketSize = DataStore.serverHy2GeckoMinPacket
+        geckoMaxPacketSize = DataStore.serverHy2GeckoMaxPacket
         authPayloadType = DataStore.serverAuthType
         authPayload = DataStore.serverPassword
         protocol = DataStore.serverProtocolInt
@@ -75,6 +81,41 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         val protocol = findPreference<SimpleMenuPreference>(Key.SERVER_PROTOCOL)!!
         val alpn = findPreference<EditTextPreference>(Key.SERVER_ALPN)!!
 
+        // Hysteria2 obfs type selector: controls visibility of the obfs password and the
+        // Gecko packet-size fields. Only shown for HY2.
+        val obfsType = findPreference<SimpleMenuPreference>(Key.SERVER_HY2_OBFS_TYPE)!!
+        val obfsPassword = findPreference<EditTextPreference>(Key.SERVER_OBFS)!!
+        val geckoMin = findPreference<EditTextPreference>(Key.SERVER_HY2_GECKO_MIN_PACKET)!!
+        val geckoMax = findPreference<EditTextPreference>(Key.SERVER_HY2_GECKO_MAX_PACKET)!!
+        geckoMin.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        geckoMax.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+
+        fun updateObfs(type: Int, version: Int) {
+            // For HY1 the legacy single obfs password field is used; for HY2 use the
+            // type selector and show password/gecko fields accordingly.
+            val isHy2 = version == 2
+            obfsType.isVisible = isHy2
+            if (isHy2) {
+                // Both Salamander and Gecko require an obfs password (apernet/hysteria
+                // clientConfigObfsGecko.Password is mandatory), so show it for either.
+                obfsPassword.isVisible = type != HysteriaBean.OBFS_NONE
+                val isGecko = type == HysteriaBean.OBFS_GECKO
+                geckoMin.isVisible = isGecko
+                geckoMax.isVisible = isGecko
+            } else {
+                obfsPassword.isVisible = true
+                geckoMin.isVisible = false
+                geckoMax.isVisible = false
+            }
+        }
+        obfsType.setOnPreferenceChangeListener { _, newValue ->
+            updateObfs(
+                newValue.toString().toIntOrNull() ?: HysteriaBean.OBFS_NONE,
+                DataStore.protocolVersion
+            )
+            true
+        }
+
         fun updateVersion(v: Int) {
             if (v == 2) {
                 authPayload.isVisible = true
@@ -106,6 +147,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 //
                 authPayload.title = resources.getString(R.string.hysteria_auth_payload)
             }
+            updateObfs(DataStore.serverHy2ObfsType, v)
         }
         findPreference<SimpleMenuPreference>(Key.PROTOCOL_VERSION)!!.setOnPreferenceChangeListener { _, newValue ->
             updateVersion(newValue.toString().toIntOrNull() ?: 1)

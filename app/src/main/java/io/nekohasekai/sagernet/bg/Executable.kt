@@ -10,7 +10,7 @@ import androidx.core.text.isDigitsOnly
 
 object Executable {
     private val EXECUTABLES = setOf(
-        "libtrojan.so", "libtrojan-go.so", "libnaive.so", "libtuic.so", "libhysteria.so", "libmieru.so"
+        "libtrojan.so", "libtrojan-go.so", "libnaive.so", "libtuic.so", "libhysteria.so", "libmieru.so", "libhysteria2.so"
     )
 
     fun killAll(alsoKillBg: Boolean = false) {
