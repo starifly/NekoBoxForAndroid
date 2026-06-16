@@ -27,7 +27,7 @@
             app:key="mdvEncryptionKey"
             app:title="@string/mdv_encryption_key" />
         <EditTextPreference
-            app:icon="@drawable/ic_baseline_dns_24"
+            app:icon="@drawable/ic_action_dns"
             app:key="mdvResolvers"
             app:title="@string/mdv_resolvers"
             app:useSimpleSummaryProvider="true" />
