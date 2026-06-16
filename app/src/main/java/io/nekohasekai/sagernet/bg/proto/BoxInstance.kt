@@ -246,7 +246,9 @@ abstract class BoxInstance(
                     }
 
                     bean is MasterDnsVpnBean -> {
-                        val ts = SystemClock.elapsedRealtime()
+                        // Port is unique per chain entry, so two sidecars can't collide
+                        // (unlike a bare elapsedRealtime() shared by the config+resolvers pair).
+                        val ts = "${port}_${SystemClock.elapsedRealtime()}"
                         val configFile = File(cacheDir, "masterdnsvpn_$ts.json")
                         configFile.parentFile?.mkdirs()
                         configFile.writeText(config)

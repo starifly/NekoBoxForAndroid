@@ -5,6 +5,7 @@ on:
 env:
   MIERU_VERSION: v3.34.0
   HYSTERIA_VERSION: v2.9.2
+  MDV_REF: android-vpnservice-protect-hook
 permissions:
   contents: read
 jobs:
@@ -40,14 +41,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Sidecars Status
-        run: cat buildScript/lib/mieru.sh buildScript/lib/hysteria2.sh buildScript/init/env.sh buildScript/init/env_ndk.sh | sha1sum > sidecars_status
+        run: cat buildScript/lib/mieru.sh buildScript/lib/hysteria2.sh buildScript/lib/masterdnsvpn.sh buildScript/init/env.sh buildScript/init/env_ndk.sh | sha1sum > sidecars_status
       - name: Sidecars Cache
         id: cache
         uses: actions/cache@v5
         with:
           path: |
             app/executableSo
-          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-sidecars
+          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-${{ env.MDV_REF }}-sidecars
       - name: Install Golang
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-go@v6
@@ -59,6 +60,9 @@ jobs:
       - name: Hysteria2 Download
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./run lib hysteria2
+      - name: MasterDnsVPN Build
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ./run lib masterdnsvpn
   build:
     name: Build OSS APK
     runs-on: ubuntu-latest
@@ -79,18 +83,18 @@ jobs:
             app/libs/libcore.aar
           key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
       - name: Sidecars Status
-        run: cat buildScript/lib/mieru.sh buildScript/lib/hysteria2.sh buildScript/init/env.sh buildScript/init/env_ndk.sh | sha1sum > sidecars_status
+        run: cat buildScript/lib/mieru.sh buildScript/lib/hysteria2.sh buildScript/lib/masterdnsvpn.sh buildScript/init/env.sh buildScript/init/env_ndk.sh | sha1sum > sidecars_status
       - name: Sidecars Cache
         id: sidecars-cache
         uses: actions/cache@v5
         with:
           path: |
             app/executableSo
-          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-sidecars
+          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-${{ env.MDV_REF }}-sidecars
       - name: Verify Sidecar Artifacts
         run: |
           for abi in arm64-v8a armeabi-v7a x86 x86_64; do
-            for so in libmieru.so libhysteria2.so; do
+            for so in libmieru.so libhysteria2.so libmasterdnsvpn.so; do
               if [ ! -f "app/executableSo/$abi/$so" ]; then
                 echo "Error: missing app/executableSo/$abi/$so (sidecar cache miss)" >&2
                 exit 1
