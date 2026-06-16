@@ -55,6 +55,19 @@ fi
 
 pushd "$WORK" >/dev/null
 
+# MasterDnsVPN requires Go 1.25+. Fail fast with a clear message otherwise.
+if ! command -v go >/dev/null 2>&1; then
+  echo "Error: go not found on PATH (MasterDnsVPN needs Go 1.25+)." >&2
+  exit 1
+fi
+GO_VER="$(go env GOVERSION 2>/dev/null | sed 's/^go//')"
+GO_MAJOR="${GO_VER%%.*}"
+GO_REST="${GO_VER#*.}"; GO_MINOR="${GO_REST%%.*}"
+if [ "${GO_MAJOR:-0}" -lt 1 ] || { [ "${GO_MAJOR:-0}" -eq 1 ] && [ "${GO_MINOR:-0}" -lt 25 ]; }; then
+  echo "Error: Go $GO_VER is too old; MasterDnsVPN needs Go 1.25+." >&2
+  exit 1
+fi
+
 build_abi() {
   local abi="$1" goarch="$2" cc="$3" goarm="$4"
   echo ">> building libmasterdnsvpn.so for $abi"

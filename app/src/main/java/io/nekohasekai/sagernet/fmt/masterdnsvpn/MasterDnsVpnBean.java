@@ -75,7 +75,9 @@ public class MasterDnsVpnBean extends AbstractBean {
     public void initializeDefaultValues() {
         super.initializeDefaultValues();
         if (domains == null) domains = "";
-        if (dataEncryptionMethod == null) dataEncryptionMethod = 1;
+        // Default to None: encryption must match the server and needs a key, so don't
+        // imply security with XOR + an empty key. The user picks a cipher + key explicitly.
+        if (dataEncryptionMethod == null) dataEncryptionMethod = 0;
         if (encryptionKey == null) encryptionKey = "";
         if (resolvers == null) resolvers = "8.8.8.8\n1.1.1.1";
         if (resolverBalancingStrategy == null) resolverBalancingStrategy = 3;

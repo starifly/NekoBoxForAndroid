@@ -258,7 +258,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     // MasterDnsVPN
     var mdvDomains by profileCacheStore.string(Key.MDV_DOMAINS)
-    var mdvEncryptionMethod by profileCacheStore.stringToInt(Key.MDV_ENCRYPTION_METHOD) { 1 }
+    var mdvEncryptionMethod by profileCacheStore.stringToInt(Key.MDV_ENCRYPTION_METHOD) { 0 }
     var mdvEncryptionKey by profileCacheStore.string(Key.MDV_ENCRYPTION_KEY)
     var mdvResolvers by profileCacheStore.string(Key.MDV_RESOLVERS)
     var mdvBalancingStrategy by profileCacheStore.stringToInt(Key.MDV_BALANCING_STRATEGY) { 3 }

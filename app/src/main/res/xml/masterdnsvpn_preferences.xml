@@ -14,7 +14,7 @@
             app:title="@string/mdv_domains"
             app:useSimpleSummaryProvider="true" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
-            app:defaultValue="1"
+            app:defaultValue="0"
             app:entries="@array/mdv_encryption_method"
             app:entryValues="@array/mdv_encryption_method_value"
             app:icon="@drawable/ic_settings_password"

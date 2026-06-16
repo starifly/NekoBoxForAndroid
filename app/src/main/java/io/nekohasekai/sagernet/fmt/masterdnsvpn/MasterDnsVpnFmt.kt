@@ -10,6 +10,7 @@
 package io.nekohasekai.sagernet.fmt.masterdnsvpn
 
 import io.nekohasekai.sagernet.fmt.LOCALHOST
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import org.json.JSONArray
 import org.json.JSONObject
@@ -17,7 +18,7 @@ import org.json.JSONObject
 /**
  * Builds the JSON config for the bundled MasterDnsVPN client (sidecar).
  *
- * The client is launched as `libmasterdnsvpn.so -json-base64 <b64> -resolvers <file>`.
+ * The client is launched as `libmasterdnsvpn.so -json <cfg.json> -resolvers <file>`.
  * Resolvers are written to a separate file (the client always loads resolvers from a
  * file); see [resolverLines]. The config uses the client's uppercase config keys.
  *
@@ -72,9 +73,14 @@ fun MasterDnsVpnBean.buildMasterDnsVpnConfig(port: Int, protectPath: String): St
 
     // Merge the advanced JSON override last so it can set/replace any key.
     if (advancedJson.isNotBlank()) {
-        val extra = JSONObject(advancedJson)
-        for (key in extra.keys()) {
-            cfg.put(key, extra.get(key))
+        // Malformed override JSON must not crash config generation / VPN start.
+        try {
+            val extra = JSONObject(advancedJson)
+            for (key in extra.keys()) {
+                cfg.put(key, extra.get(key))
+            }
+        } catch (e: Exception) {
+            Logs.w("MasterDnsVPN: ignoring invalid advanced JSON override: ${e.message}")
         }
     }
 

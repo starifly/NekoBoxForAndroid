@@ -25,8 +25,8 @@ class MasterDnsVpnSettingsActivity : ProfileSettingsActivity<MasterDnsVpnBean>()
 
     override fun MasterDnsVpnBean.init() {
         DataStore.profileName = name
-        // serverAddress/Port are unused by this protocol but kept for the base editor.
-        DataStore.serverAddress = if (serverAddress.isNullOrBlank()) "masterdnsvpn" else serverAddress
+        // serverAddress/Port are unused by this protocol; the editor uses the MDV_* fields.
+        DataStore.serverAddress = "masterdnsvpn"
         DataStore.mdvDomains = domains
         DataStore.mdvEncryptionMethod = dataEncryptionMethod
         DataStore.mdvEncryptionKey = encryptionKey
