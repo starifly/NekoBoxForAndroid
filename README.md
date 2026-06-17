@@ -5,7 +5,7 @@
 
 ## Disclaimer
 
-> This project is intended solely for technical research and code learning purposes and does not provide any form of network proxy service.
+> This project is intended solely for technical research and code learning purposes and does not provide any form of network proxy service. Please do not use this project for any activity that violates local laws and regulations, and do not use it in production environments. Users are fully responsible for any risks that may arise from using this project. If you download or reference this project, please delete all related content within 24 hours and avoid long-term storage, distribution, or dissemination of any part of it. **The author reserves the right to modify, update, or remove any part of this project or its contents at any time without prior notice.**
 
 ## Downloads
 
