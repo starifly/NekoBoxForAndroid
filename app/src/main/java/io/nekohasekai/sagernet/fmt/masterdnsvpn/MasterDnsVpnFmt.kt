@@ -33,6 +33,12 @@ import org.json.JSONObject
  * @param protectPath absolute path to libcore's protect unix socket.
  */
 fun MasterDnsVpnBean.buildMasterDnsVpnConfig(port: Int, protectPath: String): String {
+    // A tunnel with no domains can never connect; fail fast rather than emitting a config
+    // the sidecar will reject at runtime.
+    val domainList = domains.split("\n", ",").map { it.trim() }.filter { it.isNotEmpty() }
+    if (domainList.isEmpty()) {
+        error("MasterDnsVPN: at least one tunnel domain is required")
+    }
     // Encryption (method != 0 == not None) requires a key that matches the server; emitting
     // a blank ENCRYPTION_KEY would let the sidecar fail opaquely at runtime. Fail fast here.
     if (dataEncryptionMethod != 0 && encryptionKey.isBlank()) {
@@ -46,8 +52,7 @@ fun MasterDnsVpnBean.buildMasterDnsVpnConfig(port: Int, protectPath: String): St
         put("SOCKS5_AUTH", false)
 
         put("DOMAINS", JSONArray().apply {
-            domains.split("\n", ",").map { it.trim() }.filter { it.isNotEmpty() }
-                .forEach { put(it) }
+            domainList.forEach { put(it) }
         })
         put("DATA_ENCRYPTION_METHOD", dataEncryptionMethod)
         put("ENCRYPTION_KEY", encryptionKey)
@@ -124,7 +129,10 @@ fun MasterDnsVpnBean.resolverLines(): String {
  */
 fun MasterDnsVpnBean.toUri(): String {
     val domainList = domains.split("\n", ",").map { it.trim() }.filter { it.isNotEmpty() }
-    val host = domainList.firstOrNull() ?: "masterdnsvpn"
+    if (domainList.isEmpty()) {
+        error("MasterDnsVPN: cannot build share link without a tunnel domain")
+    }
+    val host = domainList.first()
 
     val builder = linkBuilder()
         .host(host)
