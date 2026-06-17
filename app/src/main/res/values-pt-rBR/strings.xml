@@ -327,6 +327,9 @@
     <string name="append_http_proxy">Anexar Proxy HTTP à VPN</string>
     <string name="append_http_proxy_sum">O proxy HTTP será usado diretamente pelo navegador/ alguns
         aplicativos suportados, sem passar pelo dispositivo NIC virtual (Android 10+)</string>
+    <string name="append_http_proxy_security_title">Security Notice</string>
+    <string name="append_http_proxy_security_message">When enabled, other apps on this device can directly use the local proxy port.\n\nRecommendation: Only enable this if you trust all installed apps.</string>
+    <string name="enable_anyway">Enable Anyway</string>
     <string name="strict_route">Rota Estrita</string>
     <string name="protocol_settings">Configurações de Protocolo</string>
     <string name="trojan_provider">Provedor Trojan</string>
