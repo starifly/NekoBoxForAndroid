@@ -7,6 +7,7 @@ import io.nekohasekai.sagernet.bg.GuardedProcessPool
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.fmt.ConfigBuildResult
+import io.nekohasekai.sagernet.fmt.LOCALHOST
 import io.nekohasekai.sagernet.fmt.buildConfig
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.fmt.hysteria.buildHysteria1Config
@@ -27,6 +28,9 @@ import libcore.BoxInstance
 import libcore.Libcore
 import moe.matsuri.nb4a.net.LocalResolverImpl
 import java.io.File
+import java.io.IOException
+import java.net.InetSocketAddress
+import java.net.Socket
 
 abstract class BoxInstance(
     val profile: ProxyEntity
@@ -264,13 +268,70 @@ abstract class BoxInstance(
                             "-resolvers", resolversFile.absolutePath,
                         )
 
-                        processes.start(commands)
+                        // The bundled MasterDnsVPN client is a CGO/PIE Go binary. When it is
+                        // launched in the VpnService process context, the Go runtime's
+                        // asynchronous preemption (signal-based) can fault during the first
+                        // protected upstream socket dial, terminating the sidecar before it
+                        // opens its local SOCKS listener. Disabling async preemption avoids
+                        // the fault; the sidecar workload is I/O-bound so scheduling latency
+                        // is unaffected in practice.
+                        val env = mutableMapOf("GODEBUG" to "asyncpreemptoff=1")
+
+                        processes.start(commands, env)
                     }
                 }
             }
         }
 
         box.start()
+    }
+
+    /**
+     * Waits until every external sidecar's local SOCKS listener is accepting connections
+     * before the service reports Connected, so the sing-box socks outbound (and any
+     * connection test) doesn't race a sidecar that hasn't bound its port yet.
+     *
+     * Most sidecars open their listener immediately, so the short connection-test timeout
+     * is sufficient. MasterDnsVPN is the exception: it only starts listening after DNS
+     * MTU probing and session setup, which can take tens of seconds (with retries) on
+     * lossy or restricted links, so it gets a longer readiness window.
+     */
+    suspend fun awaitExternalProcessesReady() {
+        if (!::processes.isInitialized || processes.processCount == 0) return
+        val ports = config.externalIndex.flatMap { it.chain.keys }.distinct()
+        if (ports.isEmpty()) return
+
+        val hasMasterDnsVpn = config.externalIndex.any { idx ->
+            idx.chain.values.any { it.requireBean() is MasterDnsVpnBean }
+        }
+        val readinessTimeoutMs = if (hasMasterDnsVpn) {
+            maxOf(60_000L, DataStore.connectionTestTimeout.toLong())
+        } else {
+            maxOf(1_000L, DataStore.connectionTestTimeout.toLong())
+        }
+
+        withContext(Dispatchers.IO) {
+            val deadline = SystemClock.elapsedRealtime() + readinessTimeoutMs
+            val pending = ports.toMutableSet()
+            while (pending.isNotEmpty() && SystemClock.elapsedRealtime() < deadline) {
+                val iterator = pending.iterator()
+                while (iterator.hasNext()) {
+                    val port = iterator.next()
+                    try {
+                        Socket().use {
+                            it.connect(InetSocketAddress(LOCALHOST, port), 100)
+                        }
+                        iterator.remove()
+                    } catch (_: IOException) {
+                        // not ready yet
+                    }
+                }
+                if (pending.isNotEmpty()) delay(50)
+            }
+            if (pending.isNotEmpty()) {
+                throw IOException("sidecar listener not ready on port(s): ${pending.joinToString()}")
+            }
+        }
     }
 
     @Suppress("EXPERIMENTAL_API_USAGE")
