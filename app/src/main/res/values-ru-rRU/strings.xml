@@ -328,6 +328,9 @@
     <string name="connection_test_timeout_error">Тайм-аут</string>
     <string name="append_http_proxy">Добавить HTTP-прокси в VPN</string>
     <string name="append_http_proxy_sum">HTTP-прокси будет использоваться напрямую из (браузера/ некоторых поддерживаемых приложений), минуя виртуальный сетевой адаптер (Android 10+)</string>
+    <string name="append_http_proxy_security_title">Security Notice</string>
+    <string name="append_http_proxy_security_message">When enabled, other apps on this device can directly use the local proxy port.\n\nRecommendation: Only enable this if you trust all installed apps.</string>
+    <string name="enable_anyway">Enable Anyway</string>
     <string name="strict_route">Строгий маршрут</string>
     <string name="protocol_settings">Настройки протокола</string>
     <string name="trojan_provider">Поставщик Trojan</string>
