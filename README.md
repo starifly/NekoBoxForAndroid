@@ -32,7 +32,7 @@ source version. Please do not download it.**
 * MasterDnsVPN (DNS-tunnel, bundled)
 * Mieru (bundled)
 * Trojan-Go (trojan-go-plugin)
-* NaïveProxy (naive-plugin)
+* NaïveProxy (bundled)
 
 <details>
 <summary>XHTTP Extra TLS configuration example</summary>
@@ -188,7 +188,7 @@ source version. Please do not download it.**
 </code></pre>
 </details>
 
-Trojan-Go and NaïveProxy require their external plugins for full proxy support.
+Trojan-Go requires its external plugin for full proxy support.
 
 ## Supported Subscription Format
 
