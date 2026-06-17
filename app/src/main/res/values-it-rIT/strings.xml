@@ -326,6 +326,9 @@
     <string name="connection_test_timeout_error">Timeout</string>
     <string name="append_http_proxy">Aggiungi proxy HTTP alla VPN</string>
     <string name="append_http_proxy_sum">Il proxy HTTP verrà utilizzato direttamente dal browser / alcune app supportate, senza passare attraverso il dispositivo NIC virtuale (Android 10+)</string>
+    <string name="append_http_proxy_security_title">Security Notice</string>
+    <string name="append_http_proxy_security_message">When enabled, other apps on this device can directly use the local proxy port.\n\nRecommendation: Only enable this if you trust all installed apps.</string>
+    <string name="enable_anyway">Enable Anyway</string>
     <string name="strict_route">Route stretto</string>
     <string name="protocol_settings">Impostazioni protocollo</string>
     <string name="trojan_provider">Provider Trojan</string>
