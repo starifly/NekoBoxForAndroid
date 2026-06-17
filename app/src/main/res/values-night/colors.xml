@@ -10,4 +10,28 @@
     <color name="color_route_direct">#66BB6A</color>  <!-- 直连：浅绿 -->
     <color name="color_route_proxy">#42A5F5</color>   <!-- 代理：浅蓝 -->
     <color name="color_route_config">#AB47BC</color>  <!-- 配置：浅紫 -->
+
+    <!-- Elevated-card tonal surface colors (dark: #121212 base + ~11% primary tint). -->
+    <color name="card_elevated_pink">#2A131B</color>
+    <color name="card_elevated_pink_ssr">#2C1D21</color>
+    <color name="card_elevated_amber">#2C2511</color>
+    <color name="card_elevated_blue">#14212B</color>
+    <color name="card_elevated_blue_grey">#1B1E1F</color>
+    <color name="card_elevated_brown">#1D1918</color>
+    <color name="card_elevated_cyan">#102527</color>
+    <color name="card_elevated_deep_orange">#2C1A14</color>
+    <color name="card_elevated_deep_purple">#1B1624</color>
+    <color name="card_elevated_green">#182319</color>
+    <color name="card_elevated_grey">#212121</color>
+    <color name="card_elevated_indigo">#171924</color>
+    <color name="card_elevated_light_blue">#10232B</color>
+    <color name="card_elevated_light_green">#1F2518</color>
+    <color name="card_elevated_lime">#272816</color>
+    <color name="card_elevated_orange">#2C2110</color>
+    <color name="card_elevated_purple">#211423</color>
+    <color name="card_elevated_red">#2B1716</color>
+    <color name="card_elevated_teal">#10211F</color>
+    <color name="card_elevated_yellow">#2C2A17</color>
+    <color name="card_elevated_black">#151515</color>
+    <color name="card_elevated_verdant_mint">#10241C</color>
 </resources>

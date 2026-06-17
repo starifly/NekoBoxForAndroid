@@ -10,4 +10,7 @@
     <attr name="fabColorBackground" format="color" />
     <attr name="selectedColorPrimary" format="color" />
     <attr name="whiteOrTextPrimary" format="color" />
+    <!-- Tonal "elevated surface" color for cards (route / group); each theme
+         variant tints toward its own primary. -->
+    <attr name="cardElevatedSurfaceColor" format="color" />
 </resources>
