@@ -72,7 +72,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="?colorSecondary" />
+                    android:textColor="?android:textColorSecondary" />
 
             </LinearLayout>
 
@@ -83,7 +83,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:text="@string/group_update"
-                android:textColor="?colorSecondary" />
+                android:textColor="?android:textColorSecondary" />
         </LinearLayout>
 
     </LinearLayout>

@@ -3,6 +3,7 @@
 [![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
 [![Releases](https://img.shields.io/github/v/release/MatsuriDayo/NekoBoxForAndroid)](https://github.com/MatsuriDayo/NekoBoxForAndroid/releases)
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-orange.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Contributors](https://img.shields.io/github/contributors/starifly/NekoBoxForAndroid)](https://github.com/starifly/NekoBoxForAndroid/graphs/contributors)
 
 ## 免责声明
 
@@ -254,3 +255,7 @@ Android GUI:
 Web Dashboard:
 
 - [Yacd-meta](https://github.com/MetaCubeX/Yacd-meta)
+
+## Contributors
+
+![Contributors](https://contrib.rocks/image?repo=starifly/NekoBoxForAndroid)

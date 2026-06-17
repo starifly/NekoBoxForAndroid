@@ -19,7 +19,7 @@
     android:layout_height="48dp"
     android:ellipsize="marquee"
     android:gravity="center"
-    android:minWidth="112dp"
+    android:minWidth="120dp"
     android:paddingEnd="16dp"
     android:paddingStart="16dp"
     android:singleLine="true" />

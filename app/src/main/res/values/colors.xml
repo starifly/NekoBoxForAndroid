@@ -305,4 +305,28 @@
     <!-- 卡片默认细边框：约 12% 黑（低对比分隔线），夜间见 values-night/colors.xml -->
     <color name="card_stroke">#1F000000</color>
 
+    <!-- 立体卡片色调提升表面色（浅色，白底 + 各 primary 8% 染色），夜间见 values-night/colors.xml -->
+    <color name="card_elevated_pink">#FDEDF3</color>
+    <color name="card_elevated_pink_ssr">#FFF4F7</color>
+    <color name="card_elevated_amber">#FFFAEB</color>
+    <color name="card_elevated_blue">#EDF7FE</color>
+    <color name="card_elevated_blue_grey">#F2F5F6</color>
+    <color name="card_elevated_brown">#F4F1F0</color>
+    <color name="card_elevated_cyan">#EBFAFC</color>
+    <color name="card_elevated_deep_orange">#FFF2ED</color>
+    <color name="card_elevated_deep_purple">#F3EFF9</color>
+    <color name="card_elevated_green">#F1F9F1</color>
+    <color name="card_elevated_grey">#F7F7F7</color>
+    <color name="card_elevated_indigo">#F0F1F9</color>
+    <color name="card_elevated_light_blue">#EBF8FE</color>
+    <color name="card_elevated_light_green">#F6FAF1</color>
+    <color name="card_elevated_lime">#FBFCEF</color>
+    <color name="card_elevated_orange">#FFF7EB</color>
+    <color name="card_elevated_purple">#F7EEF9</color>
+    <color name="card_elevated_red">#FEF0EF</color>
+    <color name="card_elevated_teal">#EBF7F5</color>
+    <color name="card_elevated_yellow">#FFFDEF</color>
+    <color name="card_elevated_black">#EEEEEE</color>
+    <color name="card_elevated_verdant_mint">#EBF9F3</color>
+
 </resources>

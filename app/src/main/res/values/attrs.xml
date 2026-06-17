@@ -10,4 +10,6 @@
     <attr name="fabColorBackground" format="color" />
     <attr name="selectedColorPrimary" format="color" />
     <attr name="whiteOrTextPrimary" format="color" />
+    <!-- 立体卡片（路由/分组）的"色调提升表面色"，各主题变体朝自身 primary 染色 -->
+    <attr name="cardElevatedSurfaceColor" format="color" />
 </resources>

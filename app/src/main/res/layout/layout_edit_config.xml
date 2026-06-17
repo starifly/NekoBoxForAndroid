@@ -58,7 +58,7 @@
             android:id="@+id/extended_keyboard"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="?colorSecondaryVariant"
+            android:background="?attr/colorSurface"
             android:orientation="horizontal"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:itemCount="6"

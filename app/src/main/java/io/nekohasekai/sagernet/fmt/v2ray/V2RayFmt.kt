@@ -801,7 +801,11 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
             ech = OutboundECHOptions().apply {
                 enabled = true
                 if (bean.echConfig.isNotBlank()) {
-                    config = bean.echConfig.lines()
+                    config = if (bean.echConfig.contains("BEGIN ECH CONFIGS")) {
+                        bean.echConfig.lines()
+                    } else {
+                        listOf("-----BEGIN ECH CONFIGS-----", bean.echConfig.trim(), "-----END ECH CONFIGS-----")
+                    }
                 }
             }
         }

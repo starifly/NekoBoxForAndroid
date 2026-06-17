@@ -295,9 +295,9 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
                 }
                 routeOutbound.setTextColor(ContextCompat.getColor(itemView.context, colorRes))
 
-                itemView.setOnClickListener {
-                    enableSwitch.performClick()
-                }
+                itemView.setOnClickListener(null)
+                itemView.isClickable = false
+                itemView.isFocusable = false
                 enableSwitch.setOnCheckedChangeListener(null)
                 enableSwitch.isChecked = rule.enabled
                 enableSwitch.setOnCheckedChangeListener { _, isChecked ->

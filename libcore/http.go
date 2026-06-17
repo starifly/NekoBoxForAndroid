@@ -36,7 +36,7 @@ type HTTPClient interface {
 	ModernTLS()
 	PinnedTLS12()
 	PinnedSHA256(sumHex string)
-	TrySocks5(port int32)
+	TrySocks5(port int32, username string, password string)
 	TryH3Direct()
 	KeepAlive()
 	NewRequest() HTTPRequest
@@ -114,7 +114,7 @@ func (c *httpClient) PinnedSHA256(sumHex string) {
 	}
 }
 
-func (c *httpClient) TrySocks5(port int32) {
+func (c *httpClient) TrySocks5(port int32, username string, password string) {
 	dialer := new(net.Dialer)
 	c.h1h2Transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
 		for {
@@ -125,7 +125,7 @@ func (c *httpClient) TrySocks5(port int32) {
 				}
 				break
 			}
-			_, err = socks.ClientHandshake5(socksConn, socks5.CommandConnect, metadata.ParseSocksaddr(addr), "", "")
+			_, err = socks.ClientHandshake5(socksConn, socks5.CommandConnect, metadata.ParseSocksaddr(addr), username, password)
 			if err != nil {
 				if c.tryH3Direct {
 					return nil, errFailConnectSocks5

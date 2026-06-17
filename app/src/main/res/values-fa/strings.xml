@@ -326,6 +326,9 @@
     <string name="connection_test_timeout_error">بدون پاسخ</string>
     <string name="append_http_proxy">پراکسی HTTP را به VPN اضافه کنید</string>
     <string name="append_http_proxy_sum">پروکسی HTTP مستقیماً از (مرورگر/برخی برنامه‌های پشتیبانی‌شده) بدون استفاده از دستگاه NIC مجازی (نسخه اندروید بالاتر از 10) استفاده می‌شود.</string>
+    <string name="append_http_proxy_security_title">اطلاعیه امنیتی</string>
+    <string name="append_http_proxy_security_message">پس از فعال‌سازی، برنامه‌های دیگر در این دستگاه می‌توانند مستقیماً از پورت پروکسی محلی استفاده کنند.\n\nتوصیه: تنها در صورتی که به تمام برنامه‌های نصب‌شده اعتماد دارید، این گزینه را فعال کنید.</string>
+    <string name="enable_anyway">همچنان فعال کن</string>
     <string name="protocol_settings">تنظیمات پروتکل‌ها</string>
     <string name="trojan_provider">تأمین‌کننده Trojan</string>
     <string name="group_basic">ابتدایی</string>
