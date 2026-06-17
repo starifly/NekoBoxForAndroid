@@ -17,7 +17,7 @@ permissions:
 jobs:
   libcore:
     name: Native Build (LibCore)
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-nekoyay
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -42,7 +42,7 @@ jobs:
         run: ./run lib core
   sidecars:
     name: Native Build (Sidecars)
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-nekoyay
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -71,7 +71,7 @@ jobs:
         run: ./run lib naive
   build:
     name: Build OSS APK
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-nekoyay
     needs:
       - libcore
       - sidecars
@@ -131,7 +131,7 @@ jobs:
   publish:
     name: Publish Release
     if: github.event.inputs.publish != 'y'
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-nekoyay
     needs: build
     steps:
       - name: Checkout
