@@ -294,9 +294,8 @@ fun getFirstPort(portStr: String): Int {
 
 fun HysteriaBean.canUseSingBox(): Boolean {
     if (protocol != HysteriaBean.PROTOCOL_UDP) return false
-    // The starifly sing-box core only supports Salamander obfs. Gecko obfs is provided by
-    // the bundled official hysteria binary sidecar, so force the external path for Gecko.
-    if (protocolVersion == 2 && hysteria2ObfsType == HysteriaBean.OBFS_GECKO) return false
+    // Gecko obfs is now supported natively by this fork's sing-box core (via the
+    // hawkff/sing-quic gecko backport), so it no longer needs the sidecar.
     return true
 }
 
@@ -354,11 +353,24 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.SingBox
             up_mbps = bean.uploadMbps
             down_mbps = bean.downloadMbps
             if (bean.obfuscation.isNotBlank() && bean.hysteria2ObfsType != HysteriaBean.OBFS_NONE) {
-                // Native sing-box core only supports Salamander; Gecko goes through the
-                // bundled hysteria binary sidecar (canUseSingBox() == false for Gecko).
                 obfs = SingBoxOptions.Hysteria2Obfs().apply {
-                    type = "salamander"
-                    password = bean.obfuscation
+                    when (bean.hysteria2ObfsType) {
+                        HysteriaBean.OBFS_GECKO -> {
+                            type = "gecko"
+                            password = bean.obfuscation
+                            if (bean.geckoMinPacketSize != null && bean.geckoMinPacketSize > 0) {
+                                min_packet_size = bean.geckoMinPacketSize
+                            }
+                            if (bean.geckoMaxPacketSize != null && bean.geckoMaxPacketSize > 0) {
+                                max_packet_size = bean.geckoMaxPacketSize
+                            }
+                        }
+
+                        else -> {
+                            type = "salamander"
+                            password = bean.obfuscation
+                        }
+                    }
                 }
             }
 //            disable_mtu_discovery = bean.disableMtuDiscovery

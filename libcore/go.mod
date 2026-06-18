@@ -1,8 +1,6 @@
 module libcore
 
-go 1.24.7
-
-toolchain go1.26.4
+go 1.26.4
 
 require (
 	github.com/dyhkwong/sing-juicity v0.0.3
@@ -107,3 +105,5 @@ replace github.com/sagernet/sing-vmess => github.com/starifly/sing-vmess v0.2.8-
 // replace github.com/sagernet/sing-dns => ../../sing-dns
 
 // replace berty.tech/go-libtor => github.com/berty/go-libtor v0.0.0-20220627102132-9189eb6e3982
+
+replace github.com/sagernet/sing-quic => github.com/hawkff/sing-quic v0.5.3-0.20260618035506-f2f558c5aaba
