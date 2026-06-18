@@ -105,6 +105,10 @@ data class ProxyEntity(
         const val TYPE_ANYTLS = 22
         const val TYPE_JUICITY = 23
         const val TYPE_SNELL = 24
+
+        // 25 is reserved for the MasterDnsVPN sidecar type on the
+        // feature/masterdnsvpn-sidecar branch (PR #18); do not reuse it here so
+        // persisted type IDs stay stable when both branches merge.
         const val TYPE_AWG = 26
 
         const val TYPE_CONFIG = 998
