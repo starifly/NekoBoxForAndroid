@@ -15,7 +15,7 @@ env:
   MDVPN_COMMIT: d481d72d4b86783a87d536c214d2c68cc4e9320e
   NAIVE_VERSION: v149.0.7827.114-1
 permissions:
-  contents: write
+  contents: read
 jobs:
   libcore:
     name: Native Build (LibCore)
@@ -137,6 +137,8 @@ jobs:
     name: Publish Release
     if: github.event.inputs.publish != 'y'
     runs-on: namespace-profile-nekoyay
+    permissions:
+      contents: write
     needs: build
     steps:
       - name: Checkout
