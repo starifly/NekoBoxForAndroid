@@ -4004,6 +4004,104 @@ public class SingBoxOptions {
 
     }
 
+    public static class Outbound_AmneziaWGOptions extends Outbound {
+
+        // Generate note: nested type DialerOptions
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public Long connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+
+        public String domain_strategy;
+
+        public Long fallback_delay;
+
+        // End of public DialerOptions ;
+
+        public Boolean system_interface;
+
+        public String interface_name;
+
+        // Generate note: Listable
+        public List<String> local_address;
+
+        public String private_key;
+
+        public List<WireGuardPeer> peers;
+
+        // Generate note: nested type ServerOptions
+        public String server;
+
+        public Integer server_port;
+
+        // End of public ServerOptions ;
+
+        public String peer_public_key;
+
+        public String pre_shared_key;
+
+        // Generate note: Base64 String
+        public String reserved;
+
+        public Integer workers;
+
+        public Integer mtu;
+
+        public String network;
+
+        // AmneziaWG obfuscation parameters.
+        public Integer jc;
+
+        public Integer jmin;
+
+        public Integer jmax;
+
+        public Integer s1;
+
+        public Integer s2;
+
+        public Integer s3;
+
+        public Integer s4;
+
+        public String h1;
+
+        public String h2;
+
+        public String h3;
+
+        public String h4;
+
+        public String i1;
+
+        public String i2;
+
+        public String i3;
+
+        public String i4;
+
+        public String i5;
+
+    }
+
     public static class Outbound_HysteriaOptions extends Outbound {
 
         // Generate note: nested type DialerOptions

@@ -9,9 +9,13 @@ pushd ..
 ####
 
 if [ ! -d "sing-box" ]; then
-  git clone --no-checkout https://github.com/starifly/sing-box.git
+  git clone --no-checkout https://github.com/hawkff/sing-box.git
 fi
 pushd sing-box
+# Ensure we point at the hawkff fork (a cached checkout may predate the switch
+# from starifly) and that the pinned commit is present before checking it out.
+git remote set-url origin https://github.com/hawkff/sing-box.git
+git fetch origin
 git checkout "$COMMIT_SING_BOX"
 popd
 

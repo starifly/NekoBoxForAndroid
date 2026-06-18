@@ -142,6 +142,12 @@ public class KryoConverters {
     }
 
     @TypeConverter
+    public static io.nekohasekai.sagernet.fmt.amneziawg.AmneziaWGBean amneziaWGDeserialize(byte[] bytes) {
+        if (JavaUtil.isEmpty(bytes)) return null;
+        return deserialize(new io.nekohasekai.sagernet.fmt.amneziawg.AmneziaWGBean(), bytes);
+    }
+
+    @TypeConverter
     public static TuicBean tuicDeserialize(byte[] bytes) {
         if (JavaUtil.isEmpty(bytes)) return null;
         return deserialize(new TuicBean(), bytes);

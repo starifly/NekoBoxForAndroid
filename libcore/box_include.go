@@ -39,6 +39,7 @@ import (
 	"github.com/sagernet/sing-box/protocol/vless"
 	"github.com/sagernet/sing-box/protocol/vmess"
 	"github.com/sagernet/sing-box/protocol/wireguard"
+	"github.com/sagernet/sing-box/protocol/amneziawg"
 
 	"libcore/protocol/juicity"
 
@@ -91,6 +92,7 @@ func nekoboxAndroidOutboundRegistry() *outbound.Registry {
 	juicity.RegisterOutbound(registry)
 
 	wireguard.RegisterOutbound(registry)
+	amneziawg.RegisterOutbound(registry)
 
 	return registry
 }

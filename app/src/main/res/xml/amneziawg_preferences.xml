@@ -1,0 +1,121 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <EditTextPreference
+        app:icon="@drawable/ic_social_emoji_symbols"
+        app:key="name"
+        app:title="@string/profile_name"
+        app:useSimpleSummaryProvider="true" />
+
+    <PreferenceCategory app:title="@string/proxy_cat">
+        <EditTextPreference
+            app:icon="@drawable/ic_hardware_router"
+            app:key="serverAddress"
+            app:title="@string/server_address"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_maps_directions_boat"
+            app:key="serverPort"
+            app:title="@string/server_port"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_domain_24"
+            app:key="localAddress"
+            app:title="@string/wireguard_local_address"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_vpn_key_24"
+            app:key="privateKey"
+            app:title="@string/ssh_private_key"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_action_copyright"
+            app:key="peerPublicKey"
+            app:title="@string/wireguard_public_key"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:dialogLayout="@layout/layout_password_dialog"
+            app:icon="@drawable/ic_settings_password"
+            app:key="peerPreSharedKey"
+            app:title="@string/wireguard_psk" />
+        <EditTextPreference
+            app:defaultValue="1420"
+            app:icon="@drawable/baseline_public_24"
+            app:key="mtu"
+            app:title="@string/mtu"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_fingerprint_24"
+            app:key="reserved"
+            app:title="Reserved"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="AmneziaWG">
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_fingerprint_24"
+            app:key="jc"
+            app:title="Jc (junk packet count)"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="jmin"
+            app:title="Jmin (junk packet min size)"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="jmax"
+            app:title="Jmax (junk packet max size)"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="s1"
+            app:title="S1 (init packet junk size)"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="s2"
+            app:title="S2 (response packet junk size)"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="s3"
+            app:title="S3 (cookie reply packet junk size)"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="s4"
+            app:title="S4 (transport packet junk size)"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="h1"
+            app:title="H1 (init packet magic header)"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="h2"
+            app:title="H2 (response packet magic header)"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="h3"
+            app:title="H3 (underload packet magic header)"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="h4"
+            app:title="H4 (transport packet magic header)"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="i1"
+            app:title="I1 (special junk 1)"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="i2"
+            app:title="I2 (special junk 2)"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="i3"
+            app:title="I3 (special junk 3)"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="i4"
+            app:title="I4 (special junk 4)"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="i5"
+            app:title="I5 (special junk 5)"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

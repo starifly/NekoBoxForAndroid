@@ -4,6 +4,7 @@
     <dimen name="bottom_sheet_padding">8dp</dimen>
 
     <dimen name="card_corner_radius">16dp</dimen>
+    <dimen name="card_elevation">1dp</dimen>
     <dimen name="card_stroke_width">1dp</dimen>
     <dimen name="card_stroke_width_selected">2dp</dimen>
     <dimen name="profile_card_corner_radius">10dp</dimen>
