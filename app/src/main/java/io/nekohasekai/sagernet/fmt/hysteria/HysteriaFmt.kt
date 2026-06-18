@@ -358,12 +358,13 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.SingBox
                         HysteriaBean.OBFS_GECKO -> {
                             type = "gecko"
                             password = bean.obfuscation
-                            if (bean.geckoMinPacketSize != null && bean.geckoMinPacketSize > 0) {
-                                min_packet_size = bean.geckoMinPacketSize
-                            }
-                            if (bean.geckoMaxPacketSize != null && bean.geckoMaxPacketSize > 0) {
-                                max_packet_size = bean.geckoMaxPacketSize
-                            }
+                            // Clamp + order to match the sidecar builder's bounds
+                            // (1..2048, min <= max); an inverted/out-of-range pair
+                            // would otherwise be rejected by the core at connect time.
+                            val min = bean.geckoMinPacketSize?.takeIf { it > 0 }?.coerceIn(1, 2048)
+                            val max = bean.geckoMaxPacketSize?.takeIf { it > 0 }?.coerceIn(min ?: 1, 2048)
+                            if (min != null) min_packet_size = min
+                            if (max != null) max_packet_size = max
                         }
 
                         else -> {
