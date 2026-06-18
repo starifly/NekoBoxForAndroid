@@ -22,7 +22,12 @@ if [ -z "$ANDROID_NDK_HOME" ]; then
 fi
 
 MDVPN_REPO="${MDVPN_REPO:-https://github.com/hawkff/MasterDnsVPN.git}"
+# Pin to an immutable commit for reproducible sidecar builds. MDVPN_REF may be a
+# branch (dev convenience) or a commit SHA; MDVPN_COMMIT, when set, overrides it
+# and is fetched/checked out exactly. Default pins the known-good commit.
 MDVPN_REF="${MDVPN_REF:-android-vpnservice-protect-hook}"
+MDVPN_COMMIT="${MDVPN_COMMIT:-7750c774600452756d5ae3f2a27f2b51bdfbca88}"
+MDVPN_FETCH="${MDVPN_COMMIT:-$MDVPN_REF}"
 
 DEPS="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin"
 if [ ! -d "$DEPS" ]; then
@@ -41,7 +46,7 @@ OUT="$(pwd)/app/executableSo"
 
 need_clone=1
 if [ -d "$WORK/.git" ]; then
-  if git -C "$WORK" fetch --depth 1 origin "$MDVPN_REF" \
+  if git -C "$WORK" fetch --depth 1 origin "$MDVPN_FETCH" \
      && git -C "$WORK" checkout -q FETCH_HEAD; then
     need_clone=0
   else
@@ -50,7 +55,12 @@ if [ -d "$WORK/.git" ]; then
 fi
 if [ "$need_clone" -eq 1 ]; then
   rm -rf "$WORK"
-  git clone --depth 1 --branch "$MDVPN_REF" "$MDVPN_REPO" "$WORK"
+  # Fetch the pinned commit (or branch) into a fresh repo. --branch does not
+  # accept a commit SHA, so fetch the ref explicitly and check out FETCH_HEAD.
+  git init -q "$WORK"
+  git -C "$WORK" remote add origin "$MDVPN_REPO"
+  git -C "$WORK" fetch --depth 1 origin "$MDVPN_FETCH"
+  git -C "$WORK" checkout -q FETCH_HEAD
 fi
 
 pushd "$WORK" >/dev/null

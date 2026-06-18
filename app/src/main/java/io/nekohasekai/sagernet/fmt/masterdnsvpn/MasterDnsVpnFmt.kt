@@ -44,6 +44,12 @@ fun MasterDnsVpnBean.buildMasterDnsVpnConfig(port: Int, protectPath: String): St
     if (dataEncryptionMethod != 0 && encryptionKey.isBlank()) {
         error("MasterDnsVPN: encryption method $dataEncryptionMethod requires a non-empty key")
     }
+    // The sidecar always loads upstream resolvers from the -resolvers file; an empty
+    // file leaves it with nowhere to forward queries, failing opaquely at runtime.
+    val resolverList = resolvers.split("\n", ",").map { it.trim() }.filter { it.isNotEmpty() }
+    if (resolverList.isEmpty()) {
+        error("MasterDnsVPN: at least one resolver is required")
+    }
     val cfg = JSONObject().apply {
         put("PROTOCOL_TYPE", "SOCKS5")
         put("LISTEN_IP", LOCALHOST)
