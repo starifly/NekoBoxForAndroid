@@ -3,6 +3,7 @@ package moe.matsuri.nb4a;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.ToNumberPolicy;
@@ -11,7 +12,10 @@ import com.google.gson.TypeAdapterFactory;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +28,13 @@ public class SingBoxOptions {
 
     private static final Gson gsonSingbox = new GsonBuilder()
             .registerTypeHierarchyAdapter(SingBoxOption.class, new SingBoxOptionSerializer())
+            .setPrettyPrinting()
+            .setNumberToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+            .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+            .setLenient()
+            .disableHtmlEscaping()
+            .create();
+    private static final Gson gsonSingboxPlain = new GsonBuilder()
             .setPrettyPrinting()
             .setNumberToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
             .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
@@ -69,29 +80,73 @@ public class SingBoxOptions {
     public static class SingBoxOptionSerializer implements JsonSerializer<SingBoxOption> {
         @Override
         public JsonElement serialize(SingBoxOption src, Type typeOfSrc, JsonSerializationContext context) {
-            // get the original delegate (default serializer)
-            TypeAdapter<?> delegate = gsonSingbox.getDelegateAdapter(
-                    new TypeAdapterFactory() {
-                        @Override
-                        public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
-                            return null; // return null, serving only as a marker for "skip current custom"
-                        }
-                    },
-                    TypeToken.get(src.getClass())
-            );
-            Map<String, Object> map;
+            JsonElement tree;
             if (src instanceof CustomSingBoxOption) {
-                map = ((CustomSingBoxOption) src).getBasicMap();
+                tree = gsonSingboxPlain.toJsonTree(((CustomSingBoxOption) src).getBasicMap());
             } else {
-                map = gsonSingbox.fromJson(((TypeAdapter<SingBoxOption>) delegate).toJson(src), Map.class);
+                tree = gsonSingboxPlain.toJsonTree(src);
             }
-            if (src._hack_config_map != null && !src._hack_config_map.isEmpty()) {
-                Util.INSTANCE.mergeMap(map, src._hack_config_map);
+            applyHackConfig(src, tree);
+            return tree;
+        }
+
+        private void applyHackConfig(Object src, JsonElement tree) {
+            if (src == null || tree == null) return;
+            if (src instanceof SingBoxOption && tree.isJsonObject()) {
+                SingBoxOption option = (SingBoxOption) src;
+                JsonObject object = tree.getAsJsonObject();
+                if (option instanceof CustomSingBoxOption) {
+                    object.entrySet().clear();
+                    gsonSingboxPlain.toJsonTree(((CustomSingBoxOption) option).getBasicMap()).getAsJsonObject()
+                            .entrySet()
+                            .forEach(entry -> object.add(entry.getKey(), entry.getValue()));
+                }
+                if (option._hack_config_map != null && !option._hack_config_map.isEmpty()) {
+                    Map<String, Object> map = gsonSingboxPlain.fromJson(object, Map.class);
+                    Util.INSTANCE.mergeMap(map, option._hack_config_map);
+                    object.entrySet().clear();
+                    gsonSingboxPlain.toJsonTree(map).getAsJsonObject()
+                            .entrySet()
+                            .forEach(entry -> object.add(entry.getKey(), entry.getValue()));
+                }
+                if (option._hack_custom_config != null && !option._hack_custom_config.isBlank()) {
+                    Map<String, Object> map = gsonSingboxPlain.fromJson(object, Map.class);
+                    Util.INSTANCE.mergeJSON(map, option._hack_custom_config);
+                    object.entrySet().clear();
+                    gsonSingboxPlain.toJsonTree(map).getAsJsonObject()
+                            .entrySet()
+                            .forEach(entry -> object.add(entry.getKey(), entry.getValue()));
+                }
             }
-            if (src._hack_custom_config != null && !src._hack_custom_config.isBlank()) {
-                Util.INSTANCE.mergeJSON(map, src._hack_custom_config);
+            if (!tree.isJsonObject()) return;
+            JsonObject object = tree.getAsJsonObject();
+            for (Field field : src.getClass().getFields()) {
+                int modifiers = field.getModifiers();
+                if (Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers)) continue;
+                String name = serializedName(field);
+                JsonElement childTree = object.get(name);
+                if (childTree == null || childTree.isJsonNull()) continue;
+                try {
+                    Object child = field.get(src);
+                    if (child instanceof SingBoxOption) {
+                        applyHackConfig(child, childTree);
+                    } else if (child instanceof Collection<?> && childTree.isJsonArray()) {
+                        int index = 0;
+                        for (Object item : (Collection<?>) child) {
+                            if (index >= childTree.getAsJsonArray().size()) break;
+                            applyHackConfig(item, childTree.getAsJsonArray().get(index));
+                            index++;
+                        }
+                    }
+                } catch (IllegalAccessException ignored) {
+                }
             }
-            return gsonSingbox.toJsonTree(map);
+        }
+
+        private String serializedName(Field field) {
+            SerializedName serializedName = field.getAnnotation(SerializedName.class);
+            if (serializedName != null) return serializedName.value();
+            return field.getName();
         }
     }
 
@@ -3936,6 +3991,104 @@ public class SingBoxOptions {
         public Integer mtu;
 
         public String network;
+
+    }
+
+    public static class Outbound_AmneziaWGOptions extends Outbound {
+
+        // Generate note: nested type DialerOptions
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public Long connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+
+        public String domain_strategy;
+
+        public Long fallback_delay;
+
+        // End of public DialerOptions ;
+
+        public Boolean system_interface;
+
+        public String interface_name;
+
+        // Generate note: Listable
+        public List<String> local_address;
+
+        public String private_key;
+
+        public List<WireGuardPeer> peers;
+
+        // Generate note: nested type ServerOptions
+        public String server;
+
+        public Integer server_port;
+
+        // End of public ServerOptions ;
+
+        public String peer_public_key;
+
+        public String pre_shared_key;
+
+        // Generate note: Base64 String
+        public String reserved;
+
+        public Integer workers;
+
+        public Integer mtu;
+
+        public String network;
+
+        // AmneziaWG obfuscation parameters.
+        public Integer jc;
+
+        public Integer jmin;
+
+        public Integer jmax;
+
+        public Integer s1;
+
+        public Integer s2;
+
+        public Integer s3;
+
+        public Integer s4;
+
+        public String h1;
+
+        public String h2;
+
+        public String h3;
+
+        public String h4;
+
+        public String i1;
+
+        public String i2;
+
+        public String i3;
+
+        public String i4;
+
+        public String i5;
 
     }
 

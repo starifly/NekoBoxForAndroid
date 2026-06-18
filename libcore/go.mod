@@ -22,6 +22,7 @@ require (
 
 require (
 	github.com/ajg/form v1.5.1 // indirect
+	github.com/amnezia-vpn/amneziawg-go v1.0.4 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/anytls/sing-anytls v0.0.11 // indirect
 	github.com/caddyserver/certmagic v0.23.0 // indirect
@@ -68,9 +69,11 @@ require (
 	github.com/sagernet/wireguard-go v0.0.1-beta.7 // indirect
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
+	github.com/tevino/abool v1.2.0 // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
 	github.com/zeebo/blake3 v0.2.4 // indirect
 	gitlab.com/go-extension/aes-ccm v0.0.0-20230221065045-e58665ef23c7 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go.uber.org/zap/exp v0.3.0 // indirect
