@@ -29,6 +29,8 @@ import io.nekohasekai.sagernet.fmt.snell.SnellBean
 import io.nekohasekai.sagernet.fmt.snell.buildSingBoxOutboundSnellBean
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxOutboundWireguardBean
+import io.nekohasekai.sagernet.fmt.amneziawg.AmneziaWGBean
+import io.nekohasekai.sagernet.fmt.amneziawg.buildSingBoxOutboundAmneziaWGBean
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.utils.PackageCache
@@ -391,6 +393,9 @@ fun buildConfig(
 
                         is WireGuardBean ->
                             buildSingBoxOutboundWireguardBean(bean)
+
+                        is AmneziaWGBean ->
+                            buildSingBoxOutboundAmneziaWGBean(bean)
 
                         is SSHBean ->
                             buildSingBoxOutboundSSHBean(bean)

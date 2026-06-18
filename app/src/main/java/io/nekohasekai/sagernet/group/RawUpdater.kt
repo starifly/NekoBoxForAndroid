@@ -22,6 +22,7 @@ import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.fmt.v2ray.setTLS
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
+import io.nekohasekai.sagernet.fmt.amneziawg.AmneziaWGBean
 import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
 import moe.matsuri.nb4a.Protocols
@@ -903,9 +904,14 @@ object RawUpdater : GroupUpdater() {
                 Logs.w(e)
             }
         } else if (text.contains("[Interface]")) {
-            // wireguard
+            // amneziawg (wireguard with obfuscation params) or plain wireguard
             try {
-                proxies.addAll(parseWireGuard(text).map {
+                val parsed = if (isAmneziaWGConf(text)) {
+                    parseAmneziaWG(text)
+                } else {
+                    parseWireGuard(text)
+                }
+                proxies.addAll(parsed.map {
                     if (fileName.isNotBlank()) it.name = fileName.removeSuffix(".conf")
                     it
                 })
@@ -957,6 +963,64 @@ object RawUpdater : GroupUpdater() {
         val peers = ini.getAll("Peer")
         if (peers.isNullOrEmpty()) error("Missing 'Peer' selections")
         val beans = mutableListOf<WireGuardBean>()
+        for (peer in peers) {
+            val endpoint = peer["Endpoint"]
+            if (endpoint.isNullOrBlank() || !endpoint.contains(":")) {
+                continue
+            }
+
+            val peerBean = bean.clone()
+            peerBean.serverAddress = endpoint.substringBeforeLast(":")
+            peerBean.serverPort = endpoint.substringAfterLast(":").toIntOrNull() ?: continue
+            peerBean.peerPublicKey = peer["PublicKey"] ?: continue
+            peerBean.peerPreSharedKey = peer["PresharedKey"]
+            beans.add(peerBean.applyDefaultValues())
+        }
+        if (beans.isEmpty()) error("Empty available peer list")
+        return beans
+    }
+
+    // AmneziaWG configs are WireGuard configs that also carry obfuscation keys in
+    // the [Interface] section (Jc/Jmin/Jmax, S1-S4, H1-H4, I1-I5).
+    private fun isAmneziaWGConf(conf: String): Boolean {
+        return try {
+            val iface = Ini(StringReader(conf))["Interface"] ?: return false
+            listOf("Jc", "Jmin", "Jmax", "S1", "S2", "S3", "S4", "H1", "H2", "H3", "H4")
+                .any { !iface[it].isNullOrBlank() }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    fun parseAmneziaWG(conf: String): List<AmneziaWGBean> {
+        val ini = Ini(StringReader(conf))
+        val iface = ini["Interface"] ?: error("Missing 'Interface' selection")
+        val bean = AmneziaWGBean().applyDefaultValues()
+        val localAddresses = iface.getAll("Address")
+        if (localAddresses.isNullOrEmpty()) error("Empty address in 'Interface' selection")
+        bean.localAddress = localAddresses.flatMap { it.split(",") }.joinToString("\n")
+        bean.privateKey = iface["PrivateKey"]
+        iface["MTU"]?.toIntOrNull()?.let { bean.mtu = it }
+        // AmneziaWG obfuscation parameters.
+        bean.jc = iface["Jc"]?.toIntOrNull() ?: 0
+        bean.jmin = iface["Jmin"]?.toIntOrNull() ?: 0
+        bean.jmax = iface["Jmax"]?.toIntOrNull() ?: 0
+        bean.s1 = iface["S1"]?.toIntOrNull() ?: 0
+        bean.s2 = iface["S2"]?.toIntOrNull() ?: 0
+        bean.s3 = iface["S3"]?.toIntOrNull() ?: 0
+        bean.s4 = iface["S4"]?.toIntOrNull() ?: 0
+        bean.h1 = iface["H1"] ?: ""
+        bean.h2 = iface["H2"] ?: ""
+        bean.h3 = iface["H3"] ?: ""
+        bean.h4 = iface["H4"] ?: ""
+        bean.i1 = iface["I1"] ?: ""
+        bean.i2 = iface["I2"] ?: ""
+        bean.i3 = iface["I3"] ?: ""
+        bean.i4 = iface["I4"] ?: ""
+        bean.i5 = iface["I5"] ?: ""
+        val peers = ini.getAll("Peer")
+        if (peers.isNullOrEmpty()) error("Missing 'Peer' selections")
+        val beans = mutableListOf<AmneziaWGBean>()
         for (peer in peers) {
             val endpoint = peer["Endpoint"]
             if (endpoint.isNullOrBlank() || !endpoint.contains(":")) {

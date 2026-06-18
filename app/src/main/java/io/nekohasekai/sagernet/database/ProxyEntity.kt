@@ -35,6 +35,7 @@ import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
 import io.nekohasekai.sagernet.fmt.juicity.toUri
 import io.nekohasekai.sagernet.fmt.v2ray.*
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
+import io.nekohasekai.sagernet.fmt.amneziawg.AmneziaWGBean
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ui.profile.*
 import moe.matsuri.nb4a.SingBoxOptions.BrutalOptions
@@ -81,6 +82,7 @@ data class ProxyEntity(
     var nekoBean: NekoBean? = null,
     var configBean: ConfigBean? = null,
     var snellBean: SnellBean? = null,
+    var awgBean: AmneziaWGBean? = null,
 ) : Serializable() {
 
     companion object {
@@ -103,6 +105,7 @@ data class ProxyEntity(
         const val TYPE_ANYTLS = 22
         const val TYPE_JUICITY = 23
         const val TYPE_SNELL = 24
+        const val TYPE_AWG = 26
 
         const val TYPE_CONFIG = 998
         const val TYPE_NEKO = 999
@@ -193,6 +196,7 @@ data class ProxyEntity(
             TYPE_NEKO -> nekoBean = KryoConverters.nekoDeserialize(byteArray)
             TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
             TYPE_SNELL -> snellBean = KryoConverters.snellDeserialize(byteArray)
+            TYPE_AWG -> awgBean = KryoConverters.amneziaWGDeserialize(byteArray)
         }
     }
 
@@ -217,6 +221,7 @@ data class ProxyEntity(
         TYPE_NEKO -> nekoBean!!.displayType()
         TYPE_CONFIG -> configBean!!.displayType()
         TYPE_SNELL -> "Snell"
+        TYPE_AWG -> "AmneziaWG"
         else -> "Undefined type $type"
     }
 
@@ -245,6 +250,7 @@ data class ProxyEntity(
             TYPE_NEKO -> nekoBean
             TYPE_CONFIG -> configBean
             TYPE_SNELL -> snellBean
+            TYPE_AWG -> awgBean
             else -> error("Undefined type $type")
         } ?: error("Null ${displayType()} profile")
     }
@@ -260,6 +266,7 @@ data class ProxyEntity(
         return when (requireBean()) {
             is SSHBean -> false
             is WireGuardBean -> false
+            is AmneziaWGBean -> false
             is ShadowTLSBean -> false
             is NekoBean -> false
             is ConfigBean -> false
@@ -430,6 +437,7 @@ data class ProxyEntity(
         hysteriaBean = null
         sshBean = null
         wgBean = null
+        awgBean = null
         tuicBean = null
         juicityBean = null
         shadowTLSBean = null
@@ -499,6 +507,11 @@ data class ProxyEntity(
                 wgBean = bean
             }
 
+            is AmneziaWGBean -> {
+                type = TYPE_AWG
+                awgBean = bean
+            }
+
             is TuicBean -> {
                 type = TYPE_TUIC
                 tuicBean = bean
@@ -559,6 +572,7 @@ data class ProxyEntity(
                 TYPE_HYSTERIA -> HysteriaSettingsActivity::class.java
                 TYPE_SSH -> SSHSettingsActivity::class.java
                 TYPE_WG -> WireGuardSettingsActivity::class.java
+                TYPE_AWG -> AmneziaWGSettingsActivity::class.java
                 TYPE_TUIC -> TuicSettingsActivity::class.java
                 TYPE_JUICITY -> JuicitySettingsActivity::class.java
                 TYPE_SHADOWTLS -> ShadowTLSSettingsActivity::class.java
