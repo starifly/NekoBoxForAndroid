@@ -11,6 +11,8 @@ import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.http.toUri
 import io.nekohasekai.sagernet.fmt.hysteria.*
 import io.nekohasekai.sagernet.fmt.internal.ChainBean
+import io.nekohasekai.sagernet.fmt.masterdnsvpn.MasterDnsVpnBean
+import io.nekohasekai.sagernet.fmt.masterdnsvpn.toUri as toMasterDnsVpnUri
 import io.nekohasekai.sagernet.fmt.mieru.MieruBean
 import io.nekohasekai.sagernet.fmt.mieru.buildMieruConfig
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
@@ -82,6 +84,7 @@ data class ProxyEntity(
     var nekoBean: NekoBean? = null,
     var configBean: ConfigBean? = null,
     var snellBean: SnellBean? = null,
+    var masterDnsVpnBean: MasterDnsVpnBean? = null,
     var awgBean: AmneziaWGBean? = null,
 ) : Serializable() {
 
@@ -105,6 +108,7 @@ data class ProxyEntity(
         const val TYPE_ANYTLS = 22
         const val TYPE_JUICITY = 23
         const val TYPE_SNELL = 24
+        const val TYPE_MASTERDNSVPN = 25
 
         // 25 is reserved for the MasterDnsVPN sidecar type on the
         // feature/masterdnsvpn-sidecar branch (PR #18); do not reuse it here so
@@ -200,6 +204,7 @@ data class ProxyEntity(
             TYPE_NEKO -> nekoBean = KryoConverters.nekoDeserialize(byteArray)
             TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
             TYPE_SNELL -> snellBean = KryoConverters.snellDeserialize(byteArray)
+            TYPE_MASTERDNSVPN -> masterDnsVpnBean = KryoConverters.masterDnsVpnDeserialize(byteArray)
             TYPE_AWG -> awgBean = KryoConverters.amneziaWGDeserialize(byteArray)
         }
     }
@@ -225,6 +230,7 @@ data class ProxyEntity(
         TYPE_NEKO -> nekoBean!!.displayType()
         TYPE_CONFIG -> configBean!!.displayType()
         TYPE_SNELL -> "Snell"
+        TYPE_MASTERDNSVPN -> "MasterDnsVPN"
         TYPE_AWG -> "AmneziaWG"
         else -> "Undefined type $type"
     }
@@ -254,6 +260,7 @@ data class ProxyEntity(
             TYPE_NEKO -> nekoBean
             TYPE_CONFIG -> configBean
             TYPE_SNELL -> snellBean
+            TYPE_MASTERDNSVPN -> masterDnsVpnBean
             TYPE_AWG -> awgBean
             else -> error("Undefined type $type")
         } ?: error("Null ${displayType()} profile")
@@ -293,6 +300,7 @@ data class ProxyEntity(
             is JuicityBean -> toUri()
             is AnyTLSBean -> toUri()
             is SnellBean -> toUri()
+            is MasterDnsVpnBean -> toMasterDnsVpnUri()
             is NekoBean -> ""
             else -> toUniversalLink()
         }
@@ -344,6 +352,7 @@ data class ProxyEntity(
             TYPE_TROJAN_GO -> true
             TYPE_MIERU -> true
             TYPE_NAIVE -> true
+            TYPE_MASTERDNSVPN -> true
             TYPE_HYSTERIA -> !hysteriaBean!!.canUseSingBox()
             TYPE_NEKO -> true
             else -> false
@@ -449,6 +458,8 @@ data class ProxyEntity(
         chainBean = null
         configBean = null
         nekoBean = null
+        snellBean = null
+        masterDnsVpnBean = null
 
         when (bean) {
             is SOCKSBean -> {
@@ -541,6 +552,11 @@ data class ProxyEntity(
                 snellBean = bean
             }
 
+            is MasterDnsVpnBean -> {
+                type = TYPE_MASTERDNSVPN
+                masterDnsVpnBean = bean
+            }
+
             is ChainBean -> {
                 type = TYPE_CHAIN
                 chainBean = bean
@@ -584,6 +600,7 @@ data class ProxyEntity(
                 TYPE_CHAIN -> ChainSettingsActivity::class.java
                 TYPE_CONFIG -> ConfigSettingActivity::class.java
                 TYPE_SNELL -> SnellSettingsActivity::class.java
+                TYPE_MASTERDNSVPN -> MasterDnsVpnSettingsActivity::class.java
                 else -> throw IllegalArgumentException()
             }
         ).apply {

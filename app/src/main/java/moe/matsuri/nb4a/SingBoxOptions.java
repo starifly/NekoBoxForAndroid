@@ -137,6 +137,16 @@ public class SingBoxOptions {
                             applyHackConfig(item, childTree.getAsJsonArray().get(index));
                             index++;
                         }
+                    } else if (child instanceof Map<?, ?> && childTree.isJsonObject()) {
+                        JsonObject childObject = childTree.getAsJsonObject();
+                        for (Map.Entry<?, ?> entry : ((Map<?, ?>) child).entrySet()) {
+                            Object value = entry.getValue();
+                            if (!(value instanceof SingBoxOption)) continue;
+                            JsonElement valueTree = childObject.get(String.valueOf(entry.getKey()));
+                            if (valueTree != null && !valueTree.isJsonNull()) {
+                                applyHackConfig(value, valueTree);
+                            }
+                        }
                     }
                 } catch (IllegalAccessException ignored) {
                 }

@@ -73,6 +73,9 @@
                         android:id="@+id/action_new_snell"
                         android:title="@string/action_snell" />
                     <item
+                        android:id="@+id/action_new_masterdnsvpn"
+                        android:title="@string/action_masterdnsvpn" />
+                    <item
                         android:id="@+id/action_new_ssh"
                         android:title="@string/action_ssh" />
                     <item
