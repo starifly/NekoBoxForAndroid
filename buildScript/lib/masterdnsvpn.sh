@@ -26,7 +26,7 @@ MDVPN_REPO="${MDVPN_REPO:-https://github.com/hawkff/MasterDnsVPN.git}"
 # branch (dev convenience) or a commit SHA; MDVPN_COMMIT, when set, overrides it
 # and is fetched/checked out exactly. Default pins the known-good commit.
 MDVPN_REF="${MDVPN_REF:-android-vpnservice-protect-hook}"
-MDVPN_COMMIT="${MDVPN_COMMIT:-7750c774600452756d5ae3f2a27f2b51bdfbca88}"
+MDVPN_COMMIT="${MDVPN_COMMIT:-d481d72d4b86783a87d536c214d2c68cc4e9320e}"
 MDVPN_FETCH="${MDVPN_COMMIT:-$MDVPN_REF}"
 
 DEPS="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin"

@@ -12,7 +12,7 @@ env:
   MIERU_VERSION: v3.34.0
   HYSTERIA_VERSION: v2.9.2
   MDVPN_REF: android-vpnservice-protect-hook
-  MDVPN_COMMIT: 7750c774600452756d5ae3f2a27f2b51bdfbca88
+  MDVPN_COMMIT: d481d72d4b86783a87d536c214d2c68cc4e9320e
 permissions:
   contents: write
 jobs:
