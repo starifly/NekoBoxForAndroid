@@ -116,7 +116,11 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var concurrentDial by configurationStore.boolean(Key.CONCURRENT_DIAL)
 
     var allowAccess by configurationStore.boolean(Key.ALLOW_ACCESS)
-    var speedInterval by configurationStore.stringToInt(Key.SPEED_INTERVAL)
+    // Default must match global_preferences.xml (1000ms). Without a non-zero code
+    // default, a fresh install that never opens Settings reads 0, which disables the
+    // TrafficLooper stats loop entirely (TrafficLooper.loop() returns on delayMs == 0),
+    // so the dashboard up/down speeds stay blank. "0" remains a valid user choice (Off).
+    var speedInterval by configurationStore.stringToInt(Key.SPEED_INTERVAL) { 1000 }
     var showGroupInNotification by configurationStore.boolean("showGroupInNotification")
 
     var globalCustomConfig by configurationStore.string(Key.GLOBAL_CUSTOM_CONFIG) { "" }
