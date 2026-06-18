@@ -214,6 +214,7 @@ class BaseService {
 
         suspend fun startProcesses() {
             data.proxy!!.launch()
+            data.proxy!!.awaitExternalProcessesReady()
         }
 
         fun startRunner() {

@@ -1,0 +1,99 @@
+#!/bin/bash
+# Build the (forked) MasterDnsVPN client for all Android ABIs and install them as
+# bundled native executables (app/executableSo/<abi>/libmasterdnsvpn.so).
+#
+# Uses the hawkff fork branch that adds the Android FD_CONTROL_UNIX_SOCKET protect hook,
+# so the client's upstream resolver sockets are protected from the VPN via libcore's
+# protect_path server. PluginManager.initNativeInternal resolves
+# "masterdnsvpn-plugin" -> libmasterdnsvpn.so.
+#
+# Requires Go 1.25+ on PATH (MasterDnsVPN's go.mod is go 1.25). libcore uses its own Go;
+# in CI this build job gets its own setup-go.
+#
+# Usage: ./run lib masterdnsvpn
+set -e
+set -o pipefail
+
+source "buildScript/init/env.sh"
+
+if [ -z "$ANDROID_NDK_HOME" ]; then
+  echo "Error: ANDROID_NDK_HOME is not set (NDK required to cross-compile MasterDnsVPN)." >&2
+  exit 1
+fi
+
+MDVPN_REPO="${MDVPN_REPO:-https://github.com/hawkff/MasterDnsVPN.git}"
+# Pin to an immutable commit for reproducible sidecar builds. MDVPN_REF may be a
+# branch (dev convenience) or a commit SHA; MDVPN_COMMIT, when set, overrides it
+# and is fetched/checked out exactly. Default pins the known-good commit.
+MDVPN_REF="${MDVPN_REF:-android-vpnservice-protect-hook}"
+MDVPN_COMMIT="${MDVPN_COMMIT:-d481d72d4b86783a87d536c214d2c68cc4e9320e}"
+MDVPN_FETCH="${MDVPN_COMMIT:-$MDVPN_REF}"
+
+DEPS="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin"
+if [ ! -d "$DEPS" ]; then
+  DEPS="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/darwin-x86_64/bin"
+fi
+if [ ! -d "$DEPS" ]; then
+  DEPS="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/darwin-arm64/bin"
+fi
+if [ ! -d "$DEPS" ]; then
+  echo "Error: NDK LLVM toolchain not found under $ANDROID_NDK_HOME." >&2
+  exit 1
+fi
+
+WORK="$(pwd)/.masterdnsvpn-build"
+OUT="$(pwd)/app/executableSo"
+
+need_clone=1
+if [ -d "$WORK/.git" ]; then
+  if git -C "$WORK" fetch --depth 1 origin "$MDVPN_FETCH" \
+     && git -C "$WORK" checkout -q FETCH_HEAD; then
+    need_clone=0
+  else
+    echo ">> existing $WORK is unusable; re-cloning"
+  fi
+fi
+if [ "$need_clone" -eq 1 ]; then
+  rm -rf "$WORK"
+  # Fetch the pinned commit (or branch) into a fresh repo. --branch does not
+  # accept a commit SHA, so fetch the ref explicitly and check out FETCH_HEAD.
+  git init -q "$WORK"
+  git -C "$WORK" remote add origin "$MDVPN_REPO"
+  git -C "$WORK" fetch --depth 1 origin "$MDVPN_FETCH"
+  git -C "$WORK" checkout -q FETCH_HEAD
+fi
+
+pushd "$WORK" >/dev/null
+
+# MasterDnsVPN requires Go 1.25+. Fail fast with a clear message otherwise.
+if ! command -v go >/dev/null 2>&1; then
+  echo "Error: go not found on PATH (MasterDnsVPN needs Go 1.25+)." >&2
+  exit 1
+fi
+GO_VER="$(go env GOVERSION 2>/dev/null | sed 's/^go//')"
+GO_MAJOR="${GO_VER%%.*}"
+GO_REST="${GO_VER#*.}"; GO_MINOR="${GO_REST%%.*}"
+if [ "${GO_MAJOR:-0}" -lt 1 ] || { [ "${GO_MAJOR:-0}" -eq 1 ] && [ "${GO_MINOR:-0}" -lt 25 ]; }; then
+  echo "Error: Go $GO_VER is too old; MasterDnsVPN needs Go 1.25+." >&2
+  exit 1
+fi
+
+build_abi() {
+  local abi="$1" goarch="$2" cc="$3" goarm="$4"
+  echo ">> building libmasterdnsvpn.so for $abi"
+  mkdir -p "$OUT/$abi"
+  env GOOS=android GOARCH="$goarch" ${goarm:+GOARM=$goarm} CGO_ENABLED=1 \
+    CC="$DEPS/$cc" \
+    go build -trimpath -ldflags='-s -w' \
+      -o "$OUT/$abi/libmasterdnsvpn.so" ./cmd/client
+}
+
+build_abi "arm64-v8a"   "arm64" "aarch64-linux-android21-clang"
+build_abi "armeabi-v7a" "arm"   "armv7a-linux-androideabi21-clang" "7"
+build_abi "x86"         "386"   "i686-linux-android21-clang"
+build_abi "x86_64"      "amd64" "x86_64-linux-android21-clang"
+
+popd >/dev/null
+
+echo ">> installed MasterDnsVPN binaries:"
+ls -la "$OUT"/*/libmasterdnsvpn.so

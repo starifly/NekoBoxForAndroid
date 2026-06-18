@@ -256,6 +256,29 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverHy2GeckoMinPacket by profileCacheStore.stringToInt(Key.SERVER_HY2_GECKO_MIN_PACKET) { 512 }
     var serverHy2GeckoMaxPacket by profileCacheStore.stringToInt(Key.SERVER_HY2_GECKO_MAX_PACKET) { 1200 }
 
+    // MasterDnsVPN
+    var mdvDomains by profileCacheStore.string(Key.MDV_DOMAINS)
+    var mdvEncryptionMethod by profileCacheStore.stringToInt(Key.MDV_ENCRYPTION_METHOD) { 0 }
+    var mdvEncryptionKey by profileCacheStore.string(Key.MDV_ENCRYPTION_KEY)
+    var mdvResolvers by profileCacheStore.string(Key.MDV_RESOLVERS)
+    var mdvBalancingStrategy by profileCacheStore.stringToInt(Key.MDV_BALANCING_STRATEGY) { 3 }
+    var mdvPacketDup by profileCacheStore.stringToInt(Key.MDV_PACKET_DUP) { 3 }
+    var mdvSetupPacketDup by profileCacheStore.stringToInt(Key.MDV_SETUP_PACKET_DUP) { 4 }
+    var mdvAutoDisableTimeout by profileCacheStore.boolean(Key.MDV_AUTO_DISABLE_TIMEOUT)
+    var mdvAutoRemoveLowMtu by profileCacheStore.boolean(Key.MDV_AUTO_REMOVE_LOW_MTU)
+    var mdvBaseEncode by profileCacheStore.boolean(Key.MDV_BASE_ENCODE)
+    var mdvUploadCompression by profileCacheStore.stringToInt(Key.MDV_UPLOAD_COMPRESSION) { 0 }
+    var mdvDownloadCompression by profileCacheStore.stringToInt(Key.MDV_DOWNLOAD_COMPRESSION) { 0 }
+    var mdvCompressionMinSize by profileCacheStore.stringToInt(Key.MDV_COMPRESSION_MIN_SIZE) { 120 }
+    var mdvMinUploadMtu by profileCacheStore.stringToInt(Key.MDV_MIN_UPLOAD_MTU) { 38 }
+    var mdvMinDownloadMtu by profileCacheStore.stringToInt(Key.MDV_MIN_DOWNLOAD_MTU) { 200 }
+    var mdvMaxUploadMtu by profileCacheStore.stringToInt(Key.MDV_MAX_UPLOAD_MTU) { 150 }
+    var mdvMaxDownloadMtu by profileCacheStore.stringToInt(Key.MDV_MAX_DOWNLOAD_MTU) { 4000 }
+    var mdvLocalDnsEnabled by profileCacheStore.boolean(Key.MDV_LOCAL_DNS_ENABLED)
+    var mdvLocalDnsPort by profileCacheStore.stringToInt(Key.MDV_LOCAL_DNS_PORT) { 53 }
+    var mdvLogLevel by profileCacheStore.string(Key.MDV_LOG_LEVEL) { "INFO" }
+    var mdvAdvancedJson by profileCacheStore.string(Key.MDV_ADVANCED_JSON)
+
     var protocolVersion by profileCacheStore.stringToInt(Key.PROTOCOL_VERSION) { 2 } // default is SOCKS5
 
     var serverProtocolInt by profileCacheStore.stringToInt(Key.SERVER_PROTOCOL)

@@ -5,6 +5,8 @@ on:
 env:
   MIERU_VERSION: v3.34.0
   HYSTERIA_VERSION: v2.9.2
+  MDVPN_REF: android-vpnservice-protect-hook
+  MDVPN_COMMIT: d481d72d4b86783a87d536c214d2c68cc4e9320e
   NAIVE_VERSION: v149.0.7827.114-1
 permissions:
   contents: read
@@ -21,7 +23,7 @@ jobs:
         run: git ls-files libcore | xargs cat | sha1sum > libcore_status
       - name: LibCore Cache
         id: cache
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             app/libs/libcore.aar
@@ -41,14 +43,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Sidecars Status
-        run: cat buildScript/lib/mieru.sh buildScript/lib/hysteria2.sh buildScript/lib/naive.sh buildScript/init/env.sh buildScript/init/env_ndk.sh | sha1sum > sidecars_status
+        run: cat buildScript/lib/mieru.sh buildScript/lib/hysteria2.sh buildScript/lib/masterdnsvpn.sh buildScript/lib/naive.sh buildScript/init/env.sh buildScript/init/env_ndk.sh | sha1sum > sidecars_status
       - name: Sidecars Cache
         id: cache
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             app/executableSo
-          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-${{ env.NAIVE_VERSION }}-sidecars
+          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-${{ env.MDVPN_COMMIT }}-${{ env.NAIVE_VERSION }}-sidecars
       - name: Install Golang
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-go@v6
@@ -60,6 +62,9 @@ jobs:
       - name: Hysteria2 Download
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./run lib hysteria2
+      - name: MasterDnsVPN Build
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ./run lib masterdnsvpn
       - name: Naive Download
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./run lib naive
@@ -77,24 +82,24 @@ jobs:
       - name: Libcore Status
         run: git ls-files libcore | xargs cat | sha1sum > libcore_status
       - name: LibCore Cache
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             app/libs/libcore.aar
           key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
       - name: Sidecars Status
-        run: cat buildScript/lib/mieru.sh buildScript/lib/hysteria2.sh buildScript/lib/naive.sh buildScript/init/env.sh buildScript/init/env_ndk.sh | sha1sum > sidecars_status
+        run: cat buildScript/lib/mieru.sh buildScript/lib/hysteria2.sh buildScript/lib/masterdnsvpn.sh buildScript/lib/naive.sh buildScript/init/env.sh buildScript/init/env_ndk.sh | sha1sum > sidecars_status
       - name: Sidecars Cache
         id: sidecars-cache
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             app/executableSo
-          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-${{ env.NAIVE_VERSION }}-sidecars
+          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-${{ env.MDVPN_COMMIT }}-${{ env.NAIVE_VERSION }}-sidecars
       - name: Verify Sidecar Artifacts
         run: |
           for abi in arm64-v8a armeabi-v7a x86 x86_64; do
-            for so in libmieru.so libhysteria2.so libnaive.so; do
+            for so in libmieru.so libhysteria2.so libmasterdnsvpn.so libnaive.so; do
               if [ ! -f "app/executableSo/$abi/$so" ]; then
                 echo "Error: missing app/executableSo/$abi/$so (sidecar cache miss)" >&2
                 exit 1
@@ -102,7 +107,7 @@ jobs:
             done
           done
       - name: Gradle cache
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ~/.gradle
           key: gradle-oss-${{ hashFiles('**/*.gradle.kts') }}
