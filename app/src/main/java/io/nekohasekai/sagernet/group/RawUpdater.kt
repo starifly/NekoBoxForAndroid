@@ -985,8 +985,12 @@ object RawUpdater : GroupUpdater() {
     private fun isAmneziaWGConf(conf: String): Boolean {
         return try {
             val iface = Ini(StringReader(conf))["Interface"] ?: return false
-            listOf("Jc", "Jmin", "Jmax", "S1", "S2", "S3", "S4", "H1", "H2", "H3", "H4")
-                .any { !iface[it].isNullOrBlank() }
+            listOf(
+                "Jc", "Jmin", "Jmax",
+                "S1", "S2", "S3", "S4",
+                "H1", "H2", "H3", "H4",
+                "I1", "I2", "I3", "I4", "I5",
+            ).any { !iface[it].isNullOrBlank() }
         } catch (e: Exception) {
             false
         }
@@ -994,10 +998,10 @@ object RawUpdater : GroupUpdater() {
 
     fun parseAmneziaWG(conf: String): List<AmneziaWGBean> {
         val ini = Ini(StringReader(conf))
-        val iface = ini["Interface"] ?: error("Missing 'Interface' selection")
+        val iface = ini["Interface"] ?: error("Missing 'Interface' section")
         val bean = AmneziaWGBean().applyDefaultValues()
         val localAddresses = iface.getAll("Address")
-        if (localAddresses.isNullOrEmpty()) error("Empty address in 'Interface' selection")
+        if (localAddresses.isNullOrEmpty()) error("Empty address in 'Interface' section")
         bean.localAddress = localAddresses.flatMap { it.split(",") }.joinToString("\n")
         bean.privateKey = iface["PrivateKey"]
         iface["MTU"]?.toIntOrNull()?.let { bean.mtu = it }
@@ -1019,7 +1023,7 @@ object RawUpdater : GroupUpdater() {
         bean.i4 = iface["I4"] ?: ""
         bean.i5 = iface["I5"] ?: ""
         val peers = ini.getAll("Peer")
-        if (peers.isNullOrEmpty()) error("Missing 'Peer' selections")
+        if (peers.isNullOrEmpty()) error("Missing 'Peer' sections")
         val beans = mutableListOf<AmneziaWGBean>()
         for (peer in peers) {
             val endpoint = peer["Endpoint"]
