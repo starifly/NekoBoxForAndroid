@@ -45,6 +45,13 @@ jobs:
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./run lib core
+      - name: Upload LibCore
+        uses: actions/upload-artifact@v5
+        with:
+          name: libcore-aar-ci
+          path: app/libs/libcore.aar
+          retention-days: 1
+          if-no-files-found: error
   sidecars:
     name: Native Build (Sidecars)
     runs-on: namespace-profile-nekoyay
@@ -77,6 +84,13 @@ jobs:
       - name: Naive Download
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./run lib naive
+      - name: Upload Sidecars
+        uses: actions/upload-artifact@v5
+        with:
+          name: sidecars-so-ci
+          path: app/executableSo
+          retention-days: 1
+          if-no-files-found: error
   build:
     name: Build OSS APK
     runs-on: namespace-profile-nekoyay
@@ -91,31 +105,22 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Golang Status
-        run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
-      - name: Libcore Status
-        run: git ls-files libcore | xargs cat | sha1sum > libcore_status
-      - name: LibCore Cache
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      - name: Download LibCore
+        uses: actions/download-artifact@v5
         with:
-          path: |
-            app/libs/libcore.aar
-          key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}-ci
-      - name: Sidecars Status
-        run: cat buildScript/lib/mieru.sh buildScript/lib/hysteria2.sh buildScript/lib/masterdnsvpn.sh buildScript/lib/naive.sh buildScript/init/env.sh buildScript/init/env_ndk.sh | sha1sum > sidecars_status
-      - name: Sidecars Cache
-        id: sidecars-cache
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+          name: libcore-aar-ci
+          path: app/libs
+      - name: Download Sidecars
+        uses: actions/download-artifact@v5
         with:
-          path: |
-            app/executableSo
-          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-${{ env.MDVPN_COMMIT }}-${{ env.NAIVE_VERSION }}-sidecars-ci
+          name: sidecars-so-ci
+          path: app/executableSo
       - name: Verify Sidecar Artifacts
         run: |
           for abi in arm64-v8a armeabi-v7a x86 x86_64; do
             for so in libmieru.so libhysteria2.so libmasterdnsvpn.so libnaive.so; do
               if [ ! -f "app/executableSo/$abi/$so" ]; then
-                echo "Error: missing app/executableSo/$abi/$so (sidecar cache miss)" >&2
+                echo "Error: missing app/executableSo/$abi/$so (sidecar artifact missing)" >&2
                 exit 1
               fi
             done
