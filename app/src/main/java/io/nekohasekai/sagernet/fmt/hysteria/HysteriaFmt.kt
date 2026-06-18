@@ -411,8 +411,11 @@ fun hopPortsToSingboxList(s: String): List<String> {
 }
 
 /**
- * Builds a config for the bundled official apernet/hysteria client binary (sidecar),
- * used for Hysteria2 profiles with Gecko obfs (which the native sing-box core can't do).
+ * Builds a config for the bundled official apernet/hysteria client binary (sidecar).
+ *
+ * NOTE: Hysteria2 (including Gecko obfs) now runs natively in the sing-box core, so this
+ * sidecar path is no longer used for Gecko. This builder is retained for the bundled
+ * hysteria2 binary infrastructure and potential fallback use.
  *
  * Emitted as JSON (hysteria uses viper, which detects format by the .json extension).
  * The client's upstream QUIC sockets are protected from the VPN via
