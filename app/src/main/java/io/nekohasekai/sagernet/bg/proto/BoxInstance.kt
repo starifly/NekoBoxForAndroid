@@ -11,7 +11,6 @@ import io.nekohasekai.sagernet.fmt.LOCALHOST
 import io.nekohasekai.sagernet.fmt.buildConfig
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.fmt.hysteria.buildHysteria1Config
-import io.nekohasekai.sagernet.fmt.hysteria.buildHysteria2SidecarConfig
 import io.nekohasekai.sagernet.fmt.masterdnsvpn.MasterDnsVpnBean
 import io.nekohasekai.sagernet.fmt.masterdnsvpn.buildMasterDnsVpnConfig
 import io.nekohasekai.sagernet.fmt.masterdnsvpn.resolverLines
@@ -82,26 +81,16 @@ abstract class BoxInstance(
                     }
 
                     is HysteriaBean -> {
-                        if (bean.protocolVersion == 2 &&
-                            bean.hysteria2ObfsType == HysteriaBean.OBFS_GECKO
-                        ) {
-                            // Gecko obfs: use the bundled official hysteria binary sidecar.
-                            // Loopback-only SOCKS5 (no auth), matching the other sidecars
-                            // (Mieru/Naive); the sing-box socks outbound dials 127.0.0.1:port.
-                            initPlugin("hysteria2-plugin")
-                            pluginConfigs[port] = profile.type to bean.buildHysteria2SidecarConfig(
-                                port,
-                                File(app.noBackupFilesDir, "protect_path").absolutePath
-                            )
-                        } else {
-                            initPlugin("hysteria-plugin")
-                            pluginConfigs[port] = profile.type to bean.buildHysteria1Config(port) {
-                                File(
-                                    app.cacheDir, "hysteria_" + SystemClock.elapsedRealtime() + ".ca"
-                                ).apply {
-                                    parentFile?.mkdirs()
-                                    cacheFiles.add(this)
-                                }
+                        // Only reached via the external path (needExternal == !canUseSingBox).
+                        // Hysteria2 (incl. Gecko obfs) runs natively in sing-box now, so the
+                        // external path is Hysteria v1 only.
+                        initPlugin("hysteria-plugin")
+                        pluginConfigs[port] = profile.type to bean.buildHysteria1Config(port) {
+                            File(
+                                app.cacheDir, "hysteria_" + SystemClock.elapsedRealtime() + ".ca"
+                            ).apply {
+                                parentFile?.mkdirs()
+                                cacheFiles.add(this)
                             }
                         }
                     }
@@ -197,30 +186,6 @@ abstract class BoxInstance(
                         )
 
                         processes.start(commands, envMap)
-                    }
-
-                    bean is HysteriaBean && bean.protocolVersion == 2 &&
-                        bean.hysteria2ObfsType == HysteriaBean.OBFS_GECKO -> {
-                        // Official apernet/hysteria client binary (Gecko obfs sidecar).
-                        // viper detects the config format from the .json extension.
-                        val configFile = File(
-                            cacheDir, "hysteria2_" + SystemClock.elapsedRealtime() + ".json"
-                        )
-                        configFile.parentFile?.mkdirs()
-                        configFile.writeText(config)
-                        cacheFiles.add(configFile)
-
-                        val commands = mutableListOf(
-                            initPlugin("hysteria2-plugin").path,
-                            "--disable-update-check",
-                            "--config",
-                            configFile.absolutePath,
-                            "--log-level",
-                            if (DataStore.logLevel > 0) "debug" else "warn",
-                            "client"
-                        )
-
-                        processes.start(commands)
                     }
 
                     bean is HysteriaBean -> {

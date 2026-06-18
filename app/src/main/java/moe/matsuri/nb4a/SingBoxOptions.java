@@ -656,6 +656,11 @@ public class SingBoxOptions {
 
         public String password;
 
+        // Gecko obfs only (flattened into the obfs object by the core's badjson serializer).
+        public Integer min_packet_size;
+
+        public Integer max_packet_size;
+
     }
 
     public static class Hysteria2User extends SingBoxOption {

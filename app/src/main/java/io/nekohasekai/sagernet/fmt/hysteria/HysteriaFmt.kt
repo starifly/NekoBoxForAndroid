@@ -294,9 +294,8 @@ fun getFirstPort(portStr: String): Int {
 
 fun HysteriaBean.canUseSingBox(): Boolean {
     if (protocol != HysteriaBean.PROTOCOL_UDP) return false
-    // The starifly sing-box core only supports Salamander obfs. Gecko obfs is provided by
-    // the bundled official hysteria binary sidecar, so force the external path for Gecko.
-    if (protocolVersion == 2 && hysteria2ObfsType == HysteriaBean.OBFS_GECKO) return false
+    // Gecko obfs is now supported natively by this fork's sing-box core (via the
+    // hawkff/sing-quic gecko backport), so it no longer needs the sidecar.
     return true
 }
 
@@ -354,11 +353,25 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.SingBox
             up_mbps = bean.uploadMbps
             down_mbps = bean.downloadMbps
             if (bean.obfuscation.isNotBlank() && bean.hysteria2ObfsType != HysteriaBean.OBFS_NONE) {
-                // Native sing-box core only supports Salamander; Gecko goes through the
-                // bundled hysteria binary sidecar (canUseSingBox() == false for Gecko).
                 obfs = SingBoxOptions.Hysteria2Obfs().apply {
-                    type = "salamander"
-                    password = bean.obfuscation
+                    when (bean.hysteria2ObfsType) {
+                        HysteriaBean.OBFS_GECKO -> {
+                            type = "gecko"
+                            password = bean.obfuscation
+                            // Clamp + order to match the sidecar builder's bounds
+                            // (1..2048, min <= max); an inverted/out-of-range pair
+                            // would otherwise be rejected by the core at connect time.
+                            val min = bean.geckoMinPacketSize?.takeIf { it > 0 }?.coerceIn(1, 2048)
+                            val max = bean.geckoMaxPacketSize?.takeIf { it > 0 }?.coerceIn(min ?: 1, 2048)
+                            if (min != null) min_packet_size = min
+                            if (max != null) max_packet_size = max
+                        }
+
+                        else -> {
+                            type = "salamander"
+                            password = bean.obfuscation
+                        }
+                    }
                 }
             }
 //            disable_mtu_discovery = bean.disableMtuDiscovery
@@ -398,8 +411,11 @@ fun hopPortsToSingboxList(s: String): List<String> {
 }
 
 /**
- * Builds a config for the bundled official apernet/hysteria client binary (sidecar),
- * used for Hysteria2 profiles with Gecko obfs (which the native sing-box core can't do).
+ * Builds a config for the bundled official apernet/hysteria client binary (sidecar).
+ *
+ * NOTE: Hysteria2 (including Gecko obfs) now runs natively in the sing-box core, so this
+ * sidecar path is no longer used for Gecko. This builder is retained for the bundled
+ * hysteria2 binary infrastructure and potential fallback use.
  *
  * Emitted as JSON (hysteria uses viper, which detects format by the .json extension).
  * The client's upstream QUIC sockets are protected from the VPN via
