@@ -129,6 +129,15 @@ object Key {
     const val SERVER_DISABLE_MTU_DISCOVERY = "serverDisableMtuDiscovery"
     const val SERVER_HOP_INTERVAL = "hopInterval"
 
+    const val SERVER_HY2_INIT_STREAM_RECEIVE_WINDOW = "serverHy2InitStreamReceiveWindow"
+    const val SERVER_HY2_MAX_STREAM_RECEIVE_WINDOW = "serverHy2MaxStreamReceiveWindow"
+    const val SERVER_HY2_INIT_CONNECTION_RECEIVE_WINDOW = "serverHy2InitConnectionReceiveWindow"
+    const val SERVER_HY2_MAX_CONNECTION_RECEIVE_WINDOW = "serverHy2MaxConnectionReceiveWindow"
+    const val SERVER_HY2_MAX_IDLE_TIMEOUT = "serverHy2MaxIdleTimeout"
+    const val SERVER_HY2_KEEP_ALIVE_PERIOD = "serverHy2KeepAlivePeriod"
+    const val SERVER_HY2_MIN_HOP_INTERVAL = "serverHy2MinHopInterval"
+    const val SERVER_HY2_MAX_HOP_INTERVAL = "serverHy2MaxHopInterval"
+
     const val SERVER_HY2_OBFS_TYPE = "serverHy2ObfsType"
     const val SERVER_HY2_GECKO_MIN_PACKET = "serverHy2GeckoMinPacket"
     const val SERVER_HY2_GECKO_MAX_PACKET = "serverHy2GeckoMaxPacket"

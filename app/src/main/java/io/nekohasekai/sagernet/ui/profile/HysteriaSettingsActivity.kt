@@ -38,6 +38,14 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         DataStore.serverConnectionReceiveWindow = connectionReceiveWindow
         DataStore.serverDisableMtuDiscovery = disableMtuDiscovery
         DataStore.serverHopInterval = hopInterval
+        DataStore.serverHy2InitStreamReceiveWindow = hy2InitialStreamReceiveWindow
+        DataStore.serverHy2MaxStreamReceiveWindow = hy2MaxStreamReceiveWindow
+        DataStore.serverHy2InitConnectionReceiveWindow = hy2InitialConnectionReceiveWindow
+        DataStore.serverHy2MaxConnectionReceiveWindow = hy2MaxConnectionReceiveWindow
+        DataStore.serverHy2MaxIdleTimeout = hy2MaxIdleTimeout
+        DataStore.serverHy2KeepAlivePeriod = hy2KeepAlivePeriod
+        DataStore.serverHy2MinHopInterval = hy2MinHopInterval
+        DataStore.serverHy2MaxHopInterval = hy2MaxHopInterval
     }
 
     override fun HysteriaBean.serialize() {
@@ -62,6 +70,14 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         connectionReceiveWindow = DataStore.serverConnectionReceiveWindow
         disableMtuDiscovery = DataStore.serverDisableMtuDiscovery
         hopInterval = DataStore.serverHopInterval
+        hy2InitialStreamReceiveWindow = DataStore.serverHy2InitStreamReceiveWindow
+        hy2MaxStreamReceiveWindow = DataStore.serverHy2MaxStreamReceiveWindow
+        hy2InitialConnectionReceiveWindow = DataStore.serverHy2InitConnectionReceiveWindow
+        hy2MaxConnectionReceiveWindow = DataStore.serverHy2MaxConnectionReceiveWindow
+        hy2MaxIdleTimeout = DataStore.serverHy2MaxIdleTimeout
+        hy2KeepAlivePeriod = DataStore.serverHy2KeepAlivePeriod
+        hy2MinHopInterval = DataStore.serverHy2MinHopInterval
+        hy2MaxHopInterval = DataStore.serverHy2MaxHopInterval
     }
 
     override fun PreferenceFragmentCompat.createPreferences(
@@ -116,6 +132,20 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
             true
         }
 
+        val hy1StreamReceiveWindow = findPreference<EditTextPreference>(Key.SERVER_STREAM_RECEIVE_WINDOW)!!
+        val hy1ConnectionReceiveWindow = findPreference<EditTextPreference>(Key.SERVER_CONNECTION_RECEIVE_WINDOW)!!
+        val hy1DisableMtuDiscovery = findPreference<SwitchPreference>(Key.SERVER_DISABLE_MTU_DISCOVERY)!!
+        val hy2Advanced = listOf(
+            findPreference<EditTextPreference>(Key.SERVER_HY2_INIT_STREAM_RECEIVE_WINDOW)!!,
+            findPreference<EditTextPreference>(Key.SERVER_HY2_MAX_STREAM_RECEIVE_WINDOW)!!,
+            findPreference<EditTextPreference>(Key.SERVER_HY2_INIT_CONNECTION_RECEIVE_WINDOW)!!,
+            findPreference<EditTextPreference>(Key.SERVER_HY2_MAX_CONNECTION_RECEIVE_WINDOW)!!,
+            findPreference<EditTextPreference>(Key.SERVER_HY2_MAX_IDLE_TIMEOUT)!!,
+            findPreference<EditTextPreference>(Key.SERVER_HY2_KEEP_ALIVE_PERIOD)!!,
+            findPreference<EditTextPreference>(Key.SERVER_HY2_MIN_HOP_INTERVAL)!!,
+            findPreference<EditTextPreference>(Key.SERVER_HY2_MAX_HOP_INTERVAL)!!,
+        )
+
         fun updateVersion(v: Int) {
             if (v == 2) {
                 authPayload.isVisible = true
@@ -124,12 +154,10 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 protocol.isVisible = false
                 alpn.isVisible = false
                 //
-                findPreference<EditTextPreference>(Key.SERVER_STREAM_RECEIVE_WINDOW)!!.isVisible =
-                    false
-                findPreference<EditTextPreference>(Key.SERVER_CONNECTION_RECEIVE_WINDOW)!!.isVisible =
-                    false
-                findPreference<SwitchPreference>(Key.SERVER_DISABLE_MTU_DISCOVERY)!!.isVisible =
-                    false
+                hy1StreamReceiveWindow.isVisible = false
+                hy1ConnectionReceiveWindow.isVisible = false
+                hy1DisableMtuDiscovery.isVisible = true
+                hy2Advanced.forEach { it.isVisible = true }
                 //
                 authPayload.title = resources.getString(R.string.password)
             } else {
@@ -138,12 +166,10 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 protocol.isVisible = true
                 alpn.isVisible = true
                 //
-                findPreference<EditTextPreference>(Key.SERVER_STREAM_RECEIVE_WINDOW)!!.isVisible =
-                    true
-                findPreference<EditTextPreference>(Key.SERVER_CONNECTION_RECEIVE_WINDOW)!!.isVisible =
-                    true
-                findPreference<SwitchPreference>(Key.SERVER_DISABLE_MTU_DISCOVERY)!!.isVisible =
-                    true
+                hy1StreamReceiveWindow.isVisible = true
+                hy1ConnectionReceiveWindow.isVisible = true
+                hy1DisableMtuDiscovery.isVisible = true
+                hy2Advanced.forEach { it.isVisible = false }
                 //
                 authPayload.title = resources.getString(R.string.hysteria_auth_payload)
             }
@@ -177,6 +203,18 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
 
         findPreference<EditTextPreference>(Key.SERVER_HOP_INTERVAL)!!.apply {
             setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        }
+        listOf(
+            Key.SERVER_HY2_INIT_STREAM_RECEIVE_WINDOW,
+            Key.SERVER_HY2_MAX_STREAM_RECEIVE_WINDOW,
+            Key.SERVER_HY2_INIT_CONNECTION_RECEIVE_WINDOW,
+            Key.SERVER_HY2_MAX_CONNECTION_RECEIVE_WINDOW,
+            Key.SERVER_HY2_MAX_IDLE_TIMEOUT,
+            Key.SERVER_HY2_KEEP_ALIVE_PERIOD,
+            Key.SERVER_HY2_MIN_HOP_INTERVAL,
+            Key.SERVER_HY2_MAX_HOP_INTERVAL,
+        ).forEach { key ->
+            findPreference<EditTextPreference>(key)!!.setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
         }
     }
 

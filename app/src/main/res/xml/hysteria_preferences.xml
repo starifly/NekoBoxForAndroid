@@ -119,6 +119,42 @@
             app:key="hopInterval"
             app:title="@string/hop_interval"
             app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="serverHy2InitStreamReceiveWindow"
+            app:title="@string/hysteria2_init_stream_receive_window"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="serverHy2MaxStreamReceiveWindow"
+            app:title="@string/hysteria2_max_stream_receive_window"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_transform_24"
+            app:key="serverHy2InitConnectionReceiveWindow"
+            app:title="@string/hysteria2_init_connection_receive_window"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_transform_24"
+            app:key="serverHy2MaxConnectionReceiveWindow"
+            app:title="@string/hysteria2_max_connection_receive_window"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="serverHy2MaxIdleTimeout"
+            app:title="@string/hysteria2_max_idle_timeout"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="serverHy2KeepAlivePeriod"
+            app:title="@string/hysteria2_keep_alive_period"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="serverHy2MinHopInterval"
+            app:title="@string/hysteria2_min_hop_interval"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="serverHy2MaxHopInterval"
+            app:title="@string/hysteria2_max_hop_interval"
+            app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
 </PreferenceScreen> 

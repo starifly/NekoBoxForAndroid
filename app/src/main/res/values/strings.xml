@@ -459,6 +459,14 @@
     <string name="hysteria_stream_receive_window">QUIC Stream Receive Window</string>
     <string name="hysteria_connection_receive_window">QUIC Connection Receive Window</string>
     <string name="hysteria_disable_mtu_discovery">Disable Path MTU Discovery</string>
+    <string name="hysteria2_init_stream_receive_window">HY2 Initial Stream Receive Window</string>
+    <string name="hysteria2_max_stream_receive_window">HY2 Max Stream Receive Window</string>
+    <string name="hysteria2_init_connection_receive_window">HY2 Initial Connection Receive Window</string>
+    <string name="hysteria2_max_connection_receive_window">HY2 Max Connection Receive Window</string>
+    <string name="hysteria2_max_idle_timeout">HY2 Max Idle Timeout (seconds)</string>
+    <string name="hysteria2_keep_alive_period">HY2 Keep Alive Period (seconds)</string>
+    <string name="hysteria2_min_hop_interval">HY2 Random Min Hop Interval (seconds)</string>
+    <string name="hysteria2_max_hop_interval">HY2 Random Max Hop Interval (seconds)</string>
     <string name="group_order">Order</string>
     <string name="group_order_origin">Origin</string>
     <string name="group_order_by_name">By Name</string>
