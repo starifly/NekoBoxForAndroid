@@ -9,6 +9,8 @@ github.com/ajg/form v1.5.1 h1:t9c7v8JUKu/XxOGBU0yjNpaMloxGEJhUkqFRq0ibGeU=
 github.com/ajg/form v1.5.1/go.mod h1:uL1WgH+h2mgNtvBq0339dVnzXdBETtL2LeUXaIv25UY=
 github.com/akutz/memconn v0.1.0/go.mod h1:Jo8rI7m0NieZyLI5e2CDlRdRqRRB4S7Xp77ukDjH+Fw=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa/go.mod h1:cEWa1LVoE5KvSD9ONXsZrj0z6KqySlCCNKHlLzbqAt4=
+github.com/amnezia-vpn/amneziawg-go v0.2.19 h1:l3rOmrA4o5z38kpgnA5iSk1yOm7Cv3AafIi4vxpSEV0=
+github.com/amnezia-vpn/amneziawg-go v0.2.19/go.mod h1:aMgOk9MuX0xI7b5TKAYp8pLM54RlXcOPzDvYw3YEO5A=
 github.com/amnezia-vpn/amneziawg-go v1.0.4 h1:hyS3dEY+znvfGVZznYdLWaKGPBwJzGqJLuO/9s3sTok=
 github.com/amnezia-vpn/amneziawg-go v1.0.4/go.mod h1:uD0Cz0XbnhE0k1vpJZiUq47YDP5vne9FtV9Bc1lQJEs=
 github.com/andybalholm/brotli v1.1.0 h1:eLKJA0d02Lf0mVpIDgYnqXcUn0GqVmEFny3VuID1U3M=
@@ -304,6 +306,8 @@ golang.org/x/exp/typeparams v0.0.0-20221208152030-732eee02a75a/go.mod h1:AbB0pIl
 golang.org/x/image v0.14.0/go.mod h1:HUYqC05R2ZcZ3ejNQsIHQDQiwWM4JBqmm6MKANTp4LE=
 golang.org/x/mobile v0.0.0-20231108233038-35478a0c49da h1:gS9sVMAeHM+gVBmM9bTM6vUi/NHv58O3QzJ3vjjN84M=
 golang.org/x/mobile v0.0.0-20231108233038-35478a0c49da/go.mod h1:IEceR0jfVklLJXrbUe90rfdAFAYDW0SQwKl4qvO1GBQ=
+golang.org/x/mobile v0.0.0-20240520174638-fa72addaaa1b h1:WX7nnnLfCEXg+FmdYZPai2XuP3VqCP1HZVMST0n9DF0=
+golang.org/x/mobile v0.0.0-20240520174638-fa72addaaa1b/go.mod h1:EiXZlVfUTaAyySFVJb9rsODuiO+WXu8HrUuySb7nYFw=
 golang.org/x/mod v0.32.0 h1:9F4d3PHLljb6x//jOyokMv3eX+YDeepZSEo3mFJy93c=
 golang.org/x/mod v0.32.0/go.mod h1:SgipZ/3h2Ci89DlEtEXWUk/HteuRin+HHhN+WbNhguU=
 golang.org/x/net v0.0.0-20210226172049-e18ecbb05110/go.mod h1:m0MpNAwzfU5UDzcl9v0D8zg8gWTRqZa9RBIspLL5mdg=
