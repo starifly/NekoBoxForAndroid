@@ -47,13 +47,11 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
     }
 
-    private fun dnsReloadListener(preference: Preference, newValue: Any?): Boolean {
+    private fun dnsReloadListener(preference: EditTextPreference, newValue: Any?): Boolean {
         val rawValue = newValue as? String ?: return reloadListener.onPreferenceChange(preference, newValue)
         val sanitizedValue = sanitizeDnsPreferenceValue(rawValue)
         if (sanitizedValue != rawValue) {
-            if (preference is EditTextPreference) {
-                preference.text = sanitizedValue
-            }
+            preference.text = sanitizedValue
             needReload()
             return false
         }
@@ -223,11 +221,11 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         concurrentDial.onPreferenceChangeListener = reloadListener
 
         enableFakeDns.onPreferenceChangeListener = reloadListener
-        remoteDns.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { preference, newValue ->
-            dnsReloadListener(preference, newValue)
+        remoteDns.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+            dnsReloadListener(remoteDns, newValue)
         }
-        directDns.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { preference, newValue ->
-            dnsReloadListener(preference, newValue)
+        directDns.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+            dnsReloadListener(directDns, newValue)
         }
         enableDnsRouting.onPreferenceChangeListener = reloadListener
 
