@@ -41,6 +41,24 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         true
     }
 
+    private fun sanitizeDnsPreferenceValue(value: String): String {
+        return value.lines().joinToString("\n") { line ->
+            line.filterNot { it.isISOControl() }.trim()
+        }
+    }
+
+    private fun dnsReloadListener(preference: EditTextPreference, newValue: Any?): Boolean {
+        val rawValue = newValue as? String ?: return reloadListener.onPreferenceChange(preference, newValue)
+        val sanitizedValue = sanitizeDnsPreferenceValue(rawValue)
+        if (sanitizedValue != rawValue) {
+            preference.text = sanitizedValue
+            needReload()
+            return false
+        }
+        needReload()
+        return true
+    }
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         preferenceManager.preferenceDataStore = DataStore.configurationStore
         DataStore.initGlobal()
@@ -203,8 +221,12 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         concurrentDial.onPreferenceChangeListener = reloadListener
 
         enableFakeDns.onPreferenceChangeListener = reloadListener
-        remoteDns.onPreferenceChangeListener = reloadListener
-        directDns.onPreferenceChangeListener = reloadListener
+        remoteDns.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+            dnsReloadListener(remoteDns, newValue)
+        }
+        directDns.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+            dnsReloadListener(directDns, newValue)
+        }
         enableDnsRouting.onPreferenceChangeListener = reloadListener
 
         ipv6Mode.onPreferenceChangeListener = reloadListener
