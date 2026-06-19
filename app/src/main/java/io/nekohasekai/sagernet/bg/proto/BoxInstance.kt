@@ -11,7 +11,6 @@ import io.nekohasekai.sagernet.fmt.LOCALHOST
 import io.nekohasekai.sagernet.fmt.buildConfig
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.fmt.hysteria.buildHysteria1Config
-import io.nekohasekai.sagernet.fmt.hysteria.buildHysteria2SidecarConfig
 import io.nekohasekai.sagernet.fmt.masterdnsvpn.MasterDnsVpnBean
 import io.nekohasekai.sagernet.fmt.masterdnsvpn.buildMasterDnsVpnConfig
 import io.nekohasekai.sagernet.fmt.masterdnsvpn.resolverLines
@@ -83,21 +82,15 @@ abstract class BoxInstance(
 
                     is HysteriaBean -> {
                         // Only reached via the external path (needExternal == !canUseSingBox).
-                        if (bean.protocolVersion == 2) {
-                            initPlugin("hysteria2-plugin")
-                            pluginConfigs[port] = profile.type to bean.buildHysteria2SidecarConfig(
-                                port,
-                                File(app.noBackupFilesDir, "protect_path").absolutePath
-                            )
-                        } else {
-                            initPlugin("hysteria-plugin")
-                            pluginConfigs[port] = profile.type to bean.buildHysteria1Config(port) {
-                                File(
-                                    app.cacheDir, "hysteria_" + SystemClock.elapsedRealtime() + ".ca"
-                                ).apply {
-                                    parentFile?.mkdirs()
-                                    cacheFiles.add(this)
-                                }
+                        // Hysteria2 (incl. Gecko obfs) runs natively in sing-box now, so the
+                        // external path is Hysteria v1 only.
+                        initPlugin("hysteria-plugin")
+                        pluginConfigs[port] = profile.type to bean.buildHysteria1Config(port) {
+                            File(
+                                app.cacheDir, "hysteria_" + SystemClock.elapsedRealtime() + ".ca"
+                            ).apply {
+                                parentFile?.mkdirs()
+                                cacheFiles.add(this)
                             }
                         }
                     }
@@ -204,26 +197,15 @@ abstract class BoxInstance(
                         configFile.writeText(config)
                         cacheFiles.add(configFile)
 
-                        val commands = if (bean.protocolVersion == 2) {
-                            mutableListOf(
-                                initPlugin("hysteria2-plugin").path,
-                                "client",
-                                "--config",
-                                configFile.absolutePath,
-                                "--log-level",
-                                if (DataStore.logLevel > 0) "trace" else "warn",
-                            )
-                        } else {
-                            mutableListOf(
-                                initPlugin("hysteria-plugin").path,
-                                "--no-check",
-                                "--config",
-                                configFile.absolutePath,
-                                "--log-level",
-                                if (DataStore.logLevel > 0) "trace" else "warn",
-                                "client"
-                            )
-                        }
+                        val commands = mutableListOf(
+                            initPlugin("hysteria-plugin").path,
+                            "--no-check",
+                            "--config",
+                            configFile.absolutePath,
+                            "--log-level",
+                            if (DataStore.logLevel > 0) "trace" else "warn",
+                            "client"
+                        )
 
                         if (bean.protocol == HysteriaBean.PROTOCOL_FAKETCP) {
                             commands.addAll(0, listOf("su", "-c"))

@@ -256,15 +256,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverDisableMtuDiscovery by profileCacheStore.boolean(Key.SERVER_DISABLE_MTU_DISCOVERY)
     var serverHopInterval by profileCacheStore.stringToInt(Key.SERVER_HOP_INTERVAL) { 10 }
 
-    var serverHy2InitStreamReceiveWindow by profileCacheStore.stringToIntIfExists(Key.SERVER_HY2_INIT_STREAM_RECEIVE_WINDOW)
-    var serverHy2MaxStreamReceiveWindow by profileCacheStore.stringToIntIfExists(Key.SERVER_HY2_MAX_STREAM_RECEIVE_WINDOW)
-    var serverHy2InitConnectionReceiveWindow by profileCacheStore.stringToIntIfExists(Key.SERVER_HY2_INIT_CONNECTION_RECEIVE_WINDOW)
-    var serverHy2MaxConnectionReceiveWindow by profileCacheStore.stringToIntIfExists(Key.SERVER_HY2_MAX_CONNECTION_RECEIVE_WINDOW)
-    var serverHy2MaxIdleTimeout by profileCacheStore.stringToIntIfExists(Key.SERVER_HY2_MAX_IDLE_TIMEOUT)
-    var serverHy2KeepAlivePeriod by profileCacheStore.stringToIntIfExists(Key.SERVER_HY2_KEEP_ALIVE_PERIOD)
-    var serverHy2MinHopInterval by profileCacheStore.stringToIntIfExists(Key.SERVER_HY2_MIN_HOP_INTERVAL)
-    var serverHy2MaxHopInterval by profileCacheStore.stringToIntIfExists(Key.SERVER_HY2_MAX_HOP_INTERVAL)
-
     var serverHy2ObfsType by profileCacheStore.stringToInt(Key.SERVER_HY2_OBFS_TYPE)
     var serverHy2GeckoMinPacket by profileCacheStore.stringToInt(Key.SERVER_HY2_GECKO_MIN_PACKET) { 512 }
     var serverHy2GeckoMaxPacket by profileCacheStore.stringToInt(Key.SERVER_HY2_GECKO_MAX_PACKET) { 1200 }

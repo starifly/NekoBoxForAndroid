@@ -109,74 +109,10 @@ fun parseHysteria2(url: String): HysteriaBean {
         link.queryParameter("obfs-max-packet-size")?.toIntOrNull()?.also {
             geckoMaxPacketSize = it
         }
-        queryInt(link, "initStreamReceiveWindow", "init_stream_receive_window", "init-stream-receive-window")?.also {
-            hy2InitialStreamReceiveWindow = it
-        }
-        queryInt(link, "maxStreamReceiveWindow", "max_stream_receive_window", "max-stream-receive-window")?.also {
-            hy2MaxStreamReceiveWindow = it
-        }
-        queryInt(link, "initConnReceiveWindow", "init_conn_receive_window", "init-conn-receive-window")?.also {
-            hy2InitialConnectionReceiveWindow = it
-        }
-        queryInt(link, "maxConnReceiveWindow", "max_conn_receive_window", "max-conn-receive-window")?.also {
-            hy2MaxConnectionReceiveWindow = it
-        }
-        querySeconds(link, "maxIdleTimeout", "max_idle_timeout", "max-idle-timeout")?.also {
-            hy2MaxIdleTimeout = it
-        }
-        querySeconds(link, "keepAlivePeriod", "keep_alive_period", "keep-alive-period")?.also {
-            hy2KeepAlivePeriod = it
-        }
-        queryBool(link, "disablePathMTUDiscovery", "disable_path_mtu_discovery", "disable-path-mtu-discovery")?.also {
-            disableMtuDiscovery = it
-        }
-        querySeconds(link, "hopInterval", "hop_interval", "hop-interval")?.also {
-            hopInterval = it
-        }
-        querySeconds(link, "minHopInterval", "min_hop_interval", "min-hop-interval")?.also {
-            hy2MinHopInterval = it
-        }
-        querySeconds(link, "maxHopInterval", "max_hop_interval", "max-hop-interval")?.also {
-            hy2MaxHopInterval = it
-        }
 //        link.queryParameter("pinSHA256")?.also {
 //            // TODO your box do not support it
 //        }
     }
-}
-
-private fun queryInt(link: okhttp3.HttpUrl, vararg names: String): Int? {
-    return names.firstNotNullOfOrNull { link.queryParameter(it)?.toIntOrNull() }
-}
-
-private fun queryBool(link: okhttp3.HttpUrl, vararg names: String): Boolean? {
-    return names.firstNotNullOfOrNull { name ->
-        link.queryParameter(name)?.let { it == "1" || it.equals("true", ignoreCase = true) }
-    }
-}
-
-private fun querySeconds(link: okhttp3.HttpUrl, vararg names: String): Int? {
-    return names.firstNotNullOfOrNull { name ->
-        parseDurationSeconds(link.queryParameter(name))
-    }
-}
-
-private fun parseDurationSeconds(value: String?): Int? {
-    val raw = value?.trim()?.lowercase()?.takeIf { it.isNotEmpty() } ?: return null
-    val (number, multiplier, roundUpDivisor) = when {
-        raw.endsWith("ms") -> Triple(raw.removeSuffix("ms"), 1L, 1000L)
-        raw.endsWith("s") -> Triple(raw.removeSuffix("s"), 1L, 1L)
-        raw.endsWith("m") -> Triple(raw.removeSuffix("m"), 60L, 1L)
-        raw.endsWith("h") -> Triple(raw.removeSuffix("h"), 3600L, 1L)
-        else -> Triple(raw, 1L, 1L)
-    }
-    val base = number.toLongOrNull() ?: return null
-    val seconds = if (roundUpDivisor > 1) {
-        (base + roundUpDivisor - 1) / roundUpDivisor
-    } else {
-        base * multiplier
-    }
-    return seconds.coerceIn(0, Int.MAX_VALUE.toLong()).toInt()
 }
 
 fun HysteriaBean.toUri(): String {
@@ -248,33 +184,6 @@ fun HysteriaBean.toUri(): String {
                     builder.addQueryParameter("obfs-password", obfuscation)
                 }
             }
-        }
-        if (hy2InitialStreamReceiveWindow > 0) {
-            builder.addQueryParameter("initStreamReceiveWindow", hy2InitialStreamReceiveWindow.toString())
-        }
-        if (hy2MaxStreamReceiveWindow > 0) {
-            builder.addQueryParameter("maxStreamReceiveWindow", hy2MaxStreamReceiveWindow.toString())
-        }
-        if (hy2InitialConnectionReceiveWindow > 0) {
-            builder.addQueryParameter("initConnReceiveWindow", hy2InitialConnectionReceiveWindow.toString())
-        }
-        if (hy2MaxConnectionReceiveWindow > 0) {
-            builder.addQueryParameter("maxConnReceiveWindow", hy2MaxConnectionReceiveWindow.toString())
-        }
-        if (hy2MaxIdleTimeout > 0) {
-            builder.addQueryParameter("maxIdleTimeout", "${hy2MaxIdleTimeout}s")
-        }
-        if (hy2KeepAlivePeriod > 0) {
-            builder.addQueryParameter("keepAlivePeriod", "${hy2KeepAlivePeriod}s")
-        }
-        if (disableMtuDiscovery) {
-            builder.addQueryParameter("disablePathMTUDiscovery", "1")
-        }
-        if (hy2MinHopInterval > 0 || hy2MaxHopInterval > 0) {
-            if (hy2MinHopInterval > 0) builder.addQueryParameter("minHopInterval", "${hy2MinHopInterval}s")
-            if (hy2MaxHopInterval > 0) builder.addQueryParameter("maxHopInterval", "${hy2MaxHopInterval}s")
-        } else if (hopInterval != 10) {
-            builder.addQueryParameter("hopInterval", "${hopInterval}s")
         }
     }
     return builder.toLink(if (protocolVersion == 2) "hy2" else "hysteria")
@@ -380,32 +289,14 @@ fun isMultiPort(hyAddr: String): Boolean {
 }
 
 fun getFirstPort(portStr: String): Int {
-    return portStr.substringBefore(",").substringBefore("-").substringBefore(":").toIntOrNull() ?: 443
+    return portStr.substringBefore(":").substringBefore(",").toIntOrNull() ?: 443
 }
 
 fun HysteriaBean.canUseSingBox(): Boolean {
     if (protocol != HysteriaBean.PROTOCOL_UDP) return false
-    if (protocolVersion == 2 && hasAdvancedHysteria2Options()) {
-        // The bundled sing-box Hysteria2 option model supports Gecko obfs and fixed
-        // port hopping, but not Hysteria's advanced QUIC knobs or random hop
-        // intervals. Use the Hysteria2 sidecar when those fields are configured.
-        return false
-    }
     // Gecko obfs is now supported natively by this fork's sing-box core (via the
-    // hawkff/sing-quic gecko backport), so default HY2 profiles do not need the sidecar.
+    // hawkff/sing-quic gecko backport), so it no longer needs the sidecar.
     return true
-}
-
-fun HysteriaBean.hasAdvancedHysteria2Options(): Boolean {
-    if (protocolVersion != 2) return false
-    return hy2InitialStreamReceiveWindow > 0 ||
-        hy2MaxStreamReceiveWindow > 0 ||
-        hy2InitialConnectionReceiveWindow > 0 ||
-        hy2MaxConnectionReceiveWindow > 0 ||
-        hy2MaxIdleTimeout > 0 ||
-        hy2KeepAlivePeriod > 0 ||
-        disableMtuDiscovery ||
-        (isMultiPort(displayAddress()) && (hy2MinHopInterval > 0 || hy2MaxHopInterval > 0))
 }
 
 fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.SingBoxOption {
@@ -522,9 +413,9 @@ fun hopPortsToSingboxList(s: String): List<String> {
 /**
  * Builds a config for the bundled official apernet/hysteria client binary (sidecar).
  *
- * NOTE: Default Hysteria2 (including Gecko obfs and fixed port hopping) runs natively in
- * the sing-box core. This sidecar path is used when HY2 advanced QUIC options or random
- * hop intervals are configured, because those fields are not exposed by the pinned core.
+ * NOTE: Hysteria2 (including Gecko obfs) now runs natively in the sing-box core, so this
+ * sidecar path is no longer used for Gecko. This builder is retained for the bundled
+ * hysteria2 binary infrastructure and potential fallback use.
  *
  * Emitted as JSON (hysteria uses viper, which detects format by the .json extension).
  * The client's upstream QUIC sockets are protected from the VPN via
@@ -580,30 +471,7 @@ fun HysteriaBean.buildHysteria2SidecarConfig(
                 if (downloadMbps > 0) put("down", "$downloadMbps mbps")
             })
         }
-        if (isMultiPort(displayAddress())) {
-            put("transport", JSONObject().apply {
-                put("type", "udp")
-                put("udp", JSONObject().apply {
-                    if (hy2MinHopInterval > 0 || hy2MaxHopInterval > 0) {
-                        val rawMin = hy2MinHopInterval.takeIf { it > 0 } ?: hy2MaxHopInterval
-                        val min = rawMin.coerceAtLeast(5)
-                        val max = (hy2MaxHopInterval.takeIf { it > 0 } ?: min).coerceAtLeast(min)
-                        put("minHopInterval", "${min}s")
-                        put("maxHopInterval", "${max}s")
-                    } else if (hopInterval > 0) {
-                        put("hopInterval", "${hopInterval.coerceAtLeast(5)}s")
-                    }
-                })
-            })
-        }
         put("quic", JSONObject().apply {
-            if (hy2InitialStreamReceiveWindow > 0) put("initStreamReceiveWindow", hy2InitialStreamReceiveWindow)
-            if (hy2MaxStreamReceiveWindow > 0) put("maxStreamReceiveWindow", hy2MaxStreamReceiveWindow)
-            if (hy2InitialConnectionReceiveWindow > 0) put("initConnReceiveWindow", hy2InitialConnectionReceiveWindow)
-            if (hy2MaxConnectionReceiveWindow > 0) put("maxConnReceiveWindow", hy2MaxConnectionReceiveWindow)
-            if (hy2MaxIdleTimeout > 0) put("maxIdleTimeout", "${hy2MaxIdleTimeout}s")
-            if (hy2KeepAlivePeriod > 0) put("keepAlivePeriod", "${hy2KeepAlivePeriod}s")
-            if (disableMtuDiscovery) put("disablePathMTUDiscovery", true)
             put("sockopts", JSONObject().apply {
                 put("fdControlUnixSocket", protectPath)
             })

@@ -32,16 +32,6 @@ public class HysteriaBean extends AbstractBean {
     public Boolean disableMtuDiscovery;
     public Integer hopInterval;
 
-    // HY2 advanced QUIC options. Zero means unset/use Hysteria defaults.
-    public Integer hy2InitialStreamReceiveWindow;
-    public Integer hy2MaxStreamReceiveWindow;
-    public Integer hy2InitialConnectionReceiveWindow;
-    public Integer hy2MaxConnectionReceiveWindow;
-    public Integer hy2MaxIdleTimeout;
-    public Integer hy2KeepAlivePeriod;
-    public Integer hy2MinHopInterval;
-    public Integer hy2MaxHopInterval;
-
     // HY1
 
     public String alpn;
@@ -102,20 +92,12 @@ public class HysteriaBean extends AbstractBean {
         if (connectionReceiveWindow == null) connectionReceiveWindow = 0;
         if (disableMtuDiscovery == null) disableMtuDiscovery = false;
         if (hopInterval == null) hopInterval = 10;
-        if (hy2InitialStreamReceiveWindow == null) hy2InitialStreamReceiveWindow = 0;
-        if (hy2MaxStreamReceiveWindow == null) hy2MaxStreamReceiveWindow = 0;
-        if (hy2InitialConnectionReceiveWindow == null) hy2InitialConnectionReceiveWindow = 0;
-        if (hy2MaxConnectionReceiveWindow == null) hy2MaxConnectionReceiveWindow = 0;
-        if (hy2MaxIdleTimeout == null) hy2MaxIdleTimeout = 0;
-        if (hy2KeepAlivePeriod == null) hy2KeepAlivePeriod = 0;
-        if (hy2MinHopInterval == null) hy2MinHopInterval = 0;
-        if (hy2MaxHopInterval == null) hy2MaxHopInterval = 0;
         if (serverPorts == null) serverPorts = "443";
     }
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(9);
+        output.writeInt(8);
         super.serialize(output);
 
         output.writeInt(protocolVersion);
@@ -141,15 +123,6 @@ public class HysteriaBean extends AbstractBean {
         output.writeInt(hysteria2ObfsType);
         output.writeInt(geckoMinPacketSize);
         output.writeInt(geckoMaxPacketSize);
-
-        output.writeInt(hy2InitialStreamReceiveWindow);
-        output.writeInt(hy2MaxStreamReceiveWindow);
-        output.writeInt(hy2InitialConnectionReceiveWindow);
-        output.writeInt(hy2MaxConnectionReceiveWindow);
-        output.writeInt(hy2MaxIdleTimeout);
-        output.writeInt(hy2KeepAlivePeriod);
-        output.writeInt(hy2MinHopInterval);
-        output.writeInt(hy2MaxHopInterval);
     }
 
     @Override
@@ -198,16 +171,6 @@ public class HysteriaBean extends AbstractBean {
             hysteria2ObfsType = input.readInt();
             geckoMinPacketSize = input.readInt();
             geckoMaxPacketSize = input.readInt();
-        }
-        if (version >= 9) {
-            hy2InitialStreamReceiveWindow = input.readInt();
-            hy2MaxStreamReceiveWindow = input.readInt();
-            hy2InitialConnectionReceiveWindow = input.readInt();
-            hy2MaxConnectionReceiveWindow = input.readInt();
-            hy2MaxIdleTimeout = input.readInt();
-            hy2KeepAlivePeriod = input.readInt();
-            hy2MinHopInterval = input.readInt();
-            hy2MaxHopInterval = input.readInt();
         }
         // For version < 8, hysteria2ObfsType/gecko* stay null and are derived in
         // initializeDefaultValues() (Salamander when an obfuscation password exists).
