@@ -126,7 +126,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var globalCustomConfig by configurationStore.string(Key.GLOBAL_CUSTOM_CONFIG) { "" }
 
     var remoteDns by configurationStore.string(Key.REMOTE_DNS) { "https://dns.quad9.net/dns-query" }
-    var directDns by configurationStore.string(Key.DIRECT_DNS) { "https://dns.quad9.net/dns-query" }
+    var directDns by configurationStore.string(Key.DIRECT_DNS) { "https://9.9.9.9/dns-query" }
     var enableDnsRouting by configurationStore.boolean(Key.ENABLE_DNS_ROUTING) { true }
     var enableFakeDns by configurationStore.boolean(Key.ENABLE_FAKEDNS) { true }
 
