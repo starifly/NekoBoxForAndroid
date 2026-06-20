@@ -2,7 +2,9 @@ package io.nekohasekai.sagernet.widget
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.text.SpannableStringBuilder
 import android.text.format.Formatter
+import android.text.style.ForegroundColorSpan
 import android.util.AttributeSet
 import android.view.View
 import android.widget.TextView
@@ -80,6 +82,43 @@ class StatsBar @JvmOverloads constructor(
         TooltipCompat.setTooltipText(this, text)
     }
 
+    // Two-tone status: color the lead segment (split at [sep], kept with the lead)
+    // and the remainder separately. Used for "Connected, …" and "Success: …".
+    private fun setStatusTwoTone(
+        full: CharSequence, sep: Char, leadAttr: Int, restAttr: Int
+    ) {
+        val s = full.toString()
+        val idx = s.indexOf(sep)
+        if (idx < 0) {
+            statusText.setTextColor(context.getColorAttr(leadAttr))
+            setStatus(full)
+            return
+        }
+        val cut = idx + 1 // keep the separator char with the lead segment
+        val span = SpannableStringBuilder(s)
+        span.setSpan(
+            ForegroundColorSpan(context.getColorAttr(leadAttr)),
+            0, cut, SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        span.setSpan(
+            ForegroundColorSpan(context.getColorAttr(restAttr)),
+            cut, s.length, SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        setStatus(span)
+    }
+
+    private fun setStatusColorByState(state: BaseService.State) {
+        // Connected = statusConnectedColor (green), Stopped/Stopping = statusStoppedColor
+        // (red — "Shutting down…" reads as red), Connecting/other = colorOnPrimary.
+        // Non-Dracula themes default these attrs to colorOnPrimary, so no change.
+        val attr = when (state) {
+            BaseService.State.Connected -> R.attr.statusConnectedColor
+            BaseService.State.Stopped, BaseService.State.Stopping -> R.attr.statusStoppedColor
+            else -> com.google.android.material.R.attr.colorOnPrimary
+        }
+        statusText.setTextColor(context.getColorAttr(attr))
+    }
+
     fun changeState(state: BaseService.State) {
         val activity = context as MainActivity
         fun postWhenStarted(what: () -> Unit) = activity.lifecycleScope.launch(Dispatchers.Main) {
@@ -89,13 +128,18 @@ class StatsBar @JvmOverloads constructor(
         if ((state == BaseService.State.Connected).also { hideOnScroll = it }) {
             postWhenStarted {
                 if (allowShow) performShow()
-                setStatus(app.getText(R.string.vpn_connected))
+                // "Connected," in green; the "tap to check connection" hint in detail color.
+                setStatusTwoTone(
+                    app.getText(R.string.vpn_connected), ',',
+                    R.attr.statusConnectedColor, R.attr.statusDetailColor
+                )
             }
         } else {
             postWhenStarted {
                 performHide()
             }
             updateSpeed(0, 0)
+            setStatusColorByState(state)
             setStatus(
                 context.getText(
                     when (state) {
@@ -110,6 +154,9 @@ class StatsBar @JvmOverloads constructor(
 
     @SuppressLint("SetTextI18n")
     fun updateSpeed(txRate: Long, rxRate: Long) {
+        val speedColor = context.getColorAttr(R.attr.speedTextColor)
+        txText.setTextColor(speedColor)
+        rxText.setTextColor(speedColor)
         txText.text = "▲  ${
             context.getString(
                 R.string.speed, Formatter.formatFileSize(context, txRate)
@@ -125,20 +172,24 @@ class StatsBar @JvmOverloads constructor(
     fun testConnection() {
         val activity = context as MainActivity
         isEnabled = false
+        // "Testing…" in the testing color.
+        statusText.setTextColor(context.getColorAttr(R.attr.statusTestingColor))
         setStatus(app.getText(R.string.connection_test_testing))
         runOnDefaultDispatcher {
             try {
                 val elapsed = activity.urlTest()
                 onMainDispatcher {
                     isEnabled = true
-                    setStatus(
+                    // "Success:" in green; the handshake detail in detail color.
+                    setStatusTwoTone(
                         app.getString(
                             if (DataStore.connectionTestURL.startsWith("https://")) {
                                 R.string.connection_test_available
                             } else {
                                 R.string.connection_test_available_http
                             }, elapsed
-                        )
+                        ), ':',
+                        R.attr.statusConnectedColor, R.attr.statusDetailColor
                     )
                 }
 
@@ -146,6 +197,7 @@ class StatsBar @JvmOverloads constructor(
                 Logs.w(e.toString())
                 onMainDispatcher {
                     isEnabled = true
+                    statusText.setTextColor(context.getColorAttr(R.attr.statusTestingColor))
                     setStatus(app.getText(R.string.connection_test_testing))
 
                     activity.snackbar(

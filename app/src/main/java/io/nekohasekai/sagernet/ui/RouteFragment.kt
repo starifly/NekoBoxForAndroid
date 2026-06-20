@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
+import io.nekohasekai.sagernet.ktx.getColorAttr
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -287,13 +288,14 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
                 routeOutbound.text = rule.displayOutbound()
 
                 // set text color based on route type
-                val colorRes = when (rule.outbound) {
-                    -2L -> R.color.color_route_block   // block: red
-                    -1L -> R.color.color_route_direct  // direct: green
-                    0L -> R.color.color_route_proxy    // proxy: blue
-                    else -> R.color.color_route_config // config: purple
+                val ctx = itemView.context
+                val outboundColor = when (rule.outbound) {
+                    -2L -> ContextCompat.getColor(ctx, R.color.color_route_block)   // block: red
+                    -1L -> ContextCompat.getColor(ctx, R.color.color_route_direct)  // direct: green
+                    0L -> ctx.getColorAttr(R.attr.routeProxyColor)                  // proxy: blue/cyan
+                    else -> ContextCompat.getColor(ctx, R.color.color_route_config) // config: purple
                 }
-                routeOutbound.setTextColor(ContextCompat.getColor(itemView.context, colorRes))
+                routeOutbound.setTextColor(outboundColor)
 
                 itemView.setOnClickListener {
                     enableSwitch.performClick()

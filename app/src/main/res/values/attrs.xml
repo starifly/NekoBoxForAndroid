@@ -10,6 +10,33 @@
     <attr name="fabColorBackground" format="color" />
     <attr name="selectedColorPrimary" format="color" />
     <attr name="whiteOrTextPrimary" format="color" />
+    <!-- Text color for the protocol/type label on a profile row. Defaults to
+         the accent color; Dracula overrides it with its green. -->
+    <attr name="protocolColor" format="color" />
+    <!-- Profile name label color. Defaults to primary text; Dracula = yellow. -->
+    <attr name="profileNameColor" format="color" />
+    <!-- Service status / connect-button colors. Default to primary text so non-
+         Dracula themes are unchanged; Dracula tints connected=green, stopped=red. -->
+    <attr name="statusConnectedColor" format="color" />
+    <attr name="statusStoppedColor" format="color" />
+    <!-- Connection-test failure color. Default Material red; Dracula = #ff5555. -->
+    <attr name="testFailColor" format="color" />
+    <!-- Bottom-bar speed text (arrows + rate). Default on-primary; Dracula = yellow. -->
+    <attr name="speedTextColor" format="color" />
+    <!-- Connect-FAB icon tint when Stopped. Default on-primary; Dracula = yellow
+         (red was invisible on the pink/purple FAB). Separate from the red
+         statusStoppedColor used for the status text. -->
+    <attr name="fabStoppedColor" format="color" />
+    <!-- Secondary status text (the part after "Connected," / "Success:").
+         Default on-primary; Dracula = cyan. -->
+    <attr name="statusDetailColor" format="color" />
+    <!-- "Testing…" connection-test in-progress text. Default on-primary; Dracula = yellow. -->
+    <attr name="statusTestingColor" format="color" />
+    <!-- Proxy route-rule color. Default blue; Dracula = cyan. -->
+    <attr name="routeProxyColor" format="color" />
+    <!-- Selected nav-drawer item color (fill tint + icon/text). Default primary;
+         Dracula uses its accent (pink) to match the toggle-on color. -->
+    <attr name="navSelectedColor" format="color" />
     <!-- Tonal "elevated surface" color for cards (route / group); each theme
          variant tints toward its own primary. -->
     <attr name="cardElevatedSurfaceColor" format="color" />

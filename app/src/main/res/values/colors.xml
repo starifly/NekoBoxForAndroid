@@ -300,6 +300,14 @@
     <color name="color_dracula_accent">#FF79C6</color>
     <color name="color_dracula_100">#E9DDFB</color>
     <color name="color_dracula_300">#9A7BD0</color>
+    <!-- Dracula green (#50fa7b), used for the protocol/type label. -->
+    <color name="color_dracula_green">#50FA7B</color>
+    <!-- Dracula red (#ff5555): failures / stopped state. -->
+    <color name="color_dracula_red">#FF5555</color>
+    <!-- Dracula yellow (#f1fa8c): profile name label. -->
+    <color name="color_dracula_yellow">#F1FA8C</color>
+    <!-- Dracula cyan (#8be9fd): the Dracula "blue" (e.g. proxy route rules). -->
+    <color name="color_dracula_cyan">#8BE9FD</color>
 
     <color name="color_ng_black_accent">#9E9E9E</color>
     <color name="color_ng_black_primary">#2B2B2B</color>

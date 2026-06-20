@@ -26,6 +26,19 @@
         <item name="android:colorBackground">@color/dracula_background</item>
         <item name="colorOnBackground">@color/dracula_on_surface</item>
         <item name="android:windowBackground">@color/dracula_background</item>
+        <!-- Night is Dracula's active code path (it forces night mode on), so the
+             semantic color overrides must live here too, not only day. -->
+        <item name="protocolColor">@color/color_dracula_green</item>
+        <item name="profileNameColor">@color/color_dracula_yellow</item>
+        <item name="statusConnectedColor">@color/color_dracula_green</item>
+        <item name="statusStoppedColor">@color/color_dracula_red</item>
+        <item name="testFailColor">@color/color_dracula_red</item>
+        <item name="speedTextColor">@color/color_dracula_cyan</item>
+        <item name="fabStoppedColor">@color/color_dracula_cyan</item>
+        <item name="statusDetailColor">@color/color_dracula_cyan</item>
+        <item name="statusTestingColor">@color/color_dracula_yellow</item>
+        <item name="routeProxyColor">@color/color_dracula_cyan</item>
+        <item name="navSelectedColor">?attr/colorAccent</item>
     </style>
 
     <style name="Theme.SagerNet.Dialog.Dracula" parent="Theme.SagerNet.Dialog">
@@ -40,5 +53,15 @@
         <item name="colorOnSurface">@color/dracula_on_surface</item>
         <item name="android:colorBackground">@color/dracula_background</item>
         <item name="colorOnBackground">@color/dracula_on_surface</item>
+        <item name="protocolColor">@color/color_dracula_green</item>
+        <item name="profileNameColor">@color/color_dracula_yellow</item>
+        <item name="statusConnectedColor">@color/color_dracula_green</item>
+        <item name="statusStoppedColor">@color/color_dracula_red</item>
+        <item name="testFailColor">@color/color_dracula_red</item>
+        <item name="speedTextColor">@color/color_dracula_cyan</item>
+        <item name="fabStoppedColor">@color/color_dracula_cyan</item>
+        <item name="statusDetailColor">@color/color_dracula_cyan</item>
+        <item name="statusTestingColor">@color/color_dracula_yellow</item>
+        <item name="routeProxyColor">@color/color_dracula_cyan</item>
     </style>
 </resources>

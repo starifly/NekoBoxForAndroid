@@ -44,7 +44,7 @@ object Protocols {
     fun Context.getProtocolColor(type: Int): Int {
         return when (type) {
             TYPE_NEKO -> getColorAttr(android.R.attr.textColorPrimary)
-            else -> getColorAttr(R.attr.accentOrTextSecondary)
+            else -> getColorAttr(R.attr.protocolColor)
         }
     }
 
