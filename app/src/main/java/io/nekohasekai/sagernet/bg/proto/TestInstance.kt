@@ -8,7 +8,6 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.tryResume
 import io.nekohasekai.sagernet.ktx.tryResumeWithException
-import kotlinx.coroutines.delay
 import libcore.Libcore
 import moe.matsuri.nb4a.net.LocalResolverImpl
 import kotlin.coroutines.suspendCoroutine
@@ -28,8 +27,12 @@ class TestInstance(profile: ProxyEntity, val link: String, private val timeout: 
                         init()
                         launch()
                         if (processes.processCount > 0) {
-                            // wait for plugin start
-                            delay(500)
+                            // Wait until the external plugin sidecar(s) have actually bound
+                            // their loopback SOCKS port before testing, instead of a fixed
+                            // 500ms guess that often raced the sidecar (flaky "connection
+                            // refused"). strict = true turns a never-bound listener into a
+                            // clear error rather than a misleading connection failure.
+                            awaitExternalProcessesReady(strict = true)
                         }
                         c.tryResume(Libcore.urlTest(box, link, timeout))
                     } catch (e: Exception) {

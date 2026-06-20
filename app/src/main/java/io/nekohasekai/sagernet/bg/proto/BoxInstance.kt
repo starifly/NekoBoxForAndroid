@@ -262,8 +262,13 @@ abstract class BoxInstance(
      * is sufficient. MasterDnsVPN is the exception: it only starts listening after DNS
      * MTU probing and session setup, which can take tens of seconds (with retries) on
      * lossy or restricted links, so it gets a longer readiness window.
+     *
+     * @param strict when true (URL test), a sidecar that never binds is a hard failure with
+     * a clear message, instead of the live-service behavior of logging and continuing
+     * (the live path keeps a long-lived connection that sing-box retries; a one-shot URL
+     * test has no such luxury and would otherwise surface a flaky "connection refused").
      */
-    suspend fun awaitExternalProcessesReady() {
+    suspend fun awaitExternalProcessesReady(strict: Boolean = false) {
         if (!::processes.isInitialized || processes.processCount == 0) return
         val ports = config.externalIndex.flatMap { it.chain.keys }.distinct()
         if (ports.isEmpty()) return
@@ -273,6 +278,11 @@ abstract class BoxInstance(
         }
         val readinessTimeoutMs = if (hasMasterDnsVpn) {
             maxOf(60_000L, DataStore.connectionTestTimeout.toLong())
+        } else if (strict) {
+            // URL test: a healthy sidecar binds well under a second. Cap the readiness
+            // wait so a slow/unbound sidecar can't make the total perceived test time
+            // roughly double the configured timeout (readiness wait + the url test itself).
+            minOf(2_000L, maxOf(1_000L, DataStore.connectionTestTimeout.toLong()))
         } else {
             maxOf(1_000L, DataStore.connectionTestTimeout.toLong())
         }
@@ -300,8 +310,10 @@ abstract class BoxInstance(
                 // otherwise), so a timeout there is fatal. Other sidecars (Mieru/Naïve/
                 // TrojanGo/Hysteria) were historically fire-and-forget: the first sing-box
                 // dial retries, so a slow bind shouldn't hard-fail VPN start — log and continue.
+                // For a URL test (strict), there is no retry window, so a listener that never
+                // binds is reported as a clear error instead of a flaky "connection refused".
                 val message = "sidecar listener not ready on port(s): ${pending.joinToString()}"
-                if (hasMasterDnsVpn) {
+                if (hasMasterDnsVpn || strict) {
                     throw IOException(message)
                 } else {
                     Logs.w("$message; continuing (sing-box will retry the connection)")
