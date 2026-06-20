@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <corners android:radius="@dimen/dialog_corner_radius" />
-    <solid android:color="?attr/colorSurface" />
-</shape>
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="@dimen/dialog_background_inset"
+    android:insetTop="@dimen/dialog_background_inset"
+    android:insetRight="@dimen/dialog_background_inset"
+    android:insetBottom="@dimen/dialog_background_inset">
+
+    <shape android:shape="rectangle">
+        <corners android:radius="@dimen/dialog_corner_radius" />
+        <solid android:color="?attr/colorSurface" />
+    </shape>
+</inset>
