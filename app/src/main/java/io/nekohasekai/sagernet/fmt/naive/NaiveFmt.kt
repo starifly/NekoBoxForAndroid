@@ -54,7 +54,7 @@ fun NaiveBean.toUri(proxyOnly: Boolean = false): String {
     return builder.toLink(if (proxyOnly) proto else "naive+$proto", false)
 }
 
-fun NaiveBean.buildNaiveConfig(port: Int): String {
+fun NaiveBean.buildNaiveConfig(port: Int, listenUsername: String? = null, listenPassword: String? = null): String {
     return JSONObject().apply {
         // process ipv6
         finalAddress = finalAddress.wrapIPV6Host()
@@ -75,7 +75,17 @@ fun NaiveBean.buildNaiveConfig(port: Int): String {
             }
         }
 
-        put("listen", "socks://$LOCALHOST:$port")
+        // Authenticate the local SOCKS listener so other apps on the device cannot use
+        // this loopback port as an open relay and leak the egress IP (#1166). The
+        // sing-box socks outbound dials with the same credentials.
+        if (!listenUsername.isNullOrBlank() && !listenPassword.isNullOrBlank()) {
+            put(
+                "listen",
+                "socks://${listenUsername.urlSafe()}:${listenPassword.urlSafe()}@$LOCALHOST:$port"
+            )
+        } else {
+            put("listen", "socks://$LOCALHOST:$port")
+        }
         put("proxy", toUri(true))
         if (extraHeaders.isNotBlank()) {
             put("extra-headers", extraHeaders.split("\n").joinToString("\r\n"))

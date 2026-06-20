@@ -77,7 +77,9 @@ abstract class BoxInstance(
 
                     is NaiveBean -> {
                         initPlugin("naive-plugin")
-                        pluginConfigs[port] = profile.type to bean.buildNaiveConfig(port)
+                        val creds = config.localProxyCredentials[port]
+                        pluginConfigs[port] = profile.type to
+                            bean.buildNaiveConfig(port, creds?.first, creds?.second)
                     }
 
                     is HysteriaBean -> {

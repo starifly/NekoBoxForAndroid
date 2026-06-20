@@ -22,6 +22,8 @@ import io.nekohasekai.sagernet.fmt.tuic.TuicBean
 import io.nekohasekai.sagernet.fmt.tuic.buildSingBoxOutboundTuicBean
 import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
 import io.nekohasekai.sagernet.fmt.juicity.buildSingBoxOutboundJuicityBean
+import io.nekohasekai.sagernet.fmt.naive.NaiveBean
+import java.util.UUID
 import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 import io.nekohasekai.sagernet.fmt.v2ray.buildSingBoxOutboundStandardV2RayBean
 import io.nekohasekai.sagernet.fmt.shadowsocksr.ShadowsocksRBean
@@ -69,6 +71,12 @@ class ConfigBuildResult(
     var trafficMap: Map<String, List<ProxyEntity>>,
     var profileTagMap: Map<Long, String>,
     val selectorGroupId: Long,
+    // Per-port credentials for authenticated local SOCKS loopbacks of external
+    // plugins (e.g. naive). Android does not isolate 127.0.0.1 per app, so an
+    // unauthenticated plugin SOCKS listener could be reached by any local app and
+    // leak the egress IP (issue #1166). The plugin listens with these creds and the
+    // sing-box socks outbound dials with them.
+    val localProxyCredentials: Map<Int, Pair<String, String>> = emptyMap(),
 ) {
     data class IndexEntity(var chain: LinkedHashMap<Int, ProxyEntity>)
 }
@@ -95,6 +103,8 @@ fun buildConfig(
     val trafficMap = HashMap<String, List<ProxyEntity>>()
     val tagMap = HashMap<Long, String>()
     val globalOutbounds = HashMap<Long, String>()
+    // Per-port credentials for authenticated external-plugin SOCKS loopbacks (#1166).
+    val localProxyCredentials = HashMap<Int, Pair<String, String>>()
     val readableNames = mutableSetOf(TAG_DIRECT, TAG_BYPASS, TAG_BLOCK, TAG_FRAGMENT, TAG_MIXED, TAG_PROXY)
     val group = SagerDatabase.groupDao.getById(proxy.groupId)
 
@@ -377,6 +387,20 @@ fun buildConfig(
                         type = "socks"
                         server = LOCALHOST
                         server_port = localPort
+                        // Authenticate the local SOCKS loopback for plugins that support
+                        // it (naive), so other apps on the device can't use this open
+                        // 127.0.0.1 port to leak the egress IP (#1166). The plugin is
+                        // configured to listen with the same generated credentials.
+                        // Skip for export: the exported naive config (ProxyEntity.
+                        // buildNaiveConfig without creds) would otherwise mismatch and
+                        // produce a broken standalone config.
+                        if (bean is NaiveBean && !forExport) {
+                            val user = "neko"
+                            val pass = UUID.randomUUID().toString().replace("-", "")
+                            localProxyCredentials[localPort] = user to pass
+                            username = user
+                            password = pass
+                        }
                     }
                 } else {
                     // internal outbound
@@ -941,7 +965,8 @@ fun buildConfig(
             proxy.id,
             trafficMap,
             tagMap,
-            if (buildSelector) group.id else -1L
+            if (buildSelector) group.id else -1L,
+            localProxyCredentials,
         )
     }
 
