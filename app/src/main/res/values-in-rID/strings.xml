@@ -323,6 +323,9 @@
     <string name="connection_test_timeout_error">Timeout</string>
     <string name="append_http_proxy">Tambahkan HTTP Proxy ke VPN</string>
     <string name="append_http_proxy_sum">Proxy HTTP akan digunakan langsung dari (browser/ beberapa aplikasi yang didukung), tanpa melalui perangkat NIC virtual (Android 10+)</string>
+    <string name="append_http_proxy_security_title">Security Notice</string>
+    <string name="append_http_proxy_security_message">When enabled, other apps on this device can directly use the local proxy port.\n\nRecommendation: Only enable this if you trust all installed apps.</string>
+    <string name="enable_anyway">Enable Anyway</string>
     <string name="strict_route">Rute Ketat</string>
     <string name="protocol_settings">Pengaturan Protokol</string>
     <string name="trojan_provider">Penyedia Trojan</string>

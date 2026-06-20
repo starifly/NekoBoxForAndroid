@@ -324,6 +324,9 @@
     <string name="append_http_proxy">HTTP-Proxy an VPN anhängen</string>
     <string name="append_http_proxy_sum">HTTP-Proxy wird direkt vom Browser / einigen
         unterstützten Apps verwendet, ohne die virtuelle Netzwerkschnittstelle zu durchlaufen (Android 10+)</string>
+    <string name="append_http_proxy_security_title">Security Notice</string>
+    <string name="append_http_proxy_security_message">When enabled, other apps on this device can directly use the local proxy port.\n\nRecommendation: Only enable this if you trust all installed apps.</string>
+    <string name="enable_anyway">Enable Anyway</string>
     <string name="strict_route">Strenge Route</string>
     <string name="protocol_settings">Protokolleinstellungen</string>
     <string name="trojan_provider">Trojan-Anbieter</string>

@@ -320,6 +320,9 @@
     <string name="connection_test_timeout_error">시간 초과</string>
     <string name="append_http_proxy">VPN에 HTTP 프록시 추가</string>
     <string name="append_http_proxy_sum">HTTP 프록시는 (브라우저/일부 지원 앱)에서 직접 사용되며, 가상 NIC 장치(Android 10+)를 거치지 않습니다.</string>
+    <string name="append_http_proxy_security_title">Security Notice</string>
+    <string name="append_http_proxy_security_message">When enabled, other apps on this device can directly use the local proxy port.\n\nRecommendation: Only enable this if you trust all installed apps.</string>
+    <string name="enable_anyway">Enable Anyway</string>
     <string name="strict_route">엄격한 경로</string>
     <string name="protocol_settings">프로토콜 설정</string>
     <string name="trojan_provider">Trojan 제공자</string>
