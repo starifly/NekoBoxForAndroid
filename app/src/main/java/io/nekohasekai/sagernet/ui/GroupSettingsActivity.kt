@@ -51,8 +51,10 @@ class GroupSettingsActivity(
 
         DataStore.frontProxy = frontProxy
         DataStore.landingProxy = landingProxy
-        DataStore.frontProxyTmp = if (frontProxy >= 0) 3 else 0
-        DataStore.landingProxyTmp = if (landingProxy >= 0) 3 else 0
+        DataStore.frontProxyTmp =
+            if (frontProxy >= 0) OutboundPreference.VALUE_SELECT_PROFILE.toInt() else 0
+        DataStore.landingProxyTmp =
+            if (landingProxy >= 0) OutboundPreference.VALUE_SELECT_PROFILE.toInt() else 0
 
         val subscription = subscription ?: SubscriptionBean().applyDefaultValues()
         DataStore.subscriptionLink = subscription.link
@@ -72,8 +74,18 @@ class GroupSettingsActivity(
         order = DataStore.groupOrder
         isSelector = DataStore.groupIsSelector
 
-        frontProxy = if (DataStore.frontProxyTmp == 3) DataStore.frontProxy else -1
-        landingProxy = if (DataStore.landingProxyTmp == 3) DataStore.landingProxy else -1
+        frontProxy =
+            if (DataStore.frontProxyTmp == OutboundPreference.VALUE_SELECT_PROFILE.toInt()) {
+                DataStore.frontProxy
+            } else {
+                -1
+            }
+        landingProxy =
+            if (DataStore.landingProxyTmp == OutboundPreference.VALUE_SELECT_PROFILE.toInt()) {
+                DataStore.landingProxy
+            } else {
+                -1
+            }
 
         val isSubscription = type == GroupType.SUBSCRIPTION
         if (isSubscription) {
@@ -108,9 +120,15 @@ class GroupSettingsActivity(
             setEntries(R.array.front_proxy_entry)
             setEntryValues(R.array.front_proxy_value)
             setOnPreferenceChangeListener { _, newValue ->
-                if (newValue.toString() == "3") {
+                if (newValue.toString() == OutboundPreference.VALUE_SELECT_PROFILE) {
                     selectProfileForAddFront.launch(
-                        Intent(this@GroupSettingsActivity, ProfileSelectActivity::class.java)
+                        Intent(
+                            this@GroupSettingsActivity, ProfileSelectActivity::class.java
+                        ).apply {
+                            ProfileManager.getProfile(DataStore.frontProxy)?.let {
+                                putExtra(ProfileSelectActivity.EXTRA_SELECTED, it)
+                            }
+                        }
                     )
                     false
                 } else {
@@ -123,9 +141,15 @@ class GroupSettingsActivity(
             setEntries(R.array.front_proxy_entry)
             setEntryValues(R.array.front_proxy_value)
             setOnPreferenceChangeListener { _, newValue ->
-                if (newValue.toString() == "3") {
+                if (newValue.toString() == OutboundPreference.VALUE_SELECT_PROFILE) {
                     selectProfileForAddLanding.launch(
-                        Intent(this@GroupSettingsActivity, ProfileSelectActivity::class.java)
+                        Intent(
+                            this@GroupSettingsActivity, ProfileSelectActivity::class.java
+                        ).apply {
+                            ProfileManager.getProfile(DataStore.landingProxy)?.let {
+                                putExtra(ProfileSelectActivity.EXTRA_SELECTED, it)
+                            }
+                        }
                     )
                     false
                 } else {
@@ -401,7 +425,7 @@ class GroupSettingsActivity(
             ) ?: return@runOnDefaultDispatcher
             DataStore.frontProxy = profile.id
             onMainDispatcher {
-                frontProxyPreference.value = "3"
+                frontProxyPreference.value = OutboundPreference.VALUE_SELECT_PROFILE
             }
         }
     }
@@ -415,7 +439,7 @@ class GroupSettingsActivity(
             ) ?: return@runOnDefaultDispatcher
             DataStore.landingProxy = profile.id
             onMainDispatcher {
-                landingProxyPreference.value = "3"
+                landingProxyPreference.value = OutboundPreference.VALUE_SELECT_PROFILE
             }
         }
     }
