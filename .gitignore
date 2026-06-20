@@ -13,7 +13,6 @@ __MACOSX/
 .gradle/
 .kotlin/
 build/
-**/build/
 
 # Android / native build outputs
 /captures/
