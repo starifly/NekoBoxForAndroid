@@ -2,6 +2,11 @@
     <!-- Base application theme. -->
     <style name="Theme.SagerNet" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="actionBarStyle">@style/Widget.MaterialComponents.ActionBar.Solid</item>
+        <!-- Default nav-drawer selected-item fill; also satisfies the
+             ?itemShapeFillColor self-reference in @color/navigation_item so the
+             ColorStateList resolves for every theme. Only Black overrides it;
+             other themes (incl. Dracula) inherit this ?colorPrimary default. -->
+        <item name="itemShapeFillColor">?colorPrimary</item>
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
         <item name="colorButtonNormal">?colorAccent</item>
         <item name="android:navigationBarColor">?colorPrimaryDark</item>
@@ -58,6 +63,7 @@
 
     <style name="Theme.SagerNet.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
         <item name="actionBarStyle">@style/Widget.MaterialComponents.ActionBar.Solid</item>
+        <item name="itemShapeFillColor">?colorPrimary</item>
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
         <item name="colorButtonNormal">?colorAccent</item>
         <item name="android:navigationBarColor">?colorPrimaryDark</item>
@@ -595,6 +601,19 @@
         <item name="cardElevatedSurfaceColor">@color/card_elevated_verdant_mint</item>
     </style>
 
+    <!-- Dracula: purple primary, pink accent. Accent colors apply in any mode;
+         the true #282a36 dark canvas (colorSurface/colorBackground/colorOnSurface)
+         is layered on in values-night/themes.xml. Selecting this theme forces
+         night mode on (see SettingsPreferenceFragment). -->
+    <style name="Theme.SagerNet.Dracula" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/color_dracula</item>
+        <item name="colorPrimaryDark">@color/color_dracula_dark</item>
+        <item name="colorAccent">@color/color_dracula_accent</item>
+        <item name="colorMaterial100">@color/color_dracula_100</item>
+        <item name="colorMaterial300">@color/color_dracula_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_dracula</item>
+    </style>
+
     <style name="Theme.SagerNet.Dialog.Black" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/color_ng_black_primary</item>
         <item name="colorPrimaryDark">@color/color_ng_black_primary</item>
@@ -620,6 +639,15 @@
         <item name="colorMaterial100">@color/color_verdant_mint_100</item>
         <item name="colorMaterial300">@color/color_verdant_mint_300</item>
         <item name="cardElevatedSurfaceColor">@color/card_elevated_verdant_mint</item>
+    </style>
+
+    <style name="Theme.SagerNet.Dialog.Dracula" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/color_dracula</item>
+        <item name="colorPrimaryDark">@color/color_dracula_dark</item>
+        <item name="colorAccent">@color/color_dracula_accent</item>
+        <item name="colorMaterial100">@color/color_dracula_100</item>
+        <item name="colorMaterial300">@color/color_dracula_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_dracula</item>
     </style>
 
     <style name="Theme.Start" parent="Theme.MaterialComponents.DayNight">

@@ -65,11 +65,37 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         addPreferencesFromResource(R.xml.global_preferences)
 
         val appTheme = findPreference<ColorPickerPreference>(Key.APP_THEME)!!
+        val nightTheme = findPreference<SimpleMenuPreference>(Key.NIGHT_THEME)!!
         appTheme.setOnPreferenceChangeListener { _, newTheme ->
             if (DataStore.serviceState.started) {
                 SagerNet.reloadService()
             }
-            val theme = Theme.getTheme(newTheme as Int)
+            val themeId = newTheme as Int
+            val previousTheme = DataStore.appTheme // still the old value at this point
+            // Dracula is a dark-only theme: force night mode on so its #282a36
+            // canvas (values-night) takes effect instead of a washed-out light surface.
+            // Remember the prior night-mode setting so it can be restored on exit.
+            if (themeId == Theme.DRACULA) {
+                if (previousTheme != Theme.DRACULA && DataStore.nightTheme != 1) {
+                    DataStore.nightThemeBeforeDracula = DataStore.nightTheme
+                    Theme.currentNightMode = 1
+                    // nightTheme.value persists to configurationStore (same key as
+                    // DataStore.nightTheme) and refreshes the picker, so no separate
+                    // DataStore.nightTheme write is needed.
+                    nightTheme.value = "1"
+                    Theme.applyNightTheme()
+                }
+            } else if (previousTheme == Theme.DRACULA) {
+                // Leaving Dracula: restore the night-mode setting we forced on.
+                val restore = DataStore.nightThemeBeforeDracula
+                if (restore != -1) {
+                    DataStore.nightThemeBeforeDracula = -1
+                    Theme.currentNightMode = restore
+                    nightTheme.value = restore.toString()
+                    Theme.applyNightTheme()
+                }
+            }
+            val theme = Theme.getTheme(themeId)
             app.setTheme(theme)
             requireActivity().apply {
                 setTheme(theme)
@@ -78,9 +104,11 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             true
         }
 
-        val nightTheme = findPreference<SimpleMenuPreference>(Key.NIGHT_THEME)!!
         nightTheme.setOnPreferenceChangeListener { _, newTheme ->
             Theme.currentNightMode = (newTheme as String).toInt()
+            // A manual night-mode change takes precedence: drop any pending
+            // Dracula restore so we don't override the user's choice later.
+            DataStore.nightThemeBeforeDracula = -1
             Theme.applyNightTheme()
             true
         }

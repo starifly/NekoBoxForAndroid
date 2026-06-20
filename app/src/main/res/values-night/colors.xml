@@ -34,4 +34,9 @@
     <color name="card_elevated_yellow">#2C2A17</color>
     <color name="card_elevated_black">#151515</color>
     <color name="card_elevated_verdant_mint">#10241C</color>
+    <!-- Dracula dark surfaces (official palette). -->
+    <color name="card_elevated_dracula">#343746</color>
+    <color name="dracula_background">#282A36</color>
+    <color name="dracula_surface">#343746</color>
+    <color name="dracula_on_surface">#F8F8F2</color>
 </resources>

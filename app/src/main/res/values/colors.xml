@@ -26,6 +26,7 @@
         <item>@color/material_blue_grey_500</item>
         <item>@color/material_light_black</item>
         <item>@color/color_verdant_mint</item>
+        <item>@color/color_dracula</item>
     </integer-array>
 
     <color name="material_amber_100">#FFECB3</color>
@@ -291,6 +292,15 @@
     <color name="color_verdant_mint_100">#B4D7C6</color>
     <color name="color_verdant_mint_300">#509177</color>
 
+    <!-- Dracula theme accents (https://draculatheme.com). Purple primary,
+         pink accent. Surfaces are overridden in values-night for the true
+         #282a36 canvas; see Theme.SagerNet.Dracula. -->
+    <color name="color_dracula">#BD93F9</color>
+    <color name="color_dracula_dark">#6272A4</color>
+    <color name="color_dracula_accent">#FF79C6</color>
+    <color name="color_dracula_100">#E9DDFB</color>
+    <color name="color_dracula_300">#9A7BD0</color>
+
     <color name="color_ng_black_accent">#9E9E9E</color>
     <color name="color_ng_black_primary">#2B2B2B</color>
 
@@ -329,5 +339,6 @@
     <color name="card_elevated_yellow">#FFFDEF</color>
     <color name="card_elevated_black">#EEEEEE</color>
     <color name="card_elevated_verdant_mint">#EBF9F3</color>
+    <color name="card_elevated_dracula">#F1EAFB</color>
 
 </resources>

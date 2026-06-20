@@ -2,6 +2,9 @@
     <!-- Base application theme for API 26+ -->
     <style name="Theme.SagerNet" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="actionBarStyle">@style/Widget.MaterialComponents.ActionBar.Solid</item>
+        <!-- Default nav-drawer selected-item fill; satisfies the
+             ?itemShapeFillColor self-reference in @color/navigation_item. -->
+        <item name="itemShapeFillColor">?colorPrimary</item>
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
         <item name="colorButtonNormal">?colorAccent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>

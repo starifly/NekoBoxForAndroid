@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Night-only surface overrides.
+
+      Other themes intentionally inherit the Material DayNight defaults, so we do
+      NOT redeclare them here. Only the Dracula theme paints a full custom canvas:
+      the official #282a36 background, #343746 surface, and #f8f8f2 foreground.
+
+      In day mode the Dracula style (values/themes.xml) keeps the standard light
+      surfaces, so accents stay readable even if the user is not in dark mode.
+      Selecting Dracula also forces night mode on (SettingsPreferenceFragment),
+      which is what brings these overrides into effect.
+    -->
+    <style name="Theme.SagerNet.Dracula" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/color_dracula</item>
+        <item name="colorPrimaryDark">@color/color_dracula_dark</item>
+        <item name="colorAccent">@color/color_dracula_accent</item>
+        <item name="colorMaterial100">@color/color_dracula_100</item>
+        <item name="colorMaterial300">@color/color_dracula_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_dracula</item>
+
+        <!-- True Dracula dark canvas. -->
+        <item name="colorSurface">@color/dracula_surface</item>
+        <item name="colorOnSurface">@color/dracula_on_surface</item>
+        <item name="android:colorBackground">@color/dracula_background</item>
+        <item name="colorOnBackground">@color/dracula_on_surface</item>
+        <item name="android:windowBackground">@color/dracula_background</item>
+    </style>
+
+    <style name="Theme.SagerNet.Dialog.Dracula" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/color_dracula</item>
+        <item name="colorPrimaryDark">@color/color_dracula_dark</item>
+        <item name="colorAccent">@color/color_dracula_accent</item>
+        <item name="colorMaterial100">@color/color_dracula_100</item>
+        <item name="colorMaterial300">@color/color_dracula_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_dracula</item>
+
+        <item name="colorSurface">@color/dracula_surface</item>
+        <item name="colorOnSurface">@color/dracula_on_surface</item>
+        <item name="android:colorBackground">@color/dracula_background</item>
+        <item name="colorOnBackground">@color/dracula_on_surface</item>
+    </style>
+</resources>
