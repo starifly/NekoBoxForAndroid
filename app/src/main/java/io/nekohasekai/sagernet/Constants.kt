@@ -47,6 +47,8 @@ object Key {
     const val MIXED_SECRET = "mixedSecret" // storage key for the generated inbound secret
     const val MIXED_USERNAME = "neko" // username presented to the authed mixed inbound
     const val ALLOW_ACCESS = "allowAccess"
+    const val REQUIRE_PROXY_IN_VPN = "requireProxyInVPN" // keep local mixed inbound open in VPN mode
+    const val PROXY_MODE_INBOUND_AUTH = "proxyModeInboundAuth" // authenticate loopback inbound in Proxy mode
     const val SPEED_INTERVAL = "speedInterval"
     const val SHOW_DIRECT_SPEED = "showDirectSpeed"
 

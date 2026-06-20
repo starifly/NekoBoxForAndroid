@@ -32,3 +32,8 @@ local.properties
 
 # Submodules / external sources
 /external/
+
+# Signing keys — never commit; provided via CI secrets or local.properties
+release.keystore
+*.keystore
+*.jks

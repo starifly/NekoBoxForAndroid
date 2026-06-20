@@ -104,7 +104,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                         .addItem(
                             MaterialAboutActionItem.Builder()
                                 .icon(R.drawable.ic_baseline_layers_24)
-                                .text(getString(R.string.version_x, "sing-box"))
+                                .text(activityContext.getString(R.string.version_x, "sing-box"))
                                 .subText(Libcore.versionBox())
                                 .setOnClickAction { }
                                 .build())
@@ -130,7 +130,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                                         MaterialAboutActionItem.Builder()
                                             .icon(R.drawable.ic_baseline_nfc_24)
                                             .text(
-                                                getString(
+                                                activityContext.getString(
                                                     R.string.version_x,
                                                     pluginId
                                                 ) + " (${Plugins.displayExeProvider(pkg.packageName)})"
@@ -248,6 +248,11 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                         haveUpdate && !releaseName.contains(BuildConfig.VERSION_NAME)
                     }
                     runOnMainDispatcher {
+                        // The async work above may outlive the fragment's attachment
+                        // (e.g. user navigates away). Touching requireContext()/app
+                        // resources while detached throws IllegalStateException
+                        // (issue #1192). Bail out if no longer attached.
+                        if (!isAdded) return@runOnMainDispatcher
                         if (haveUpdate) {
                             val context = requireContext()
                             MaterialAlertDialogBuilder(context)
@@ -272,6 +277,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                 } catch (e: Exception) {
                     Logs.w(e)
                     runOnMainDispatcher {
+                        if (!isAdded) return@runOnMainDispatcher
                         Toast.makeText(app, e.readableMessage, Toast.LENGTH_SHORT).show()
                     }
                 }

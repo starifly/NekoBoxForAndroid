@@ -62,6 +62,10 @@
     <string name="cag_route">Route Settings</string>
     <string name="allow_access">Allow Connections from the LAN</string>
     <string name="allow_access_sum">Bind inbound servers to 0.0.0.0</string>
+    <string name="require_proxy_in_vpn">Keep local proxy in VPN mode</string>
+    <string name="require_proxy_in_vpn_sum">Keep the local SOCKS/HTTP proxy port open while in VPN mode. Off by default: in VPN mode the port is usually unneeded and leaving it open lets other apps reach it.</string>
+    <string name="proxy_mode_inbound_auth">Authenticate local proxy in Proxy mode</string>
+    <string name="proxy_mode_inbound_auth_sum">Require username/password on the local SOCKS/HTTP proxy when running in Proxy (non-VPN) mode. Enable to stop other apps from using it as an open relay.</string>
     <string name="inbound_settings">Inbound Settings</string>
     <string name="general_settings">App Settings</string>
     <string name="require_http">Enable HTTP inbound</string>

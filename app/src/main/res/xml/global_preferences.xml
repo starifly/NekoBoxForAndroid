@@ -261,6 +261,16 @@
             app:key="allowAccess"
             app:summary="@string/allow_access_sum"
             app:title="@string/allow_access" />
+        <SwitchPreference
+            app:defaultValue="false"
+            app:key="requireProxyInVPN"
+            app:summary="@string/require_proxy_in_vpn_sum"
+            app:title="@string/require_proxy_in_vpn" />
+        <SwitchPreference
+            app:defaultValue="false"
+            app:key="proxyModeInboundAuth"
+            app:summary="@string/proxy_mode_inbound_auth_sum"
+            app:title="@string/proxy_mode_inbound_auth" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/cag_misc">

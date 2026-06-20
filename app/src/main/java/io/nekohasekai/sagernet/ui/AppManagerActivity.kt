@@ -13,8 +13,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Filter
-import android.widget.Filterable
 import androidx.annotation.UiThread
 import androidx.core.util.contains
 import androidx.core.util.set
@@ -42,7 +40,9 @@ import io.nekohasekai.sagernet.utils.PackageCache
 import io.nekohasekai.sagernet.widget.ListListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import moe.matsuri.nb4a.utils.NGUtil
 import kotlin.coroutines.coroutineContext
@@ -101,7 +101,6 @@ class AppManagerActivity : ThemedActivity() {
     }
 
     private inner class AppsAdapter : RecyclerView.Adapter<AppViewHolder>(),
-        Filterable,
         FastScrollRecyclerView.SectionedAdapter {
         var filteredApps = apps
 
@@ -130,26 +129,25 @@ class AppManagerActivity : ThemedActivity() {
 
         override fun getItemCount(): Int = filteredApps.size
 
-        private val filterImpl = object : Filter() {
-            override fun performFiltering(constraint: CharSequence) = FilterResults().apply {
-                var filteredApps = if (constraint.isEmpty()) apps else apps.filter {
-                    it.name.contains(constraint, true) || it.packageName.contains(
-                        constraint, true
-                    ) || it.uid.toString().contains(constraint)
-                }
-                if (!sysApps) filteredApps = filteredApps.filter { !it.sys }
-                count = filteredApps.size
-                values = filteredApps
+        // Replaces android.widget.Filter, which spawned a new worker thread per
+        // filter() call (OutOfMemoryError: pthread_create failed, issue #1086).
+        // Computes the filtered list off the main thread and publishes on main;
+        // callers cancel the previous job via applyFilter() below.
+        fun computeFiltered(constraint: CharSequence): List<ProxiedApp> {
+            var result = if (constraint.isEmpty()) apps else apps.filter {
+                it.name.contains(constraint, true) || it.packageName.contains(
+                    constraint, true
+                ) || it.uid.toString().contains(constraint)
             }
-
-            override fun publishResults(constraint: CharSequence, results: FilterResults) {
-                @Suppress("UNCHECKED_CAST")
-                filteredApps = results.values as List<ProxiedApp>
-                notifyDataSetChanged()
-            }
+            if (!sysApps) result = result.filter { !it.sys }
+            return result
         }
 
-        override fun getFilter(): Filter = filterImpl
+        fun publishFiltered(result: List<ProxiedApp>) {
+            filteredApps = result
+            @Suppress("NotifyDataSetChanged")
+            notifyDataSetChanged()
+        }
 
         override fun getSectionName(position: Int): String {
             return filteredApps[position].name.firstOrNull()?.toString() ?: ""
@@ -162,8 +160,26 @@ class AppManagerActivity : ThemedActivity() {
     private lateinit var binding: LayoutAppsBinding
     private val proxiedUids = SparseBooleanArray()
     private var loader: Job? = null
+    private var filterJob: Job? = null
+    // Read on Dispatchers.Default in computeFiltered(); written from Default/IO/Main.
+    // @Volatile guarantees cross-thread visibility so filtering never sees a stale list.
+    @Volatile
     private var apps = emptyList<ProxiedApp>()
     private val appsAdapter = AppsAdapter()
+
+    // Coroutine-based replacement for the old Filter.filter(...) calls. Cancels the
+    // in-flight filter job (so rapid keystrokes don't pile up work) and computes the
+    // filtered list on a background dispatcher before publishing on main.
+    // debounceMs > 0 is used for the search box to avoid filtering on every keystroke.
+    @UiThread
+    private fun applyFilter(constraint: String = binding.search.text?.toString() ?: "", debounceMs: Long = 0) {
+        filterJob?.cancel()
+        filterJob = lifecycleScope.launch {
+            if (debounceMs > 0) delay(debounceMs)
+            val result = withContext(Dispatchers.Default) { appsAdapter.computeFiltered(constraint) }
+            appsAdapter.publishFiltered(result)
+        }
+    }
 
     private fun initProxiedUids(str: String = DataStore.individual) {
         proxiedUids.clear()
@@ -184,7 +200,7 @@ class AppManagerActivity : ThemedActivity() {
             loading.crossFadeFrom(binding.list)
             val adapter = binding.list.adapter as AppsAdapter
             withContext(Dispatchers.IO) { adapter.reload() }
-            adapter.filter.filter(binding.search.text?.toString() ?: "")
+            applyFilter()
             if (apps.isEmpty()) {
                 binding.list.visibility = View.GONE
                 binding.appPlaceholder.root.crossFadeFrom(loading)
@@ -241,19 +257,20 @@ class AppManagerActivity : ThemedActivity() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.root, ListListener)
 
         binding.search.addTextChangedListener {
-            appsAdapter.filter.filter(it?.toString() ?: "")
+            applyFilter(it?.toString() ?: "", debounceMs = 250)
         }
 
         binding.showSystemApps.isChecked = sysApps
         binding.showSystemApps.setOnCheckedChangeListener { _, isChecked ->
             sysApps = isChecked
-            appsAdapter.filter.filter(binding.search.text?.toString() ?: "")
+            applyFilter()
         }
 
         instance = this
         loadApps()
     }
 
+    @Volatile
     private var sysApps = true
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -277,7 +294,7 @@ class AppManagerActivity : ThemedActivity() {
                         .joinToString("\n") { it.packageName }
                     apps = apps.sortedWith(compareBy({ !isProxiedApp(it) }, { it.name.toString() }))
                     onMainDispatcher {
-                        appsAdapter.filter.filter(binding.search.text?.toString() ?: "")
+                        applyFilter()
                     }
                 }
 
@@ -290,7 +307,7 @@ class AppManagerActivity : ThemedActivity() {
                     DataStore.individual = ""
                     apps = apps.sortedWith(compareBy({ !isProxiedApp(it) }, { it.name.toString() }))
                     onMainDispatcher {
-                        appsAdapter.filter.filter(binding.search.text?.toString() ?: "")
+                        applyFilter()
                     }
                 }
             }
@@ -363,7 +380,7 @@ class AppManagerActivity : ThemedActivity() {
                     DataStore.individual =
                         apps.filter { isProxiedApp(it) }.joinToString("\n") { it.packageName }
                     apps = apps.sortedWith(compareBy({ !isProxiedApp(it) }, { it.name.toString() }))
-                    appsAdapter.filter.filter(binding.search.text?.toString() ?: "")
+                    applyFilter()
                 } catch (e: Exception) {
                     Logs.e(e)
                 }

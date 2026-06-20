@@ -169,7 +169,19 @@ object DataStore : OnPreferenceDataStoreChangeListener {
                 // inbound is authenticated, except when appendHttpProxy is active on
                 // Android Q+ (the system HTTP proxy cannot supply credentials).
                 (serviceMode == Key.MODE_VPN &&
-                    !(appendHttpProxy && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q))
+                    !(appendHttpProxy && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)) ||
+                // Proxy service mode loopback inbound: optionally authenticate too
+                // (issue #1197 residual gap). Off by default to preserve the
+                // "open localhost proxy" use case; users opt in for hardening.
+                (serviceMode == Key.MODE_PROXY && proxyModeInboundAuth)
+
+    // Keep the local mixed (SOCKS/HTTP) inbound open in VPN mode. Default false: in
+    // TUN mode the local proxy port is usually unnecessary, and closing it removes the
+    // local port-scan attack surface entirely (PR #1154 / issue #1197).
+    var requireProxyInVPN by configurationStore.boolean(Key.REQUIRE_PROXY_IN_VPN)
+
+    // Authenticate the loopback mixed inbound in Proxy service mode (issue #1197).
+    var proxyModeInboundAuth by configurationStore.boolean(Key.PROXY_MODE_INBOUND_AUTH)
 
     val mixedInboundUser: String get() = if (mixedInboundAuthed) Key.MIXED_USERNAME else ""
     val mixedInboundPass: String get() = if (mixedInboundAuthed) mixedSecret else ""

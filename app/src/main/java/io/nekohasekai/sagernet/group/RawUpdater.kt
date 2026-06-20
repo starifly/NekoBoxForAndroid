@@ -267,6 +267,13 @@ object RawUpdater : GroupUpdater() {
                 // tag; a YAML mapping is returned as a LinkedHashMap natively.
                 val loaderOptions = LoaderOptions().apply {
                     codePointLimit = 10 * 1024 * 1024 // 10 MiB
+                    // SnakeYAML 2.x defaults maxAliasesForCollections to 50 as a
+                    // billion-laughs guard. Legitimate large Clash/Mihomo configs
+                    // reuse anchors heavily and exceed 50 (issue #1042). Raise to a
+                    // finite cap (not Int.MAX_VALUE). 200 covers known real-world
+                    // configs while keeping alias-expansion amplification bounded
+                    // (codePointLimit bounds input size, not the expanded object graph).
+                    maxAliasesForCollections = 200
                 }
                 // In SnakeYAML 2.x, Yaml(BaseConstructor) adopts the constructor's
                 // LoaderOptions (getLoadingConfig()), so codePointLimit set above is

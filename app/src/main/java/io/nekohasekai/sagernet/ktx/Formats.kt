@@ -113,6 +113,11 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
 
     val entities = ArrayList<AbstractBean>()
     val entitiesByLine = ArrayList<AbstractBean>()
+    // An http(s) link that fails to parse as an HTTP proxy is a subscription candidate.
+    // Don't abort import immediately (issue #1128): a file may contain valid profile
+    // links alongside a plain promo/Telegram URL. Remember the first candidate and only
+    // treat the input as a subscription if NO profiles parsed at all.
+    var subscriptionCandidate: String? = null
 
     fun String.parseLink(entities: ArrayList<AbstractBean>) {
         if (startsWith("clash://install-config?") || startsWith("sn://subscription?")) {
@@ -142,14 +147,17 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
                 entities.add(parseHttp(this))
             }.onFailure {
                 Logs.w(it)
-                val clashUrl = HttpUrl.Builder()
-                    .scheme("https")
-                    .host("install-config")
-                    .addQueryParameter("url", this)
-                    .build()
-                    .toString()
-                    .replaceFirst("https://", "clash://")
-                throw (SubscriptionFoundException(clashUrl))
+                if (subscriptionCandidate == null) {
+                    val clashUrl = HttpUrl.Builder()
+                        .scheme("https")
+                        .host("install-config")
+                        .addQueryParameter("url", this)
+                        .build()
+                        .toString()
+                        .replaceFirst("https://", "clash://")
+                    // Defer: only thrown later if no profile links were parsed.
+                    subscriptionCandidate = clashUrl
+                }
             }
         } else if (startsWith("vmess://")) {
             Logs.d("Try parse v2ray link: $this")
@@ -257,6 +265,12 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
     }
     for (link in linksByLine) {
         link.parseLink(entitiesByLine)
+    }
+    // No profile links parsed but we saw an unparsable http(s) URL: treat the whole
+    // input as a subscription link (single-URL paste / file). When profiles WERE found,
+    // the stray URL is ignored so the profiles still import (issue #1128).
+    if (entities.isEmpty() && entitiesByLine.isEmpty()) {
+        subscriptionCandidate?.let { throw SubscriptionFoundException(it) }
     }
 //    var isBadLink = false
     if (entities.onEach { it.initializeDefaultValues() }.size == entitiesByLine.onEach { it.initializeDefaultValues() }.size) run test@{

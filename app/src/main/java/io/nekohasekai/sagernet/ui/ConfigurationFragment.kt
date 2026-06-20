@@ -914,7 +914,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
         test.cancel = {
             test.dialogStatus.set(2)
-            dialog.dismiss()
+            try { dialog.dismiss() } catch (e: IllegalStateException) { Logs.w(e) } // dialog window may be gone after rotation (#1141)
             runOnDefaultDispatcher {
                 mainJob.cancel()
                 testJobs.forEach { it.cancel() }
@@ -983,7 +983,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
         test.cancel = {
             test.dialogStatus.set(2)
-            dialog.dismiss()
+            try { dialog.dismiss() } catch (e: IllegalStateException) { Logs.w(e) } // dialog window may be gone after rotation (#1141)
             runOnDefaultDispatcher {
                 mainJob.cancel()
                 testJobs.forEach { it.cancel() }

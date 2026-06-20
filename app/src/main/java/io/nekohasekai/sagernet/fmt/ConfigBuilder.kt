@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.fmt
 
+import android.os.Build
 import android.widget.Toast
 import io.nekohasekai.sagernet.*
 import io.nekohasekai.sagernet.bg.VpnService
@@ -147,6 +148,14 @@ fun buildConfig(
     val bypassDNSBeans = hashSetOf<AbstractBean>()
     val isVPN = DataStore.serviceMode == Key.MODE_VPN
     val bind = if (!forTest && DataStore.allowAccess) "0.0.0.0" else LOCALHOST
+    // Whether the local mixed (SOCKS/HTTP) inbound is present in the final config.
+    // In VPN/TUN mode it is omitted unless the user opts in (requireProxyInVPN) or the
+    // system HTTP proxy needs it (appendHttpProxy). See issue #1197 / PR #1154.
+    val keepMixedInbound = !forTest && (
+        !isVPN ||
+            DataStore.requireProxyInVPN ||
+            (DataStore.appendHttpProxy && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+        )
     val remoteDns = DataStore.remoteDns.split("\n")
         .mapNotNull { dns -> sanitizeDnsEntry(dns).takeIf { it.isNotBlank() && !it.startsWith("#") } }
     val directDNS = DataStore.directDns.split("\n")
@@ -252,7 +261,11 @@ fun buildConfig(
                     }
                 }
             })
-            inbounds.add(Inbound_MixedOptions().apply {
+            // Local mixed (SOCKS/HTTP) inbound. In VPN/TUN mode this port is usually
+            // unnecessary and only widens the local attack surface (issue #1197), so it
+            // is omitted unless the user opts in (requireProxyInVPN) or the system HTTP
+            // proxy needs it (appendHttpProxy routes the device proxy through this port).
+            if (keepMixedInbound) inbounds.add(Inbound_MixedOptions().apply {
                 type = "mixed"
                 tag = TAG_MIXED
                 listen = bind
@@ -570,7 +583,7 @@ fun buildConfig(
                 outbound = mainProxyTag
             })
 
-            route.rules.add(Rule_DefaultOptions().apply {
+            if (keepMixedInbound) route.rules.add(Rule_DefaultOptions().apply {
                 inbound = listOf(TAG_MIXED)
                 outbound = mainProxyTag
             })

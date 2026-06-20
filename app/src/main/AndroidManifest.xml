@@ -74,7 +74,7 @@
 
         <activity
             android:name="io.nekohasekai.sagernet.ui.MainActivity"
-            android:configChanges="uiMode"
+            android:configChanges="uiMode|orientation|screenSize|keyboardHidden"
             android:exported="true"
             android:launchMode="singleTask">
             <intent-filter>
