@@ -4,24 +4,28 @@
 
     <EditTextPreference
         android:key="webdavServer"
+        app:icon="@drawable/ic_file_cloud_queue"
         android:title="@string/webdav_server"
         android:singleLine="true"
         android:summary="%s" />
 
     <EditTextPreference
         android:key="webdavUsername"
+        app:icon="@drawable/ic_baseline_person_24"
         android:title="@string/webdav_username"
         android:singleLine="true"
         android:summary="%s" />
 
     <EditTextPreference
         android:key="webdavPassword"
+        app:icon="@drawable/ic_settings_password"
         android:title="@string/webdav_password"
         android:singleLine="true"
         app:dialogLayout="@layout/layout_password_dialog" />
 
     <EditTextPreference
         android:key="webdavPath"
+        app:icon="@drawable/ic_baseline_folder_open_24"
         android:title="@string/webdav_path"
         android:singleLine="true"
         android:defaultValue="NekoBox"
@@ -29,6 +33,7 @@
 
     <Preference
         android:key="webdavTest"
+        app:icon="@drawable/ic_baseline_cast_connected_24"
         android:title="@string/webdav_test" />
 
 </PreferenceScreen>
