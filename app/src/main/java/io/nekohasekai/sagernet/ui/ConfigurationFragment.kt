@@ -864,6 +864,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                                     if (!isActive) break
                                     profile.status = 1
                                     profile.ping = (SystemClock.elapsedRealtime() - start).toInt()
+                                    // Clear any stale error from a previous failed test.
+                                    profile.error = null
                                     test.update(profile)
                                 } finally {
                                     socket.closeQuietly()
@@ -962,14 +964,23 @@ class ConfigurationFragment @JvmOverloads constructor(
                             val result = urlTest.doTest(profile)
                             profile.status = 1
                             profile.ping = result
+                            // Clear any stale error from a previous failed test so a now-passing
+                            // profile doesn't keep showing an old failure message.
+                            profile.error = null
                         } catch (e: PluginManager.PluginNotFoundException) {
+                            if (!isActive) break
                             profile.status = 2
                             profile.error = e.readableMessage
                         } catch (e: Exception) {
+                            // A cancelled test (dialog cancel / teardown) kills the sidecar
+                            // mid-handshake and throws here. Don't record that as a profile
+                            // failure — it isn't one. The pingTest path guards the same way.
+                            if (!isActive) break
                             profile.status = 3
                             profile.error = e.readableMessage
                         }
 
+                        if (!isActive) break
                         test.update(profile)
                     }
                 })
