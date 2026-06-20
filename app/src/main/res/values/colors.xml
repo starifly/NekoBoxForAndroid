@@ -349,4 +349,12 @@
     <color name="card_elevated_verdant_mint">#EBF9F3</color>
     <color name="card_elevated_dracula">#F1EAFB</color>
 
+    <!-- Dracula canvas surfaces. The Dracula theme forces night mode on, so the live
+         values come from values-night; these base declarations exist so the resources
+         always resolve (avoids MissingDefaultResource / a crash if queried in a non-night
+         configuration) and intentionally use the same dark Dracula palette. -->
+    <color name="dracula_background">#282A36</color>
+    <color name="dracula_surface">#343746</color>
+    <color name="dracula_on_surface">#F8F8F2</color>
+
 </resources>
