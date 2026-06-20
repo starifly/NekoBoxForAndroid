@@ -118,12 +118,22 @@ fun Project.setupAppCommon() {
     val keystorePwd = lp.getProperty("KEYSTORE_PASS") ?: System.getenv("KEYSTORE_PASS")
     val alias = lp.getProperty("ALIAS_NAME") ?: System.getenv("ALIAS_NAME")
     val pwd = lp.getProperty("ALIAS_PASS") ?: System.getenv("ALIAS_PASS")
+    // release.keystore is intentionally NOT committed (gitignored). CI decodes it from
+    // the KEYSTORE_B64 secret before the release build. Only wire up release signing when
+    // the keystore file is actually present and a (non-blank) password is provided;
+    // otherwise skip it so debug / PR / keyless builds don't fail. Empty-string env vars
+    // (unset GitHub secrets expand to "") count as absent.
+    val releaseKeystore = rootProject.file("release.keystore")
+    val canSign = releaseKeystore.exists() &&
+        !keystorePwd.isNullOrBlank() &&
+        !alias.isNullOrBlank() &&
+        !pwd.isNullOrBlank()
 
     android.apply {
-        if (keystorePwd != null) {
+        if (canSign) {
             signingConfigs {
                 create("release") {
-                    storeFile = rootProject.file("release.keystore")
+                    storeFile = releaseKeystore
                     storePassword = keystorePwd
                     keyAlias = alias
                     keyPassword = pwd

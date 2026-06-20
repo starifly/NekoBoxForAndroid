@@ -13,6 +13,9 @@ __MACOSX/
 .gradle/
 .kotlin/
 build/
+# buildSrc/build is sometimes a symlink to APFS /tmp (exFAT AppleDouble workaround);
+# the trailing-slash 'build/' rule above doesn't match a symlink, so ignore it explicitly.
+buildSrc/build
 
 # Android / native build outputs
 /captures/
