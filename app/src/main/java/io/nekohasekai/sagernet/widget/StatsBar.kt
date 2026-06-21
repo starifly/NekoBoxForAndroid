@@ -122,7 +122,7 @@ class StatsBar @JvmOverloads constructor(
     }
 
     fun changeState(state: BaseService.State) {
-        val activity = context as MainActivity
+        val activity = context.unwrap<MainActivity>()
         fun postWhenStarted(what: () -> Unit) = activity.lifecycleScope.launch(Dispatchers.Main) {
             delay(100L)
             activity.withStarted { what() }
@@ -172,7 +172,7 @@ class StatsBar @JvmOverloads constructor(
     }
 
     fun testConnection() {
-        val activity = context as MainActivity
+        val activity = context.unwrap<MainActivity>()
         isEnabled = false
         // "Testing…" in the testing color.
         statusText.setTextColor(context.getColorAttr(R.attr.statusTestingColor))

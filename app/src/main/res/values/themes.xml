@@ -1,6 +1,9 @@
 <resources>
-    <!-- Base application theme. -->
-    <style name="Theme.SagerNet" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <!-- Base application theme. Migrated to Material 3. M3 derives the accent/variant
+         roles from colorPrimary, but this app sets explicit per-theme palettes, so the
+         key M3 color roles are populated below and per-theme overrides follow in each
+         Theme.SagerNet.* variant. -->
+    <style name="Theme.SagerNet" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="actionBarStyle">@style/Widget.MaterialComponents.ActionBar.Solid</item>
         <!-- Protocol/type label color; defaults to accent, Dracula overrides green. -->
         <item name="protocolColor">?attr/accentOrTextSecondary</item>
@@ -56,7 +59,7 @@
         <item name="chipStyle">@style/Widget.MaterialComponents.Chip.Choice.SagerNet</item>
 
         <item name="itemShapeAppearance">
-            @style/ShapeAppearance.MaterialComponents.MediumComponent
+            @style/ShapeAppearance.Material3.MediumComponent
         </item>
 
         <item name="alertDialogTheme">
@@ -76,7 +79,7 @@
 
     </style>
 
-    <style name="Theme.SagerNet.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
+    <style name="Theme.SagerNet.Dialog" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="actionBarStyle">@style/Widget.MaterialComponents.ActionBar.Solid</item>
         <item name="protocolColor">?attr/accentOrTextSecondary</item>
         <item name="profileNameColor">?android:attr/textColorPrimary</item>
@@ -125,7 +128,7 @@
         <item name="chipStyle">@style/Widget.MaterialComponents.Chip.Choice.SagerNet</item>
 
         <item name="itemShapeAppearance">
-            @style/ShapeAppearance.MaterialComponents.MediumComponent
+            @style/ShapeAppearance.Material3.MediumComponent
         </item>
 
         <item name="alertDialogTheme">
@@ -184,7 +187,7 @@
         <item name="rippleColor">@color/chip_ripple_color</item>
     </style>
 
-    <style name="Widget.SagerNet.CardView" parent="Widget.MaterialComponents.CardView">
+    <style name="Widget.SagerNet.CardView" parent="Widget.Material3.CardView.Filled">
         <item name="cardElevation">0dp</item>
         <item name="cardCornerRadius">@dimen/card_corner_radius</item>
         <item name="strokeColor">@color/card_stroke</item>
@@ -208,7 +211,7 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">@dimen/input_corner_radius</item>
     </style>
-    <style name="Widget.SagerNet.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+    <style name="Widget.SagerNet.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
         <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.SagerNet.Input</item>
     </style>
 
@@ -217,11 +220,11 @@
         <item name="android:windowExitAnimation">@anim/popup_exit</item>
     </style>
 
-    <style name="Widget.SagerNet.PopupMenu" parent="Widget.MaterialComponents.PopupMenu">
+    <style name="Widget.SagerNet.PopupMenu" parent="Widget.Material3.PopupMenu">
         <item name="android:popupBackground">@drawable/bg_popup_menu</item>
         <item name="android:popupAnimationStyle">@style/PopupMenuAnimation</item>
     </style>
-    <style name="Widget.SagerNet.PopupMenu.Overflow" parent="Widget.MaterialComponents.PopupMenu.Overflow">
+    <style name="Widget.SagerNet.PopupMenu.Overflow" parent="Widget.Material3.PopupMenu.Overflow">
         <item name="android:popupBackground">@drawable/bg_popup_menu</item>
         <item name="android:popupAnimationStyle">@style/PopupMenuAnimation</item>
     </style>
@@ -233,10 +236,10 @@
         <item name="cornerSizeBottomLeft">0dp</item>
         <item name="cornerSizeBottomRight">0dp</item>
     </style>
-    <style name="Widget.SagerNet.BottomSheet" parent="Widget.MaterialComponents.BottomSheet.Modal">
+    <style name="Widget.SagerNet.BottomSheet" parent="Widget.Material3.BottomSheet.Modal">
         <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.SagerNet.BottomSheet</item>
     </style>
-    <style name="ThemeOverlay.SagerNet.BottomSheetDialog" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
+    <style name="ThemeOverlay.SagerNet.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/Widget.SagerNet.BottomSheet</item>
     </style>
 
@@ -244,11 +247,11 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">@dimen/button_corner_radius</item>
     </style>
-    <style name="Widget.SagerNet.Button" parent="Widget.MaterialComponents.Button">
+    <style name="Widget.SagerNet.Button" parent="Widget.Material3.Button">
         <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.SagerNet.Button</item>
     </style>
 
-    <style name="ShapeAppearance.SagerNet.NavItem" parent="ShapeAppearance.MaterialComponents.SmallComponent">
+    <style name="ShapeAppearance.SagerNet.NavItem" parent="ShapeAppearance.Material3.SmallComponent">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">@dimen/nav_item_corner_radius</item>
     </style>
@@ -701,7 +704,7 @@
         <item name="routeProxyColor">@color/color_dracula_cyan</item>
     </style>
 
-    <style name="Theme.Start" parent="Theme.MaterialComponents.DayNight">
+    <style name="Theme.Start" parent="Theme.Material3.DayNight">
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="colorPrimary">@android:color/transparent</item>
         <item name="colorPrimaryDark">@android:color/transparent</item>
