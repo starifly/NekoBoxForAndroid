@@ -7,6 +7,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.ViewGroup.MarginLayoutParams
 import android.widget.LinearLayout
+import androidx.activity.addCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -53,6 +54,10 @@ class ConfigEditActivity : ThemedActivity() {
     @SuppressLint("InlinedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        onBackPressedDispatcher.addCallback(this) {
+            if (dirty) UnsavedChangesDialogFragment().apply { key() }
+                .show(supportFragmentManager, null) else finish()
+        }
 
         intent?.extras?.apply {
             getString("key")?.let { key = it }
@@ -165,13 +170,10 @@ class ConfigEditActivity : ThemedActivity() {
         }
     }
 
-    override fun onBackPressed() {
-        if (dirty) UnsavedChangesDialogFragment().apply { key() }
-            .show(supportFragmentManager, null) else super.onBackPressed()
-    }
-
     override fun onSupportNavigateUp(): Boolean {
-        if (!super.onSupportNavigateUp()) finish()
+        // Route the action-bar up button through the back dispatcher so it honors the
+        // unsaved-changes guard instead of finishing directly (avoids data loss).
+        onBackPressedDispatcher.onBackPressed()
         return true
     }
 
