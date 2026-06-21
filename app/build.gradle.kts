@@ -60,7 +60,18 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("com.google.code.gson:gson:2.11.0")
 
-    implementation("com.github.jenly1314:zxing-lite:2.1.1")
+    // QR scanning: CameraX live preview/analysis + ML Kit bundled barcode model.
+    // Bundled (not play-services-*) so detection works fully offline with no Google
+    // Play Services dependency — important for de-Googled ROMs. Replaces zxing-lite,
+    // which pulled in ancient CameraX 1.0.x and a weaker ZXing decoder.
+    implementation("androidx.camera:camera-core:1.4.1")
+    implementation("androidx.camera:camera-camera2:1.4.1")
+    implementation("androidx.camera:camera-lifecycle:1.4.1")
+    implementation("androidx.camera:camera-view:1.4.1")
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
+    // ZXing core (pure-Java) is kept only for QR *generation* (QRCodeDialog); ML Kit
+    // scans but cannot encode. It was previously transitive via zxing-lite.
+    implementation("com.google.zxing:core:3.5.3")
     implementation("com.blacksquircle.ui:editorkit:2.6.0")
     implementation("com.blacksquircle.ui:language-base:2.6.0")
     implementation("com.blacksquircle.ui:language-json:2.6.0")

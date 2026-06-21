@@ -265,6 +265,11 @@
     <string name="action_export">Export</string>
     <string name="action_import">Import from Clipboard</string>
     <string name="action_import_file">Import from file</string>
+    <string name="scan_qr_hint">Point the camera at a QR code</string>
+    <string name="scan_toggle_torch">Toggle flashlight</string>
+    <string name="scan_torch_turn_on">Turn flashlight on</string>
+    <string name="scan_torch_turn_off">Turn flashlight off</string>
+    <string name="scan_no_qr_found">No QR code found in the selected image</string>
     <string name="action_export_msg">Successfully export!</string>
     <string name="action_export_err">Failed to export.</string>
     <string name="action_import_msg">Successfully import!</string>
