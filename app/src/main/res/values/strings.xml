@@ -309,6 +309,8 @@
     <string name="donate_info">I love money</string>
     <string name="ignore_battery_optimizations">Ignore battery optimizations</string>
     <string name="ignore_battery_optimizations_sum">Remove some restrictions</string>
+    <string name="battery_optimization_enabled">Enabled — the app can run unrestricted in the background</string>
+    <string name="battery_optimization_disabled">Disabled — tap to allow background activity</string>
     <!-- plugin -->
     <string name="plugin">Plugin</string>
     <string name="plugin_configure">Configure…</string>

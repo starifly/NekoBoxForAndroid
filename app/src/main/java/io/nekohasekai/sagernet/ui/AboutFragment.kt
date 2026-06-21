@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.ui
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -10,8 +9,6 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.view.View
 import android.widget.Toast
-import androidx.activity.result.component1
-import androidx.activity.result.component2
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -51,12 +48,13 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
 
         val requestIgnoreBatteryOptimizations = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
-        ) { (resultCode, _) ->
-            if (resultCode == Activity.RESULT_OK) {
-                parentFragmentManager.beginTransaction()
-                    .replace(R.id.about_fragment_holder, AboutContent())
-                    .commitAllowingStateLoss()
-            }
+        ) {
+            // The battery-optimization request/settings screen returns RESULT_CANCELED even
+            // when the user actually granted the exemption, so don't gate on the result code
+            // — just rebuild the list so the item's on/off subtext reflects the new state.
+            // Guard with isAdded: the fragment may be detached while the settings screen was
+            // open, and refreshMaterialAboutList() would otherwise touch a null adapter.
+            if (isAdded) refreshMaterialAboutList()
         }
 
         override fun getMaterialAboutList(activityContext: Context): MaterialAboutList {
@@ -131,22 +129,32 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                         .apply {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                 val pm = app.getSystemService(Context.POWER_SERVICE) as PowerManager
-                                if (!pm.isIgnoringBatteryOptimizations(app.packageName)) {
-                                    addItem(
-                                        MaterialAboutActionItem.Builder()
-                                            .icon(R.drawable.ic_baseline_running_with_errors_24)
-                                            .text(R.string.ignore_battery_optimizations)
-                                            .subText(R.string.ignore_battery_optimizations_sum)
-                                            .setOnClickAction {
-                                                requestIgnoreBatteryOptimizations.launch(
-                                                    Intent(
-                                                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                                                        "package:${app.packageName}".toUri()
-                                                    )
+                                val ignoring = pm.isIgnoringBatteryOptimizations(app.packageName)
+                                addItem(
+                                    MaterialAboutActionItem.Builder()
+                                        .icon(R.drawable.ic_baseline_running_with_errors_24)
+                                        .text(R.string.ignore_battery_optimizations)
+                                        .subText(
+                                            if (ignoring) R.string.battery_optimization_enabled
+                                            else R.string.battery_optimization_disabled
+                                        )
+                                        .setOnClickAction {
+                                            // The ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                                            // dialog only appears while the app is still
+                                            // optimized; once exempt it is a no-op. So when
+                                            // already exempt, send the user to the battery
+                                            // settings screen where they can toggle it back off.
+                                            val intent = if (ignoring) {
+                                                Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                                            } else {
+                                                Intent(
+                                                    Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                                                    "package:${app.packageName}".toUri()
                                                 )
                                             }
-                                            .build())
-                                }
+                                            requestIgnoreBatteryOptimizations.launch(intent)
+                                        }
+                                        .build())
                             }
                         }
                         .build())
