@@ -641,7 +641,7 @@
         <item name="cardElevatedSurfaceColor">@color/card_elevated_black</item>
 
         <item name="selectedColorPrimary">@color/color_ng_black_accent</item>
-        <item name="fabColorBackground">@color/color_ng_black_accent</item>
+        <item name="fabColorBackground">@color/color_ng_black_primary</item>
         <item name="itemShapeFillColor">@color/color_ng_black_accent</item>
         <item name="navSelectedColor">@color/color_ng_black_accent</item>
 
@@ -694,7 +694,7 @@
         <item name="cardElevatedSurfaceColor">@color/card_elevated_black</item>
 
         <item name="selectedColorPrimary">@color/color_ng_black_accent</item>
-        <item name="fabColorBackground">@color/color_ng_black_accent</item>
+        <item name="fabColorBackground">@color/color_ng_black_primary</item>
         <item name="itemShapeFillColor">@color/color_ng_black_accent</item>
 
         <item name="accentOrTextSecondary">?android:textColorSecondary</item>
