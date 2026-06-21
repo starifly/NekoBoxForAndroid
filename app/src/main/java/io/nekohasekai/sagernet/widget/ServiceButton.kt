@@ -67,11 +67,12 @@ class ServiceButton @JvmOverloads constructor(
     private val iconConnecting by lazy {
         AnimatedState(R.drawable.ic_service_connecting) {
             hideProgress()
-            delayedAnimation = context.unwrap<LifecycleOwner>().lifecycleScope.launch {
+            val owner = context.unwrap<LifecycleOwner>()
+            delayedAnimation = owner.lifecycleScope.launch {
                 delay(context.resources.getInteger(android.R.integer.config_mediumAnimTime) + 1000L)
                 // Gate the UI mutation on STARTED so a delayed progress reveal doesn't run
                 // while the activity is stopped (the old launchWhenStarted suspended here).
-                context.unwrap<LifecycleOwner>().withStarted {
+                owner.withStarted {
                     isIndeterminate = true
                     show()
                 }
