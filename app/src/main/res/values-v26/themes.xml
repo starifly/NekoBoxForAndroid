@@ -10,6 +10,7 @@
         <item name="profileNameColor">?android:attr/textColorPrimary</item>
         <item name="statusConnectedColor">?attr/colorOnPrimary</item>
         <item name="statusStoppedColor">?attr/colorOnPrimary</item>
+        <item name="statusConnectingColor">?attr/colorOnPrimary</item>
         <item name="testFailColor">@color/material_red_500</item>
         <item name="speedTextColor">?attr/colorOnPrimary</item>
         <item name="fabStoppedColor">?attr/colorOnPrimary</item>

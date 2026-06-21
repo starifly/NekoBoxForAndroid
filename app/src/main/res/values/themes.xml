@@ -9,6 +9,7 @@
         <item name="profileNameColor">?android:attr/textColorPrimary</item>
         <item name="statusConnectedColor">?attr/colorOnPrimary</item>
         <item name="statusStoppedColor">?attr/colorOnPrimary</item>
+        <item name="statusConnectingColor">?attr/colorOnPrimary</item>
         <item name="testFailColor">@color/material_red_500</item>
         <item name="speedTextColor">?attr/colorOnPrimary</item>
         <item name="fabStoppedColor">?attr/colorOnPrimary</item>
@@ -81,6 +82,7 @@
         <item name="profileNameColor">?android:attr/textColorPrimary</item>
         <item name="statusConnectedColor">?attr/colorOnPrimary</item>
         <item name="statusStoppedColor">?attr/colorOnPrimary</item>
+        <item name="statusConnectingColor">?attr/colorOnPrimary</item>
         <item name="testFailColor">@color/material_red_500</item>
         <item name="speedTextColor">?attr/colorOnPrimary</item>
         <item name="fabStoppedColor">?attr/colorOnPrimary</item>
@@ -642,6 +644,7 @@
         <item name="profileNameColor">@color/color_dracula_yellow</item>
         <item name="statusConnectedColor">@color/color_dracula_green</item>
         <item name="statusStoppedColor">@color/color_dracula_red</item>
+        <item name="statusConnectingColor">@color/color_dracula_yellow</item>
         <item name="testFailColor">@color/color_dracula_red</item>
         <item name="speedTextColor">@color/color_dracula_cyan</item>
         <item name="fabStoppedColor">@color/color_dracula_cyan</item>
@@ -689,6 +692,7 @@
         <item name="profileNameColor">@color/color_dracula_yellow</item>
         <item name="statusConnectedColor">@color/color_dracula_green</item>
         <item name="statusStoppedColor">@color/color_dracula_red</item>
+        <item name="statusConnectingColor">@color/color_dracula_yellow</item>
         <item name="testFailColor">@color/color_dracula_red</item>
         <item name="speedTextColor">@color/color_dracula_cyan</item>
         <item name="fabStoppedColor">@color/color_dracula_cyan</item>

@@ -109,11 +109,13 @@ class StatsBar @JvmOverloads constructor(
 
     private fun setStatusColorByState(state: BaseService.State) {
         // Connected = statusConnectedColor (green), Stopped/Stopping = statusStoppedColor
-        // (red — "Shutting down…" reads as red), Connecting/other = colorOnPrimary.
+        // (red — "Shutting down…" reads as red), Connecting = statusConnectingColor (Dracula
+        // yellow; colorOnPrimary elsewhere), other = colorOnPrimary.
         // Non-Dracula themes default these attrs to colorOnPrimary, so no change.
         val attr = when (state) {
             BaseService.State.Connected -> R.attr.statusConnectedColor
             BaseService.State.Stopped, BaseService.State.Stopping -> R.attr.statusStoppedColor
+            BaseService.State.Connecting -> R.attr.statusConnectingColor
             else -> com.google.android.material.R.attr.colorOnPrimary
         }
         statusText.setTextColor(context.getColorAttr(attr))

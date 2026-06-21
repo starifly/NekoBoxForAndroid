@@ -11,6 +11,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Resources
+import android.graphics.Color
 import android.os.Build
 import android.system.Os
 import android.system.OsConstants
@@ -284,9 +285,22 @@ fun Context.getColour(@ColorRes colorRes: Int): Int {
 }
 
 fun Context.getColorAttr(@AttrRes resId: Int): Int {
-    return ContextCompat.getColor(this, TypedValue().also {
-        theme.resolveAttribute(resId, it, true)
-    }.resourceId)
+    val tv = TypedValue()
+    // resolveRefs = true follows ?attr chains (e.g. statusConnectingColor -> colorOnPrimary).
+    // The result is either a color-resource reference (resourceId != 0) or a literal color
+    // value (resourceId == 0); ContextCompat.getColor(0) would throw on the latter.
+    theme.resolveAttribute(resId, tv, true)
+    if (tv.resourceId != 0) {
+        return ContextCompat.getColor(this, tv.resourceId)
+    }
+    // No backing resource: the attr resolved directly to a literal value. Use it only
+    // when it is actually a color (e.g. ?attr/colorOnPrimary defined as a literal);
+    // otherwise fall back to a safe default rather than returning a garbage int.
+    return if (tv.type in TypedValue.TYPE_FIRST_COLOR_INT..TypedValue.TYPE_LAST_COLOR_INT) {
+        tv.data
+    } else {
+        Color.TRANSPARENT
+    }
 }
 
 val isExpert: Boolean by lazy { BuildConfig.DEBUG || DataStore.isExpert }

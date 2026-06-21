@@ -32,6 +32,7 @@
         <item name="profileNameColor">@color/color_dracula_yellow</item>
         <item name="statusConnectedColor">@color/color_dracula_green</item>
         <item name="statusStoppedColor">@color/color_dracula_red</item>
+        <item name="statusConnectingColor">@color/color_dracula_yellow</item>
         <item name="testFailColor">@color/color_dracula_red</item>
         <item name="speedTextColor">@color/color_dracula_cyan</item>
         <item name="fabStoppedColor">@color/color_dracula_cyan</item>
@@ -57,6 +58,7 @@
         <item name="profileNameColor">@color/color_dracula_yellow</item>
         <item name="statusConnectedColor">@color/color_dracula_green</item>
         <item name="statusStoppedColor">@color/color_dracula_red</item>
+        <item name="statusConnectingColor">@color/color_dracula_yellow</item>
         <item name="testFailColor">@color/color_dracula_red</item>
         <item name="speedTextColor">@color/color_dracula_cyan</item>
         <item name="fabStoppedColor">@color/color_dracula_cyan</item>

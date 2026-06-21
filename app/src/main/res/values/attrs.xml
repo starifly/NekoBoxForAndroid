@@ -19,6 +19,9 @@
          Dracula themes are unchanged; Dracula tints connected=green, stopped=red. -->
     <attr name="statusConnectedColor" format="color" />
     <attr name="statusStoppedColor" format="color" />
+    <!-- "Connecting…" in-progress status text. Default on-primary; Dracula = yellow
+         (on-primary resolved to dark on Dracula's light-purple primary). -->
+    <attr name="statusConnectingColor" format="color" />
     <!-- Connection-test failure color. Default Material red; Dracula = #ff5555. -->
     <attr name="testFailColor" format="color" />
     <!-- Bottom-bar speed text (arrows + rate). Default on-primary; Dracula = yellow. -->
