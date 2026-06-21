@@ -27,6 +27,8 @@
             android:nextFocusUp="@+id/fab"
             app:backgroundTint="?colorPrimary"
             app:contentInsetStart="0dp"
+            app:fabAlignmentMode="center"
+            app:fabAnchorMode="cradle"
             app:hideOnScroll="true"
             app:layout_scrollFlags="enterAlways|scroll">
 
@@ -75,9 +77,8 @@
         </io.nekohasekai.sagernet.widget.StatsBar>
 
         <!-- FAB + its progress are declared AFTER the StatsBar so the airplane draws on top
-             of the bottom bar and wins touch in the overlap region. (M2's BottomAppBar cut a
-             cradle hole for the FAB; M3's bar fills it, so without this the bar covered and
-             intercepted the FAB when connected.) -->
+             of the bottom bar and wins touch in the overlap region. StatsBar opts into the
+             legacy BottomAppBar cradle so the centered FAB docks into the bar. -->
         <!-- We double trackThickness as half of it will be invisible -->
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/fabProgress"
@@ -96,13 +97,11 @@
             android:id="@+id/fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
             android:elevation="6dp"
             android:nextFocusDown="@+id/stats"
-            app:backgroundTint="?attr/colorTertiaryContainer"
-            app:tint="?attr/colorOnTertiaryContainer"
+            app:backgroundTint="?attr/fabColorBackground"
+            app:tint="?attr/fabStoppedColor"
             app:layout_anchor="@id/stats"
-            app:layout_anchorGravity="top|end"
             app:pressedTranslationZ="6dp"
             app:srcCompat="@drawable/ic_service_idle" />
 

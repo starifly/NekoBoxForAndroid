@@ -1,10 +1,11 @@
 <resources>
-    <!-- Base application theme. Migrated to Material 3. M3 derives the accent/variant
-         roles from colorPrimary, but this app sets explicit per-theme palettes, so the
-         key M3 color roles are populated below and per-theme overrides follow in each
-         Theme.SagerNet.* variant. -->
+    <!-- Base application theme. Migrated to Material 3 while keeping the app's
+         hand-picked legacy palettes. Components that need legacy behavior get
+         explicit SagerNet widget styles instead of relying on generated M3 tones. -->
     <style name="Theme.SagerNet" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="actionBarStyle">@style/Widget.MaterialComponents.ActionBar.Solid</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar</item>
+        <item name="floatingActionButtonStyle">@style/Widget.SagerNet.FloatingActionButton</item>
         <!-- Protocol/type label color; defaults to accent, Dracula overrides green. -->
         <item name="protocolColor">?attr/accentOrTextSecondary</item>
         <!-- Per-theme semantic colors; default to primary text (no visible change),
@@ -31,6 +32,7 @@
         <item name="colorPrimary">@color/material_pink_500</item>
         <item name="colorPrimaryDark">@color/material_pink_700</item>
         <item name="colorAccent">@color/material_pink_accent_200</item>
+        <item name="colorOnPrimary">@color/white</item>
 
         <item name="colorMaterial100">@color/material_pink_100</item>
         <item name="colorMaterial300">@color/material_pink_300</item>
@@ -81,6 +83,8 @@
 
     <style name="Theme.SagerNet.Dialog" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="actionBarStyle">@style/Widget.MaterialComponents.ActionBar.Solid</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar</item>
+        <item name="floatingActionButtonStyle">@style/Widget.SagerNet.FloatingActionButton</item>
         <item name="protocolColor">?attr/accentOrTextSecondary</item>
         <item name="profileNameColor">?android:attr/textColorPrimary</item>
         <item name="statusConnectedColor">?attr/colorOnPrimary</item>
@@ -100,6 +104,7 @@
         <item name="colorPrimary">@color/material_pink_500</item>
         <item name="colorPrimaryDark">@color/material_pink_700</item>
         <item name="colorAccent">@color/material_pink_accent_200</item>
+        <item name="colorOnPrimary">@color/white</item>
 
         <item name="colorMaterial100">@color/material_pink_100</item>
         <item name="colorMaterial300">@color/material_pink_300</item>
@@ -187,7 +192,24 @@
         <item name="rippleColor">@color/chip_ripple_color</item>
     </style>
 
-    <style name="Widget.SagerNet.CardView" parent="Widget.Material3.CardView.Filled">
+    <style name="Widget.SagerNet.BottomAppBar" parent="Widget.Material3.BottomAppBar">
+        <item name="backgroundTint">?attr/colorPrimary</item>
+        <item name="fabAlignmentMode">center</item>
+        <item name="fabAlignmentModeEndMargin">@null</item>
+        <item name="fabAnchorMode">cradle</item>
+        <item name="menuAlignmentMode">auto</item>
+        <item name="removeEmbeddedFabElevation">false</item>
+    </style>
+
+    <style name="Widget.SagerNet.FloatingActionButton" parent="Widget.Material3.FloatingActionButton.Primary">
+        <item name="backgroundTint">?attr/fabColorBackground</item>
+        <item name="tint">?attr/colorOnPrimary</item>
+    </style>
+
+    <!-- Use the Material 3 *Outlined* card as the base so M3's surface-tint elevation
+         overlay is not applied; the app sets its own card background/stroke colors and an
+         olive tint was bleeding through Filled cards on the custom (non-M3-role) themes. -->
+    <style name="Widget.SagerNet.CardView" parent="Widget.Material3.CardView.Outlined">
         <item name="cardElevation">0dp</item>
         <item name="cardCornerRadius">@dimen/card_corner_radius</item>
         <item name="strokeColor">@color/card_stroke</item>
@@ -273,6 +295,7 @@
         <item name="colorPrimary">@color/material_amber_500</item>
         <item name="colorPrimaryDark">@color/material_amber_700</item>
         <item name="colorAccent">@color/material_amber_accent_200</item>
+        <item name="colorOnPrimary">@color/black</item>
         <item name="colorMaterial100">@color/material_amber_100</item>
         <item name="colorMaterial300">@color/material_amber_300</item>
         <item name="cardElevatedSurfaceColor">@color/card_elevated_amber</item>
@@ -381,6 +404,7 @@
         <item name="colorPrimary">@color/material_lime_500</item>
         <item name="colorPrimaryDark">@color/material_lime_700</item>
         <item name="colorAccent">@color/material_lime_accent_200</item>
+        <item name="colorOnPrimary">@color/black</item>
         <item name="colorMaterial100">@color/material_lime_100</item>
         <item name="colorMaterial300">@color/material_lime_300</item>
         <item name="cardElevatedSurfaceColor">@color/card_elevated_lime</item>
@@ -426,6 +450,7 @@
         <item name="colorPrimary">@color/material_yellow_500</item>
         <item name="colorPrimaryDark">@color/material_yellow_700</item>
         <item name="colorAccent">@color/material_yellow_accent_200</item>
+        <item name="colorOnPrimary">@color/black</item>
         <item name="colorMaterial100">@color/material_yellow_100</item>
         <item name="colorMaterial300">@color/material_yellow_300</item>
         <item name="cardElevatedSurfaceColor">@color/card_elevated_yellow</item>
@@ -436,6 +461,7 @@
         <item name="colorPrimary">@color/material_amber_500</item>
         <item name="colorPrimaryDark">@color/material_amber_700</item>
         <item name="colorAccent">@color/material_amber_accent_200</item>
+        <item name="colorOnPrimary">@color/black</item>
         <item name="colorMaterial100">@color/material_amber_100</item>
         <item name="colorMaterial300">@color/material_amber_300</item>
         <item name="cardElevatedSurfaceColor">@color/card_elevated_amber</item>
@@ -544,6 +570,7 @@
         <item name="colorPrimary">@color/material_lime_500</item>
         <item name="colorPrimaryDark">@color/material_lime_700</item>
         <item name="colorAccent">@color/material_lime_accent_200</item>
+        <item name="colorOnPrimary">@color/black</item>
         <item name="colorMaterial100">@color/material_lime_100</item>
         <item name="colorMaterial300">@color/material_lime_300</item>
         <item name="cardElevatedSurfaceColor">@color/card_elevated_lime</item>
@@ -598,6 +625,7 @@
         <item name="colorPrimary">@color/material_yellow_500</item>
         <item name="colorPrimaryDark">@color/material_yellow_700</item>
         <item name="colorAccent">@color/material_yellow_accent_200</item>
+        <item name="colorOnPrimary">@color/black</item>
         <item name="colorMaterial100">@color/material_yellow_100</item>
         <item name="colorMaterial300">@color/material_yellow_300</item>
         <item name="cardElevatedSurfaceColor">@color/card_elevated_yellow</item>
