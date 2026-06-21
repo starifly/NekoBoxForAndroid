@@ -26,6 +26,18 @@
         <item name="android:colorBackground">@color/dracula_background</item>
         <item name="colorOnBackground">@color/dracula_on_surface</item>
         <item name="android:windowBackground">@color/dracula_background</item>
+        <!-- M3 container/variant roles on the dark canvas (the base defaults point
+             at the light color_dracula_100 tint, which clashes with light-on-dark
+             text in night mode). -->
+        <item name="colorPrimaryContainer">@color/color_dracula_container</item>
+        <item name="colorOnPrimaryContainer">@color/dracula_on_surface</item>
+        <item name="colorSecondaryContainer">@color/color_dracula_container</item>
+        <item name="colorOnSecondaryContainer">@color/dracula_on_surface</item>
+        <item name="colorTertiaryContainer">@color/color_dracula_container</item>
+        <item name="colorOnTertiaryContainer">@color/dracula_on_surface</item>
+        <item name="colorSurfaceVariant">@color/color_dracula_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/dracula_on_surface</item>
+        <item name="colorOutline">@color/color_dracula_outline</item>
         <!-- Night is Dracula's active code path (it forces night mode on), so the
              semantic color overrides must live here too, not only day. -->
         <item name="protocolColor">@color/color_dracula_green</item>
@@ -54,6 +66,15 @@
         <item name="colorOnSurface">@color/dracula_on_surface</item>
         <item name="android:colorBackground">@color/dracula_background</item>
         <item name="colorOnBackground">@color/dracula_on_surface</item>
+        <item name="colorPrimaryContainer">@color/color_dracula_container</item>
+        <item name="colorOnPrimaryContainer">@color/dracula_on_surface</item>
+        <item name="colorSecondaryContainer">@color/color_dracula_container</item>
+        <item name="colorOnSecondaryContainer">@color/dracula_on_surface</item>
+        <item name="colorTertiaryContainer">@color/color_dracula_container</item>
+        <item name="colorOnTertiaryContainer">@color/dracula_on_surface</item>
+        <item name="colorSurfaceVariant">@color/color_dracula_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/dracula_on_surface</item>
+        <item name="colorOutline">@color/color_dracula_outline</item>
         <item name="protocolColor">@color/color_dracula_green</item>
         <item name="profileNameColor">@color/color_dracula_yellow</item>
         <item name="statusConnectedColor">@color/color_dracula_green</item>

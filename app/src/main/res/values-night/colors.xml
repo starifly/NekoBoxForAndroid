@@ -5,6 +5,11 @@
     <!-- 卡片默认细边框：约 12% 白 -->
     <color name="card_stroke">#1FFFFFFF</color>
 
+    <!-- M3 colorOutline (night): neutral light-gray for borders/dividers on dark surfaces.
+         This is the strong colorOutline role (M3 dark #938F99); the subtler
+         colorOutlineVariant maps to card_stroke (12% white) instead. -->
+    <color name="m3_outline">#938F99</color>
+
     <!-- 路由规则类型颜色（夜间，稍浅） -->
     <color name="color_route_block">#EF5350</color>   <!-- 屏蔽：浅红 -->
     <color name="color_route_direct">#66BB6A</color>  <!-- 直连：浅绿 -->
