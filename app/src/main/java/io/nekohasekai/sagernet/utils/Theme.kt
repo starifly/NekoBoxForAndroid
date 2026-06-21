@@ -32,6 +32,7 @@ object Theme {
     const val BLACK = 21
     const val VERDANT_MINT = 22
     const val DRACULA = 23
+    const val DYNAMIC = 24
 
     private fun defaultTheme() = PINK_SSR
 
@@ -76,6 +77,7 @@ object Theme {
             BLACK -> R.style.Theme_SagerNet_Black
             VERDANT_MINT -> R.style.Theme_SagerNet_VerdantMint
             DRACULA -> R.style.Theme_SagerNet_Dracula
+            DYNAMIC -> R.style.Theme_SagerNet
             else -> getTheme(defaultTheme())
         }
     }
@@ -105,6 +107,7 @@ object Theme {
             BLACK -> R.style.Theme_SagerNet_Dialog_Black
             VERDANT_MINT -> R.style.Theme_SagerNet_Dialog_VerdantMint
             DRACULA -> R.style.Theme_SagerNet_Dialog_Dracula
+            DYNAMIC -> R.style.Theme_SagerNet_Dialog
             else -> getDialogTheme(defaultTheme())
         }
     }

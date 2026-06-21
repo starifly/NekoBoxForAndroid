@@ -19,31 +19,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <!-- We double trackThickness as half of it will be invisible -->
-        <com.google.android.material.progressindicator.CircularProgressIndicator
-            android:id="@+id/fabProgress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:max="1"
-            android:visibility="invisible"
-            app:indicatorColor="?primaryOrTextSecondary"
-            app:layout_anchor="@+id/fab"
-            app:layout_anchorGravity="center"
-            app:layout_behavior="io.nekohasekai.sagernet.widget.FabProgressBehavior"
-            app:trackCornerRadius="@dimen/mtrl_progress_track_thickness"
-            app:trackThickness="8dp" />
-
-        <io.nekohasekai.sagernet.widget.ServiceButton
-            android:id="@+id/fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:elevation="6dp"
-            android:nextFocusDown="@+id/stats"
-            app:backgroundTint="?colorPrimary"
-            app:layout_anchor="@id/stats"
-            app:pressedTranslationZ="6dp"
-            app:srcCompat="@drawable/ic_service_idle" />
-
         <io.nekohasekai.sagernet.widget.StatsBar
             android:id="@+id/stats"
             android:layout_width="match_parent"
@@ -52,6 +27,8 @@
             android:nextFocusUp="@+id/fab"
             app:backgroundTint="?colorPrimary"
             app:contentInsetStart="0dp"
+            app:fabAlignmentMode="center"
+            app:fabAnchorMode="cradle"
             app:hideOnScroll="true"
             app:layout_scrollFlags="enterAlways|scroll">
 
@@ -98,6 +75,35 @@
             </LinearLayout>
 
         </io.nekohasekai.sagernet.widget.StatsBar>
+
+        <!-- FAB + its progress are declared AFTER the StatsBar so the airplane draws on top
+             of the bottom bar and wins touch in the overlap region. StatsBar opts into the
+             legacy BottomAppBar cradle so the centered FAB docks into the bar. -->
+        <!-- We double trackThickness as half of it will be invisible -->
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/fabProgress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:max="1"
+            android:visibility="invisible"
+            app:indicatorColor="?primaryOrTextSecondary"
+            app:layout_anchor="@+id/fab"
+            app:layout_anchorGravity="center"
+            app:layout_behavior="io.nekohasekai.sagernet.widget.FabProgressBehavior"
+            app:trackCornerRadius="@dimen/mtrl_progress_track_thickness"
+            app:trackThickness="8dp" />
+
+        <io.nekohasekai.sagernet.widget.ServiceButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:elevation="6dp"
+            android:nextFocusDown="@+id/stats"
+            app:backgroundTint="?attr/fabColorBackground"
+            app:tint="?attr/fabStoppedColor"
+            app:layout_anchor="@id/stats"
+            app:pressedTranslationZ="6dp"
+            app:srcCompat="@drawable/ic_service_idle" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

@@ -20,6 +20,7 @@ import com.google.android.material.progressindicator.BaseProgressIndicator
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.ktx.getColorAttr
+import io.nekohasekai.sagernet.ktx.unwrap
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -66,11 +67,12 @@ class ServiceButton @JvmOverloads constructor(
     private val iconConnecting by lazy {
         AnimatedState(R.drawable.ic_service_connecting) {
             hideProgress()
-            delayedAnimation = (context as LifecycleOwner).lifecycleScope.launch {
+            val owner = context.unwrap<LifecycleOwner>()
+            delayedAnimation = owner.lifecycleScope.launch {
                 delay(context.resources.getInteger(android.R.integer.config_mediumAnimTime) + 1000L)
                 // Gate the UI mutation on STARTED so a delayed progress reveal doesn't run
                 // while the activity is stopped (the old launchWhenStarted suspended here).
-                (context as LifecycleOwner).withStarted {
+                owner.withStarted {
                     isIndeterminate = true
                     show()
                 }

@@ -28,7 +28,7 @@
                 android:theme="?actionBarTheme"
                 android:touchscreenBlocksFocus="false"
                 app:layout_collapseMode="pin"
-                app:popupTheme="@style/ThemeOverlay.AppCompat.DayNight"
+                app:popupTheme="@style/ThemeOverlay.SagerNet.Toolbar.Popup"
                 app:title="@string/app_name" />
 
             <LinearLayout
@@ -85,7 +85,7 @@
 
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/show_system_apps"
-                                style="@style/Widget.MaterialComponents.Chip.Filter"
+                                style="@style/Widget.Material3.Chip.Filter"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginEnd="8dp"

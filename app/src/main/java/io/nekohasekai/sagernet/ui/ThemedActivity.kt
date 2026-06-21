@@ -12,6 +12,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.color.DynamicColors
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
@@ -32,6 +33,11 @@ abstract class ThemedActivity : AppCompatActivity {
             Theme.applyDialog(this)
         }
         Theme.applyNightTheme()
+
+        // Only the explicit Dynamic (Material You) theme should use wallpaper colors.
+        // The hand-picked themes keep their legacy palettes instead of being reseeded
+        // into Material 3's generated tonal roles.
+        if (!isDialog) applyDynamicColors()
 
         super.onCreate(savedInstanceState)
 
@@ -61,6 +67,18 @@ abstract class ThemedActivity : AppCompatActivity {
         super.setTheme(resId)
 
         themeResId = resId
+    }
+
+    /**
+     * Apply Material 3 dynamic color ONLY when the user explicitly picks the Dynamic
+     * (Material You) theme, and only on Android 12+ where a wallpaper palette exists.
+     * The hand-designed themes keep their own colors untouched — forcing a content-based
+     * reseed on them mangled their palettes into arbitrary M3 tones.
+     */
+    private fun applyDynamicColors() {
+        if (DataStore.appTheme == Theme.DYNAMIC) {
+            DynamicColors.applyToActivityIfAvailable(this)
+        }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

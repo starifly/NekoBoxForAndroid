@@ -27,6 +27,7 @@
         <item>@color/material_light_black</item>
         <item>@color/color_verdant_mint</item>
         <item>@color/color_dracula</item>
+        <item>@color/color_dynamic_swatch</item>
     </integer-array>
 
     <color name="material_amber_100">#FFECB3</color>
@@ -296,6 +297,9 @@
          pink accent. Surfaces are overridden in values-night for the true
          #282a36 canvas; see Theme.SagerNet.Dracula. -->
     <color name="color_dracula">#BD93F9</color>
+    <!-- Representative swatch for the Dynamic (Material You) theme option (wallpaper-based on
+         Android 12+); a neutral system-accent stand-in since it has no fixed color. -->
+    <color name="color_dynamic_swatch">#5E6472</color>
     <color name="color_dracula_dark">#6272A4</color>
     <color name="color_dracula_accent">#FF79C6</color>
     <color name="color_dracula_100">#E9DDFB</color>
@@ -312,6 +316,15 @@
     <color name="color_ng_black_accent">#9E9E9E</color>
     <color name="color_ng_black_primary">#2B2B2B</color>
 
+    <!-- M3 container/surface-variant roles for the special themes, so M3 widgets
+         (chips, tonal buttons, cards) don't fall back to library grayscale.
+         Dracula: dark purple container on its #282A36 canvas; Black: near-black. -->
+    <color name="color_dracula_container">#44355E</color>
+    <color name="color_dracula_surface_variant">#3C3F52</color>
+    <color name="color_dracula_outline">#6272A4</color>
+    <color name="color_ng_black_container">#383838</color>
+    <color name="color_ng_black_surface_variant">#2E2E2E</color>
+
     <!-- 路由规则类型颜色（日间）-->
     <color name="color_route_block">#E53935</color>   <!-- 屏蔽：红色 -->
     <color name="color_route_direct">#43A047</color>  <!-- 直连：绿色 -->
@@ -322,6 +335,10 @@
 
     <!-- 卡片默认细边框：约 12% 黑（低对比分隔线），夜间见 values-night/colors.xml -->
     <color name="card_stroke">#1F000000</color>
+
+    <!-- M3 colorOutline: neutral mid-gray for borders/dividers on light surfaces.
+         Night equivalent in values-night/colors.xml. -->
+    <color name="m3_outline">#79747E</color>
 
     <!-- Elevated-card tonal surface colors (light: white base + ~8% primary tint);
          see values-night/colors.xml for the dark equivalents. -->

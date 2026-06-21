@@ -63,6 +63,21 @@ import kotlin.reflect.KProperty0
 
 fun String?.blankAsNull(): String? = if (isNullOrBlank()) null else this
 
+/**
+ * Resolve the hosting object of type [T] (e.g. the Activity / LifecycleOwner) from a View's
+ * Context. Material 3 themes wrap the view context in a ContextThemeWrapper, so a direct
+ * `context as Activity` cast throws ClassCastException; walk the ContextWrapper.baseContext
+ * chain instead.
+ */
+inline fun <reified T> Context.unwrap(): T {
+    var ctx: Context? = this
+    while (ctx != null) {
+        if (ctx is T) return ctx
+        ctx = (ctx as? android.content.ContextWrapper)?.baseContext
+    }
+    error("Could not unwrap ${T::class.java.simpleName} from context")
+}
+
 inline fun <T> Iterable<T>.forEachTry(action: (T) -> Unit) {
     var result: Exception? = null
     for (element in this) try {
