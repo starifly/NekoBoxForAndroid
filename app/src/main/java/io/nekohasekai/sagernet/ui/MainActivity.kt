@@ -294,10 +294,7 @@ class MainActivity : ThemedActivity(),
             .setPositiveButton(R.string.action_download) { _, _ ->
                 showDownloadDialog(pluginEntity)
             }
-            .setNeutralButton(android.R.string.cancel, null)
-            .setNeutralButton(R.string.action_learn_more) { _, _ ->
-                launchCustomTab("https://matsuridayo.github.io/nb4a-plugin/")
-            }
+            .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
@@ -366,11 +363,6 @@ class MainActivity : ThemedActivity(),
             R.id.nav_traffic -> displayFragment(WebviewFragment())
             R.id.nav_tools -> displayFragment(ToolsFragment())
             R.id.nav_logcat -> displayFragment(LogcatFragment())
-            R.id.nav_faq -> {
-                launchCustomTab("https://matsuridayo.github.io/")
-                return false
-            }
-
             R.id.nav_about -> displayFragment(AboutFragment())
 
             else -> return false
