@@ -35,8 +35,25 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
         // webview
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
         mWebView = binding.webview
-        mWebView.settings.domStorageEnabled = true
-        mWebView.settings.javaScriptEnabled = true
+        mWebView.settings.apply {
+            // The Clash/yacd dashboard is a JS SPA talking to the local Clash API, so JS
+            // and DOM storage are required. Everything else is locked down: the dashboard
+            // (a user-editable URL) must never be able to read the device filesystem or
+            // content providers, escalate from file:// origins, or downgrade to cleartext
+            // resources on an https page.
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            allowFileAccess = false
+            allowContentAccess = false
+            @Suppress("DEPRECATION")
+            allowFileAccessFromFileURLs = false
+            @Suppress("DEPRECATION")
+            allowUniversalAccessFromFileURLs = false
+            mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+            // No automatic JS-initiated window.open popups.
+            javaScriptCanOpenWindowsAutomatically = false
+            setSupportMultipleWindows(false)
+        }
         mWebView.webViewClient = object : WebViewClient() {
             override fun onReceivedError(
                 view: WebView?, request: WebResourceRequest?, error: WebResourceError?
