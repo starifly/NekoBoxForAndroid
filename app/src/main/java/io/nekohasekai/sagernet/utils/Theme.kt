@@ -36,6 +36,24 @@ object Theme {
 
     private fun defaultTheme() = PINK_SSR
 
+    /**
+     * Metadata for a theme shown in the modern named picker.
+     *
+     * @param id          one of the Theme int constants above (persisted to appTheme)
+     * @param nameRes     display name string resource
+     * @param previewColor color resource for the preview swatch shown next to the name
+     */
+    data class ThemeInfo(val id: Int, val nameRes: Int, val previewColor: Int)
+
+    /**
+     * Modern, full-fledged M3 themes presented by name in the picker dialog.
+     * The legacy single-accent palettes stay behind the "Classic colors…" grid.
+     * Order here is the display order in the dialog.
+     */
+    val MODERN_THEMES: List<ThemeInfo> = listOf(
+        ThemeInfo(DYNAMIC, R.string.theme_dynamic, R.color.color_dynamic_swatch),
+    )
+
     fun apply(context: Context) {
         context.setTheme(getTheme())
     }

@@ -64,7 +64,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         DataStore.initGlobal()
         addPreferencesFromResource(R.xml.global_preferences)
 
-        val appTheme = findPreference<ColorPickerPreference>(Key.APP_THEME)!!
+        val appTheme = findPreference<ThemePickerPreference>(Key.APP_THEME)!!
         val nightTheme = findPreference<SimpleMenuPreference>(Key.NIGHT_THEME)!!
         appTheme.setOnPreferenceChangeListener { _, newTheme ->
             if (DataStore.serviceState.started) {
