@@ -556,6 +556,7 @@ fun buildConfig(
                     "fastest"
                 }
                 managed_by_parent = managedByParent
+                wait_for_initial = !managedByParent
             })
 
             trafficMap[groupTag] = buildList {

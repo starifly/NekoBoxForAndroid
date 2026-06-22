@@ -22,6 +22,7 @@ class BalancerOptionsTest {
             tolerance = 50
             strategy = "priority"
             managed_by_parent = true
+            wait_for_initial = true
         }
 
         val json = JsonParser.parseString(Gson().toJson(outbound)).asJsonObject
@@ -31,5 +32,6 @@ class BalancerOptionsTest {
         assertEquals("3000ms", json["timeout"].asString)
         assertEquals("priority", json["strategy"].asString)
         assertTrue(json["managed_by_parent"].asBoolean)
+        assertTrue(json["wait_for_initial"].asBoolean)
     }
 }

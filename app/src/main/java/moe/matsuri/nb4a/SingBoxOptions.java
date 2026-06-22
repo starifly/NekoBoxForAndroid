@@ -166,6 +166,8 @@ public class SingBoxOptions {
 
         public Boolean managed_by_parent;
 
+        public Boolean wait_for_initial;
+
     }
 
 
@@ -4469,6 +4471,8 @@ public class SingBoxOptions {
         public String strategy;
 
         public Boolean managed_by_parent;
+
+        public Boolean wait_for_initial;
 
     }
 
