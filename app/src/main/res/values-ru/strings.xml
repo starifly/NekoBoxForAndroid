@@ -298,6 +298,8 @@
 <string name="no_proxies_found">В ссылке не найдено прокси-серверов</string>
 <string name="no_proxies_found_in_clipboard">В буфере обмена не найдено ни одного прокси</string>
 <string name="no_proxies_found_in_file">В файле не найдено прокси-серверов</string>
+<string name="invalid_amnezia_config">Некорректная или повреждённая конфигурация Amnezia</string>
+<string name="no_amnezia_awg_profiles">В конфигурации не найдено профилей AmneziaWG</string>
 <string name="no_proxies_found_in_subscription">В подписке не найдено прокси-серверов</string>
 <string name="no_statistics">Статистики пока нет</string>
 <string name="not_connected">Не подключен</string>

@@ -22,6 +22,7 @@ import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.fmt.v2ray.setTLS
+import io.nekohasekai.sagernet.fmt.wireguard.AmneziaWireGuardImporter
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
@@ -29,14 +30,12 @@ import moe.matsuri.nb4a.Protocols
 import moe.matsuri.nb4a.proxy.anytls.AnyTLSBean
 import moe.matsuri.nb4a.proxy.config.ConfigBean
 import moe.matsuri.nb4a.utils.Util
-import org.ini4j.Ini
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 import org.yaml.snakeyaml.TypeDescription
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.error.YAMLException
-import java.io.StringReader
 import androidx.core.net.toUri
 
 @Suppress("EXPERIMENTAL_API_USAGE")
@@ -288,6 +287,21 @@ object RawUpdater : GroupUpdater() {
     suspend fun parseRaw(text: String, fileName: String = ""): List<AbstractBean>? {
 
         val proxies = mutableListOf<AbstractBean>()
+
+        if (AmneziaWireGuardImporter.isAmneziaVpn(text)) {
+            return try {
+                AmneziaWireGuardImporter.parseVpn(text)
+            } catch (e: AmneziaWireGuardImporter.ImportException) {
+                val message = when (e.reason) {
+                    AmneziaWireGuardImporter.ErrorReason.INVALID_CONTAINER ->
+                        app.getString(R.string.invalid_amnezia_config)
+
+                    AmneziaWireGuardImporter.ErrorReason.NO_AWG_PROFILES ->
+                        app.getString(R.string.no_amnezia_awg_profiles)
+                }
+                throw IllegalArgumentException(message, e)
+            }
+        }
 
         if (text.contains("proxies:")) {
 
@@ -817,11 +831,17 @@ object RawUpdater : GroupUpdater() {
             } catch (e: YAMLException) {
                 Logs.w(e)
             }
-        } else if (text.contains("[Interface]")) {
+        } else if (AmneziaWireGuardImporter.isWireGuardConfig(text)) {
             // wireguard
             try {
                 proxies.addAll(parseWireGuard(text).map {
-                    if (fileName.isNotBlank()) it.name = fileName.removeSuffix(".conf")
+                    if (fileName.isNotBlank()) {
+                        it.name = if (fileName.endsWith(".conf", ignoreCase = true)) {
+                            fileName.dropLast(".conf".length)
+                        } else {
+                            fileName
+                        }
+                    }
                     it
                 })
                 return proxies
@@ -861,48 +881,7 @@ object RawUpdater : GroupUpdater() {
     }
 
     fun parseWireGuard(conf: String): List<WireGuardBean> {
-        val ini = Ini(StringReader(conf))
-        val iface = ini["Interface"] ?: error("Missing 'Interface' selection")
-        val bean = WireGuardBean().applyDefaultValues()
-        val localAddresses = iface.getAll("Address")
-        if (localAddresses.isNullOrEmpty()) error("Empty address in 'Interface' selection")
-        bean.localAddress = localAddresses.flatMap { it.split(",") }.joinToString("\n")
-        bean.privateKey = iface["PrivateKey"]
-        bean.mtu = iface["MTU"]?.toIntOrNull()
-        bean.jc = iface["Jc"]?.toIntOrNull() ?: 0
-        bean.jmin = iface["Jmin"]?.toIntOrNull() ?: 0
-        bean.jmax = iface["Jmax"]?.toIntOrNull() ?: 0
-        bean.s1 = iface["S1"]?.toIntOrNull() ?: 0
-        bean.s2 = iface["S2"]?.toIntOrNull() ?: 0
-        bean.s3 = iface["S3"]?.toIntOrNull() ?: 0
-        bean.s4 = iface["S4"]?.toIntOrNull() ?: 0
-        bean.h1 = iface["H1"] ?: ""
-        bean.h2 = iface["H2"] ?: ""
-        bean.h3 = iface["H3"] ?: ""
-        bean.h4 = iface["H4"] ?: ""
-        bean.i1 = iface["I1"] ?: ""
-        bean.i2 = iface["I2"] ?: ""
-        bean.i3 = iface["I3"] ?: ""
-        bean.i4 = iface["I4"] ?: ""
-        bean.i5 = iface["I5"] ?: ""
-        val peers = ini.getAll("Peer")
-        if (peers.isNullOrEmpty()) error("Missing 'Peer' selections")
-        val beans = mutableListOf<WireGuardBean>()
-        for (peer in peers) {
-            val endpoint = peer["Endpoint"]
-            if (endpoint.isNullOrBlank() || !endpoint.contains(":")) {
-                continue
-            }
-
-            val peerBean = bean.clone()
-            peerBean.serverAddress = endpoint.substringBeforeLast(":")
-            peerBean.serverPort = endpoint.substringAfterLast(":").toIntOrNull() ?: continue
-            peerBean.peerPublicKey = peer["PublicKey"] ?: continue
-            peerBean.peerPreSharedKey = peer["PresharedKey"]
-            beans.add(peerBean.applyDefaultValues())
-        }
-        if (beans.isEmpty()) error("Empty available peer list")
-        return beans
+        return AmneziaWireGuardImporter.parseWireGuard(conf)
     }
 
     fun parseJSON(json: Any): List<AbstractBean> {
