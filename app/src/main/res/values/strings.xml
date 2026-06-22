@@ -16,6 +16,7 @@
     <string name="theme">Theme</string>
     <string name="theme_dynamic">Dynamic (Material You)</string>
     <string name="theme_classic_colors">Classic colors…</string>
+    <string name="theme_classic_color_swatch">Color theme %1$d</string>
     <string name="document">Document</string>
     <string name="group_default">Ungrouped</string>
     <string name="quick_toggle">Toggle</string>

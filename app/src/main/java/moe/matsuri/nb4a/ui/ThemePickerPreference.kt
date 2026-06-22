@@ -50,7 +50,8 @@ class ThemePickerPreference
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         super.onBindViewHolder(holder)
 
-        val widgetFrame = holder.findViewById(android.R.id.widget_frame) as LinearLayout
+        val widgetFrame = holder.findViewById(android.R.id.widget_frame) as? LinearLayout
+            ?: return
 
         if (!inited) {
             inited = true
@@ -147,6 +148,8 @@ class ThemePickerPreference
                 android.R.attr.selectableItemBackground, outValue, true
             )
             setBackgroundResource(outValue.resourceId)
+            // Announce the theme name to screen readers when the row is focused.
+            contentDescription = name
 
             val leading = when {
                 swatchColor != null -> nekoImageView(swatchColor, 28, 0)
@@ -195,6 +198,8 @@ class ThemePickerPreference
                 if (Theme.MODERN_THEMES.any { it.id == themeId }) continue
 
                 addView(nekoImageView(color, 64, 0).apply {
+                    contentDescription =
+                        context.getString(R.string.theme_classic_color_swatch, themeId)
                     setOnClickListener {
                         select(themeId)
                         dialog.dismiss()
