@@ -818,7 +818,7 @@
         <item name="colorPrimary">@color/dhc_primary</item>
         <item name="appBarBackgroundColor">@color/dhc_background</item>
         <item name="colorPrimaryDark">@color/dhc_primary_dark</item>
-        <item name="colorAccent">@color/dhc_accent</item>
+        <item name="colorAccent">@color/dhc_primary</item>
         <item name="colorOnPrimary">@color/dhc_on_primary</item>
         <item name="colorMaterial100">@color/dhc_100</item>
         <item name="colorMaterial300">@color/dhc_300</item>
@@ -845,7 +845,7 @@
         <!-- M3 container/variant roles on the dark canvas. -->
         <item name="colorPrimaryContainer">@color/dhc_container</item>
         <item name="colorOnPrimaryContainer">@color/dhc_on_surface</item>
-        <item name="colorSecondary">@color/dhc_accent</item>
+        <item name="colorSecondary">@color/dhc_primary</item>
         <item name="colorSecondaryContainer">@color/dhc_container</item>
         <item name="colorOnSecondaryContainer">@color/dhc_on_surface</item>
         <item name="colorTertiary">@color/dhc_blue</item>
@@ -858,8 +858,8 @@
 
         <!-- Semantic colors: green action accent reads on black, so primary text
              accents use it; status uses GitHub-style green/red/yellow. -->
-        <item name="accentOrTextSecondary">@color/dhc_accent</item>
-        <item name="accentOrTextPrimary">@color/dhc_accent</item>
+        <item name="accentOrTextSecondary">@color/dhc_primary</item>
+        <item name="accentOrTextPrimary">@color/dhc_primary</item>
         <item name="primaryOrTextSecondary">@color/dhc_primary</item>
         <item name="primaryOrTextPrimary">@color/dhc_primary</item>
         <item name="protocolColor">@color/dhc_green</item>
@@ -1211,7 +1211,7 @@
         <item name="colorPrimary">@color/dhc_primary</item>
         <item name="appBarBackgroundColor">@color/dhc_background</item>
         <item name="colorPrimaryDark">@color/dhc_primary_dark</item>
-        <item name="colorAccent">@color/dhc_accent</item>
+        <item name="colorAccent">@color/dhc_primary</item>
         <item name="colorOnPrimary">@color/dhc_on_primary</item>
         <item name="colorMaterial100">@color/dhc_100</item>
         <item name="colorMaterial300">@color/dhc_300</item>
@@ -1223,7 +1223,7 @@
         <item name="colorOnBackground">@color/dhc_on_surface</item>
         <item name="colorPrimaryContainer">@color/dhc_container</item>
         <item name="colorOnPrimaryContainer">@color/dhc_on_surface</item>
-        <item name="colorSecondary">@color/dhc_accent</item>
+        <item name="colorSecondary">@color/dhc_primary</item>
         <item name="colorSecondaryContainer">@color/dhc_container</item>
         <item name="colorOnSecondaryContainer">@color/dhc_on_surface</item>
         <item name="colorTertiary">@color/dhc_blue</item>
