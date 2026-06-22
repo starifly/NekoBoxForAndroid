@@ -22,7 +22,7 @@
             android:paddingLeft="4dp"
             android:paddingTop="4dp"
             android:paddingRight="4dp"
-            android:paddingBottom="150dp"
+            android:paddingBottom="168dp"
             android:scrollbarSize="0dp"
             app:fastScrollAutoHide="true"
             app:fastScrollThumbColor="?colorPrimary"
