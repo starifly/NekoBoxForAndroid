@@ -72,11 +72,14 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             }
             val themeId = newTheme as Int
             val previousTheme = DataStore.appTheme // still the old value at this point
-            // Dracula is a dark-only theme: force night mode on so its #282a36
-            // canvas (values-night) takes effect instead of a washed-out light surface.
-            // Remember the prior night-mode setting so it can be restored on exit.
-            if (themeId == Theme.DRACULA) {
-                if (previousTheme != Theme.DRACULA && DataStore.nightTheme != 1) {
+            // Dark-only themes (Dracula, Dark High Contrast) only look right in
+            // night mode: force it on so their dark canvas (values-night) takes
+            // effect instead of a washed-out light surface. Remember the prior
+            // night-mode setting so it can be restored when leaving such a theme.
+            val enteringDarkOnly = themeId in Theme.DARK_ONLY_THEMES
+            val leavingDarkOnly = previousTheme in Theme.DARK_ONLY_THEMES
+            if (enteringDarkOnly) {
+                if (!leavingDarkOnly && DataStore.nightTheme != 1) {
                     DataStore.nightThemeBeforeDracula = DataStore.nightTheme
                     Theme.currentNightMode = 1
                     // nightTheme.value persists to configurationStore (same key as
@@ -85,8 +88,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                     nightTheme.value = "1"
                     Theme.applyNightTheme()
                 }
-            } else if (previousTheme == Theme.DRACULA) {
-                // Leaving Dracula: restore the night-mode setting we forced on.
+            } else if (leavingDarkOnly) {
+                // Leaving a dark-only theme: restore the night-mode setting we forced on.
                 val restore = DataStore.nightThemeBeforeDracula
                 if (restore != -1) {
                     DataStore.nightThemeBeforeDracula = -1
@@ -107,7 +110,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         nightTheme.setOnPreferenceChangeListener { _, newTheme ->
             Theme.currentNightMode = (newTheme as String).toInt()
             // A manual night-mode change takes precedence: drop any pending
-            // Dracula restore so we don't override the user's choice later.
+            // dark-only-theme restore so we don't override the user's choice later.
             DataStore.nightThemeBeforeDracula = -1
             Theme.applyNightTheme()
             true

@@ -14,8 +14,10 @@ object Key {
     const val APP_EXPERT = "isExpert"
     const val APP_THEME = "appTheme"
     const val NIGHT_THEME = "nightTheme"
-    // Remembers the user's night-mode setting before the dark-only Dracula theme
-    // forced it on, so it can be restored when switching to another theme.
+    // Remembers the user's night-mode setting before a dark-only theme (Dracula
+    // or Dark High Contrast) forced it on, so it can be restored when switching
+    // to another theme. Storage key kept as "nightThemeBeforeDracula" for
+    // backward compatibility with previously persisted values.
     const val NIGHT_THEME_BEFORE_DRACULA = "nightThemeBeforeDracula"
     const val APP_LANGUAGE = "appLanguage"
     const val SERVICE_MODE = "serviceMode"

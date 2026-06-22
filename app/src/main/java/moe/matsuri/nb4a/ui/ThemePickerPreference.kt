@@ -225,9 +225,12 @@ class ThemePickerPreference
     }
 
     private fun select(themeId: Int) {
-        // Match the legacy swatch-grid ordering: persist first, then notify the
-        // change listener (SettingsPreferenceFragment applies/recreates).
-        persistInt(themeId)
-        callChangeListener(themeId)
+        // Notify the change listener first (while DataStore.appTheme still holds the
+        // previous theme, which SettingsPreferenceFragment reads to drive dark-only
+        // night-mode handling), then persist if accepted. This is the standard
+        // Preference contract; the listener always returns true here.
+        if (callChangeListener(themeId)) {
+            persistInt(themeId)
+        }
     }
 }

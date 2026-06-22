@@ -103,8 +103,9 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var isExpert by configurationStore.boolean(Key.APP_EXPERT)
     var appTheme by configurationStore.int(Key.APP_THEME)
     var nightTheme by configurationStore.stringToInt(Key.NIGHT_THEME)
-    // -1 = not set (no Dracula override active). Otherwise holds the night-mode
-    // value to restore when leaving the dark-only Dracula theme.
+    // -1 = not set (no dark-only-theme override active). Otherwise holds the
+    // night-mode value to restore when leaving a dark-only theme (Dracula or
+    // Dark High Contrast). Key name kept for backward compatibility.
     var nightThemeBeforeDracula by configurationStore.int(Key.NIGHT_THEME_BEFORE_DRACULA) { -1 }
     var appLanguage by configurationStore.string(Key.APP_LANGUAGE) { "" }
     var serviceMode by configurationStore.string(Key.SERVICE_MODE) { Key.MODE_VPN }

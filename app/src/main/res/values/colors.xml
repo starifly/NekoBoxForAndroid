@@ -374,4 +374,30 @@
     <color name="dracula_surface">#343746</color>
     <color name="dracula_on_surface">#F8F8F2</color>
 
+    <!-- Dark High Contrast (OLED): a full Material 3 dark-only theme on a true
+         black canvas. Green-primary (GitHub action-button style) with a bright
+         blue secondary for links/selection; maximally legible near-white text.
+         The theme forces night mode on, so the live canvas comes from
+         values-night; these base declarations exist only so resources always
+         resolve in a non-night configuration. -->
+    <color name="dhc_primary">#3FB950</color>          <!-- green action accent -->
+    <color name="dhc_primary_dark">#2EA043</color>     <!-- darker green (status bar) -->
+    <color name="dhc_on_primary">#0A0A0A</color> <!-- dark text on green -->
+    <color name="dhc_accent">#71B7FF</color>           <!-- bright blue secondary -->
+    <color name="dhc_blue">#4493F8</color>   <!-- link/route blue -->
+    <color name="dhc_background">#000000</color>       <!-- true OLED black -->
+    <color name="dhc_surface">#0D0D0D</color>
+    <color name="dhc_surface_variant">#161616</color>
+    <color name="dhc_container">#1C1C1C</color>
+    <color name="dhc_on_surface">#F0F6FC</color>      <!-- high-contrast near-white -->
+    <color name="dhc_on_surface_variant">#C9D1D9</color>
+    <color name="dhc_outline">#3D444D</color>
+    <color name="dhc_outline_variant">#21262D</color>
+    <color name="dhc_green">#3FB950</color>
+    <color name="dhc_red">#F85149</color>
+    <color name="dhc_yellow">#D29922</color>
+    <color name="dhc_100">#1C1C1C</color>            <!-- colorMaterial100 stand-in -->
+    <color name="dhc_300">#2EA043</color>            <!-- colorMaterial300 stand-in -->
+    <color name="card_elevated_dhc">#0D0D0D</color>
+
 </resources>

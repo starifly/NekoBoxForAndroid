@@ -87,4 +87,89 @@
         <item name="statusTestingColor">@color/color_dracula_yellow</item>
         <item name="routeProxyColor">@color/color_dracula_cyan</item>
     </style>
+
+    <!-- Dark High Contrast (OLED) night variant. Night is this theme's active path
+         (it forces night mode on), so the full canvas + M3 roles are repeated here
+         to match the day style declared in values/themes.xml. -->
+    <style name="Theme.SagerNet.DarkHighContrast" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/dhc_primary</item>
+        <item name="colorPrimaryDark">@color/dhc_primary_dark</item>
+        <item name="colorAccent">@color/dhc_accent</item>
+        <item name="colorOnPrimary">@color/dhc_on_primary</item>
+        <item name="colorMaterial100">@color/dhc_100</item>
+        <item name="colorMaterial300">@color/dhc_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_dhc</item>
+
+        <item name="colorSurface">@color/dhc_surface</item>
+        <item name="colorOnSurface">@color/dhc_on_surface</item>
+        <item name="android:colorBackground">@color/dhc_background</item>
+        <item name="colorOnBackground">@color/dhc_on_surface</item>
+        <item name="android:windowBackground">@color/dhc_background</item>
+        <item name="colorPrimaryContainer">@color/dhc_container</item>
+        <item name="colorOnPrimaryContainer">@color/dhc_on_surface</item>
+        <item name="colorSecondary">@color/dhc_accent</item>
+        <item name="colorSecondaryContainer">@color/dhc_container</item>
+        <item name="colorOnSecondaryContainer">@color/dhc_on_surface</item>
+        <item name="colorTertiary">@color/dhc_blue</item>
+        <item name="colorTertiaryContainer">@color/dhc_container</item>
+        <item name="colorOnTertiaryContainer">@color/dhc_on_surface</item>
+        <item name="colorSurfaceVariant">@color/dhc_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/dhc_on_surface_variant</item>
+        <item name="colorOutline">@color/dhc_outline</item>
+        <item name="colorOutlineVariant">@color/dhc_outline_variant</item>
+        <item name="accentOrTextSecondary">@color/dhc_accent</item>
+        <item name="accentOrTextPrimary">@color/dhc_accent</item>
+        <item name="primaryOrTextSecondary">@color/dhc_primary</item>
+        <item name="primaryOrTextPrimary">@color/dhc_primary</item>
+        <item name="protocolColor">@color/dhc_green</item>
+        <item name="profileNameColor">@color/dhc_on_surface</item>
+        <item name="statusConnectedColor">@color/dhc_green</item>
+        <item name="statusStoppedColor">@color/dhc_red</item>
+        <item name="statusConnectingColor">@color/dhc_yellow</item>
+        <item name="testFailColor">@color/dhc_red</item>
+        <item name="speedTextColor">@color/dhc_accent</item>
+        <item name="fabStoppedColor">@color/dhc_on_primary</item>
+        <item name="statusDetailColor">@color/dhc_accent</item>
+        <item name="statusTestingColor">@color/dhc_yellow</item>
+        <item name="routeProxyColor">@color/dhc_blue</item>
+        <item name="navSelectedColor">?attr/colorPrimary</item>
+    </style>
+
+    <style name="Theme.SagerNet.Dialog.DarkHighContrast" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/dhc_primary</item>
+        <item name="colorPrimaryDark">@color/dhc_primary_dark</item>
+        <item name="colorAccent">@color/dhc_accent</item>
+        <item name="colorOnPrimary">@color/dhc_on_primary</item>
+        <item name="colorMaterial100">@color/dhc_100</item>
+        <item name="colorMaterial300">@color/dhc_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_dhc</item>
+
+        <item name="colorSurface">@color/dhc_surface</item>
+        <item name="colorOnSurface">@color/dhc_on_surface</item>
+        <item name="android:colorBackground">@color/dhc_background</item>
+        <item name="colorOnBackground">@color/dhc_on_surface</item>
+        <item name="colorPrimaryContainer">@color/dhc_container</item>
+        <item name="colorOnPrimaryContainer">@color/dhc_on_surface</item>
+        <item name="colorSecondary">@color/dhc_accent</item>
+        <item name="colorSecondaryContainer">@color/dhc_container</item>
+        <item name="colorOnSecondaryContainer">@color/dhc_on_surface</item>
+        <item name="colorTertiary">@color/dhc_blue</item>
+        <item name="colorTertiaryContainer">@color/dhc_container</item>
+        <item name="colorOnTertiaryContainer">@color/dhc_on_surface</item>
+        <item name="colorSurfaceVariant">@color/dhc_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/dhc_on_surface_variant</item>
+        <item name="colorOutline">@color/dhc_outline</item>
+        <item name="colorOutlineVariant">@color/dhc_outline_variant</item>
+        <item name="protocolColor">@color/dhc_green</item>
+        <item name="profileNameColor">@color/dhc_on_surface</item>
+        <item name="statusConnectedColor">@color/dhc_green</item>
+        <item name="statusStoppedColor">@color/dhc_red</item>
+        <item name="statusConnectingColor">@color/dhc_yellow</item>
+        <item name="testFailColor">@color/dhc_red</item>
+        <item name="speedTextColor">@color/dhc_accent</item>
+        <item name="fabStoppedColor">@color/dhc_on_primary</item>
+        <item name="statusDetailColor">@color/dhc_accent</item>
+        <item name="statusTestingColor">@color/dhc_yellow</item>
+        <item name="routeProxyColor">@color/dhc_blue</item>
+    </style>
 </resources>
