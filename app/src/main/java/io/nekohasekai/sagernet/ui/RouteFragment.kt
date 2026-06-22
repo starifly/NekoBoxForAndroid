@@ -18,6 +18,7 @@ import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.databinding.LayoutEmptyRouteBinding
+import io.nekohasekai.sagernet.databinding.LayoutRouteBinding
 import io.nekohasekai.sagernet.databinding.LayoutRouteItemBinding
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.widget.ListListener
@@ -40,7 +41,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
         toolbar.inflateMenu(R.menu.add_route_menu)
         toolbar.setOnMenuItemClickListener(this)
 
-        ruleListView = view.findViewById(R.id.route_list)
+        ruleListView = LayoutRouteBinding.bind(view).routeList
         ruleListView.layoutManager = FixedLinearLayoutManager(ruleListView)
         ruleAdapter = RuleAdapter()
         ProfileManager.addListener(ruleAdapter)

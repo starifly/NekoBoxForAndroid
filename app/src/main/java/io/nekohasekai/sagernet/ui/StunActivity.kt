@@ -19,7 +19,7 @@ class StunActivity : ThemedActivity() {
 
         binding = LayoutStunBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setSupportActionBar(findViewById(R.id.toolbar))
+        setSupportActionBar(binding.appbarInclude.toolbar)
         supportActionBar?.apply {
             setTitle(R.string.stun_test)
             setDisplayHomeAsUpEnabled(true)

@@ -155,7 +155,7 @@ class AppManagerActivity : ThemedActivity() {
 
     }
 
-    private val loading by lazy { findViewById<View>(R.id.loading) }
+    private val loading by lazy { binding.loading }
 
     private lateinit var binding: LayoutAppsBinding
     private val proxiedUids = SparseBooleanArray()

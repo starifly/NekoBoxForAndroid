@@ -71,6 +71,8 @@ class StatsBar @JvmOverloads constructor(
 
 
     override fun setOnClickListener(l: OnClickListener?) {
+        // findViewById (not ViewBinding): status/tx/rx are sibling views declared in the host
+        // layout (layout_main), not children of a layout this custom BottomAppBar inflates.
         statusText = findViewById(R.id.status)
         txText = findViewById(R.id.tx)
         rxText = findViewById(R.id.rx)

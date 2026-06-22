@@ -38,7 +38,7 @@ class AssetsActivity : ThemedActivity() {
         layout = binding
         setContentView(binding.root)
 
-        setSupportActionBar(findViewById(R.id.toolbar))
+        setSupportActionBar(binding.appbarInclude.toolbar)
         supportActionBar?.apply {
             setTitle(R.string.route_assets)
             setDisplayHomeAsUpEnabled(true)

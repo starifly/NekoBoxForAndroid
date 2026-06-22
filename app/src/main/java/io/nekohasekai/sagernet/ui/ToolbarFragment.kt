@@ -17,6 +17,10 @@ open class ToolbarFragment : Fragment {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // ViewBinding intentionally not used here: this is a base class whose concrete view is
+        // supplied by each subclass's own layout (layout_route/layout_group/layout_about/...).
+        // The toolbar id is shared across those layouts, so findViewById on the subclass view is
+        // the correct generic lookup.
         toolbar = view.findViewById(R.id.toolbar)
         toolbar.setNavigationIcon(R.drawable.ic_navigation_menu)
         toolbar.setNavigationOnClickListener {

@@ -53,6 +53,9 @@ abstract class ThemedActivity : AppCompatActivity {
                 if (DataStore.appTheme == Theme.BLACK) !Theme.usingNightMode() else false
         }
 
+        // findViewById (not ViewBinding): ThemedActivity is a base class applied over arbitrary
+        // child-activity layouts. android.R.id.content is a framework id, and appbar/stats are
+        // resolved across whatever layout the subclass set — no single binding owns them.
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { _, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -100,6 +103,8 @@ abstract class ThemedActivity : AppCompatActivity {
     fun snackbar(@StringRes resId: Int): Snackbar = snackbar("").setText(resId)
     fun snackbar(text: CharSequence): Snackbar = snackbarInternal(text).apply {
         view.findViewById<TextView>(com.google.android.material.R.id.snackbar_text).apply {
+            // findViewById (not ViewBinding): snackbar_text is owned by the Material library's
+            // internal Snackbar layout, not by an app layout binding.
             maxLines = 10
         }
     }

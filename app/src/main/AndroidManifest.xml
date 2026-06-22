@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:installLocation="internalOnly">
 
-    <uses-sdk tools:overrideLibrary="com.google.zxing.client.android, com.blacksquircle.ui.editorkit" />
+    <uses-sdk tools:overrideLibrary="com.google.zxing.client.android" />
 
     <permission
         android:name="${applicationId}.SERVICE"

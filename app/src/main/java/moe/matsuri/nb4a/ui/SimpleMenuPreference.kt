@@ -47,6 +47,8 @@ open class SimpleMenuPreference
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         super.onBindViewHolder(holder)
+        // findViewById (not ViewBinding): binds into the AndroidX preference-row ViewHolder
+        // (holder.itemView), which is not an app layout binding.
         val mSpinner = holder.itemView.findViewById<Spinner>(R.id.spinner)
         mSpinner.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
         mSpinner.setPopupBackgroundResource(R.drawable.bg_spinner_dropdown)

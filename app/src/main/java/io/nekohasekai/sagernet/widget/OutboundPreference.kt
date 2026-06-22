@@ -45,6 +45,8 @@ class OutboundPreference
         dropdownOpened = false
         super.onBindViewHolder(holder)
 
+        // findViewById (not ViewBinding): binds into the AndroidX preference-row ViewHolder
+        // (holder.itemView), which is not an app layout binding.
         val spinner = holder.itemView.findViewById<Spinner>(R.id.spinner)
         (spinner as? ReselectableSpinner)?.onPopupClosed = { dropdownOpened = false }
         var selectionReady = false

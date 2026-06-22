@@ -72,13 +72,16 @@ dependencies {
     // ZXing core (pure-Java) is kept only for QR *generation* (QRCodeDialog); ML Kit
     // scans but cannot encode. It was previously transitive via zxing-lite.
     implementation("com.google.zxing:core:3.5.3")
-    implementation("com.blacksquircle.ui:editorkit:2.6.0")
-    implementation("com.blacksquircle.ui:language-base:2.6.0")
-    implementation("com.blacksquircle.ui:language-json:2.6.0")
+    // JSON config editor. sora-editor (Rosemoe) is the actively-maintained code editor
+    // widget; it replaces the archived com.blacksquircle.ui:editorkit. Syntax highlighting
+    // is provided via TextMate grammars (language-textmate), with JSON grammar + themes
+    // bundled in assets/textmate/. Versions are managed by the editor-bom platform.
+    implementation(platform("io.github.rosemoe:editor-bom:0.23.7"))
+    implementation("io.github.rosemoe:editor")
+    implementation("io.github.rosemoe:language-textmate")
 
     implementation("com.squareup.okhttp3:okhttp:5.3.0")
     implementation("org.yaml:snakeyaml:2.3")
-    implementation("com.github.daniel-stoneuk:material-about-library:3.2.0-rc01")
     implementation("com.jakewharton:process-phoenix:2.1.2")
     implementation("com.esotericsoftware:kryo:5.2.1")
     implementation("com.google.guava:guava:33.4.0-android")
@@ -95,5 +98,5 @@ dependencies {
     implementation("com.github.MatrixDev.Roomigrant:RoomigrantLib:0.3.4")
     ksp("com.github.MatrixDev.Roomigrant:RoomigrantCompiler:0.3.4")
 
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }

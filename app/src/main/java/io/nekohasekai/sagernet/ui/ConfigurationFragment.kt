@@ -58,6 +58,8 @@ import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
+import io.nekohasekai.sagernet.databinding.LayoutGroupListBinding
+import io.nekohasekai.sagernet.databinding.LayoutProfileBinding
 import io.nekohasekai.sagernet.databinding.LayoutProfileListBinding
 import io.nekohasekai.sagernet.databinding.LayoutProgressListBinding
 import io.nekohasekai.sagernet.fmt.AbstractBean
@@ -212,6 +214,8 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
         }
 
+        // findViewById (not ViewBinding): action_search is a menu action view inflated from the
+        // toolbar menu, not a view in this fragment's layout binding.
         val searchView = toolbar.findViewById<SearchView>(R.id.action_search)
         if (searchView != null) {
             searchView.setOnQueryTextListener(this)
@@ -224,8 +228,9 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
         }
 
-        groupPager = view.findViewById(R.id.group_pager)
-        tabLayout = view.findViewById(R.id.group_tab)
+        val groupListBinding = LayoutGroupListBinding.bind(view)
+        groupPager = groupListBinding.groupPager
+        tabLayout = groupListBinding.groupTab
         adapter = GroupPagerAdapter()
         ProfileManager.addListener(adapter)
         GroupManager.addListener(adapter)
@@ -1387,7 +1392,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
             if (!::proxyGroup.isInitialized) return
 
-            configurationListView = view.findViewById(R.id.configuration_list)
+            configurationListView = LayoutProfileListBinding.bind(view).configurationList
             setupLayoutManager()
             configurationListView.layoutManager = layoutManager
             adapter = ConfigurationAdapter()
@@ -1488,8 +1493,9 @@ class ConfigurationFragment @JvmOverloads constructor(
                 viewType: Int,
             ): ConfigurationHolder {
                 return ConfigurationHolder(
-                    LayoutInflater.from(parent.context)
-                        .inflate(R.layout.layout_profile, parent, false)
+                    LayoutProfileBinding.inflate(
+                        LayoutInflater.from(parent.context), parent, false
+                    )
                 )
             }
 
@@ -1731,8 +1737,11 @@ class ConfigurationFragment @JvmOverloads constructor(
         val profileAccess = Mutex()
         val reloadAccess = Mutex()
 
-        inner class ConfigurationHolder(val view: View) : RecyclerView.ViewHolder(view),
+        inner class ConfigurationHolder(val binding: LayoutProfileBinding) :
+            RecyclerView.ViewHolder(binding.root),
             PopupMenu.OnMenuItemClickListener {
+
+            val view: View get() = binding.root
 
             lateinit var entity: ProxyEntity
             
@@ -1762,19 +1771,19 @@ class ConfigurationFragment @JvmOverloads constructor(
                 popup.show()
             }
 
-            val profileName: TextView = view.findViewById(R.id.profile_name)
-            val profileType: TextView = view.findViewById(R.id.profile_type)
-            val profileAddress: TextView = view.findViewById(R.id.profile_address)
-            val profileStatus: TextView = view.findViewById(R.id.profile_status)
+            val profileName: TextView = binding.profileName
+            val profileType: TextView = binding.profileType
+            val profileAddress: TextView = binding.profileAddress
+            val profileStatus: TextView = binding.profileStatus
 
-            val trafficText: TextView = view.findViewById(R.id.traffic_text)
+            val trafficText: TextView = binding.trafficText
             private val card = view as MaterialCardView
-            val editButton: ImageView = view.findViewById(R.id.edit)
-            val doubleColumnMenuButton: ImageView = view.findViewById(R.id.double_column_menu)
-            val shareLayout: LinearLayout = view.findViewById(R.id.share)
-            val shareLayer: LinearLayout = view.findViewById(R.id.share_layer)
-            val shareButton: ImageView = view.findViewById(R.id.shareIcon)
-            val removeButton: ImageView = view.findViewById(R.id.remove)
+            val editButton: ImageView = binding.edit
+            val doubleColumnMenuButton: ImageView = binding.doubleColumnMenu
+            val shareLayout: LinearLayout = binding.share
+            val shareLayer: LinearLayout = binding.shareLayer
+            val shareButton: ImageView = binding.shareIcon
+            val removeButton: ImageView = binding.remove
 
             private fun applySelected(selected: Boolean) {
                 val ctx = card.context

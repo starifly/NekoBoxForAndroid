@@ -19,6 +19,7 @@ import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.*
+import io.nekohasekai.sagernet.databinding.LayoutGroupBinding
 import io.nekohasekai.sagernet.databinding.LayoutGroupItemBinding
 import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.group.GroupUpdater
@@ -50,7 +51,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
         toolbar.inflateMenu(R.menu.add_group_menu)
         toolbar.setOnMenuItemClickListener(this)
 
-        groupListView = view.findViewById(R.id.group_list)
+        groupListView = LayoutGroupBinding.bind(view).groupList
         layoutManager = FixedLinearLayoutManager(groupListView)
         groupListView.layoutManager = layoutManager
         groupAdapter = GroupAdapter()

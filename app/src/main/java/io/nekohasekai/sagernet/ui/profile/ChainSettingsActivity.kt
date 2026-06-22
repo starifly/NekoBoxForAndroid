@@ -62,6 +62,8 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
         super.onCreate(savedInstanceState)
 
         supportActionBar!!.setTitle(R.string.chain_settings)
+        // ViewBinding intentionally not used here: content is set via the constructor
+        // (@LayoutRes through ProfileSettingsActivity), not by inflating a binding.
         configurationList = findViewById(R.id.configuration_list)
         layoutManager = FixedLinearLayoutManager(configurationList)
         configurationList.layoutManager = layoutManager
@@ -106,6 +108,9 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
     }
 
     override fun PreferenceFragmentCompat.viewCreated(view: View, savedInstanceState: Bundle?) {
+        // ViewBinding intentionally not used here: this reaches the preference list's
+        // RecyclerView (recycler_view) via the fragment's root view hierarchy, which a single
+        // layout binding does not own.
         view.rootView.findViewById<RecyclerView>(R.id.recycler_view).apply {
             (layoutParams ?: LinearLayout.LayoutParams(-1, -2)).apply {
                 height = -2

@@ -5,13 +5,13 @@ import android.view.MenuItem
 import android.text.InputType
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceDataStore
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.databinding.LayoutWebdavSettingsBinding
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.snackbar
@@ -25,15 +25,15 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
 
 class WebDAVSettingsActivity : ThemedActivity() {
-    
-    private lateinit var toolbar: Toolbar
+
+    private lateinit var binding: LayoutWebdavSettingsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        setContentView(R.layout.layout_webdav_settings)
-        toolbar = findViewById(R.id.toolbar)
-        setSupportActionBar(toolbar)
+
+        binding = LayoutWebdavSettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.apply {
             setTitle(R.string.webdav_settings)
             setDisplayHomeAsUpEnabled(true)

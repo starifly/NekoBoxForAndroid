@@ -97,6 +97,9 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
             if (DataStore.dirty) UnsavedChangesDialogFragment().apply { key() }
                 .show(supportFragmentManager, null) else finish()
         }
+        // ViewBinding intentionally not used here: this activity sets its content via the
+        // ThemedActivity(@LayoutRes) constructor (contentLayoutId), not by inflating a binding,
+        // so the toolbar is resolved with findViewById.
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.apply {
             setTitle(R.string.profile_config)

@@ -50,6 +50,8 @@ class ThemePickerPreference
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         super.onBindViewHolder(holder)
 
+        // findViewById (not ViewBinding): android.R.id.widget_frame is a framework id inside the
+        // AndroidX preference-row ViewHolder, not an app layout binding.
         val widgetFrame = holder.findViewById(android.R.id.widget_frame) as? LinearLayout
             ?: return
 

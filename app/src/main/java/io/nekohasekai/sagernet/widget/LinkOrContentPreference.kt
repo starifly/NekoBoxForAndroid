@@ -28,6 +28,8 @@ constructor(
         dialogLayoutResource = R.layout.layout_urltest_preference_dialog
 
         setOnBindEditTextListener {
+            // findViewById (not ViewBinding): the dialog view is supplied by the AndroidX
+            // EditTextPreference bind callback (it.rootView), not an app layout binding.
             val linkLayout = it.rootView.findViewById<TextInputLayout>(R.id.input_layout)
             fun validate() {
                 val link = it.text

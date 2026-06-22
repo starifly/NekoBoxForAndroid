@@ -242,7 +242,7 @@
 <string name="log_level">Тип журнала</string>
 <string name="log_level_help">Удерживайте для настройки размера буфера.</string>
 <string name="logcat">Экспорт отладочной информации</string>
-<string name="mal_close">Закрыть</string>
+<string name="action_close">Закрыть</string>
 <string name="material_clock_toggle_content_description">Выберите AM (до полудня) или PM (после полудня)</string>
 <string name="material_timepicker_am">AM</string>
 <string name="material_timepicker_pm">PM</string>
