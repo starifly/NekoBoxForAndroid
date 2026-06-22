@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.ui
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
@@ -58,6 +59,12 @@ abstract class ThemedActivity : AppCompatActivity {
             )
             findViewById<AppBarLayout>(R.id.appbar)?.apply {
                 updatePadding(top = bars.top)
+            }
+            // Lift the bottom status bar (and the FAB docked into it, plus the FAB's
+            // progress ring anchored to the FAB) above the navigation bar so the
+            // ring isn't clipped by the system inset under edge-to-edge.
+            findViewById<View>(R.id.stats)?.apply {
+                updatePadding(bottom = bars.bottom)
             }
             insets
         }

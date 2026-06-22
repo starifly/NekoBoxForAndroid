@@ -137,10 +137,10 @@
         <item name="statusStoppedColor">@color/dhc_red</item>
         <item name="statusConnectingColor">@color/dhc_yellow</item>
         <item name="testFailColor">@color/dhc_red</item>
-        <item name="speedTextColor">@color/dhc_accent</item>
+        <item name="speedTextColor">@color/dhc_on_surface_variant</item>
         <item name="fabStoppedColor">@color/dhc_on_primary</item>
         <item name="fabConnectedColor">@color/dhc_on_primary</item>
-        <item name="statusDetailColor">@color/dhc_accent</item>
+        <item name="statusDetailColor">@color/dhc_on_surface_variant</item>
         <item name="statusTestingColor">@color/dhc_yellow</item>
         <item name="routeProxyColor">@color/dhc_blue</item>
         <item name="navSelectedColor">?attr/colorPrimary</item>
@@ -186,7 +186,7 @@
         <item name="primaryOrTextSecondary">@color/draculam3_primary</item>
         <item name="primaryOrTextPrimary">@color/draculam3_primary</item>
         <item name="protocolColor">@color/draculam3_green</item>
-        <item name="profileNameColor">@color/draculam3_on_surface</item>
+        <item name="profileNameColor">@color/draculam3_yellow</item>
         <item name="statusConnectedColor">@color/draculam3_green</item>
         <item name="statusStoppedColor">@color/draculam3_red</item>
         <item name="statusConnectingColor">@color/draculam3_yellow</item>
@@ -449,10 +449,10 @@
         <item name="statusStoppedColor">@color/dhc_red</item>
         <item name="statusConnectingColor">@color/dhc_yellow</item>
         <item name="testFailColor">@color/dhc_red</item>
-        <item name="speedTextColor">@color/dhc_accent</item>
+        <item name="speedTextColor">@color/dhc_on_surface_variant</item>
         <item name="fabStoppedColor">@color/dhc_on_primary</item>
         <item name="fabConnectedColor">@color/dhc_on_primary</item>
-        <item name="statusDetailColor">@color/dhc_accent</item>
+        <item name="statusDetailColor">@color/dhc_on_surface_variant</item>
         <item name="statusTestingColor">@color/dhc_yellow</item>
         <item name="routeProxyColor">@color/dhc_blue</item>
     </style>
@@ -485,7 +485,7 @@
         <item name="colorOutline">@color/draculam3_outline</item>
         <item name="colorOutlineVariant">@color/draculam3_outline_variant</item>
         <item name="protocolColor">@color/draculam3_green</item>
-        <item name="profileNameColor">@color/draculam3_on_surface</item>
+        <item name="profileNameColor">@color/draculam3_yellow</item>
         <item name="statusConnectedColor">@color/draculam3_green</item>
         <item name="statusStoppedColor">@color/draculam3_red</item>
         <item name="statusConnectingColor">@color/draculam3_yellow</item>
