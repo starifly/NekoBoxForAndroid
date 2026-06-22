@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.res.ResourcesCompat
@@ -45,16 +46,16 @@ class ThemePickerPreference
     context, attrs, defStyle
 ) {
 
-    private var inited = false
-
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         super.onBindViewHolder(holder)
 
         val widgetFrame = holder.findViewById(android.R.id.widget_frame) as? LinearLayout
             ?: return
 
-        if (!inited) {
-            inited = true
+        // Key off the holder's actual view state, not an instance flag: the
+        // RecyclerView can recycle/re-inflate this row's holder, in which case a
+        // stale instance flag would leave the new frame without its swatch.
+        if (widgetFrame.childCount == 0) {
             widgetFrame.addView(
                 nekoImageView(context.getColorAttr(R.attr.colorPrimary), 48, 0)
             )
@@ -125,7 +126,9 @@ class ThemePickerPreference
 
         dialog = MaterialAlertDialogBuilder(context)
             .setTitle(title)
-            .setView(container)
+            // Wrap in a ScrollView so the list stays usable on compact screens as
+            // Theme.MODERN_THEMES grows beyond the dialog's height.
+            .setView(ScrollView(context).apply { addView(container) })
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
