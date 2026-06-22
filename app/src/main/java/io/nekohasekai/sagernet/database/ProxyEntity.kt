@@ -568,8 +568,14 @@ data class ProxyEntity(
         ).apply {
             putExtra(ProfileSettingsActivity.EXTRA_PROFILE_ID, id)
             putExtra(ProfileSettingsActivity.EXTRA_IS_SUBSCRIPTION, isSubscription)
-            if (type == TYPE_CHAIN || type == TYPE_WATERFALL || type == TYPE_FASTEST) {
-                putExtra(ChainSettingsActivity.EXTRA_STRATEGY, chainBean!!.strategy)
+            if (this@ProxyEntity.type == TYPE_CHAIN ||
+                this@ProxyEntity.type == TYPE_WATERFALL ||
+                this@ProxyEntity.type == TYPE_FASTEST
+            ) {
+                putExtra(
+                    ChainSettingsActivity.EXTRA_STRATEGY,
+                    this@ProxyEntity.chainBean!!.strategy,
+                )
             }
         }
     }
