@@ -282,6 +282,12 @@
         <SwitchPreference
             app:defaultValue="true"
             app:icon="@drawable/ic_baseline_flip_camera_android_24"
+            app:key="restartProfileOnNetworkChange"
+            app:title="@string/restart_profile_on_network_change"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreference
+            app:defaultValue="true"
+            app:icon="@drawable/ic_baseline_flip_camera_android_24"
             app:key="networkChangeResetConnections"
             app:title="@string/network_change_reset_connections"
             app:useSimpleSummaryProvider="true" />

@@ -27,6 +27,8 @@ import moe.matsuri.nb4a.Protocols
 import moe.matsuri.nb4a.utils.Util
 import java.net.UnknownHostException
 
+private const val NETWORK_CHANGE_RESTART_DEBOUNCE_MS = 500L
+
 class BaseService {
 
     enum class State(
@@ -78,6 +80,7 @@ class BaseService {
             }
         }
         var closeReceiverRegistered = false
+        var networkRestartJob: Job? = null
 
         val binder = Binder(this)
         var connectingJob: Job? = null
@@ -222,7 +225,7 @@ class BaseService {
             else startService(Intent(this, javaClass))
         }
 
-        fun killProcesses() {
+        suspend fun killProcesses() {
             data.proxy?.close()
 
             runCatching {
@@ -236,12 +239,12 @@ class BaseService {
                 release()
                 wakeLock = null
             }
-            runOnDefaultDispatcher {
-                DefaultNetworkListener.stop(this)
-            }
+            DefaultNetworkListener.stop(this)
         }
 
         fun stopRunner(restart: Boolean = false, msg: String? = null) {
+            data.networkRestartJob?.cancel()
+            data.networkRestartJob = null
             DataStore.baseService = null
             DataStore.vpnService = null
 
@@ -281,22 +284,47 @@ class BaseService {
         // networks
         var upstreamInterfaceName: String?
 
+        fun scheduleNetworkProfileRestart(oldName: String, newName: String) {
+            data.networkRestartJob?.cancel()
+            data.networkRestartJob = runOnMainDispatcher {
+                delay(NETWORK_CHANGE_RESTART_DEBOUNCE_MS)
+                data.networkRestartJob = null
+                if (DataStore.baseService !== this@Interface) return@runOnMainDispatcher
+                if (data.state != State.Connecting && data.state != State.Connected) {
+                    return@runOnMainDispatcher
+                }
+                Logs.d("Restarting profile after network change: $oldName -> $newName")
+                stopRunner(restart = true)
+            }
+        }
+
         suspend fun preInit() {
-            DefaultNetworkListener.start(this) {
-                SagerNet.connectivity.getLinkProperties(it)?.also { link ->
-                    SagerNet.underlyingNetwork = it
-                    DataStore.vpnService?.updateUnderlyingNetwork()
-                    //
-                    val oldName = upstreamInterfaceName
-                    if (oldName != link.interfaceName) {
-                        upstreamInterfaceName = link.interfaceName
+            DefaultNetworkListener.start(this) { network ->
+                if (DataStore.baseService !== this@Interface) return@start
+                SagerNet.underlyingNetwork = network
+                DataStore.vpnService?.updateUnderlyingNetwork()
+                val link = network?.let { SagerNet.connectivity.getLinkProperties(it) }
+                    ?: return@start
+                val oldName = upstreamInterfaceName
+                val newName = link.interfaceName ?: return@start
+                upstreamInterfaceName = newName
+                when (networkChangeAction(
+                    oldName,
+                    newName,
+                    DataStore.restartProfileOnNetworkChange,
+                    DataStore.networkChangeResetConnections,
+                )) {
+                    NetworkChangeAction.RESTART_PROFILE -> {
+                        Logs.d("Network changed: $oldName -> $newName")
+                        scheduleNetworkProfileRestart(requireNotNull(oldName), newName)
                     }
-                    if (oldName != null && upstreamInterfaceName != null && oldName != upstreamInterfaceName) {
-                        Logs.d("Network changed: $oldName -> $upstreamInterfaceName")
-                        if (DataStore.networkChangeResetConnections) {
-                            Libcore.resetAllConnections(true)
-                        }
+
+                    NetworkChangeAction.RESET_CONNECTIONS -> {
+                        Logs.d("Network changed: $oldName -> $newName")
+                        Libcore.resetAllConnections(true)
                     }
+
+                    NetworkChangeAction.NONE -> Unit
                 }
             }
         }
@@ -365,7 +393,10 @@ class BaseService {
             }
 
             data.changeState(State.Connecting)
-            runOnMainDispatcher {
+            val connectingJob = GlobalScope.launch(
+                Dispatchers.Main.immediate,
+                start = CoroutineStart.LAZY,
+            ) {
                 try {
                     data.notification = createNotification(ServiceNotification.genTitle(profile))
 
@@ -405,6 +436,8 @@ class BaseService {
                     data.connectingJob = null
                 }
             }
+            data.connectingJob = connectingJob
+            connectingJob.start()
             return Service.START_NOT_STICKY
         }
     }
