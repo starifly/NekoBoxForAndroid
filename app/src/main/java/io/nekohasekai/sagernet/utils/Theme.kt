@@ -59,15 +59,34 @@ object Theme {
      * @param nameRes     display name string resource
      * @param previewColor color resource for the preview swatch shown next to the name
      */
-    data class ThemeInfo(val id: Int, val nameRes: Int, val previewColor: Int)
+    /**
+     * Metadata for a theme shown in the modern named picker.
+     *
+     * @param id          one of the Theme int constants above (persisted to appTheme)
+     * @param nameRes     display name string resource
+     * @param previewColor fill color for the preview swatch shown next to the name
+     * @param ringColor   optional circumference-ring color; when non-zero the swatch
+     *                    is drawn as [previewColor] fill + a thin [ringColor] frame.
+     *                    Used by Dark High Contrast (black fill + white ring) so its
+     *                    OLED-black identity doesn't read as "a green theme".
+     */
+    data class ThemeInfo(
+        val id: Int,
+        val nameRes: Int,
+        val previewColor: Int,
+        val ringColor: Int = 0,
+    )
 
     /**
      * Modern, full-fledged M3 themes presented by name in the picker dialog.
-     * The legacy single-accent palettes stay behind the "Classic colors…" grid.
+     * The legacy single-accent palettes stay behind the "Legacy colors…" grid.
      * Order here is the display order in the dialog.
      */
     val MODERN_THEMES: List<ThemeInfo> = listOf(
-        ThemeInfo(DARK_HIGH_CONTRAST, R.string.theme_dark_high_contrast, R.color.dhc_primary),
+        ThemeInfo(
+            DARK_HIGH_CONTRAST, R.string.theme_dark_high_contrast,
+            R.color.dhc_background, R.color.white,
+        ),
         ThemeInfo(DRACULA_M3, R.string.theme_dracula_m3, R.color.draculam3_primary),
         ThemeInfo(NORD, R.string.theme_nord, R.color.nord_primary),
         ThemeInfo(MONOKAI, R.string.theme_monokai, R.color.monokai_primary),

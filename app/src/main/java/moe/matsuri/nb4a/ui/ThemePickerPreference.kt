@@ -3,6 +3,7 @@ package moe.matsuri.nb4a.ui
 import android.content.Context
 import android.content.res.Resources
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.View
@@ -83,6 +84,25 @@ class ThemePickerPreference
         return neko
     }
 
+    /**
+     * A circular swatch with a [fillColor] interior and a thin [ringColor]
+     * circumference ring. Used for themes (e.g. Dark High Contrast) whose solid
+     * accent dot would misrepresent the theme — a black fill + white ring reads
+     * as "OLED black" rather than "a green theme".
+     */
+    private fun ringedSwatchView(fillColor: Int, ringColor: Int, sizeDp: Int): ImageView {
+        val size = dp(sizeDp)
+        val ring = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(fillColor)
+            setStroke(dp(2), ringColor)
+        }
+        return ImageView(context).apply {
+            layoutParams = ViewGroup.LayoutParams(size, size)
+            setImageDrawable(ring)
+        }
+    }
+
     private fun dp(value: Int): Int =
         (value * context.resources.displayMetrics.density).roundToInt()
 
@@ -101,10 +121,14 @@ class ThemePickerPreference
         }
 
         for (info in Theme.MODERN_THEMES) {
+            val ring = if (info.ringColor != 0) {
+                ResourcesCompat.getColor(context.resources, info.ringColor, context.theme)
+            } else null
             container.addView(
                 buildRow(
                     name = context.getString(info.nameRes),
                     swatchColor = ResourcesCompat.getColor(context.resources, info.previewColor, context.theme),
+                    ringColor = ring,
                 ) {
                     select(info.id)
                     dialog.dismiss()
@@ -136,6 +160,7 @@ class ThemePickerPreference
     private fun buildRow(
         name: String,
         swatchColor: Int?,
+        ringColor: Int? = null,
         icon: Int? = null,
         onClick: () -> Unit,
     ): View {
@@ -155,6 +180,8 @@ class ThemePickerPreference
             contentDescription = name
 
             val leading = when {
+                swatchColor != null && ringColor != null ->
+                    ringedSwatchView(swatchColor, ringColor, 28)
                 swatchColor != null -> nekoImageView(swatchColor, 28, 0)
                 icon != null -> ImageView(context).apply {
                     layoutParams = ViewGroup.LayoutParams(dp(28), dp(28))
