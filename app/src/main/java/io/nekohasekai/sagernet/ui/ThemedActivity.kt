@@ -60,7 +60,7 @@ abstract class ThemedActivity : AppCompatActivity {
             findViewById<AppBarLayout>(R.id.appbar)?.apply {
                 updatePadding(top = bars.top)
             }
-            // Lift the bottom status bar (and the FAB docked into it, plus the FAB's
+            // Lift the bottom bar (and the FAB docked into it, plus the FAB's
             // progress ring anchored to the FAB) above the navigation bar so the
             // ring isn't clipped by the system inset under edge-to-edge.
             findViewById<View>(R.id.stats)?.apply {
