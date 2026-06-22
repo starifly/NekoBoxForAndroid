@@ -34,14 +34,21 @@ object Theme {
     const val DRACULA = 23
     const val DYNAMIC = 24
     const val DARK_HIGH_CONTRAST = 25
+    const val DRACULA_M3 = 26
+    const val NORD = 27
+    const val MONOKAI = 28
+    const val AYU = 29
+    const val CATPPUCCIN = 30
 
     /**
      * Themes that only make sense in dark mode: selecting one forces night mode
      * on so its dark canvas (values-night) takes effect, and the prior night
      * setting is restored on exit (see SettingsPreferenceFragment). Dracula was
-     * the first such theme; Dark High Contrast (OLED black) is dark-only too.
+     * the first such theme; the modern M3 themes are dark-only too.
      */
-    val DARK_ONLY_THEMES = setOf(DRACULA, DARK_HIGH_CONTRAST)
+    val DARK_ONLY_THEMES = setOf(
+        DRACULA, DARK_HIGH_CONTRAST, DRACULA_M3, NORD, MONOKAI, AYU, CATPPUCCIN,
+    )
 
     private fun defaultTheme() = PINK_SSR
 
@@ -61,6 +68,11 @@ object Theme {
      */
     val MODERN_THEMES: List<ThemeInfo> = listOf(
         ThemeInfo(DARK_HIGH_CONTRAST, R.string.theme_dark_high_contrast, R.color.dhc_primary),
+        ThemeInfo(DRACULA_M3, R.string.theme_dracula_m3, R.color.draculam3_primary),
+        ThemeInfo(NORD, R.string.theme_nord, R.color.nord_primary),
+        ThemeInfo(MONOKAI, R.string.theme_monokai, R.color.monokai_primary),
+        ThemeInfo(AYU, R.string.theme_ayu, R.color.ayu_primary),
+        ThemeInfo(CATPPUCCIN, R.string.theme_catppuccin, R.color.catppuccin_primary),
         ThemeInfo(DYNAMIC, R.string.theme_dynamic, R.color.color_dynamic_swatch),
     )
 
@@ -106,6 +118,11 @@ object Theme {
             VERDANT_MINT -> R.style.Theme_SagerNet_VerdantMint
             DRACULA -> R.style.Theme_SagerNet_Dracula
             DARK_HIGH_CONTRAST -> R.style.Theme_SagerNet_DarkHighContrast
+            DRACULA_M3 -> R.style.Theme_SagerNet_DraculaM3
+            NORD -> R.style.Theme_SagerNet_Nord
+            MONOKAI -> R.style.Theme_SagerNet_Monokai
+            AYU -> R.style.Theme_SagerNet_Ayu
+            CATPPUCCIN -> R.style.Theme_SagerNet_Catppuccin
             DYNAMIC -> R.style.Theme_SagerNet
             else -> getTheme(defaultTheme())
         }
@@ -137,6 +154,11 @@ object Theme {
             VERDANT_MINT -> R.style.Theme_SagerNet_Dialog_VerdantMint
             DRACULA -> R.style.Theme_SagerNet_Dialog_Dracula
             DARK_HIGH_CONTRAST -> R.style.Theme_SagerNet_Dialog_DarkHighContrast
+            DRACULA_M3 -> R.style.Theme_SagerNet_Dialog_DraculaM3
+            NORD -> R.style.Theme_SagerNet_Dialog_Nord
+            MONOKAI -> R.style.Theme_SagerNet_Dialog_Monokai
+            AYU -> R.style.Theme_SagerNet_Dialog_Ayu
+            CATPPUCCIN -> R.style.Theme_SagerNet_Dialog_Catppuccin
             DYNAMIC -> R.style.Theme_SagerNet_Dialog
             else -> getDialogTheme(defaultTheme())
         }

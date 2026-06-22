@@ -49,9 +49,10 @@
     <!-- Tonal "elevated surface" color for cards (route / group); each theme
          variant tints toward its own primary. -->
     <attr name="cardElevatedSurfaceColor" format="color" />
-    <!-- Background for the top app bar / toolbar and the bottom status bar.
-         Defaults to colorPrimary (legacy single-accent chrome); full M3 dark
-         themes (Dark High Contrast) override it with colorSurface so the chrome
-         is the dark canvas and the accent is reserved for actions/selection. -->
+    <!-- Background for the top app bar / toolbar and tab strips. Each theme sets
+         this to a CONCRETE @color (matching its colorPrimary for legacy themes,
+         or the dark canvas for full M3 dark themes). It must not be an attr
+         reference: android:background resolves it as a drawable and does not
+         follow attr-to-attr indirection (that crashed AppBarLayout inflation). -->
     <attr name="appBarBackgroundColor" format="color" />
 </resources>

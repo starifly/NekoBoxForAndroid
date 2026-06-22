@@ -16,6 +16,11 @@
     <string name="theme">Theme</string>
     <string name="theme_dynamic">Dynamic (Material You)</string>
     <string name="theme_dark_high_contrast">Dark High Contrast</string>
+    <string name="theme_dracula_m3">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_monokai">Monokai</string>
+    <string name="theme_ayu">Ayu</string>
+    <string name="theme_catppuccin">Catppuccin</string>
     <string name="theme_classic_colors">Classic colors…</string>
     <string name="theme_classic_color_swatch">Color theme %1$d</string>
     <string name="document">Document</string>

@@ -400,4 +400,114 @@
     <color name="dhc_300">#2EA043</color>            <!-- colorMaterial300 stand-in -->
     <color name="card_elevated_dhc">#0D0D0D</color>
 
+    <!-- ===================== Phase 3: modern M3 dark themes =====================
+         Each is a full M3 dark theme surfaced by name in the picker. Base
+         declarations live here so resources always resolve; the live dark canvas
+         is applied via the theme styles (these themes force night mode on). -->
+
+    <!-- Dracula-M3 (official palette; separate from the legacy Dracula id 23). -->
+    <color name="draculam3_primary">#BD93F9</color>          <!-- purple -->
+    <color name="draculam3_primary_dark">#6272A4</color>     <!-- comment blue -->
+    <color name="draculam3_on_primary">#282A36</color>
+    <color name="draculam3_accent">#FF79C6</color> <!-- pink -->
+    <color name="draculam3_blue">#8BE9FD</color>            <!-- cyan -->
+    <color name="draculam3_background">#282A36</color>
+    <color name="draculam3_surface">#343746</color>
+    <color name="draculam3_surface_variant">#3C3F52</color>
+    <color name="draculam3_container">#44475A</color>
+    <color name="draculam3_on_surface">#F8F8F2</color>
+    <color name="draculam3_on_surface_variant">#C9CEE3</color>
+    <color name="draculam3_outline">#6272A4</color>
+    <color name="draculam3_outline_variant">#3C3F52</color>
+    <color name="draculam3_green">#50FA7B</color>
+    <color name="draculam3_red">#FF5555</color>
+    <color name="draculam3_yellow">#F1FA8C</color>
+    <color name="draculam3_100">#44475A</color>
+    <color name="draculam3_300">#6272A4</color>
+    <color name="card_elevated_draculam3">#343746</color>
+
+    <!-- Nord (official palette). -->
+    <color name="nord_primary">#88C0D0</color>             <!-- frost cyan -->
+    <color name="nord_primary_dark">#5E81AC</color>        <!-- frost deep blue -->
+    <color name="nord_on_primary">#2E3440</color>
+    <color name="nord_accent">#81A1C1</color>             <!-- frost blue -->
+    <color name="nord_blue">#81A1C1</color>
+    <color name="nord_background">#2E3440</color>
+    <color name="nord_surface">#3B4252</color>
+    <color name="nord_surface_variant">#434C5E</color>
+    <color name="nord_container">#434C5E</color>
+    <color name="nord_on_surface">#ECEFF4</color>
+    <color name="nord_on_surface_variant">#D8DEE9</color>
+    <color name="nord_outline">#4C566A</color>
+    <color name="nord_outline_variant">#3B4252</color>
+    <color name="nord_green">#A3BE8C</color>
+    <color name="nord_red">#BF616A</color>
+    <color name="nord_yellow">#EBCB8B</color>
+    <color name="nord_100">#434C5E</color>
+    <color name="nord_300">#5E81AC</color>
+    <color name="card_elevated_nord">#3B4252</color>
+
+    <!-- Monokai (classic palette). -->
+    <color name="monokai_primary">#A6E22E</color>          <!-- green -->
+    <color name="monokai_primary_dark">#75A813</color>
+    <color name="monokai_on_primary">#272822</color>
+    <color name="monokai_accent">#66D9EF</color>           <!-- blue -->
+    <color name="monokai_blue">#66D9EF</color>
+    <color name="monokai_background">#272822</color>
+    <color name="monokai_surface">#31322B</color>
+    <color name="monokai_surface_variant">#3A3B33</color>
+    <color name="monokai_container">#3E3D32</color>
+    <color name="monokai_on_surface">#F8F8F2</color>
+    <color name="monokai_on_surface_variant">#CFCFC2</color>
+    <color name="monokai_outline">#75715E</color>
+    <color name="monokai_outline_variant">#3A3B33</color>
+    <color name="monokai_green">#A6E22E</color>
+    <color name="monokai_red">#F92672</color>            <!-- pink/red -->
+    <color name="monokai_yellow">#E6DB74</color>
+    <color name="monokai_100">#3E3D32</color>
+    <color name="monokai_300">#75715E</color>
+    <color name="card_elevated_monokai">#31322B</color>
+
+    <!-- Ayu Mirage (official palette). -->
+    <color name="ayu_primary">#FFCC66</color>             <!-- amber accent -->
+    <color name="ayu_primary_dark">#FFA759</color>        <!-- orange -->
+    <color name="ayu_on_primary">#1F2430</color>
+    <color name="ayu_accent">#5CCFE6</color>              <!-- cyan -->
+    <color name="ayu_blue">#5CCFE6</color>
+    <color name="ayu_background">#1F2430</color>
+    <color name="ayu_surface">#232834</color>
+    <color name="ayu_surface_variant">#2A303C</color>
+    <color name="ayu_container">#2D3440</color>
+    <color name="ayu_on_surface">#E6E1CF</color>
+    <color name="ayu_on_surface_variant">#B8B5A5</color>
+    <color name="ayu_outline">#54596B</color>
+    <color name="ayu_outline_variant">#2A303C</color>
+    <color name="ayu_green">#BAE67E</color>
+    <color name="ayu_red">#FF6666</color>
+    <color name="ayu_yellow">#FFD580</color>
+    <color name="ayu_100">#2D3440</color>
+    <color name="ayu_300">#FFA759</color>
+    <color name="card_elevated_ayu">#232834</color>
+
+    <!-- Catppuccin Mocha (official palette). -->
+    <color name="catppuccin_primary">#CBA6F7</color>       <!-- mauve -->
+    <color name="catppuccin_primary_dark">#B4A0E5</color>
+    <color name="catppuccin_on_primary">#1E1E2E</color>
+    <color name="catppuccin_accent">#89B4FA</color>        <!-- blue -->
+    <color name="catppuccin_blue">#89B4FA</color>
+    <color name="catppuccin_background">#1E1E2E</color>
+    <color name="catppuccin_surface">#28283D</color>
+    <color name="catppuccin_surface_variant">#313244</color>
+    <color name="catppuccin_container">#45475A</color>
+    <color name="catppuccin_on_surface">#CDD6F4</color>
+    <color name="catppuccin_on_surface_variant">#BAC2DE</color>
+    <color name="catppuccin_outline">#6C7086</color>
+    <color name="catppuccin_outline_variant">#313244</color>
+    <color name="catppuccin_green">#A6E3A1</color>
+    <color name="catppuccin_red">#F38BA8</color>
+    <color name="catppuccin_yellow">#F9E2AF</color>
+    <color name="catppuccin_100">#45475A</color>
+    <color name="catppuccin_300">#6C7086</color>
+    <color name="card_elevated_catppuccin">#28283D</color>
+
 </resources>
