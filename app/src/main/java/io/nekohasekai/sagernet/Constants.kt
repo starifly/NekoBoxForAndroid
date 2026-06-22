@@ -55,6 +55,7 @@ object Key {
     const val CONNECTION_TEST_TIMEOUT = "connectionTestTimeout"
 
     const val NETWORK_CHANGE_RESET_CONNECTIONS = "networkChangeResetConnections"
+    const val RESTART_PROFILE_ON_NETWORK_CHANGE = "restartProfileOnNetworkChange"
     const val WAKE_RESET_CONNECTIONS = "wakeResetConnections"
     const val RULES_PROVIDER = "rulesProvider"
     const val LOG_LEVEL = "logLevel"

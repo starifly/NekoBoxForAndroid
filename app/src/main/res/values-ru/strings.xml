@@ -292,6 +292,7 @@
 <string name="need_restart">Перезапустите приложение для применения изменений</string>
 <string name="network">Сеть</string>
 <string name="network_change_reset_connections">Сбросить исходящие соединения при изменении сети</string>
+<string name="restart_profile_on_network_change">Перезапускать активный профиль при изменении сети</string>
 <string name="night_mode">Ночной режим</string>
 <string name="no">Нет</string>
 <string name="no_proxies_found">В ссылке не найдено прокси-серверов</string>

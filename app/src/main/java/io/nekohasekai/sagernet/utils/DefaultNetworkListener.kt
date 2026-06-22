@@ -150,5 +150,10 @@ object DefaultNetworkListener {
         }
     }
 
-    private fun unregister() = SagerNet.connectivity.unregisterNetworkCallback(Callback)
+    private fun unregister() {
+        if (fallback) return
+        runCatching {
+            SagerNet.connectivity.unregisterNetworkCallback(Callback)
+        }.onFailure { Logs.w(it) }
+    }
 }
