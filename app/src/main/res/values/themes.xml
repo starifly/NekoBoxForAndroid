@@ -17,6 +17,9 @@
         <item name="testFailColor">@color/material_red_500</item>
         <item name="speedTextColor">?attr/colorOnPrimary</item>
         <item name="fabStoppedColor">?attr/colorOnPrimary</item>
+        <!-- FAB connected-icon tint; defaults to the connected status color so
+             existing themes are unchanged. -->
+        <item name="fabConnectedColor">?attr/statusConnectedColor</item>
         <item name="statusDetailColor">?attr/colorOnPrimary</item>
         <item name="statusTestingColor">?attr/colorOnPrimary</item>
         <item name="routeProxyColor">@color/color_route_proxy</item>
@@ -37,6 +40,8 @@
         <item name="colorMaterial100">@color/material_pink_100</item>
         <item name="colorMaterial300">@color/material_pink_300</item>
         <item name="cardElevatedSurfaceColor">@color/card_elevated_pink</item>
+        <!-- App-bar/status-bar chrome background; default = primary (legacy look). -->
+        <item name="appBarBackgroundColor">?attr/colorPrimary</item>
 
         <!-- Material 3 color roles. Derived from each theme's own palette so the
              hand-picked themes keep their look while M3 widgets (Chip, FilledButton,
@@ -113,6 +118,9 @@
         <item name="testFailColor">@color/material_red_500</item>
         <item name="speedTextColor">?attr/colorOnPrimary</item>
         <item name="fabStoppedColor">?attr/colorOnPrimary</item>
+        <!-- FAB connected-icon tint; defaults to the connected status color so
+             existing themes are unchanged. -->
+        <item name="fabConnectedColor">?attr/statusConnectedColor</item>
         <item name="statusDetailColor">?attr/colorOnPrimary</item>
         <item name="statusTestingColor">?attr/colorOnPrimary</item>
         <item name="routeProxyColor">@color/color_route_proxy</item>
@@ -129,6 +137,8 @@
         <item name="colorMaterial100">@color/material_pink_100</item>
         <item name="colorMaterial300">@color/material_pink_300</item>
         <item name="cardElevatedSurfaceColor">@color/card_elevated_pink</item>
+        <!-- App-bar/status-bar chrome background; default = primary (legacy look). -->
+        <item name="appBarBackgroundColor">?attr/colorPrimary</item>
 
         <!-- Material 3 color roles. Derived from each theme's own palette so the
              hand-picked themes keep their look while M3 widgets (Chip, FilledButton,
@@ -239,6 +249,12 @@
         <item name="fabAnchorMode">cradle</item>
         <item name="menuAlignmentMode">auto</item>
         <item name="removeEmbeddedFabElevation">false</item>
+    </style>
+
+    <!-- Dark High Contrast bottom bar: black surface (not the green primary) so the
+         green/blue/red status text reads against it, matching the OLED design. -->
+    <style name="Widget.SagerNet.BottomAppBar.DarkHighContrast">
+        <item name="backgroundTint">?attr/colorSurface</item>
     </style>
 
     <style name="Widget.SagerNet.FloatingActionButton" parent="Widget.Material3.FloatingActionButton.Primary">
@@ -759,6 +775,18 @@
         <item name="colorOnBackground">@color/dhc_on_surface</item>
         <item name="android:windowBackground">@color/dhc_background</item>
 
+        <!-- M3 dark chrome: app bar / bottom bar use the black surface, not the
+             green primary, so green/blue/red accents are reserved for actions and
+             status. Status & nav bars are black to match the OLED canvas. -->
+        <item name="appBarBackgroundColor">@color/dhc_background</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar.DarkHighContrast</item>
+        <item name="android:statusBarColor">@color/dhc_background</item>
+        <item name="android:navigationBarColor">@color/dhc_background</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
+        <item name="tabTextColor">@color/dhc_on_surface_variant</item>
+        <item name="tabSelectedTextColor">@color/dhc_primary</item>
+        <item name="tabIndicatorColor">@color/dhc_primary</item>
+
         <!-- M3 container/variant roles on the dark canvas. -->
         <item name="colorPrimaryContainer">@color/dhc_container</item>
         <item name="colorOnPrimaryContainer">@color/dhc_on_surface</item>
@@ -787,6 +815,9 @@
         <item name="testFailColor">@color/dhc_red</item>
         <item name="speedTextColor">@color/dhc_accent</item>
         <item name="fabStoppedColor">@color/dhc_on_primary</item>
+        <!-- Connected airplane icon: dark, so it stays visible on the green FAB
+             (the green statusConnectedColor would vanish against it). -->
+        <item name="fabConnectedColor">@color/dhc_on_primary</item>
         <item name="statusDetailColor">@color/dhc_accent</item>
         <item name="statusTestingColor">@color/dhc_yellow</item>
         <item name="routeProxyColor">@color/dhc_blue</item>

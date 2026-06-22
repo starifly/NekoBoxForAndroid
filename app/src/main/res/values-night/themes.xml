@@ -105,6 +105,14 @@
         <item name="android:colorBackground">@color/dhc_background</item>
         <item name="colorOnBackground">@color/dhc_on_surface</item>
         <item name="android:windowBackground">@color/dhc_background</item>
+        <item name="appBarBackgroundColor">@color/dhc_background</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar.DarkHighContrast</item>
+        <item name="android:statusBarColor">@color/dhc_background</item>
+        <item name="android:navigationBarColor">@color/dhc_background</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
+        <item name="tabTextColor">@color/dhc_on_surface_variant</item>
+        <item name="tabSelectedTextColor">@color/dhc_primary</item>
+        <item name="tabIndicatorColor">@color/dhc_primary</item>
         <item name="colorPrimaryContainer">@color/dhc_container</item>
         <item name="colorOnPrimaryContainer">@color/dhc_on_surface</item>
         <item name="colorSecondary">@color/dhc_accent</item>
@@ -129,6 +137,7 @@
         <item name="testFailColor">@color/dhc_red</item>
         <item name="speedTextColor">@color/dhc_accent</item>
         <item name="fabStoppedColor">@color/dhc_on_primary</item>
+        <item name="fabConnectedColor">@color/dhc_on_primary</item>
         <item name="statusDetailColor">@color/dhc_accent</item>
         <item name="statusTestingColor">@color/dhc_yellow</item>
         <item name="routeProxyColor">@color/dhc_blue</item>

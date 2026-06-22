@@ -141,11 +141,14 @@ class ServiceButton @JvmOverloads constructor(
     }
 
     private fun applyStateTint(state: BaseService.State) {
-        // Tint the connect FAB icon by state: connected=green, stopped=red. For
-        // transient states (and on non-Dracula themes) fall back to colorOnPrimary,
-        // which is the FAB's normal icon color, so those themes look unchanged.
+        // Tint the connect FAB icon by state. Connected uses fabConnectedColor
+        // (defaults to the green connected status color, but themes whose FAB
+        // background is that same green — e.g. Dark High Contrast — override it
+        // with a contrasting color so the icon stays visible). Stopped uses
+        // fabStoppedColor. Transient states fall back to colorOnPrimary, the FAB's
+        // normal icon color, so unaffected themes look unchanged.
         val attr = when (state) {
-            BaseService.State.Connected -> R.attr.statusConnectedColor
+            BaseService.State.Connected -> R.attr.fabConnectedColor
             BaseService.State.Stopped -> R.attr.fabStoppedColor
             else -> com.google.android.material.R.attr.colorOnPrimary
         }
