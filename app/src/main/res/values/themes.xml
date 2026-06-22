@@ -251,23 +251,23 @@
 
     <!-- Dark High Contrast bottom bar: black surface (not the green primary) so the
          green/blue/red status text reads against it, matching the OLED design. -->
-    <style name="Widget.SagerNet.BottomAppBar.DarkHighContrast">
+    <style name="Widget.SagerNet.BottomAppBar.DarkHighContrast" parent="Widget.SagerNet.BottomAppBar">
         <item name="backgroundTint">?attr/colorSurface</item>
     </style>
 
-    <style name="Widget.SagerNet.BottomAppBar.DraculaM3">
+    <style name="Widget.SagerNet.BottomAppBar.DraculaM3" parent="Widget.SagerNet.BottomAppBar">
         <item name="backgroundTint">?attr/colorSurface</item>
     </style>
-    <style name="Widget.SagerNet.BottomAppBar.Nord">
+    <style name="Widget.SagerNet.BottomAppBar.Nord" parent="Widget.SagerNet.BottomAppBar">
         <item name="backgroundTint">?attr/colorSurface</item>
     </style>
-    <style name="Widget.SagerNet.BottomAppBar.Monokai">
+    <style name="Widget.SagerNet.BottomAppBar.Monokai" parent="Widget.SagerNet.BottomAppBar">
         <item name="backgroundTint">?attr/colorSurface</item>
     </style>
-    <style name="Widget.SagerNet.BottomAppBar.Ayu">
+    <style name="Widget.SagerNet.BottomAppBar.Ayu" parent="Widget.SagerNet.BottomAppBar">
         <item name="backgroundTint">?attr/colorSurface</item>
     </style>
-    <style name="Widget.SagerNet.BottomAppBar.Catppuccin">
+    <style name="Widget.SagerNet.BottomAppBar.Catppuccin" parent="Widget.SagerNet.BottomAppBar">
         <item name="backgroundTint">?attr/colorSurface</item>
     </style>
 
