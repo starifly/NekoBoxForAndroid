@@ -93,6 +93,25 @@ class AmneziaWireGuardImporterTest {
     }
 
     @Test
+    fun decodesQrPayloadWithoutVpnScheme() {
+        val vpn = encodeVpn(rootWithContainers(awgContainer(awgConf())), compressed = true)
+        val payload = vpn.removePrefix("vpn://")
+
+        val profile = AmneziaWireGuardImporter.tryParseUnprefixedVpn(payload)?.single()
+
+        assertEquals("Synthetic server", profile?.name)
+        assertEquals("192.0.2.10", profile?.serverAddress)
+    }
+
+    @Test
+    fun leavesGenericBase64ForExistingImporters() {
+        val genericSubscription = Base64.getUrlEncoder().withoutPadding()
+            .encodeToString("ss://example\nvmess://example".toByteArray())
+
+        assertEquals(null, AmneziaWireGuardImporter.tryParseUnprefixedVpn(genericSubscription))
+    }
+
+    @Test
     fun mixedVpnImportsOnlyAwgContainersAndSuffixesNames() {
         val unsupported = JsonObject().apply {
             addProperty("container", "amnezia-xray")

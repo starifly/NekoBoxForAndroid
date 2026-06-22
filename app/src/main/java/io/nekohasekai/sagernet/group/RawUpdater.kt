@@ -288,19 +288,22 @@ object RawUpdater : GroupUpdater() {
 
         val proxies = mutableListOf<AbstractBean>()
 
-        if (AmneziaWireGuardImporter.isAmneziaVpn(text)) {
-            return try {
+        try {
+            val amneziaProfiles = if (AmneziaWireGuardImporter.isAmneziaVpn(text)) {
                 AmneziaWireGuardImporter.parseVpn(text)
-            } catch (e: AmneziaWireGuardImporter.ImportException) {
-                val message = when (e.reason) {
-                    AmneziaWireGuardImporter.ErrorReason.INVALID_CONTAINER ->
-                        app.getString(R.string.invalid_amnezia_config)
-
-                    AmneziaWireGuardImporter.ErrorReason.NO_AWG_PROFILES ->
-                        app.getString(R.string.no_amnezia_awg_profiles)
-                }
-                throw IllegalArgumentException(message, e)
+            } else {
+                AmneziaWireGuardImporter.tryParseUnprefixedVpn(text)
             }
+            if (amneziaProfiles != null) return amneziaProfiles
+        } catch (e: AmneziaWireGuardImporter.ImportException) {
+            val message = when (e.reason) {
+                AmneziaWireGuardImporter.ErrorReason.INVALID_CONTAINER ->
+                    app.getString(R.string.invalid_amnezia_config)
+
+                AmneziaWireGuardImporter.ErrorReason.NO_AWG_PROFILES ->
+                    app.getString(R.string.no_amnezia_awg_profiles)
+            }
+            throw IllegalArgumentException(message, e)
         }
 
         if (text.contains("proxies:")) {

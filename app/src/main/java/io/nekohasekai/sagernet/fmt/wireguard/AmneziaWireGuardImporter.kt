@@ -113,20 +113,36 @@ object AmneziaWireGuardImporter {
             if (!normalized.startsWith(AMNEZIA_SCHEME, ignoreCase = true)) {
                 throw ImportException(ErrorReason.INVALID_CONTAINER)
             }
-            val payload = normalized.substring(AMNEZIA_SCHEME.length)
-                .filterNot(Char::isWhitespace)
-            if (payload.length > MAX_BASE64_SIZE) {
-                throw ImportException(ErrorReason.INVALID_CONTAINER)
-            }
-            val decoded = Base64.getUrlDecoder().decode(payload)
-            val jsonBytes = decodeQtCompressedOrJson(decoded)
-            val root = JsonParser.parseString(jsonBytes.toString(Charsets.UTF_8)).asJsonObject
-            return extractAwgProfiles(root)
+            return extractAwgProfiles(decodeRoot(normalized.substring(AMNEZIA_SCHEME.length)))
         } catch (e: ImportException) {
             throw e
         } catch (e: Throwable) {
             throw ImportException(ErrorReason.INVALID_CONTAINER, e)
         }
+    }
+
+    fun tryParseUnprefixedVpn(text: String): List<WireGuardBean>? {
+        val normalized = normalizeText(text)
+        if (normalized.startsWith(AMNEZIA_SCHEME, ignoreCase = true)) {
+            return parseVpn(normalized)
+        }
+        val root = try {
+            decodeRoot(normalized)
+        } catch (_: Throwable) {
+            return null
+        }
+        if (root["containers"]?.isJsonArray != true) return null
+        return extractAwgProfiles(root)
+    }
+
+    private fun decodeRoot(encodedPayload: String): JsonObject {
+        val payload = encodedPayload.filterNot(Char::isWhitespace)
+        if (payload.isEmpty() || payload.length > MAX_BASE64_SIZE) {
+            throw ImportException(ErrorReason.INVALID_CONTAINER)
+        }
+        val decoded = Base64.getUrlDecoder().decode(payload)
+        val jsonBytes = decodeQtCompressedOrJson(decoded)
+        return JsonParser.parseString(jsonBytes.toString(Charsets.UTF_8)).asJsonObject
     }
 
     private fun extractAwgProfiles(root: JsonObject): List<WireGuardBean> {
