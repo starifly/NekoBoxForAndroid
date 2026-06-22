@@ -16,7 +16,7 @@
         android:id="@+id/tools_tab"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?colorPrimary"
+        android:background="?attr/appBarBackgroundColor"
         android:elevation="0dp"
         app:tabIndicatorColor="?tabIndicatorColor"
         app:tabIndicatorFullWidth="false"

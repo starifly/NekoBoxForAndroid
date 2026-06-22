@@ -25,7 +25,6 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:nextFocusUp="@+id/fab"
-            app:backgroundTint="?colorPrimary"
             app:contentInsetStart="0dp"
             app:fabAlignmentMode="center"
             app:fabAnchorMode="cradle"

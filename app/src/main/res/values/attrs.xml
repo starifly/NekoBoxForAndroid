@@ -30,6 +30,12 @@
          (red was invisible on the pink/purple FAB). Separate from the red
          statusStoppedColor used for the status text. -->
     <attr name="fabStoppedColor" format="color" />
+    <!-- Connect-FAB icon tint when Connected. Default = statusConnectedColor so
+         existing themes are unchanged; themes whose FAB background equals the
+         connected status color (e.g. Dark High Contrast: green icon on a green
+         FAB) override this with a contrasting color so the airplane icon stays
+         visible. Separate from statusConnectedColor used for the status text. -->
+    <attr name="fabConnectedColor" format="color" />
     <!-- Secondary status text (the part after "Connected," / "Success:").
          Default on-primary; Dracula = cyan. -->
     <attr name="statusDetailColor" format="color" />
@@ -43,4 +49,10 @@
     <!-- Tonal "elevated surface" color for cards (route / group); each theme
          variant tints toward its own primary. -->
     <attr name="cardElevatedSurfaceColor" format="color" />
+    <!-- Background for the top app bar / toolbar and tab strips. Each theme sets
+         this to a CONCRETE @color (matching its colorPrimary for legacy themes,
+         or the dark canvas for full M3 dark themes). It must not be an attr
+         reference: android:background resolves it as a drawable and does not
+         follow attr-to-attr indirection (that crashed AppBarLayout inflation). -->
+    <attr name="appBarBackgroundColor" format="color" />
 </resources>

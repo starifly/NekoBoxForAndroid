@@ -1396,6 +1396,29 @@ class ConfigurationFragment @JvmOverloads constructor(
             configurationListView.adapter = adapter
             configurationListView.setItemViewCacheSize(20)
 
+            // Hide the docked FAB while scrolling down (so it never overlaps the
+            // bottom card) and bring it back on upward scroll or when the list
+            // settles. Mirrors the stats bar's hideOnScroll behavior. Only act in
+            // stable states (Stopped/Connected) so we don't fight the FAB's own
+            // show/hide animation during Connecting/Stopping.
+            configurationListView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                private fun stableState(): Boolean = DataStore.serviceState.let {
+                    it == BaseService.State.Stopped || it == BaseService.State.Connected
+                }
+
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    if (!stableState()) return
+                    val fab = (activity as? MainActivity)?.binding?.fab ?: return
+                    if (dy > 4) fab.hide() else if (dy < -4) fab.show()
+                }
+
+                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE && stableState()) {
+                        (activity as? MainActivity)?.binding?.fab?.show()
+                    }
+                }
+            })
+
             if (!select) {
                 undoManager = UndoSnackbarManager(activity as MainActivity, adapter!!)
                 setupItemTouchHelper()

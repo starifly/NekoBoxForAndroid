@@ -4,7 +4,7 @@
     android:id="@+id/appbar"
     android:layout_width="match_parent"
     android:layout_height="?attr/actionBarSize"
-    android:background="?attr/colorPrimary"
+    android:background="?attr/appBarBackgroundColor"
     app:elevation="0dp"
     app:liftOnScroll="false">
 
@@ -12,7 +12,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="?attr/colorPrimary"
+        android:background="?attr/appBarBackgroundColor"
         android:theme="?actionBarTheme"
         android:touchscreenBlocksFocus="false"
         app:popupTheme="@style/ThemeOverlay.SagerNet.Toolbar.Popup"
