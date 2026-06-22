@@ -58,6 +58,7 @@ import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeLi
 import io.nekohasekai.sagernet.databinding.LayoutProfileListBinding
 import io.nekohasekai.sagernet.databinding.LayoutProgressListBinding
 import io.nekohasekai.sagernet.fmt.AbstractBean
+import io.nekohasekai.sagernet.fmt.internal.ChainBean
 import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.group.RawUpdater
@@ -500,7 +501,21 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
 
             R.id.action_new_chain -> {
-                startActivity(Intent(requireActivity(), ChainSettingsActivity::class.java))
+                startActivity(Intent(requireActivity(), ChainSettingsActivity::class.java).apply {
+                    putExtra(ChainSettingsActivity.EXTRA_STRATEGY, ChainBean.STRATEGY_CHAIN)
+                })
+            }
+
+            R.id.action_new_waterfall -> {
+                startActivity(Intent(requireActivity(), ChainSettingsActivity::class.java).apply {
+                    putExtra(ChainSettingsActivity.EXTRA_STRATEGY, ChainBean.STRATEGY_WATERFALL)
+                })
+            }
+
+            R.id.action_new_fastest -> {
+                startActivity(Intent(requireActivity(), ChainSettingsActivity::class.java).apply {
+                    putExtra(ChainSettingsActivity.EXTRA_STRATEGY, ChainBean.STRATEGY_FASTEST)
+                })
             }
 
             R.id.action_update_subscription -> {
@@ -1879,7 +1894,10 @@ class ConfigurationFragment @JvmOverloads constructor(
                     popup.show()
                 }
 
-                val selectOrChain = select || proxyEntity.type == ProxyEntity.TYPE_CHAIN
+                val isAggregate = proxyEntity.type == ProxyEntity.TYPE_CHAIN ||
+                    proxyEntity.type == ProxyEntity.TYPE_WATERFALL ||
+                    proxyEntity.type == ProxyEntity.TYPE_FASTEST
+                val selectOrChain = select || isAggregate
                 val isDoubleColumn = DataStore.groupLayoutMode == 1
                 
                 if (isDoubleColumn) {
@@ -1910,7 +1928,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                         selectedView.visibility = if (selected) View.VISIBLE else View.INVISIBLE
                     }
 
-                    if (!(select || proxyEntity.type == ProxyEntity.TYPE_CHAIN)) {
+                    if (!(select || isAggregate)) {
                         onMainDispatcher {
                             shareLayer.setBackgroundColor(Color.TRANSPARENT)
                             shareButton.setImageResource(R.drawable.ic_social_share)

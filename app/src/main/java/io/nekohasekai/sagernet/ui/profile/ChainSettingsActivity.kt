@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.component1
 import androidx.activity.result.component2
 import androidx.activity.result.contract.ActivityResultContracts
@@ -31,19 +32,41 @@ import moe.matsuri.nb4a.Protocols.getProtocolColor
 
 class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout_chain_settings) {
 
-    override fun createEntity() = ChainBean()
+    companion object {
+        const val EXTRA_STRATEGY = "chain_strategy"
+    }
+
+    private var currentStrategy = ChainBean.STRATEGY_CHAIN
+
+    override fun createEntity() = ChainBean().apply {
+        strategy = intent.getIntExtra(EXTRA_STRATEGY, ChainBean.STRATEGY_CHAIN)
+        currentStrategy = strategy
+    }
 
     val proxyList = ArrayList<ProxyEntity>()
 
     override fun ChainBean.init() {
+        currentStrategy = strategy
         DataStore.profileName = name
         DataStore.serverProtocol = proxies.joinToString(",")
     }
 
     override fun ChainBean.serialize() {
         name = DataStore.profileName
+        strategy = currentStrategy
         proxies = proxyList.map { it.id }
         initializeDefaultValues()
+    }
+
+    override suspend fun saveAndExit() {
+        if (proxyList.isEmpty()) {
+            onMainDispatcher {
+                Toast.makeText(this@ChainSettingsActivity, R.string.profile_empty, Toast.LENGTH_SHORT)
+                    .show()
+            }
+            return
+        }
+        super.saveAndExit()
     }
 
     override fun PreferenceFragmentCompat.createPreferences(
@@ -61,7 +84,14 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        supportActionBar!!.setTitle(R.string.chain_settings)
+        currentStrategy = intent.getIntExtra(EXTRA_STRATEGY, ChainBean.STRATEGY_CHAIN)
+        supportActionBar!!.setTitle(
+            when (currentStrategy) {
+                ChainBean.STRATEGY_WATERFALL -> R.string.waterfall_settings
+                ChainBean.STRATEGY_FASTEST -> R.string.fastest_settings
+                else -> R.string.chain_settings
+            }
+        )
         configurationList = findViewById(R.id.configuration_list)
         layoutManager = FixedLinearLayoutManager(configurationList)
         configurationList.layoutManager = layoutManager
@@ -180,25 +210,54 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
 
     fun testProfileAllowed(profile: ProxyEntity): Boolean {
         if (profile.id == DataStore.editingId) return false
+        if (proxyList.withIndex().any { (index, entity) ->
+                index != replacing - 1 && entity.id == profile.id
+            }) return false
 
-        for (entity in proxyList) {
-            if (testProfileContains(entity, profile)) return false
+        if (profile.type == ProxyEntity.TYPE_CHAIN && chainContainsDynamicProfile(profile)) {
+            return false
         }
 
-        return true
+        when (currentStrategy) {
+            ChainBean.STRATEGY_CHAIN, ChainBean.STRATEGY_FASTEST -> {
+                if (profile.type == ProxyEntity.TYPE_WATERFALL ||
+                    profile.type == ProxyEntity.TYPE_FASTEST
+                ) return false
+            }
+
+            ChainBean.STRATEGY_WATERFALL -> {
+                if (profile.type == ProxyEntity.TYPE_WATERFALL) return false
+            }
+        }
+
+        return DataStore.editingId == 0L || !testProfileContains(profile, DataStore.editingId)
     }
 
-    fun testProfileContains(profile: ProxyEntity, anotherProfile: ProxyEntity): Boolean {
-        if (profile.type != 8 || anotherProfile.type != 8) return false
-        if (profile.id == anotherProfile.id) return true
-        val proxies = profile.chainBean!!.proxies
-        if (proxies.contains(anotherProfile.id)) return true
-        if (proxies.isNotEmpty()) {
-            for (entity in ProfileManager.getProfiles(proxies)) {
-                if (testProfileContains(entity, anotherProfile)) {
-                    return true
-                }
-            }
+    fun chainContainsDynamicProfile(
+        profile: ProxyEntity,
+        visited: MutableSet<Long> = HashSet(),
+    ): Boolean {
+        if (!visited.add(profile.id)) return false
+        if (profile.type == ProxyEntity.TYPE_WATERFALL ||
+            profile.type == ProxyEntity.TYPE_FASTEST
+        ) return true
+        if (profile.type != ProxyEntity.TYPE_CHAIN) return false
+        return ProfileManager.getProfiles(profile.chainBean?.proxies.orEmpty()).any {
+            chainContainsDynamicProfile(it, visited)
+        }
+    }
+
+    fun testProfileContains(
+        profile: ProxyEntity,
+        profileId: Long,
+        visited: MutableSet<Long> = HashSet(),
+    ): Boolean {
+        if (!visited.add(profile.id)) return false
+        if (profile.id == profileId) return true
+        val proxies = profile.chainBean?.proxies ?: return false
+        if (proxies.contains(profileId)) return true
+        for (entity in ProfileManager.getProfiles(proxies)) {
+            if (testProfileContains(entity, profileId, visited)) return true
         }
         return false
     }
@@ -219,7 +278,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
                 if (!testProfileAllowed(profile)) {
                     onMainDispatcher {
                         MaterialAlertDialogBuilder(this@ChainSettingsActivity).setTitle(R.string.circular_reference)
-                            .setMessage(R.string.circular_reference_sum)
+                            .setMessage(R.string.profile_reference_not_allowed)
                             .setPositiveButton(android.R.string.ok, null).show()
                     }
                 } else {

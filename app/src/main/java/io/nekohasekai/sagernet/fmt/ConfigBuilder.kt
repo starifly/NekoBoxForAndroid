@@ -107,12 +107,17 @@ fun buildConfig(
 
     fun ProxyEntity.resolveChainInternal(): MutableList<ProxyEntity> {
         val bean = requireBean()
-        if (bean is ChainBean) {
+        if (type == ProxyEntity.TYPE_CHAIN && bean is ChainBean) {
             val beans = SagerDatabase.proxyDao.getEntities(bean.proxies)
             val beansMap = beans.associateBy { it.id }
             val beanList = ArrayList<ProxyEntity>()
             for (proxyId in bean.proxies) {
                 val item = beansMap[proxyId] ?: continue
+                if (item.type == ProxyEntity.TYPE_WATERFALL ||
+                    item.type == ProxyEntity.TYPE_FASTEST
+                ) {
+                    error("Dynamic proxy profiles cannot be used as chain hops")
+                }
                 beanList.addAll(item.resolveChainInternal())
             }
             return beanList.asReversed()
@@ -322,7 +327,7 @@ fun buildConfig(
         }
 
         @Suppress("UNCHECKED_CAST")
-        fun buildChain(chainId: Long, entity: ProxyEntity): String {
+        fun buildStaticChain(chainId: Long, entity: ProxyEntity): String {
             val profileList = entity.resolveChain()
             val chainTrafficSet = HashSet<ProxyEntity>().apply {
                 plusAssign(profileList)
@@ -500,10 +505,73 @@ fun buildConfig(
             return chainTagOut
         }
 
+        fun buildProfile(
+            profileId: Long,
+            entity: ProxyEntity,
+            managedByParent: Boolean = false,
+        ): String {
+            if (entity.type != ProxyEntity.TYPE_WATERFALL &&
+                entity.type != ProxyEntity.TYPE_FASTEST
+            ) {
+                return buildStaticChain(profileId, entity)
+            }
+
+            val bean = entity.chainBean ?: error("Missing dynamic profile data")
+            if (bean.proxies.size != bean.proxies.distinct().size) {
+                error("Dynamic proxy profile contains duplicate candidates")
+            }
+            val profilesById = SagerDatabase.proxyDao.getEntities(bean.proxies).associateBy { it.id }
+            val candidates = bean.proxies.mapNotNull(profilesById::get)
+            if (candidates.isEmpty()) {
+                error("Dynamic proxy profile has no available candidates")
+            }
+
+            val candidateTags = candidates.map { candidate ->
+                when {
+                    entity.type == ProxyEntity.TYPE_WATERFALL &&
+                        candidate.type == ProxyEntity.TYPE_FASTEST ->
+                        buildProfile(candidate.id, candidate, managedByParent = true)
+
+                    candidate.type == ProxyEntity.TYPE_WATERFALL ||
+                        candidate.type == ProxyEntity.TYPE_FASTEST ->
+                        error("Unsupported nested dynamic proxy profile")
+
+                    else -> buildStaticChain(candidate.id, candidate)
+                }
+            }
+
+            val groupTag = readableTag(entity.displayName())
+            outbounds.add(Outbound_URLTestOptions().apply {
+                type = "urltest"
+                tag = groupTag
+                outbounds = candidateTags
+                url = DataStore.connectionTestURL
+                interval = "10m"
+                idle_timeout = "30m"
+                timeout = "${DataStore.connectionTestTimeout}ms"
+                tolerance = if (entity.type == ProxyEntity.TYPE_FASTEST) 50 else 0
+                strategy = if (entity.type == ProxyEntity.TYPE_WATERFALL) {
+                    "priority"
+                } else {
+                    "fastest"
+                }
+                managed_by_parent = managedByParent
+                wait_for_initial = !managedByParent
+            })
+
+            trafficMap[groupTag] = buildList {
+                add(entity)
+                candidateTags.forEach { tag ->
+                    addAll(trafficMap[tag].orEmpty())
+                }
+            }.distinctBy { it.id }
+            return groupTag
+        }
+
         if (buildSelector) {
             val list = group.id.let { SagerDatabase.proxyDao.getByGroup(it) }
             list.forEach {
-                tagMap[it.id] = buildChain(it.id, it)
+                tagMap[it.id] = buildProfile(it.id, it)
             }
             outbounds.add(0, Outbound_SelectorOptions().apply {
                 type = "selector"
@@ -512,12 +580,12 @@ fun buildConfig(
                 outbounds = tagMap.values.toList()
             })
         } else {
-            val mainTag = buildChain(0, proxy)
+            val mainTag = buildProfile(0, proxy)
             tagMap[proxy.id] = mainTag
         }
 
         extraProxies.forEach { (key, p) ->
-            tagMap[key] = buildChain(key, p)
+            tagMap[key] = buildProfile(key, p)
         }
 
         val mainProxyTag = (if (buildSelector) TAG_PROXY else tagMap[proxy.id]) ?: TAG_PROXY

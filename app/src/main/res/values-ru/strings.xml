@@ -73,6 +73,8 @@
 <string name="cag_ws">Настройки WebSocket</string>
 <string name="certificates">Сертификаты</string>
 <string name="chain_settings">Настройки цепочки</string>
+<string name="waterfall_settings">Настройки водопада</string>
+<string name="fastest_settings">Настройки самого быстрого</string>
 <string name="character_counter_content_description">Введено символов: %1$d из %2$d</string>
 <string name="character_counter_overflowed_content_description">Превышено ограничение на количество символов (%1$d из %2$d)</string>
 <string name="check_update_no">Обновления не найдены.</string>
@@ -80,6 +82,7 @@
 <string name="check_update_release">Проверить наличие обновлений релизнойной версии</string>
 <string name="circular_reference">Циклическая ссылка</string>
 <string name="circular_reference_sum">Маршрут не может содержать сам себя.</string>
+<string name="profile_reference_not_allowed">Профиль уже добавлен, создаёт циклическую ссылку или недопустим для этой группы.</string>
 <string name="clear_logcat">Очистить журнал</string>
 <string name="clear_profiles">Очистить</string>
 <string name="clear_profiles_message">Вы уверены, что хотите очистить эту группу?</string>
@@ -341,6 +344,8 @@
 <string name="proxied_apps_summary">Настроить режим VPN для выбранных приложений</string>
 <string name="proxy_cat">Настройки сервера</string>
 <string name="proxy_chain">Прокси-цепочка</string>
+<string name="proxy_waterfall">Водопад</string>
+<string name="proxy_fastest">Самый быстрый</string>
 <string name="quick_toggle">Переключить</string>
 <string name="quick_enable">Включить</string>
 <string name="quick_disable">Выключить</string>

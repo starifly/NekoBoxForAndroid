@@ -99,6 +99,8 @@ data class ProxyEntity(
         const val TYPE_MIERU = 21
         const val TYPE_ANYTLS = 22
         const val TYPE_JUICITY = 23
+        const val TYPE_WATERFALL = 24
+        const val TYPE_FASTEST = 25
 
         const val TYPE_CONFIG = 998
         const val TYPE_NEKO = 999
@@ -106,6 +108,8 @@ data class ProxyEntity(
         const val TYPE_CHAIN = 8
 
         val chainName by lazy { app.getString(R.string.proxy_chain) }
+        val waterfallName by lazy { app.getString(R.string.proxy_waterfall) }
+        val fastestName by lazy { app.getString(R.string.proxy_fastest) }
 
         @JvmField
         val CREATOR = object : CREATOR<ProxyEntity>() {
@@ -185,7 +189,8 @@ data class ProxyEntity(
             TYPE_JUICITY -> juicityBean = KryoConverters.juicityDeserialize(byteArray)
             TYPE_SHADOWTLS -> shadowTLSBean = KryoConverters.shadowTLSDeserialize(byteArray)
             TYPE_ANYTLS -> anyTLSBean = KryoConverters.anyTLSDeserialize(byteArray)
-            TYPE_CHAIN -> chainBean = KryoConverters.chainDeserialize(byteArray)
+            TYPE_CHAIN, TYPE_WATERFALL, TYPE_FASTEST -> chainBean =
+                KryoConverters.chainDeserialize(byteArray)
             TYPE_NEKO -> nekoBean = KryoConverters.nekoDeserialize(byteArray)
             TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
         }
@@ -209,6 +214,8 @@ data class ProxyEntity(
         TYPE_SHADOWTLS -> "ShadowTLS"
         TYPE_ANYTLS -> "AnyTLS"
         TYPE_CHAIN -> chainName
+        TYPE_WATERFALL -> waterfallName
+        TYPE_FASTEST -> fastestName
         TYPE_NEKO -> nekoBean!!.displayType()
         TYPE_CONFIG -> configBean!!.displayType()
         else -> "Undefined type $type"
@@ -235,7 +242,7 @@ data class ProxyEntity(
             TYPE_JUICITY -> juicityBean
             TYPE_SHADOWTLS -> shadowTLSBean
             TYPE_ANYTLS -> anyTLSBean
-            TYPE_CHAIN -> chainBean
+            TYPE_CHAIN, TYPE_WATERFALL, TYPE_FASTEST -> chainBean
             TYPE_NEKO -> nekoBean
             TYPE_CONFIG -> configBean
             else -> error("Undefined type $type")
@@ -244,7 +251,7 @@ data class ProxyEntity(
 
     fun haveLink(): Boolean {
         return when (type) {
-            TYPE_CHAIN -> false
+            TYPE_CHAIN, TYPE_WATERFALL, TYPE_FASTEST -> false
             else -> true
         }
     }
@@ -512,7 +519,11 @@ data class ProxyEntity(
             }
 
             is ChainBean -> {
-                type = TYPE_CHAIN
+                type = when (bean.strategy) {
+                    ChainBean.STRATEGY_WATERFALL -> TYPE_WATERFALL
+                    ChainBean.STRATEGY_FASTEST -> TYPE_FASTEST
+                    else -> TYPE_CHAIN
+                }
                 chainBean = bean
             }
 
@@ -550,13 +561,22 @@ data class ProxyEntity(
                 TYPE_JUICITY -> JuicitySettingsActivity::class.java
                 TYPE_SHADOWTLS -> ShadowTLSSettingsActivity::class.java
                 TYPE_ANYTLS -> AnyTLSSettingsActivity::class.java
-                TYPE_CHAIN -> ChainSettingsActivity::class.java
+                TYPE_CHAIN, TYPE_WATERFALL, TYPE_FASTEST -> ChainSettingsActivity::class.java
                 TYPE_CONFIG -> ConfigSettingActivity::class.java
                 else -> throw IllegalArgumentException()
             }
         ).apply {
             putExtra(ProfileSettingsActivity.EXTRA_PROFILE_ID, id)
             putExtra(ProfileSettingsActivity.EXTRA_IS_SUBSCRIPTION, isSubscription)
+            if (this@ProxyEntity.type == TYPE_CHAIN ||
+                this@ProxyEntity.type == TYPE_WATERFALL ||
+                this@ProxyEntity.type == TYPE_FASTEST
+            ) {
+                putExtra(
+                    ChainSettingsActivity.EXTRA_STRATEGY,
+                    this@ProxyEntity.chainBean!!.strategy,
+                )
+            }
         }
     }
 

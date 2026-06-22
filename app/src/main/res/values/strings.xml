@@ -240,15 +240,20 @@
     <string name="action_tuic" translatable="false">TUIC</string>
     <string name="action_juicity" translatable="false">Juicity</string>
     <string name="proxy_chain">Proxy Chain</string>
+    <string name="proxy_waterfall">Waterfall</string>
+    <string name="proxy_fastest">Fastest</string>
     <string name="custom_config">Custom Config</string>
     <string name="balancer">Balancer</string>
     <string name="balancer_settings">Balancer Settings</string>
     <string name="balancer_type">Type</string>
     <string name="balancer_strategy">Strategy</string>
     <string name="chain_settings">Chain Settings</string>
+    <string name="waterfall_settings">Waterfall Settings</string>
+    <string name="fastest_settings">Fastest Settings</string>
     <string name="config_settings">Config Settings</string>
     <string name="circular_reference">Circular reference</string>
     <string name="circular_reference_sum">The route cannot contain itself.</string>
+    <string name="profile_reference_not_allowed">This profile is already added, creates a circular reference, or is not allowed in this group.</string>
     <string name="clear_profiles">Clear</string>
     <string name="action_create_group">Empty group</string>
     <string name="action_from_link">From subscription</string>

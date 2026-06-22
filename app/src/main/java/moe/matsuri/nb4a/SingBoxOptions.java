@@ -154,9 +154,19 @@ public class SingBoxOptions {
 
         public String url;
 
-        public Long interval;
+        public String interval;
 
         public Integer tolerance;
+
+        public String idle_timeout;
+
+        public String timeout;
+
+        public String strategy;
+
+        public Boolean managed_by_parent;
+
+        public Boolean wait_for_initial;
 
     }
 
@@ -4450,9 +4460,19 @@ public class SingBoxOptions {
 
         public String url;
 
-        public Long interval;
+        public String interval;
 
         public Integer tolerance;
+
+        public String idle_timeout;
+
+        public String timeout;
+
+        public String strategy;
+
+        public Boolean managed_by_parent;
+
+        public Boolean wait_for_initial;
 
     }
 

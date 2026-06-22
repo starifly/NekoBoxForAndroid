@@ -73,6 +73,8 @@ dependencies {
     implementation("com.google.guava:guava:31.0.1-android")
     implementation("org.ini4j:ini4j:0.5.4")
 
+    testImplementation("junit:junit:4.13.2")
+
     implementation("com.simplecityapps:recyclerview-fastscroll:2.0.1") {
         exclude(group = "androidx.recyclerview")
         exclude(group = "androidx.appcompat")
