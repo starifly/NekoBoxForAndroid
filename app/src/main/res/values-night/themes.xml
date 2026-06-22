@@ -451,6 +451,7 @@
         <item name="testFailColor">@color/dhc_red</item>
         <item name="speedTextColor">@color/dhc_accent</item>
         <item name="fabStoppedColor">@color/dhc_on_primary</item>
+        <item name="fabConnectedColor">@color/dhc_on_primary</item>
         <item name="statusDetailColor">@color/dhc_accent</item>
         <item name="statusTestingColor">@color/dhc_yellow</item>
         <item name="routeProxyColor">@color/dhc_blue</item>

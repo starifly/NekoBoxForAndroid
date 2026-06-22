@@ -489,25 +489,25 @@
     <color name="ayu_300">#FFA759</color>
     <color name="card_elevated_ayu">#232834</color>
 
-    <!-- Catppuccin Mocha (official palette). -->
+    <!-- Catppuccin Mocha (official palette: https://catppuccin.com/palette). -->
     <color name="catppuccin_primary">#CBA6F7</color>       <!-- mauve -->
-    <color name="catppuccin_primary_dark">#B4A0E5</color>
-    <color name="catppuccin_on_primary">#1E1E2E</color>
+    <color name="catppuccin_primary_dark">#74C7EC</color>  <!-- sapphire (status bar) -->
+    <color name="catppuccin_on_primary">#1E1E2E</color>    <!-- base -->
     <color name="catppuccin_accent">#89B4FA</color>        <!-- blue -->
     <color name="catppuccin_blue">#89B4FA</color>
-    <color name="catppuccin_background">#1E1E2E</color>
-    <color name="catppuccin_surface">#28283D</color>
-    <color name="catppuccin_surface_variant">#313244</color>
-    <color name="catppuccin_container">#45475A</color>
-    <color name="catppuccin_on_surface">#CDD6F4</color>
-    <color name="catppuccin_on_surface_variant">#BAC2DE</color>
-    <color name="catppuccin_outline">#6C7086</color>
+    <color name="catppuccin_background">#1E1E2E</color>    <!-- base -->
+    <color name="catppuccin_surface">#181825</color>       <!-- mantle -->
+    <color name="catppuccin_surface_variant">#313244</color> <!-- surface0 -->
+    <color name="catppuccin_container">#45475A</color>    <!-- surface1 -->
+    <color name="catppuccin_on_surface">#CDD6F4</color>   <!-- text -->
+    <color name="catppuccin_on_surface_variant">#BAC2DE</color> <!-- subtext1 -->
+    <color name="catppuccin_outline">#6C7086</color>      <!-- overlay0 -->
     <color name="catppuccin_outline_variant">#313244</color>
     <color name="catppuccin_green">#A6E3A1</color>
     <color name="catppuccin_red">#F38BA8</color>
     <color name="catppuccin_yellow">#F9E2AF</color>
     <color name="catppuccin_100">#45475A</color>
     <color name="catppuccin_300">#6C7086</color>
-    <color name="card_elevated_catppuccin">#28283D</color>
+    <color name="card_elevated_catppuccin">#181825</color>
 
 </resources>
