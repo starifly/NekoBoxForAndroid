@@ -14,6 +14,7 @@ fi
 pushd sing-box
 git checkout "$COMMIT_SING_BOX"
 python3 ../NekoBox_SF/buildScript/lib/core/patch_sing_box_awg.py "$(pwd)"
+python3 ../NekoBox_SF/buildScript/lib/core/patch_sing_box_balancers.py "$(pwd)"
 popd
 
 ####
