@@ -13,10 +13,6 @@ android {
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
     }
-    ksp {
-        arg("room.incremental", "true")
-        arg("room.schemaLocation", "$projectDir/schemas")
-    }
     bundle {
         language {
             enableSplit = false
@@ -36,6 +32,14 @@ android {
     androidResources {
         generateLocaleConfig = true
     }
+}
+
+// KSP options (room schema export). The `ksp { }` extension is registered by the KSP Gradle
+// plugin at the project level, not inside the Android DSL, so it is declared as a top-level
+// block here.
+ksp {
+    arg("room.incremental", "true")
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 dependencies {
@@ -76,7 +80,7 @@ dependencies {
     // widget; it replaces the archived com.blacksquircle.ui:editorkit. Syntax highlighting
     // is provided via TextMate grammars (language-textmate), with JSON grammar + themes
     // bundled in assets/textmate/. Versions are managed by the editor-bom platform.
-    implementation(platform("io.github.rosemoe:editor-bom:0.23.7"))
+    implementation(platform("io.github.rosemoe:editor-bom:0.24.6"))
     implementation("io.github.rosemoe:editor")
     implementation("io.github.rosemoe:language-textmate")
 
@@ -87,16 +91,11 @@ dependencies {
     implementation("com.google.guava:guava:33.4.0-android")
     implementation("org.ini4j:ini4j:0.5.4")
 
-    implementation("com.simplecityapps:recyclerview-fastscroll:2.0.1") {
-        exclude(group = "androidx.recyclerview")
-        exclude(group = "androidx.appcompat")
-    }
+    implementation("me.zhanghai.android.fastscroll:library:1.3.0")
 
     implementation("androidx.room:room-runtime:2.7.2")
     ksp("androidx.room:room-compiler:2.7.2")
     implementation("androidx.room:room-ktx:2.7.2")
-    implementation("com.github.MatrixDev.Roomigrant:RoomigrantLib:0.3.4")
-    ksp("com.github.MatrixDev.Roomigrant:RoomigrantCompiler:0.3.4")
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }

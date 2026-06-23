@@ -21,6 +21,7 @@ import io.nekohasekai.sagernet.databinding.LayoutEmptyRouteBinding
 import io.nekohasekai.sagernet.databinding.LayoutRouteBinding
 import io.nekohasekai.sagernet.databinding.LayoutRouteItemBinding
 import io.nekohasekai.sagernet.ktx.*
+import me.zhanghai.android.fastscroll.FastScrollerBuilder
 import io.nekohasekai.sagernet.widget.ListListener
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 
@@ -46,6 +47,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
         ruleAdapter = RuleAdapter()
         ProfileManager.addListener(ruleAdapter)
         ruleListView.adapter = ruleAdapter
+        FastScrollerBuilder(ruleListView).useMd2Style().build()
         undoManager = UndoSnackbarManager(activity, ruleAdapter)
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.START) {

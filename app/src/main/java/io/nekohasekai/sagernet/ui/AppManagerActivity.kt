@@ -24,7 +24,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
+import me.zhanghai.android.fastscroll.FastScrollerBuilder
+import me.zhanghai.android.fastscroll.PopupTextProvider
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
@@ -101,7 +102,7 @@ class AppManagerActivity : ThemedActivity() {
     }
 
     private inner class AppsAdapter : RecyclerView.Adapter<AppViewHolder>(),
-        FastScrollRecyclerView.SectionedAdapter {
+        PopupTextProvider {
         var filteredApps = apps
 
         suspend fun reload() {
@@ -149,7 +150,7 @@ class AppManagerActivity : ThemedActivity() {
             notifyDataSetChanged()
         }
 
-        override fun getSectionName(position: Int): String {
+        override fun getPopupText(view: View, position: Int): CharSequence {
             return filteredApps[position].name.firstOrNull()?.toString() ?: ""
         }
 
@@ -253,6 +254,7 @@ class AppManagerActivity : ThemedActivity() {
         binding.list.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
         binding.list.itemAnimator = DefaultItemAnimator()
         binding.list.adapter = appsAdapter
+        FastScrollerBuilder(binding.list).useMd2Style().build()
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root, ListListener)
 

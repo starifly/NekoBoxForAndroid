@@ -115,6 +115,7 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import me.zhanghai.android.fastscroll.FastScrollerBuilder
 import moe.matsuri.nb4a.Protocols
 import moe.matsuri.nb4a.Protocols.getProtocolColor
 import moe.matsuri.nb4a.proxy.anytls.AnyTLSSettingsActivity
@@ -1400,6 +1401,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             GroupManager.addListener(adapter!!)
             configurationListView.adapter = adapter
             configurationListView.setItemViewCacheSize(20)
+            FastScrollerBuilder(configurationListView).useMd2Style().build()
 
             // Hide the docked FAB while scrolling down (so it never overlaps the
             // bottom card) and bring it back on upward scroll or when the list

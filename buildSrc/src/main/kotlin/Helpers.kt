@@ -3,9 +3,10 @@ import com.android.build.gradle.AbstractAppExtension
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.plugins.ExtensionAware
 import org.gradle.kotlin.dsl.getByName
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.Base64
 import java.util.Properties
 import kotlin.system.exitProcess
@@ -56,9 +57,6 @@ fun Project.setupCommon() {
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
         }
-        (android as ExtensionAware).extensions.getByName<KotlinJvmOptions>("kotlinOptions").apply {
-            jvmTarget = JavaVersion.VERSION_17.toString()
-        }
         lint {
             showAll = true
             checkAllWarnings = true
@@ -107,6 +105,16 @@ fun Project.setupCommon() {
                     ).replace("-release", "").replace("-oss", "")
                 }
             }
+        }
+    }
+
+    // Kotlin JVM target. Configured via the compilerOptions DSL on the Kotlin compile tasks
+    // (a project-level call, hence outside the android.apply { } block above); the legacy
+    // `kotlinOptions { jvmTarget = ... }` / KotlinJvmOptions API was removed (turned into a
+    // hard error) in Kotlin 2.3.
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 }
