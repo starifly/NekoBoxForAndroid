@@ -2,7 +2,9 @@
 
 plugins {
     id("com.android.application")
-    id("kotlin-android")
+    // kotlin-android is no longer applied: AGP 9.0+ provides built-in Kotlin support
+    // (android.builtInKotlin defaults to true), so the org.jetbrains.kotlin.android plugin
+    // would clash ("extension already registered with name 'kotlin'").
     id("com.google.devtools.ksp")
     id("kotlin-parcelize")
 }

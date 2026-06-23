@@ -133,8 +133,12 @@ jobs:
             echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > release.keystore
           fi
           KEYSTORE_PASS="${{ secrets.KEYSTORE_PASS }}" ALIAS_NAME="${{ secrets.ALIAS_NAME }}" ALIAS_PASS="${{ secrets.ALIAS_PASS }}" ./gradlew app:assembleOssRelease
-          APK=$(find app/build/outputs/apk -name '*arm64-v8a*.apk')
-          APK=$(dirname $APK)
+          APK=$(find app/build/outputs/renamed_apks -name '*arm64-v8a*.apk' | head -n 1)
+          if [ -z "$APK" ]; then
+            echo "Error: no arm64-v8a APK found under app/build/outputs/renamed_apks" >&2
+            exit 1
+          fi
+          APK=$(dirname "$APK")
           echo "APK=$APK" >> $GITHUB_ENV
       - name: Upload Artifacts
         uses: namespace-actions/upload-artifact@v1

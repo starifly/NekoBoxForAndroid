@@ -1,9 +1,10 @@
+import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.dsl.ApplicationExtension
-import com.android.build.gradle.AbstractAppExtension
-import com.android.build.gradle.internal.api.BaseVariantOutputImpl
+import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.getByName
+import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -12,6 +13,8 @@ import java.util.Properties
 import kotlin.system.exitProcess
 
 private val Project.android get() = extensions.getByName<ApplicationExtension>("android")
+private val Project.androidComponents
+    get() = extensions.getByName<ApplicationAndroidComponentsExtension>("androidComponents")
 
 private lateinit var metadata: Properties
 private lateinit var localProperties: Properties
@@ -82,28 +85,22 @@ fun Project.setupCommon() {
                 )
             )
         }
-        (this as? AbstractAppExtension)?.apply {
-            buildTypes {
-                getByName("release") {
-                    isShrinkResources = true
-                    if (System.getenv("nkmr_minify") == "0") {
-                        isShrinkResources = false
-                        isMinifyEnabled = false
-                    }
-                }
-                getByName("debug") {
-                    applicationIdSuffix = "debug"
-                    debuggable(true)
-                    jniDebuggable(true)
+        // Under AGP 9's new DSL the build types below are configured directly on
+        // ApplicationExtension (no AbstractAppExtension cast needed). APK output renaming is no
+        // longer done here via the removed applicationVariants/BaseVariantOutputImpl API; it is
+        // handled by the RenameApkTask wired in setupApp() through androidComponents.onVariants.
+        buildTypes {
+            getByName("release") {
+                isShrinkResources = true
+                if (System.getenv("nkmr_minify") == "0") {
+                    isShrinkResources = false
+                    isMinifyEnabled = false
                 }
             }
-            applicationVariants.forEach { variant ->
-                variant.outputs.forEach {
-                    it as BaseVariantOutputImpl
-                    it.outputFileName = it.outputFileName.replace(
-                        "app", "${project.name}-" + variant.versionName
-                    ).replace("-release", "").replace("-oss", "")
-                }
+            getByName("debug") {
+                applicationIdSuffix = "debug"
+                isDebuggable = true
+                isJniDebuggable = true
             }
         }
     }
@@ -173,8 +170,6 @@ fun Project.setupApp() {
     setupAppCommon()
 
     android.apply {
-        this as AbstractAppExtension
-
         buildTypes {
             getByName("release") {
                 proguardFiles(
@@ -208,31 +203,33 @@ fun Project.setupApp() {
             }
         }
 
-        applicationVariants.all {
-            outputs.all {
-                this as BaseVariantOutputImpl
-                val isPreview = outputFileName.contains("-preview")
-                outputFileName = if (isPreview) {
-                    outputFileName.replace(
-                        project.name,
-                        "NekoBox-" + requireMetadata().getProperty("PRE_VERSION_NAME")
-                    ).replace("-preview", "")
-                } else {
-                    outputFileName.replace(project.name, "NekoBox-$versionName")
-                        .replace("-release", "")
-                        .replace("-oss", "")
-                }
-            }
-        }
-
         for (abi in listOf("Arm64", "Arm", "X64", "X86")) {
-            tasks.create("assemble" + abi + "FdroidRelease") {
+            tasks.register("assemble" + abi + "FdroidRelease") {
                 dependsOn("assembleFdroidRelease")
             }
         }
 
         sourceSets.getByName("main").apply {
-            jniLibs.srcDir("executableSo")
+            jniLibs.directories.add("executableSo")
         }
+    }
+
+    // APK output renaming. The legacy applicationVariants/BaseVariantOutputImpl API was removed in
+    // AGP 9 (new DSL). Instead we react to artifact creation and copy the produced APKs into
+    // build/outputs/renamed_apks/<variant> with friendly NekoBox-<version>[-<abi>].apk names.
+    // The preview flavor uses PRE_VERSION_NAME to match the previous behaviour.
+    val previewVersionName = requireMetadata().getProperty("PRE_VERSION_NAME")
+    androidComponents.onVariants { variant ->
+        val isPreview = variant.flavorName == "preview" ||
+            variant.productFlavors.any { (_, flavor) -> flavor == "preview" }
+        val version = if (isPreview) previewVersionName else verName
+        val renameTask = tasks.register<RenameApkTask>("renameApksFor${variant.name.replaceFirstChar { it.uppercase() }}") {
+            output.set(layout.buildDirectory.dir("outputs/renamed_apks/${variant.name}"))
+            builtArtifactsLoader.set(variant.artifacts.getBuiltArtifactsLoader())
+            baseName.set("NekoBox-$version")
+        }
+        variant.artifacts.use(renameTask)
+            .wiredWith { it.input }
+            .toListenTo(SingleArtifact.APK)
     }
 }
