@@ -173,7 +173,6 @@ fun buildConfig(
     val enableDnsRouting = DataStore.enableDnsRouting
     val useFakeDns = DataStore.enableFakeDns && !forTest
     val needSniff = DataStore.trafficSniffing > 0
-    val needSniffOverride = DataStore.trafficSniffing == 2
     val externalIndexMap = ArrayList<IndexEntity>()
     val ipv6Mode = if (forTest) IPv6Mode.ENABLE else DataStore.ipv6Mode
 
@@ -302,10 +301,13 @@ fun buildConfig(
 
             // sing-box 1.13 moved sniffing + domain resolution off inbounds onto route
             // rule actions. Emit them first so behaviour matches the old inbound fields.
-            // sniff: previously inbound.sniff (trafficSniffing > 0).
+            // sniff: previously inbound.sniff (trafficSniffing > 0). The old
+            //   sniff_override_destination (trafficSniffing == 2) toggle has no 1.13
+            //   equivalent - the sniff action overrides the destination by default, so the
+            //   override mode is preserved without a separate flag.
             // resolve: previously inbound.domain_strategy, which ran whenever a non-empty
             //   strategy was configured - independent of sniff-override. Gate on the
-            //   strategy string being non-empty, not on needSniffOverride (orthogonal).
+            //   strategy string being non-empty (orthogonal to sniffing).
             if (needSniff) {
                 rules.add(Rule_DefaultOptions().apply {
                     action = "sniff"
