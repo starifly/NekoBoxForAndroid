@@ -9,6 +9,7 @@ import android.view.MenuItem
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.activity.addCallback
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
@@ -67,7 +68,10 @@ class ConfigEditActivity : ThemedActivity() {
         binding = LayoutEditConfigBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setSupportActionBar(binding.appbarInclude.toolbar)
+        // The appbar is included WITHOUT an android:id on the <include> so the included
+        // AppBarLayout keeps its own R.id.appbar, which ThemedActivity uses to apply the top
+        // status-bar inset as padding (otherwise the toolbar draws under the status bar).
+        setSupportActionBar(findViewById<Toolbar>(R.id.toolbar))
         supportActionBar?.apply {
             setTitle(R.string.config_settings)
             setDisplayHomeAsUpEnabled(true)
