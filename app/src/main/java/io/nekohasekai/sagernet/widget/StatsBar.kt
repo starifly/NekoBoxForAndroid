@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.widget
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.ContextWrapper
 import android.text.format.Formatter
 import android.util.AttributeSet
 import android.view.View
@@ -28,6 +29,16 @@ class StatsBar @JvmOverloads constructor(
     private lateinit var txText: TextView
     private lateinit var rxText: TextView
     private lateinit var behavior: YourBehavior
+
+    private val mainActivity: MainActivity
+        get() {
+            var current = context
+            while (current is ContextWrapper) {
+                if (current is MainActivity) return current
+                current = current.baseContext
+            }
+            error("StatsBar must be hosted by MainActivity")
+        }
 
     var allowShow = true
 
@@ -81,7 +92,7 @@ class StatsBar @JvmOverloads constructor(
     }
 
     fun changeState(state: BaseService.State) {
-        val activity = context as MainActivity
+        val activity = mainActivity
         fun postWhenStarted(what: () -> Unit) = activity.lifecycleScope.launch(Dispatchers.Main) {
             delay(100L)
             activity.whenStarted { what() }
@@ -123,7 +134,7 @@ class StatsBar @JvmOverloads constructor(
     }
 
     fun testConnection() {
-        val activity = context as MainActivity
+        val activity = mainActivity
         isEnabled = false
         setStatus(app.getText(R.string.connection_test_testing))
         runOnDefaultDispatcher {
