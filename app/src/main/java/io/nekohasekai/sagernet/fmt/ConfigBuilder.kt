@@ -302,15 +302,20 @@ fun buildConfig(
 
             // sing-box 1.13 moved sniffing + domain resolution off inbounds onto route
             // rule actions. Emit them first so behaviour matches the old inbound fields.
+            // sniff: previously inbound.sniff (trafficSniffing > 0).
+            // resolve: previously inbound.domain_strategy, which ran whenever a non-empty
+            //   strategy was configured - independent of sniff-override. Gate on the
+            //   strategy string being non-empty, not on needSniffOverride (orthogonal).
             if (needSniff) {
                 rules.add(Rule_DefaultOptions().apply {
                     action = "sniff"
                 })
             }
-            if (needSniffOverride) {
+            val resolveStrategy = genDomainStrategy(DataStore.resolveDestination)
+            if (resolveStrategy.isNotEmpty()) {
                 rules.add(Rule_DefaultOptions().apply {
                     action = "resolve"
-                    strategy = genDomainStrategy(DataStore.resolveDestination)
+                    strategy = resolveStrategy
                 })
             }
         }

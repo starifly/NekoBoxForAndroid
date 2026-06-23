@@ -18,12 +18,18 @@ import (
 	"github.com/sagernet/sing/common/logger"
 )
 
-var boxPlatformInterfaceInstance adapter.PlatformInterface = &boxPlatformInterfaceWrapper{}
-
+// boxPlatformInterfaceWrapper implements adapter.PlatformInterface. A fresh
+// instance is created per BoxInstance (see newBoxPlatformInterfaceWrapper) so
+// the per-open myTunAddress state is never shared across concurrent instances
+// (e.g. an overlapping stop/start), avoiding a data race on the field.
 type boxPlatformInterfaceWrapper struct {
 	// myTunAddress is captured from the tun options in OpenInterface so the
 	// router can answer MyInterfaceAddress() without enumerating interfaces.
 	myTunAddress []netip.Addr
+}
+
+func newBoxPlatformInterfaceWrapper() *boxPlatformInterfaceWrapper {
+	return &boxPlatformInterfaceWrapper{}
 }
 
 func (w *boxPlatformInterfaceWrapper) Initialize(networkManager adapter.NetworkManager) error {
