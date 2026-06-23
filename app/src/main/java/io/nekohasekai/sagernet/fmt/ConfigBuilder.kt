@@ -251,23 +251,22 @@ fun buildConfig(
                 }
                 endpoint_independent_nat = true
                 mtu = DataStore.mtu
-                domain_strategy = genDomainStrategy(DataStore.resolveDestination)
                 auto_route = true
                 strict_route = DataStore.strictRoute
-                sniff = needSniff
-                sniff_override_destination = needSniffOverride
                 when (ipv6Mode) {
                     IPv6Mode.DISABLE -> {
-                        inet4_address = listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
+                        address = listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
                     }
 
                     IPv6Mode.ONLY -> {
-                        inet6_address = listOf(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
+                        address = listOf(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
                     }
 
                     else -> {
-                        inet4_address = listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
-                        inet6_address = listOf(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
+                        address = listOf(
+                            VpnService.PRIVATE_VLAN4_CLIENT + "/28",
+                            VpnService.PRIVATE_VLAN6_CLIENT + "/126",
+                        )
                     }
                 }
             })
@@ -280,9 +279,6 @@ fun buildConfig(
                 tag = TAG_MIXED
                 listen = bind
                 listen_port = DataStore.mixedPort
-                domain_strategy = genDomainStrategy(DataStore.resolveDestination)
-                sniff = needSniff
-                sniff_override_destination = needSniffOverride
                 if (DataStore.mixedInboundNeedsAuth) {
                     users = listOf(User().also { u ->
                         u.username = Key.MIXED_USERNAME
@@ -303,6 +299,20 @@ fun buildConfig(
 
             // add concurrent dial setting
              concurrent_dial = DataStore.concurrentDial
+
+            // sing-box 1.13 moved sniffing + domain resolution off inbounds onto route
+            // rule actions. Emit them first so behaviour matches the old inbound fields.
+            if (needSniff) {
+                rules.add(Rule_DefaultOptions().apply {
+                    action = "sniff"
+                })
+            }
+            if (needSniffOverride) {
+                rules.add(Rule_DefaultOptions().apply {
+                    action = "resolve"
+                    strategy = genDomainStrategy(DataStore.resolveDestination)
+                })
+            }
         }
 
         // returns outbound tag
