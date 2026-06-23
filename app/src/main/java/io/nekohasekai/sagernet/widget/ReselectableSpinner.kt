@@ -14,7 +14,7 @@ class ReselectableSpinner @JvmOverloads constructor(
      * Android's [Spinner] has no official "popup dismissed" callback, so we use
      * the window regaining focus as a proxy: when the dropdown popup closes,
      * focus returns to this spinner's window. This is intentionally a best-effort
-     * signal, not a precise one — [onPopupClosed] may also fire for unrelated
+     * signal, not a precise one - [onPopupClosed] may also fire for unrelated
      * focus changes (app foregrounding, keyboard/IME show-hide, system dialogs,
      * permission prompts, orientation changes, etc.). Callers must therefore
      * treat it only as a hint and stay correct if it fires spuriously (the

@@ -17,7 +17,7 @@ import org.eclipse.tm4e.core.registry.IThemeSource
  * this is guarded by an idempotent flag.
  *
  * Assets live under app/src/main/assets/textmate/ (JSON grammar + config + two themes,
- * derived from VSCode — see the LICENSE file there).
+ * derived from VSCode - see the LICENSE file there).
  */
 object TextMateSetup {
 

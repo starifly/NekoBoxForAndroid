@@ -8,6 +8,7 @@ __MACOSX/
 .idea/
 .vscode/
 .cursor/
+AGENTS.md
 
 # Gradle / Kotlin build state
 .gradle/
@@ -36,7 +37,7 @@ local.properties
 # Submodules / external sources
 /external/
 
-# Signing keys — never commit; provided via CI secrets or local.properties
+# Signing keys - never commit; provided via CI secrets or local.properties
 release.keystore
 *.keystore
 *.jks

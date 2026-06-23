@@ -89,7 +89,7 @@ class ThemePickerPreference
     /**
      * A circular swatch with a [fillColor] interior and a thin [ringColor]
      * circumference ring. Used for themes (e.g. Dark High Contrast) whose solid
-     * accent dot would misrepresent the theme — a black fill + white ring reads
+     * accent dot would misrepresent the theme - a black fill + white ring reads
      * as "OLED black" rather than "a green theme".
      */
     private fun ringedSwatchView(fillColor: Int, ringColor: Int, sizeDp: Int): ImageView {

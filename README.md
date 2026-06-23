@@ -1,41 +1,72 @@
-# NekoBox for Android
+<div align="center">
 
-[![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
-[![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-orange.svg)](https://www.gnu.org/licenses/gpl-3.0)
+# 🐱 NekoBox for Android 🐱
 
-## Disclaimer
+**One app, every modern proxy. Built on sing-box.**
+
+[![API](https://img.shields.io/badge/Android-5.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](https://android-arsenal.com/api?level=21)
+[![License](https://img.shields.io/badge/License-GPL--3.0-0A7BBB?style=flat-square)](https://www.gnu.org/licenses/gpl-3.0)
+
+</div>
+
+<br>
+
+## ⚠️ Disclaimer
 
 > This project is intended solely for technical research and code learning purposes and does not provide any form of network proxy service. Please do not use this project for any activity that violates local laws and regulations, and do not use it in production environments. Users are fully responsible for any risks that may arise from using this project. If you download or reference this project, please delete all related content within 24 hours and avoid long-term storage, distribution, or dissemination of any part of it. **The author reserves the right to modify, update, or remove any part of this project or its contents at any time without prior notice.**
 
-## Downloads
+<br>
 
-**The Google Play version has been controlled by a third party since May 2024 and is a non-open
-source version. Please do not download it.**
+## 📥 Downloads
 
-## Supported Proxy Protocols
+> 🛑 **Note:** The Google Play build has been controlled by a third party since May 2024 and is closed-source. Please don't install it.
 
-* SOCKS (4/4a/5)
-* HTTP(S)
-* SSH
-* Shadowsocks
-* ShadowsocksR
-* VMess
-* Trojan
-* VLESS
-* AnyTLS/AnyReality
-* Snell 1/2/3/4/5
-* ShadowTLS
-* TUIC
-* Juicity
-* Hysteria 1/2 (including Gecko obfuscation, bundled)
-* WireGuard
-* MasterDnsVPN (DNS-tunnel, bundled)
-* Mieru (bundled)
-* Trojan-Go (trojan-go-plugin)
-* NaïveProxy (bundled)
+Grab the latest signed APK from the [**Releases**](https://github.com/hawkff/NekoBoxForAndroid/releases) page.
+
+<br>
+
+## 🚀 Protocols
+
+### 🧩 Core
+
+`SOCKS 4/4a/5` · `HTTP(S)` · `SSH` · `Shadowsocks` · `ShadowsocksR` · `VMess` · `VLESS` · `Trojan`
+
+### 🔐 Modern TLS & multiplexing
+
+`AnyTLS` · `AnyReality` · `ShadowTLS` · `Snell 1–5` · `VLESS-XHTTP` · `VLESS-Reality`
+
+XHTTP / Reality config examples are below.
+
+### ⚡ QUIC & high-speed
+
+`TUIC` · `Juicity` · `Hysteria 2`
+
+The Hysteria 2 client supports the new Gecko (experimental) obfuscation.
+
+### 🛡️ WireGuard family
+
+`WireGuard` · `AmneziaWG`
+
+### 🌐 Obfuscated transports
+
+- `NaïveProxy` (Bundled)
+- `Mieru` (Bundled)
+- `MasterDnsVPN` (Bundled) - DNS-tunnel transport for restrictive networks
 
 <details>
-<summary>XHTTP Extra TLS configuration example</summary>
+<summary><b>🕰️ Legacy protocols</b> (kept for compatibility)</summary>
+
+<br>
+
+- `Hysteria 1` - native over UDP; an external sidecar covers the rare faketcp transport
+- `Trojan-Go` - requires the separate `trojan-go-plugin` companion
+
+</details>
+
+<br>
+
+<details>
+<summary>XHTTP - TLS configuration example</summary>
 
 <pre><code class="language-json">
 {
@@ -110,7 +141,7 @@ source version. Please do not download it.**
 </details>
 
 <details>
-<summary>XHTTP Extra Reality configuration example</summary>
+<summary>XHTTP - Reality configuration example</summary>
 
 <pre><code class="language-json">
 {
@@ -188,14 +219,14 @@ source version. Please do not download it.**
 </code></pre>
 </details>
 
-Trojan-Go requires its external plugin for full proxy support.
+<br>
 
-## Supported Subscription Format
+## 🔗 Subscriptions
 
-* Some widely used formats (like Shadowsocks, ClashMeta and v2rayN)
-* sing-box outbound
+Imports the common formats: Shadowsocks, ClashMeta, v2rayN, and sing-box outbounds.
+Only nodes are parsed; routing rules and other non-node fields are ignored.
 
-Only resolving outbound, i.e. nodes, is supported. Information such as diversion rules are ignored.
+<br>
 
 ## Credits
 

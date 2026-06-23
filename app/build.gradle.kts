@@ -68,7 +68,7 @@ dependencies {
 
     // QR scanning: CameraX live preview/analysis + ML Kit bundled barcode model.
     // Bundled (not play-services-*) so detection works fully offline with no Google
-    // Play Services dependency — important for de-Googled ROMs. Replaces zxing-lite,
+    // Play Services dependency - important for de-Googled ROMs. Replaces zxing-lite,
     // which pulled in ancient CameraX 1.0.x and a weaker ZXing decoder.
     implementation("androidx.camera:camera-core:1.4.1")
     implementation("androidx.camera:camera-camera2:1.4.1")

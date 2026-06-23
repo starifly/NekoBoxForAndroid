@@ -981,7 +981,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                         } catch (e: Exception) {
                             // A cancelled test (dialog cancel / teardown) kills the sidecar
                             // mid-handshake and throws here. Don't record that as a profile
-                            // failure — it isn't one. The pingTest path guards the same way.
+                            // failure - it isn't one. The pingTest path guards the same way.
                             if (!isActive) break
                             profile.status = 3
                             profile.error = e.readableMessage

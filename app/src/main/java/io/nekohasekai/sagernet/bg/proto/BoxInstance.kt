@@ -309,7 +309,7 @@ abstract class BoxInstance(
                 // MasterDnsVPN must have its listener up before the first dial (it crashed
                 // otherwise), so a timeout there is fatal. Other sidecars (Mieru/Naïve/
                 // TrojanGo/Hysteria) were historically fire-and-forget: the first sing-box
-                // dial retries, so a slow bind shouldn't hard-fail VPN start — log and continue.
+                // dial retries, so a slow bind shouldn't hard-fail VPN start - log and continue.
                 // For a URL test (strict), there is no retry window, so a listener that never
                 // binds is reported as a clear error instead of a flaky "connection refused".
                 val message = "sidecar listener not ready on port(s): ${pending.joinToString()}"

@@ -51,7 +51,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
     ) {
         // The battery-optimization request/settings screen returns RESULT_CANCELED even
         // when the user actually granted the exemption, so don't gate on the result code
-        // — just rebuild the list so the item's on/off subtext reflects the new state.
+        // - just rebuild the list so the item's on/off subtext reflects the new state.
         if (isAdded) rebuildList()
     }
 

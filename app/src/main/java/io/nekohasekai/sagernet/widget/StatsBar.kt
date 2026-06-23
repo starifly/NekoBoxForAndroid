@@ -111,7 +111,7 @@ class StatsBar @JvmOverloads constructor(
 
     private fun setStatusColorByState(state: BaseService.State) {
         // Connected = statusConnectedColor (green), Stopped/Stopping = statusStoppedColor
-        // (red — "Shutting down…" reads as red), Connecting = statusConnectingColor (Dracula
+        // (red - "Shutting down…" reads as red), Connecting = statusConnectingColor (Dracula
         // yellow; colorOnPrimary elsewhere), other = colorOnPrimary.
         // Non-Dracula themes default these attrs to colorOnPrimary, so no change.
         val attr = when (state) {

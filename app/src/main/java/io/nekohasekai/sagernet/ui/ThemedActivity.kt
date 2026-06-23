@@ -55,7 +55,7 @@ abstract class ThemedActivity : AppCompatActivity {
 
         // findViewById (not ViewBinding): ThemedActivity is a base class applied over arbitrary
         // child-activity layouts. android.R.id.content is a framework id, and appbar/stats are
-        // resolved across whatever layout the subclass set — no single binding owns them.
+        // resolved across whatever layout the subclass set - no single binding owns them.
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { _, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -82,7 +82,7 @@ abstract class ThemedActivity : AppCompatActivity {
     /**
      * Apply Material 3 dynamic color ONLY when the user explicitly picks the Dynamic
      * (Material You) theme, and only on Android 12+ where a wallpaper palette exists.
-     * The hand-designed themes keep their own colors untouched — forcing a content-based
+     * The hand-designed themes keep their own colors untouched - forcing a content-based
      * reseed on them mangled their palettes into arbitrary M3 tones.
      */
     private fun applyDynamicColors() {

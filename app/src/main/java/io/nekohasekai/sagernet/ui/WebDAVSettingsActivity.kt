@@ -125,7 +125,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                         throw Exception(getString(R.string.webdav_server_empty))
                     }
 
-                    // Reject plain http:// — the test sends Basic-auth credentials.
+                    // Reject plain http:// - the test sends Basic-auth credentials.
                     val secureUrl = WebDAVSecurity.requireSecureUrl(server)
 
                     val client = OkHttpClient.Builder()
