@@ -301,6 +301,8 @@
     <string name="no_proxies_found">No proxies found in the link</string>
     <string name="no_proxies_found_in_subscription">No proxies found in the subscription</string>
     <string name="no_proxies_found_in_file">No proxies found in the file</string>
+    <string name="invalid_amnezia_config">Invalid or damaged Amnezia configuration</string>
+    <string name="no_amnezia_awg_profiles">No AmneziaWG profiles found in the configuration</string>
     <string name="no_proxies_found_in_clipboard">No proxies found in the clipboard</string>
     <string name="deduplication">Deduplication</string>
     <string name="donate">Donate</string>
