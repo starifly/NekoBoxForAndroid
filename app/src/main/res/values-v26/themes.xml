@@ -28,6 +28,21 @@
         <item name="tabRippleColor">@color/white</item>
         <item name="whiteOrTextPrimary">@color/white</item>
 
+        <item name="uiAppBarHeight">?attr/actionBarSize</item>
+        <item name="uiAppBarElevation">4dp</item>
+        <item name="uiCardElevation">2dp</item>
+        <item name="uiCardCornerRadius">4dp</item>
+        <item name="uiCardStrokeWidth">0dp</item>
+        <item name="uiCardStrokeColor">@android:color/transparent</item>
+        <item name="uiListItemMargin">4dp</item>
+        <item name="uiListOuterPadding">4dp</item>
+        <item name="uiSurfaceBackground">?android:attr/colorBackground</item>
+        <item name="uiAppBarBackground">?colorPrimary</item>
+        <item name="uiStatsBackground">?colorPrimary</item>
+        <item name="uiStatsForeground">@color/white</item>
+        <item name="uiTabBackground">?colorPrimary</item>
+        <item name="uiNavigationItemFill">@android:color/transparent</item>
+
         <item name="windowActionModeOverlay">true</item>
 
         <!-- Remove ActionBar but keep styles and themes -->

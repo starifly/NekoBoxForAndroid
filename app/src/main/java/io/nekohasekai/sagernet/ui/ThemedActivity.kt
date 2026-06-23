@@ -1,7 +1,6 @@
 package io.nekohasekai.sagernet.ui
 
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
 import android.widget.TextView
 import androidx.annotation.StringRes
@@ -31,19 +30,21 @@ abstract class ThemedActivity : AppCompatActivity {
         } else {
             Theme.applyDialog(this)
         }
+        Theme.applyDynamicColors(this)
         Theme.applyNightTheme()
 
         super.onCreate(savedInstanceState)
 
         uiMode = resources.configuration.uiMode
         
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            WindowCompat.setDecorFitsSystemWindows(window, false)
-            
-            val insetController = WindowCompat.getInsetsController(window, window.decorView)
-            insetController.isAppearanceLightNavigationBars = !Theme.usingNightMode()
-            insetController.isAppearanceLightStatusBars = 
-                if (DataStore.appTheme == Theme.BLACK) !Theme.usingNightMode() else false
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        val insetController = WindowCompat.getInsetsController(window, window.decorView)
+        insetController.isAppearanceLightNavigationBars = !Theme.usingNightMode()
+        insetController.isAppearanceLightStatusBars = if (Theme.isExpressive()) {
+            !Theme.usingNightMode()
+        } else {
+            if (DataStore.appTheme == Theme.BLACK) !Theme.usingNightMode() else false
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { _, insets ->

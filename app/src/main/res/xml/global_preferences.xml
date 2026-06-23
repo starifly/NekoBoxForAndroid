@@ -1,17 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <PreferenceCategory app:title="@string/general_settings">
-        <SwitchPreference
-            app:defaultValue="false"
-            app:icon="@drawable/ic_communication_phonelink_ring"
-            app:key="isAutoConnect"
-            app:summary="@string/auto_connect_summary"
-            app:title="@string/auto_connect" />
+    <PreferenceCategory app:title="@string/interface_settings">
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+            app:defaultValue="expressive"
+            app:entries="@array/ui_style_entries"
+            app:entryValues="@array/ui_style_values"
+            app:icon="@drawable/baseline_widgets_24"
+            app:key="uiStyle"
+            app:title="@string/ui_style"
+            app:useSimpleSummaryProvider="true" />
         <moe.matsuri.nb4a.ui.ColorPickerPreference
             android:title="@string/theme"
             app:icon="@drawable/ic_baseline_color_lens_24"
             app:key="appTheme" />
+        <SwitchPreference
+            app:defaultValue="true"
+            app:icon="@drawable/ic_baseline_color_lens_24"
+            app:key="dynamicColors"
+            app:summary="@string/dynamic_colors_summary"
+            app:title="@string/dynamic_colors" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
             app:defaultValue="0"
             app:entries="@array/night_mode"
@@ -20,6 +28,14 @@
             app:key="nightTheme"
             app:title="@string/night_mode"
             app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+    <PreferenceCategory app:title="@string/general_settings">
+        <SwitchPreference
+            app:defaultValue="false"
+            app:icon="@drawable/ic_communication_phonelink_ring"
+            app:key="isAutoConnect"
+            app:summary="@string/auto_connect_summary"
+            app:title="@string/auto_connect" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
             app:defaultValue="vpn"
             app:entries="@array/service_modes"

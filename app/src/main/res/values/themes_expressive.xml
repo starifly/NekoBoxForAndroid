@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.SagerNet.Expressive" parent="Theme.Material3Expressive.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/expressive_indigo_primary</item>
+        <item name="colorOnPrimary">@color/expressive_indigo_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_indigo_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_indigo_on_container</item>
+        <item name="colorSecondary">@color/expressive_blue_grey_primary</item>
+        <item name="colorOnSecondary">@color/expressive_blue_grey_on_primary</item>
+        <item name="colorSecondaryContainer">@color/expressive_blue_grey_container</item>
+        <item name="colorOnSecondaryContainer">@color/expressive_blue_grey_on_container</item>
+
+        <!-- Compatibility aliases used by the existing XML and widgets. -->
+        <item name="colorAccent">?attr/colorPrimary</item>
+        <item name="colorMaterial100">?attr/colorPrimaryContainer</item>
+        <item name="colorMaterial300">?attr/colorSecondaryContainer</item>
+        <item name="accentOrTextSecondary">?attr/colorPrimary</item>
+        <item name="accentOrTextPrimary">?attr/colorPrimary</item>
+        <item name="primaryOrTextSecondary">?attr/colorPrimary</item>
+        <item name="primaryOrTextPrimary">?attr/colorPrimary</item>
+        <item name="fabColorBackground">?attr/colorPrimary</item>
+        <item name="selectedColorPrimary">?attr/colorPrimary</item>
+        <item name="whiteOrTextPrimary">?attr/colorOnPrimary</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.ActionBar</item>
+        <item name="tabTextColor">?attr/colorOnSurfaceVariant</item>
+        <item name="tabSelectedTextColor">?attr/colorPrimary</item>
+        <item name="tabIndicatorColor">?attr/colorPrimary</item>
+        <item name="tabRippleColor">?attr/colorPrimary</item>
+
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="windowActionModeOverlay">true</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+
+        <item name="uiAppBarHeight">64dp</item>
+        <item name="uiAppBarElevation">0dp</item>
+        <item name="uiCardElevation">0dp</item>
+        <item name="uiCardCornerRadius">20dp</item>
+        <item name="uiCardStrokeWidth">1dp</item>
+        <item name="uiCardStrokeColor">?attr/colorOutlineVariant</item>
+        <item name="uiListItemMargin">4dp</item>
+        <item name="uiListOuterPadding">12dp</item>
+        <item name="uiSurfaceBackground">?attr/colorSurface</item>
+        <item name="uiAppBarBackground">?attr/colorSurface</item>
+        <item name="uiStatsBackground">?attr/colorPrimaryContainer</item>
+        <item name="uiStatsForeground">?attr/colorOnPrimaryContainer</item>
+        <item name="uiTabBackground">?attr/colorSurface</item>
+        <item name="uiNavigationItemFill">?attr/colorSecondaryContainer</item>
+
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Material3Expressive.MaterialAlertDialog</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.Material3Expressive.MaterialAlertDialog</item>
+    </style>
+
+    <style name="Theme.SagerNet.Expressive.Dialog" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="colorPrimary">@color/expressive_indigo_primary</item>
+        <item name="colorOnPrimary">@color/expressive_indigo_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_indigo_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_indigo_on_container</item>
+        <item name="colorAccent">?attr/colorPrimary</item>
+        <item name="colorMaterial100">?attr/colorPrimaryContainer</item>
+        <item name="colorMaterial300">?attr/colorPrimaryContainer</item>
+        <item name="accentOrTextSecondary">?attr/colorPrimary</item>
+        <item name="accentOrTextPrimary">?attr/colorPrimary</item>
+        <item name="primaryOrTextSecondary">?attr/colorPrimary</item>
+        <item name="primaryOrTextPrimary">?attr/colorPrimary</item>
+        <item name="fabColorBackground">?attr/colorPrimary</item>
+        <item name="selectedColorPrimary">?attr/colorPrimary</item>
+        <item name="whiteOrTextPrimary">?attr/colorOnPrimary</item>
+        <item name="uiAppBarHeight">64dp</item>
+        <item name="uiAppBarElevation">0dp</item>
+        <item name="uiCardElevation">0dp</item>
+        <item name="uiCardCornerRadius">20dp</item>
+        <item name="uiCardStrokeWidth">1dp</item>
+        <item name="uiCardStrokeColor">?attr/colorOutlineVariant</item>
+        <item name="uiListItemMargin">4dp</item>
+        <item name="uiListOuterPadding">12dp</item>
+        <item name="uiSurfaceBackground">?attr/colorSurface</item>
+        <item name="uiAppBarBackground">?attr/colorSurface</item>
+        <item name="uiStatsBackground">?attr/colorPrimaryContainer</item>
+        <item name="uiStatsForeground">?attr/colorOnPrimaryContainer</item>
+        <item name="uiTabBackground">?attr/colorSurface</item>
+        <item name="uiNavigationItemFill">?attr/colorSecondaryContainer</item>
+
+    </style>
+
+    <style name="ShapeAppearance.SagerNet.Expressive.Navigation" parent="ShapeAppearance.Material3.Corner.Full" />
+
+    <!-- Static seed fallbacks for Android 6-11 and when Dynamic Color is disabled. -->
+    <style name="Theme.SagerNet.Expressive.Red" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_red_primary</item>
+        <item name="colorOnPrimary">@color/expressive_red_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_red_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_red_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.PinkSSR" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_pink_primary</item>
+        <item name="colorOnPrimary">@color/expressive_pink_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_pink_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_pink_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Pink" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_pink_primary</item>
+        <item name="colorOnPrimary">@color/expressive_pink_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_pink_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_pink_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Purple" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_purple_primary</item>
+        <item name="colorOnPrimary">@color/expressive_purple_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_purple_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_purple_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.DeepPurple" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_deep_purple_primary</item>
+        <item name="colorOnPrimary">@color/expressive_deep_purple_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_deep_purple_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_deep_purple_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Indigo" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_indigo_primary</item>
+        <item name="colorOnPrimary">@color/expressive_indigo_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_indigo_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_indigo_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Blue" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_blue_primary</item>
+        <item name="colorOnPrimary">@color/expressive_blue_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_blue_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_blue_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.LightBlue" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_light_blue_primary</item>
+        <item name="colorOnPrimary">@color/expressive_light_blue_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_light_blue_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_light_blue_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Cyan" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_cyan_primary</item>
+        <item name="colorOnPrimary">@color/expressive_cyan_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_cyan_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_cyan_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Teal" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_teal_primary</item>
+        <item name="colorOnPrimary">@color/expressive_teal_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_teal_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_teal_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Green" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_green_primary</item>
+        <item name="colorOnPrimary">@color/expressive_green_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_green_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_green_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.LightGreen" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_light_green_primary</item>
+        <item name="colorOnPrimary">@color/expressive_light_green_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_light_green_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_light_green_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Lime" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_lime_primary</item>
+        <item name="colorOnPrimary">@color/expressive_lime_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_lime_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_lime_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Yellow" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_yellow_primary</item>
+        <item name="colorOnPrimary">@color/expressive_yellow_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_yellow_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_yellow_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Amber" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_amber_primary</item>
+        <item name="colorOnPrimary">@color/expressive_amber_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_amber_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_amber_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Orange" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_orange_primary</item>
+        <item name="colorOnPrimary">@color/expressive_orange_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_orange_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_orange_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.DeepOrange" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_deep_orange_primary</item>
+        <item name="colorOnPrimary">@color/expressive_deep_orange_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_deep_orange_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_deep_orange_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Brown" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_brown_primary</item>
+        <item name="colorOnPrimary">@color/expressive_brown_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_brown_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_brown_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Grey" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_grey_primary</item>
+        <item name="colorOnPrimary">@color/expressive_grey_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_grey_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_grey_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.BlueGrey" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_blue_grey_primary</item>
+        <item name="colorOnPrimary">@color/expressive_blue_grey_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_blue_grey_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_blue_grey_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Black" parent="Theme.SagerNet.Expressive">
+        <item name="colorPrimary">@color/expressive_black_primary</item>
+        <item name="colorOnPrimary">@color/expressive_black_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_black_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_black_on_container</item>
+    </style>
+
+    <!-- Dialog activities use the same fallback palette as the main UI. -->
+    <style name="Theme.SagerNet.Expressive.Dialog.Red" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_red_primary</item>
+        <item name="colorOnPrimary">@color/expressive_red_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_red_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_red_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.PinkSSR" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_pink_primary</item>
+        <item name="colorOnPrimary">@color/expressive_pink_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_pink_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_pink_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.Pink" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_pink_primary</item>
+        <item name="colorOnPrimary">@color/expressive_pink_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_pink_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_pink_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.Purple" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_purple_primary</item>
+        <item name="colorOnPrimary">@color/expressive_purple_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_purple_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_purple_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.DeepPurple" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_deep_purple_primary</item>
+        <item name="colorOnPrimary">@color/expressive_deep_purple_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_deep_purple_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_deep_purple_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.Indigo" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_indigo_primary</item>
+        <item name="colorOnPrimary">@color/expressive_indigo_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_indigo_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_indigo_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.Blue" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_blue_primary</item>
+        <item name="colorOnPrimary">@color/expressive_blue_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_blue_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_blue_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.LightBlue" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_light_blue_primary</item>
+        <item name="colorOnPrimary">@color/expressive_light_blue_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_light_blue_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_light_blue_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.Cyan" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_cyan_primary</item>
+        <item name="colorOnPrimary">@color/expressive_cyan_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_cyan_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_cyan_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.Teal" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_teal_primary</item>
+        <item name="colorOnPrimary">@color/expressive_teal_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_teal_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_teal_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.Green" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_green_primary</item>
+        <item name="colorOnPrimary">@color/expressive_green_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_green_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_green_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.LightGreen" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_light_green_primary</item>
+        <item name="colorOnPrimary">@color/expressive_light_green_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_light_green_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_light_green_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.Lime" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_lime_primary</item>
+        <item name="colorOnPrimary">@color/expressive_lime_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_lime_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_lime_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.Yellow" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_yellow_primary</item>
+        <item name="colorOnPrimary">@color/expressive_yellow_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_yellow_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_yellow_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.Amber" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_amber_primary</item>
+        <item name="colorOnPrimary">@color/expressive_amber_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_amber_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_amber_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.Orange" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_orange_primary</item>
+        <item name="colorOnPrimary">@color/expressive_orange_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_orange_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_orange_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.DeepOrange" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_deep_orange_primary</item>
+        <item name="colorOnPrimary">@color/expressive_deep_orange_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_deep_orange_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_deep_orange_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.Brown" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_brown_primary</item>
+        <item name="colorOnPrimary">@color/expressive_brown_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_brown_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_brown_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.Grey" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_grey_primary</item>
+        <item name="colorOnPrimary">@color/expressive_grey_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_grey_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_grey_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.BlueGrey" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_blue_grey_primary</item>
+        <item name="colorOnPrimary">@color/expressive_blue_grey_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_blue_grey_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_blue_grey_on_container</item>
+    </style>
+    <style name="Theme.SagerNet.Expressive.Dialog.Black" parent="Theme.SagerNet.Expressive.Dialog">
+        <item name="colorPrimary">@color/expressive_black_primary</item>
+        <item name="colorOnPrimary">@color/expressive_black_on_primary</item>
+        <item name="colorPrimaryContainer">@color/expressive_black_container</item>
+        <item name="colorOnPrimaryContainer">@color/expressive_black_on_container</item>
+    </style>
+
+</resources>

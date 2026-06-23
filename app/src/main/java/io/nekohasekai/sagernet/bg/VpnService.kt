@@ -256,10 +256,8 @@ if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && DataStore.appendHttpProxy)
     }
 
     fun updateUnderlyingNetwork(builder: Builder? = null) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-            val networks = SagerNet.underlyingNetwork?.let { arrayOf(it) }
-            builder?.setUnderlyingNetworks(networks) ?: setUnderlyingNetworks(networks)
-        }
+        val networks = SagerNet.underlyingNetwork?.let { arrayOf(it) }
+        builder?.setUnderlyingNetworks(networks) ?: setUnderlyingNetworks(networks)
     }
 
     override fun onRevoke() = stopRunner()

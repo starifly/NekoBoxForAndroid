@@ -500,4 +500,14 @@
 <string name="ws_path">Путь к WebSocket</string>
 <string name="xtls_flow">Flow (подпротокол VLESS)</string>
 <string name="yes">Да</string>
+<string name="interface_settings">Интерфейс</string>
+<string name="ui_style">Стиль интерфейса</string>
+<string name="ui_style_expressive">Новый</string>
+<string name="ui_style_classic">Классический</string>
+<string name="dynamic_colors">Динамические цвета</string>
+<string name="dynamic_colors_summary">Использовать системную палитру Material You</string>
+<string name="dynamic_colors_unavailable">Доступно на Android 12 и новее</string>
+<string name="dynamic_colors_classic">Доступно в новом интерфейсе</string>
+<string name="theme_fallback_summary">Используется, когда динамические цвета недоступны или выключены</string>
+<string name="more_options">Дополнительные действия</string>
 </resources>

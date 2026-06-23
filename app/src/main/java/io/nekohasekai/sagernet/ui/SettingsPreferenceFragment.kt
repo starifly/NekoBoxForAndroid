@@ -42,7 +42,34 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         DataStore.initGlobal()
         addPreferencesFromResource(R.xml.global_preferences)
 
+        val uiStyle = findPreference<SimpleMenuPreference>(Key.UI_STYLE)!!
+        val dynamicColors = findPreference<SwitchPreference>(Key.DYNAMIC_COLORS)!!
         val appTheme = findPreference<ColorPickerPreference>(Key.APP_THEME)!!
+
+        fun updateInterfacePreferences(style: String) {
+            val expressive = style != Theme.STYLE_CLASSIC
+            appTheme.summary = if (expressive) getString(R.string.theme_fallback_summary) else null
+            dynamicColors.isEnabled = expressive && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+            dynamicColors.summary = getString(
+                when {
+                    !expressive -> R.string.dynamic_colors_classic
+                    Build.VERSION.SDK_INT < Build.VERSION_CODES.S -> R.string.dynamic_colors_unavailable
+                    else -> R.string.dynamic_colors_summary
+                }
+            )
+        }
+
+        updateInterfacePreferences(DataStore.uiStyle)
+        uiStyle.setOnPreferenceChangeListener { _, newStyle ->
+            updateInterfacePreferences(newStyle as String)
+            recreateActivityAfterPreferencePersisted()
+            true
+        }
+        dynamicColors.setOnPreferenceChangeListener { _, _ ->
+            recreateActivityAfterPreferencePersisted()
+            true
+        }
+
         appTheme.setOnPreferenceChangeListener { _, newTheme ->
             if (DataStore.serviceState.started) {
                 SagerNet.reloadService()
@@ -244,6 +271,12 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             ).show()
             true
         }
+    }
+
+    private fun recreateActivityAfterPreferencePersisted() {
+        listView.postDelayed({
+            activity?.let(ActivityCompat::recreate)
+        }, 100L)
     }
 
     override fun onResume() {

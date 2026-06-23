@@ -33,7 +33,7 @@ class ChainBeanTest {
 
     @Test
     fun versionOneDataDefaultsToChainStrategy() {
-        val output = ByteBufferOutput()
+        val output = ByteBufferOutput(128)
         output.writeInt(1)
         output.writeInt(2)
         output.writeLong(7L)

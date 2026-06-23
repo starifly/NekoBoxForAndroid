@@ -5,10 +5,13 @@
     android:id="@+id/content"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="2dp"
+    android:layout_margin="?attr/uiListItemMargin"
     android:clickable="true"
     android:focusable="true"
-    app:cardElevation="2dp">
+    app:cardCornerRadius="?attr/uiCardCornerRadius"
+    app:cardElevation="?attr/uiCardElevation"
+    app:strokeColor="?attr/uiCardStrokeColor"
+    app:strokeWidth="?attr/uiCardStrokeWidth">
 
     <LinearLayout
         android:id="@+id/content_lin"
@@ -71,7 +74,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="top"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/edit"
+                    android:contentDescription="@string/more_options"
                     android:focusable="true"
                     android:padding="12dp"
                     app:srcCompat="@drawable/ic_image_edit" />

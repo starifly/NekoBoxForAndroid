@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:elevation="6dp"
             android:nextFocusDown="@+id/stats"
-            app:backgroundTint="?colorPrimary"
+            app:backgroundTint="?attr/fabColorBackground"
             app:layout_anchor="@id/stats"
             app:pressedTranslationZ="6dp"
             app:srcCompat="@drawable/ic_service_idle" />
@@ -49,7 +49,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:nextFocusUp="@+id/fab"
-            app:backgroundTint="?colorPrimary"
+            app:backgroundTint="?attr/uiStatsBackground"
             app:contentInsetStart="0dp"
             app:hideOnScroll="true"
             app:layout_scrollFlags="enterAlways|scroll">
@@ -69,7 +69,7 @@
                     android:layout_gravity="fill_horizontal"
                     android:ellipsize="marquee"
                     android:singleLine="true"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/uiStatsForeground"
                     android:textSize="14sp" />
 
                 <TextView
@@ -80,7 +80,7 @@
                     android:layout_gravity="fill_horizontal"
                     android:ellipsize="marquee"
                     android:singleLine="true"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/uiStatsForeground"
                     android:textSize="14sp" />
 
                 <TextView
@@ -90,7 +90,7 @@
                     android:layout_gravity="fill_horizontal"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/uiStatsForeground"
                     android:textSize="16sp"
                     tools:text="@string/connection_test_available" />
 
@@ -107,6 +107,8 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         app:itemIconTint="@color/navigation_icon"
+        app:itemShapeAppearance="@style/ShapeAppearance.SagerNet.Expressive.Navigation"
+        app:itemShapeFillColor="@color/navigation_item"
         app:itemTextColor="@color/navigation_icon"
         app:menu="@menu/main_drawer_menu" />
 

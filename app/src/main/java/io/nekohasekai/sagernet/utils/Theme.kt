@@ -1,13 +1,18 @@
 package io.nekohasekai.sagernet.utils
 
+import android.app.Activity
 import android.content.Context
 import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatDelegate
+import com.google.android.material.color.DynamicColors
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.app
 
 object Theme {
+
+    const val STYLE_EXPRESSIVE = "expressive"
+    const val STYLE_CLASSIC = "classic"
 
     const val RED = 1
     const val PINK_SSR = 2
@@ -33,12 +38,20 @@ object Theme {
 
     private fun defaultTheme() = PINK_SSR
 
+    fun isExpressive() = DataStore.uiStyle != STYLE_CLASSIC
+
     fun apply(context: Context) {
         context.setTheme(getTheme())
     }
 
     fun applyDialog(context: Context) {
         context.setTheme(getDialogTheme())
+    }
+
+    fun applyDynamicColors(activity: Activity) {
+        if (isExpressive() && DataStore.dynamicColors) {
+            DynamicColors.applyToActivityIfAvailable(activity)
+        }
     }
 
     fun getTheme(): Int {
@@ -50,6 +63,7 @@ object Theme {
     }
 
     fun getTheme(theme: Int): Int {
+        if (isExpressive()) return getExpressiveTheme(theme)
         return when (theme) {
             RED -> R.style.Theme_SagerNet_Red
             PINK -> R.style.Theme_SagerNet
@@ -77,6 +91,7 @@ object Theme {
     }
 
     fun getDialogTheme(theme: Int): Int {
+        if (isExpressive()) return getExpressiveDialogTheme(theme)
         return when (theme) {
             RED -> R.style.Theme_SagerNet_Dialog_Red
             PINK -> R.style.Theme_SagerNet_Dialog
@@ -101,6 +116,56 @@ object Theme {
             BLACK -> R.style.Theme_SagerNet_Dialog_Black
             else -> getDialogTheme(defaultTheme())
         }
+    }
+
+    private fun getExpressiveTheme(theme: Int): Int = when (theme) {
+        RED -> R.style.Theme_SagerNet_Expressive_Red
+        PINK_SSR -> R.style.Theme_SagerNet_Expressive_PinkSSR
+        PINK -> R.style.Theme_SagerNet_Expressive_Pink
+        PURPLE -> R.style.Theme_SagerNet_Expressive_Purple
+        DEEP_PURPLE -> R.style.Theme_SagerNet_Expressive_DeepPurple
+        INDIGO -> R.style.Theme_SagerNet_Expressive_Indigo
+        BLUE -> R.style.Theme_SagerNet_Expressive_Blue
+        LIGHT_BLUE -> R.style.Theme_SagerNet_Expressive_LightBlue
+        CYAN -> R.style.Theme_SagerNet_Expressive_Cyan
+        TEAL -> R.style.Theme_SagerNet_Expressive_Teal
+        GREEN -> R.style.Theme_SagerNet_Expressive_Green
+        LIGHT_GREEN -> R.style.Theme_SagerNet_Expressive_LightGreen
+        LIME -> R.style.Theme_SagerNet_Expressive_Lime
+        YELLOW -> R.style.Theme_SagerNet_Expressive_Yellow
+        AMBER -> R.style.Theme_SagerNet_Expressive_Amber
+        ORANGE -> R.style.Theme_SagerNet_Expressive_Orange
+        DEEP_ORANGE -> R.style.Theme_SagerNet_Expressive_DeepOrange
+        BROWN -> R.style.Theme_SagerNet_Expressive_Brown
+        GREY -> R.style.Theme_SagerNet_Expressive_Grey
+        BLUE_GREY -> R.style.Theme_SagerNet_Expressive_BlueGrey
+        BLACK -> R.style.Theme_SagerNet_Expressive_Black
+        else -> R.style.Theme_SagerNet_Expressive_PinkSSR
+    }
+
+    private fun getExpressiveDialogTheme(theme: Int): Int = when (theme) {
+        RED -> R.style.Theme_SagerNet_Expressive_Dialog_Red
+        PINK_SSR -> R.style.Theme_SagerNet_Expressive_Dialog_PinkSSR
+        PINK -> R.style.Theme_SagerNet_Expressive_Dialog_Pink
+        PURPLE -> R.style.Theme_SagerNet_Expressive_Dialog_Purple
+        DEEP_PURPLE -> R.style.Theme_SagerNet_Expressive_Dialog_DeepPurple
+        INDIGO -> R.style.Theme_SagerNet_Expressive_Dialog_Indigo
+        BLUE -> R.style.Theme_SagerNet_Expressive_Dialog_Blue
+        LIGHT_BLUE -> R.style.Theme_SagerNet_Expressive_Dialog_LightBlue
+        CYAN -> R.style.Theme_SagerNet_Expressive_Dialog_Cyan
+        TEAL -> R.style.Theme_SagerNet_Expressive_Dialog_Teal
+        GREEN -> R.style.Theme_SagerNet_Expressive_Dialog_Green
+        LIGHT_GREEN -> R.style.Theme_SagerNet_Expressive_Dialog_LightGreen
+        LIME -> R.style.Theme_SagerNet_Expressive_Dialog_Lime
+        YELLOW -> R.style.Theme_SagerNet_Expressive_Dialog_Yellow
+        AMBER -> R.style.Theme_SagerNet_Expressive_Dialog_Amber
+        ORANGE -> R.style.Theme_SagerNet_Expressive_Dialog_Orange
+        DEEP_ORANGE -> R.style.Theme_SagerNet_Expressive_Dialog_DeepOrange
+        BROWN -> R.style.Theme_SagerNet_Expressive_Dialog_Brown
+        GREY -> R.style.Theme_SagerNet_Expressive_Dialog_Grey
+        BLUE_GREY -> R.style.Theme_SagerNet_Expressive_Dialog_BlueGrey
+        BLACK -> R.style.Theme_SagerNet_Expressive_Dialog_Black
+        else -> R.style.Theme_SagerNet_Expressive_Dialog_PinkSSR
     }
 
     var currentNightMode = -1

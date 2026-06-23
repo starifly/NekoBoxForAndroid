@@ -18,7 +18,7 @@
             android:id="@+id/group_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="4dp"
+            android:padding="?attr/uiListOuterPadding"
             android:scrollbarSize="0dp"
             app:fastScrollAutoHide="true"
             app:fastScrollThumbColor="?colorPrimary"

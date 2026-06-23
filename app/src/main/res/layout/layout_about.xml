@@ -28,7 +28,7 @@
                 android:layout_marginRight="8dp"
                 android:clickable="true"
                 android:focusable="true"
-                app:cardElevation="2dp">
+                app:cardElevation="?attr/uiCardElevation">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -65,7 +65,7 @@
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="8dp"
                 android:layout_marginBottom="8dp"
-                app:cardElevation="2dp">
+                app:cardElevation="?attr/uiCardElevation">
 
                 <LinearLayout
                     android:layout_width="match_parent"
