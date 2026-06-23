@@ -53,11 +53,9 @@ object AmneziaWireGuardImporter {
         val peers = sections.filter { it.name.equals("Peer", ignoreCase = true) }
         if (peers.isEmpty()) error("Missing Peer section")
 
-        val addresses = iface.getAll("Address")
-            .flatMap { it.split(',') }
-            .map(String::trim)
-            .filter(String::isNotEmpty)
-        if (addresses.isEmpty()) error("Missing interface address")
+        val addresses = normalizeWireGuardLocalAddresses(
+            iface.getAll("Address").joinToString("\n"),
+        )
 
         val privateKey = iface.get("PrivateKey")?.takeIf(String::isNotBlank)
             ?: error("Missing private key")

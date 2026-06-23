@@ -31,7 +31,7 @@ fun buildSingBoxOutboundWireguardBean(bean: WireGuardBean): SingBoxOptions.Outbo
         type = "wireguard"
         server = bean.serverAddress
         server_port = bean.serverPort
-        local_address = bean.localAddress.listByLineOrComma()
+        local_address = normalizeWireGuardLocalAddresses(bean.localAddress)
         private_key = normalizeBase64Key(bean.privateKey)
         peer_public_key = normalizeBase64Key(bean.peerPublicKey)
         pre_shared_key = normalizeBase64Key(bean.peerPreSharedKey)

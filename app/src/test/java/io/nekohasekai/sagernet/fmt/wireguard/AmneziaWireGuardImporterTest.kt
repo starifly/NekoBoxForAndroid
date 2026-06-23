@@ -77,6 +77,22 @@ class AmneziaWireGuardImporterTest {
     }
 
     @Test
+    fun normalizesBareLocalAddressesFromConfAndVpn() {
+        val bareAddressConf = awgConf().replace(
+            "Address = 10.8.1.8/32",
+            "Address = 172.16.0.2, fd00::2",
+        )
+
+        val confProfile = AmneziaWireGuardImporter.parseWireGuard(bareAddressConf).single()
+        val vpnProfile = AmneziaWireGuardImporter.parseVpn(
+            encodeVpn(rootWithContainers(awgContainer(bareAddressConf)), compressed = true),
+        ).single()
+
+        assertEquals("172.16.0.2/32\nfd00::2/128", confProfile.localAddress)
+        assertEquals(confProfile.localAddress, vpnProfile.localAddress)
+    }
+
+    @Test
     fun decodesQtCompressedVpnAndUsesJsonMtu() {
         val vpn = encodeVpn(rootWithContainers(awgContainer(awgConf(), mtu = 1300)), compressed = true)
         val profile = AmneziaWireGuardImporter.parseVpn(vpn).single()
