@@ -74,6 +74,8 @@ object Key {
     const val ACQUIRE_WAKE_LOCK = "acquireWakeLock"
     const val HIDE_FROM_RECENT_APPS = "hideFromRecentApps"
     const val SHOW_BOTTOM_BAR = "showBottomBar"
+    const val AMOLED_THEME = "amoledTheme"
+    const val APP_THEME = "appTheme"
     const val CONFIRM_PROFILE_DELETE = "confirmProfileDelete"
     const val GROUP_LAYOUT_MODE = "groupLayoutMode"
 

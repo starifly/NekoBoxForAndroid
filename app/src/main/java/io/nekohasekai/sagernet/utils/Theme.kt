@@ -10,10 +10,28 @@ import io.nekohasekai.sagernet.ktx.app
 
 object Theme {
 
-    fun apply(context: Context) = context.setTheme(getTheme())
+    fun apply(context: Context) {
+        context.setTheme(getTheme())
+        applyOverlays(context)
+    }
 
-    fun applyDialog(context: Context) =
+    fun applyDialog(context: Context) {
         context.setTheme(getDialogTheme())
+        applyOverlays(context)
+    }
+
+    private fun applyOverlays(context: Context) {
+        if (!DataStore.dynamicColors) {
+            when (DataStore.appTheme) {
+                1 -> context.theme.applyStyle(R.style.ThemeOverlay_SagerNet_Accent_Blue, true)
+                2 -> context.theme.applyStyle(R.style.ThemeOverlay_SagerNet_Accent_Green, true)
+                3 -> context.theme.applyStyle(R.style.ThemeOverlay_SagerNet_Accent_Pink, true)
+            }
+        }
+        if (DataStore.amoledTheme && usingNightMode()) {
+            context.theme.applyStyle(R.style.ThemeOverlay_SagerNet_Amoled, true)
+        }
+    }
 
     fun getTheme(): Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && DataStore.dynamicColors) {
         R.style.Theme_SagerNet_Expressive_Dynamic

@@ -704,4 +704,7 @@
     <string name="dynamic_colors_classic">Available with the new interface</string>
     <string name="theme_fallback_summary">Used when dynamic colors are unavailable or disabled</string>
     <string name="more_options">More options</string>
+    <string name="amoled_theme">AMOLED Dark Theme</string>
+    <string name="amoled_theme_summary">Pure black background in dark mode</string>
+    <string name="app_theme">Accent Color</string>
 </resources>

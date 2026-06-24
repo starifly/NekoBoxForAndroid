@@ -16,6 +16,20 @@
             app:key="nightTheme"
             app:title="@string/night_mode"
             app:useSimpleSummaryProvider="true" />
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+            app:defaultValue="0"
+            app:entries="@array/app_theme"
+            app:entryValues="@array/int_array_4"
+            app:icon="@drawable/ic_baseline_color_lens_24"
+            app:key="appTheme"
+            app:title="@string/app_theme"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:icon="@drawable/ic_baseline_brightness_medium_24"
+            app:key="amoledTheme"
+            app:summary="@string/amoled_theme_summary"
+            app:title="@string/amoled_theme" />
     </PreferenceCategory>
     <PreferenceCategory app:title="@string/general_settings">
         <SwitchPreferenceCompat

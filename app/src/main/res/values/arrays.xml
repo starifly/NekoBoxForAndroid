@@ -624,5 +624,11 @@
         <item>@string/sniff_routing</item>
         <item>@string/sniff_override</item>
     </string-array>
+    <string-array name="app_theme">
+        <item>Default (Lilac)</item>
+        <item>Blue</item>
+        <item>Green</item>
+        <item>Pink</item>
+    </string-array>
 
 </resources>

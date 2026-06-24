@@ -88,7 +88,6 @@ class StatsBar @JvmOverloads constructor(
         }
 
         override fun slideDown(child: StatsBar) {
-            if (!getAllowShow()) return
             super.slideDown(child)
         }
     }
