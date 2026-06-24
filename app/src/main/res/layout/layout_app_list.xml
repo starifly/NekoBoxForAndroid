@@ -28,7 +28,6 @@
                 android:theme="?actionBarTheme"
                 android:touchscreenBlocksFocus="false"
                 app:layout_collapseMode="pin"
-                app:popupTheme="@style/ThemeOverlay.AppCompat.DayNight"
                 app:title="@string/app_name" />
 
             <LinearLayout

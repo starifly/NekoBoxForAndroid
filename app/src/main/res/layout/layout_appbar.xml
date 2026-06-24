@@ -18,7 +18,6 @@
         android:theme="?actionBarTheme"
         android:touchscreenBlocksFocus="false"
         app:navigationIconTint="?attr/colorOnSurface"
-        app:popupTheme="@style/ThemeOverlay.Material3.AutoCompleteTextView.OutlinedBox"
         app:titleTextAppearance="@style/TextAppearance.Material3.HeadlineSmall"
         app:titleTextColor="?attr/colorOnSurface"
         app:title="@string/app_name" />

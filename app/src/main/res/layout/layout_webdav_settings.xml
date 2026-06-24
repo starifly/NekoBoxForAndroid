@@ -17,7 +17,6 @@
             android:layout_height="?attr/uiAppBarHeight"
             android:background="?attr/colorSurface"
             app:navigationIconTint="?attr/colorOnSurface"
-            app:popupTheme="@style/ThemeOverlay.Material3.AutoCompleteTextView.OutlinedBox"
             app:titleTextColor="?attr/colorOnSurface" />
 
     </com.google.android.material.appbar.AppBarLayout>

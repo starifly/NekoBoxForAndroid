@@ -109,6 +109,8 @@
     </style>
 
     <style name="PreferenceThemeOverlay.SagerNet" parent="PreferenceThemeOverlay.v14.Material">
+        <item name="alertDialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item>
+        <item name="android:alertDialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item>
         <item name="preferenceStyle">@style/Preference.SagerNet</item>
         <item name="dialogPreferenceStyle">@style/Preference.SagerNet.Dialog</item>
         <item name="editTextPreferenceStyle">@style/Preference.SagerNet.EditText</item>
