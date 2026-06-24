@@ -138,6 +138,7 @@
     </style>
     <style name="Preference.SagerNet.EditText" parent="Preference.DialogPreference.EditTextPreference.Material">
         <item name="android:layout">@layout/preference_m3</item>
+        <item name="dialogLayout">@layout/preference_dialog_edittext_m3</item>
         <item name="allowDividerAbove">false</item>
         <item name="allowDividerBelow">false</item>
     </style>

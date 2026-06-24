@@ -7,7 +7,9 @@
         android:id="@+id/spinner"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:visibility="invisible" />
+        android:visibility="invisible"
+        android:popupTheme="@style/ThemeOverlay.Material3"
+        android:popupBackground="?attr/colorSurfaceContainer" />
 
     <include layout="@layout/preference_m3" />
 </FrameLayout>

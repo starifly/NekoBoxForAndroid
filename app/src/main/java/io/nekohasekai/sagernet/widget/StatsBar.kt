@@ -44,7 +44,7 @@ class StatsBar @JvmOverloads constructor(
         }
 
     var allowShow = true
-    private var hideOnScroll = false
+    private var hideOnScroll = true
 
     override fun getBehavior(): YourBehavior {
         if (!this::behavior.isInitialized) behavior = YourBehavior { allowShow }
@@ -122,7 +122,7 @@ class StatsBar @JvmOverloads constructor(
             delay(100L)
             activity.whenStarted { what() }
         }
-        if ((state == BaseService.State.Connected).also { hideOnScroll = it }) {
+        if (state == BaseService.State.Connected) {
             postWhenStarted {
                 if (allowShow) performShow()
                 refreshSpeedVisibility()
