@@ -96,8 +96,8 @@
 <string name="confirm">Подтвердить</string>
 <string name="connect">Подключиться</string>
 <string name="connecting">Подключение…</string>
-<string name="connection_test_available">HTTPS-соединение установлено за %d мс</string>
-<string name="connection_test_available_http">HTTP-соединение установлено за %d мс</string>
+<string name="connection_test_available">Задержка %d мс</string>
+<string name="connection_test_available_http">Задержка %d мс</string>
 <string name="connection_test_clear_results">Очистить результаты теста</string>
 <string name="connection_test_delete_unavailable">Удалить недоступные</string>
 <string name="connection_test_domain_not_found">Домен не найден</string>
