@@ -1708,6 +1708,201 @@ class ConfigurationFragment @JvmOverloads constructor(
                 popup.setOnMenuItemClickListener(this)
                 popup.show()
             }
+                        updated.add(item)
+                    }
+                }
+                
+                notifyItemMoved(from, to)
+            }
+
+            fun commitMove() = runOnDefaultDispatcher {
+                updated.forEach { SagerDatabase.proxyDao.updateProxy(it) }
+                updated.clear()
+            }
+
+            fun remove(pos: Int) {
+                if (pos < 0) return
+                configurationIdList.removeAt(pos)
+                notifyItemRemoved(pos)
+            }
+
+            override fun undo(actions: List<Pair<Int, ProxyEntity>>) {
+                for ((index, item) in actions) {
+                    configurationListView.post {
+                        configurationList[item.id] = item
+                        configurationIdList.add(index, item.id)
+                        notifyItemInserted(index)
+                    }
+                }
+            }
+
+            override fun commit(actions: List<Pair<Int, ProxyEntity>>) {
+                val profiles = actions.map { it.second }
+                runOnDefaultDispatcher {
+                    for (entity in profiles) {
+                        ProfileManager.deleteProfile(entity.groupId, entity.id)
+                    }
+                }
+            }
+
+            override suspend fun onAdd(profile: ProxyEntity) {
+                if (profile.groupId != proxyGroup.id) return
+
+                configurationListView.post {
+                    if (::undoManager.isInitialized) {
+                        undoManager.flush()
+                    }
+                    val pos = itemCount
+                    configurationList[profile.id] = profile
+                    configurationIdList.add(profile.id)
+                    notifyItemInserted(pos)
+                }
+            }
+
+            override suspend fun onUpdated(profile: ProxyEntity, noTraffic: Boolean) {
+                if (profile.groupId != proxyGroup.id) return
+                val index = configurationIdList.indexOf(profile.id)
+                if (index < 0) return
+                configurationListView.post {
+                    if (::undoManager.isInitialized) {
+                        undoManager.flush()
+                    }
+                    configurationList[profile.id] = profile
+                    notifyItemChanged(index)
+                    //
+                    val oldProfile = configurationList[profile.id]
+                    if (noTraffic && oldProfile != null) {
+                        runOnDefaultDispatcher {
+                            onUpdated(
+                                TrafficData(
+                                    id = profile.id,
+                                    rx = oldProfile.rx,
+                                    tx = oldProfile.tx
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+
+            override suspend fun onUpdated(data: TrafficData) {
+                try {
+                    val index = configurationIdList.indexOf(data.id)
+                    if (index != -1) {
+                        val holder = layoutManager.findViewByPosition(index)
+                            ?.let { configurationListView.getChildViewHolder(it) } as ConfigurationHolder?
+                        if (holder != null) {
+                            onMainDispatcher {
+                                holder.bind(holder.entity, data)
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Logs.w(e)
+                }
+            }
+
+            override suspend fun onRemoved(groupId: Long, profileId: Long) {
+                if (groupId != proxyGroup.id) return
+                val index = configurationIdList.indexOf(profileId)
+                if (index < 0) return
+
+                configurationListView.post {
+                    configurationIdList.removeAt(index)
+                    configurationList.remove(profileId)
+                    notifyItemRemoved(index)
+                }
+            }
+
+            override suspend fun groupAdd(group: ProxyGroup) = Unit
+            override suspend fun groupRemoved(groupId: Long) = Unit
+
+            override suspend fun groupUpdated(group: ProxyGroup) {
+                if (group.id != proxyGroup.id) return
+                proxyGroup = group
+                reloadProfiles()
+            }
+
+            override suspend fun groupUpdated(groupId: Long) {
+                if (groupId != proxyGroup.id) return
+                proxyGroup = SagerDatabase.groupDao.getById(groupId)!!
+                reloadProfiles()
+            }
+
+            fun reloadProfiles() {
+                var newProfiles = SagerDatabase.proxyDao.getByGroup(proxyGroup.id)
+                when (proxyGroup.order) {
+                    GroupOrder.BY_NAME -> {
+                        newProfiles = newProfiles.sortedBy { it.displayName() }
+
+                    }
+
+                    GroupOrder.BY_DELAY -> {
+                        newProfiles =
+                            newProfiles.sortedBy { if (it.status == 1) it.ping else 114514 }
+                    }
+                }
+
+                configurationList.clear()
+                configurationList.putAll(newProfiles.associateBy { it.id })
+                val newProfileIds = newProfiles.map { it.id }
+
+                var selectedProfileIndex = -1
+
+                if (selected) {
+                    val selectedProxy = selectedItem?.id ?: DataStore.selectedProxy
+                    selectedProfileIndex = newProfileIds.indexOf(selectedProxy)
+                }
+
+                configurationListView.post {
+                    configurationIdList.clear()
+                    configurationIdList.addAll(newProfileIds)
+                    notifyDataSetChanged()
+
+                    if (selectedProfileIndex != -1) {
+                        configurationListView.scrollTo(selectedProfileIndex, true)
+                    } else if (newProfiles.isNotEmpty()) {
+                        configurationListView.scrollTo(0, true)
+                    }
+
+                }
+            }
+
+        }
+
+        val profileAccess = Mutex()
+        val reloadAccess = Mutex()
+
+        inner class ConfigurationHolder(val view: View) : RecyclerView.ViewHolder(view),
+            PopupMenu.OnMenuItemClickListener {
+
+            lateinit var entity: ProxyEntity
+            
+            private fun showShareMenu(anchor: View, proxyEntity: ProxyEntity) {
+                val popup = PopupMenu(requireContext(), anchor)
+                popup.menuInflater.inflate(R.menu.profile_share_menu, popup.menu)
+
+                when {
+                    !proxyEntity.haveStandardLink() -> {
+                        popup.menu.findItem(R.id.action_group_qr).subMenu?.removeItem(R.id.action_standard_qr)
+                        popup.menu.findItem(R.id.action_group_clipboard).subMenu?.removeItem(
+                            R.id.action_standard_clipboard
+                        )
+                    }
+
+                    !proxyEntity.haveLink() -> {
+                        popup.menu.removeItem(R.id.action_group_qr)
+                        popup.menu.removeItem(R.id.action_group_clipboard)
+                    }
+                }
+
+                if (proxyEntity.nekoBean != null) {
+                    popup.menu.removeItem(R.id.action_group_configuration)
+                }
+
+                popup.setOnMenuItemClickListener(this)
+                popup.show()
+            }
 
             val profileName: TextView = view.findViewById(R.id.profile_name)
             val profileType: TextView = view.findViewById(R.id.profile_type)
@@ -1715,14 +1910,10 @@ class ConfigurationFragment @JvmOverloads constructor(
             val profileStatus: TextView = view.findViewById(R.id.profile_status)
             val profileIcon: ImageView = view.findViewById(R.id.profile_icon)
             val profileIconContainer: MaterialCardView = view.findViewById(R.id.profile_icon_container)
-            val profileDivider: View = view.findViewById(R.id.profile_divider)
 
             val trafficText: TextView = view.findViewById(R.id.traffic_text)
-            val selectedView: View = view.findViewById(R.id.selected_view)
             val editButton: ImageView = view.findViewById(R.id.edit)
             val doubleColumnMenuButton: ImageView = view.findViewById(R.id.double_column_menu)
-            val shareLayout: LinearLayout = view.findViewById(R.id.share)
-            val shareLayer: LinearLayout = view.findViewById(R.id.share_layer)
             val shareButton: ImageView = view.findViewById(R.id.shareIcon)
             val removeButton: ImageView = view.findViewById(R.id.remove)
 
@@ -1735,7 +1926,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                     if (selected) com.google.android.material.R.attr.colorOnPrimaryContainer
                     else com.google.android.material.R.attr.colorOnSurfaceVariant
                 )
-                selectedView.visibility = if (selected) View.VISIBLE else View.INVISIBLE
                 (view as? MaterialCardView)?.setCardBackgroundColor(
                     requireContext().getColorAttr(
                         if (selected) com.google.android.material.R.attr.colorPrimaryContainer
@@ -1756,7 +1946,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                 editButton.imageTintList = actionTint
                 doubleColumnMenuButton.imageTintList = actionTint
                 shareButton.imageTintList = actionTint
-                profileDivider.isInvisible = selected
             }
 
             private fun profileIconForType(type: Int): Int = when (type) {

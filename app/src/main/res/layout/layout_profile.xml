@@ -10,7 +10,7 @@
     android:focusable="true"
     android:minHeight="76dp"
     app:cardBackgroundColor="?attr/colorSurface"
-    app:cardCornerRadius="16dp"
+    app:cardCornerRadius="28dp"
     app:cardElevation="0dp"
     app:strokeWidth="0dp">
 
@@ -26,13 +26,7 @@
             android:minHeight="76dp"
             android:orientation="horizontal">
 
-            <View
-                android:id="@+id/selected_view"
-                android:layout_width="3dp"
-                android:layout_height="match_parent"
-                android:background="?attr/colorPrimary"
-                android:visibility="invisible"
-                tools:visibility="visible" />
+
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/profile_icon_container"
@@ -131,32 +125,20 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/edit"
                 android:focusable="true"
-                android:padding="13dp"
+                android:padding="12dp"
                 app:srcCompat="@drawable/ic_image_edit"
                 app:tint="?attr/colorOnSurface" />
 
-            <LinearLayout
-                android:id="@+id/share"
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/shareIcon"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/share"
-                android:focusable="true">
-
-                <LinearLayout
-                    android:id="@+id/share_layer"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center">
-
-                    <androidx.appcompat.widget.AppCompatImageView
-                        android:id="@+id/shareIcon"
-                        android:layout_width="22dp"
-                        android:layout_height="22dp"
-                        app:srcCompat="@drawable/ic_social_share"
-                        app:tint="?attr/colorOnSurface" />
-                </LinearLayout>
-            </LinearLayout>
+                android:focusable="true"
+                android:padding="12dp"
+                app:srcCompat="@drawable/ic_social_share"
+                app:tint="?attr/colorOnSurface" />
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/double_column_menu"
@@ -165,7 +147,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/more_options"
                 android:focusable="true"
-                android:padding="13dp"
+                android:padding="12dp"
                 app:srcCompat="@drawable/ic_baseline_more_vert_24"
                 app:tint="?attr/colorOnSurface" />
 
@@ -173,17 +155,14 @@
                 android:id="@+id/remove"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/delete"
+                android:focusable="true"
+                android:padding="12dp"
                 android:visibility="gone"
                 app:srcCompat="@drawable/ic_action_delete" />
         </LinearLayout>
 
-        <View
-            android:id="@+id/profile_divider"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_gravity="bottom"
-            android:layout_marginStart="62dp"
-            android:background="?attr/colorOutlineVariant" />
+
     </FrameLayout>
 </com.google.android.material.card.MaterialCardView>

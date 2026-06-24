@@ -50,7 +50,7 @@
         <item name="uiAppBarHeight">64dp</item>
         <item name="uiAppBarElevation">0dp</item>
         <item name="uiCardElevation">0dp</item>
-        <item name="uiCardCornerRadius">16dp</item>
+        <item name="uiCardCornerRadius">28dp</item>
         <item name="uiCardStrokeWidth">0dp</item>
         <item name="uiCardStrokeColor">@android:color/transparent</item>
         <item name="uiListItemMargin">0dp</item>
@@ -94,7 +94,7 @@
 
     <style name="ShapeAppearance.SagerNet.Expressive.Navigation" parent="ShapeAppearance.Material3.Corner.Full" />
     <style name="ShapeAppearanceOverlay.SagerNet.ConnectionPanel" parent="">
-        <item name="cornerSize">20dp</item>
+        <item name="cornerSize">24dp</item>
     </style>
     <style name="TextAppearance.SagerNet.Tab" parent="TextAppearance.Material3.TitleSmall">
         <item name="android:textAllCaps">false</item>
