@@ -28,7 +28,7 @@
             android:layout_marginBottom="12dp"
             android:nextFocusUp="@+id/fab"
             app:cardBackgroundColor="?attr/colorPrimaryContainer"
-            app:cardCornerRadius="20dp"
+            app:cardCornerRadius="40dp"
             app:cardElevation="3dp"
             app:strokeWidth="0dp"
             app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.SagerNet.ConnectionPanel">
