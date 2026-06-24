@@ -15,17 +15,22 @@
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/group_tab"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?colorPrimary"
-        android:elevation="4dp"
+        android:layout_height="56dp"
+        android:background="?attr/uiTabBackground"
+        android:elevation="?attr/uiAppBarElevation"
         android:visibility="gone"
+        app:tabGravity="center"
         app:tabIndicatorColor="?tabIndicatorColor"
         app:tabIndicatorFullWidth="false"
+        app:tabIndicatorHeight="3dp"
         app:tabMode="scrollable"
-        app:tabPaddingStart="16dp"
+        app:tabMinWidth="112dp"
+        app:tabPaddingEnd="20dp"
+        app:tabPaddingStart="20dp"
         app:tabRippleColor="?tabRippleColor"
         app:tabSelectedTextColor="?tabSelectedTextColor"
         app:tabTextColor="?tabTextColor"
+        app:tabTextAppearance="@style/TextAppearance.SagerNet.Tab"
         app:tabUnboundedRipple="false" />
 
     <androidx.viewpager2.widget.ViewPager2

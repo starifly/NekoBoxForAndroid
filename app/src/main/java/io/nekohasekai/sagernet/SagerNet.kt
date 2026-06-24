@@ -80,6 +80,10 @@ class SagerNet : Application(),
         }
 
         if (isMainProcess) {
+            if (DataStore.uiDesignVersion < 1) {
+                DataStore.dynamicColors = false
+                DataStore.uiDesignVersion = 1
+            }
             Theme.apply(this)
             Theme.applyNightTheme()
             runOnDefaultDispatcher {
@@ -138,7 +142,7 @@ class SagerNet : Application(),
                     Intent(
                         application, MainActivity::class.java
                     ).setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+                    PendingIntent.FLAG_IMMUTABLE
                 )
             }
         }

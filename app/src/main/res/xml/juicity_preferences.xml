@@ -38,7 +38,7 @@
             app:key="serverPinnedCertChainSha256"
             app:title="@string/pinned_certchain_sha256"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:icon="@drawable/ic_notification_enhanced_encryption"
             app:key="serverAllowInsecure"
             app:title="@string/allow_insecure" />

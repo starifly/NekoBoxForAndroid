@@ -5,20 +5,19 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/debug_crash"
-        style="@style/Widget.AppCompat.Button.Colored"
+        style="@style/Widget.Material3.Button.TonalButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Crash From Kt"
-        android:textColor="@color/white" />
+        android:layout_height="48dp"
+        android:text="Crash From Kt" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/reset_settings"
-        style="@style/Widget.AppCompat.Button.Colored"
+        style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Reset Settings"
-        android:textColor="@color/white" />
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:text="Reset Settings" />
 
 </LinearLayout>

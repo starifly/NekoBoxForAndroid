@@ -15,9 +15,9 @@
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tools_tab"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?colorPrimary"
-        android:elevation="4dp"
+        android:layout_height="56dp"
+        android:background="?attr/colorSurface"
+        android:elevation="0dp"
         app:tabIndicatorColor="?tabIndicatorColor"
         app:tabIndicatorFullWidth="false"
         app:tabMode="fixed"
@@ -25,6 +25,7 @@
         app:tabRippleColor="?tabRippleColor"
         app:tabSelectedTextColor="?tabSelectedTextColor"
         app:tabTextColor="?tabTextColor"
+        app:tabTextAppearance="@style/TextAppearance.SagerNet.Tab"
         app:tabUnboundedRipple="false" />
 
     <androidx.viewpager2.widget.ViewPager2

@@ -12,8 +12,9 @@ object Key {
     const val CLEAR_CACHE = "clearCache"
 
     const val APP_EXPERT = "isExpert"
-    const val APP_THEME = "appTheme"
     const val NIGHT_THEME = "nightTheme"
+    const val DYNAMIC_COLORS = "dynamicColors"
+    const val UI_DESIGN_VERSION = "uiDesignVersion"
     const val SERVICE_MODE = "serviceMode"
     const val MODE_VPN = "vpn"
     const val MODE_PROXY = "proxy"
@@ -73,6 +74,8 @@ object Key {
     const val ACQUIRE_WAKE_LOCK = "acquireWakeLock"
     const val HIDE_FROM_RECENT_APPS = "hideFromRecentApps"
     const val SHOW_BOTTOM_BAR = "showBottomBar"
+    const val AMOLED_THEME = "amoledTheme"
+    const val APP_THEME = "appTheme"
     const val CONFIRM_PROFILE_DELETE = "confirmProfileDelete"
     const val GROUP_LAYOUT_MODE = "groupLayoutMode"
 

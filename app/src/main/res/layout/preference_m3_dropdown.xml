@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:visibility="invisible"
+        android:popupTheme="@style/ThemeOverlay.Material3"
+        android:popupBackground="@drawable/bg_popup_menu_m3" />
+
+    <include layout="@layout/preference_m3" />
+</FrameLayout>

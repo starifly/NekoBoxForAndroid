@@ -48,7 +48,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory app:title="sing-box server">
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:key="sUoT"
             app:title="UDP over TCP" />
     </PreferenceCategory>
@@ -56,7 +56,7 @@
     <PreferenceCategory
         app:key="serverMuxCategory"
         app:title="@string/mux_preference">
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:icon="@drawable/ic_baseline_compare_arrows_24"
             app:key="enableMux"
             app:summary="@string/mux_sum"
@@ -94,11 +94,11 @@
             app:key="muxMinStreams"
             app:title="@string/mux_min_streams"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:icon="@drawable/baseline_developer_board_24"
             app:key="muxPadding"
             app:title="@string/padding" />
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:icon="@drawable/ic_baseline_speed_24"
             app:key="muxBrutal"
             app:title="@string/mux_brutal" />

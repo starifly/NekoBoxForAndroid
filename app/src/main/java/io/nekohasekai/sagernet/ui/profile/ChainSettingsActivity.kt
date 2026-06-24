@@ -316,7 +316,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
         val profileType = binding.profileType
         val trafficText: TextView = binding.trafficText
         val editButton = binding.edit
-        val shareLayout = binding.share
+        val shareButton = binding.shareIcon
 
         fun bind(proxyEntity: ProxyEntity) {
 
@@ -346,7 +346,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
                 })
             }
 
-            shareLayout.isVisible = false
+            shareButton.isVisible = false
         }
 
     }

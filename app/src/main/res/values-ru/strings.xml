@@ -96,8 +96,8 @@
 <string name="confirm">Подтвердить</string>
 <string name="connect">Подключиться</string>
 <string name="connecting">Подключение…</string>
-<string name="connection_test_available">HTTPS-соединение установлено за %d мс</string>
-<string name="connection_test_available_http">HTTP-соединение установлено за %d мс</string>
+<string name="connection_test_available">Задержка %d мс</string>
+<string name="connection_test_available_http">Задержка %d мс</string>
 <string name="connection_test_clear_results">Очистить результаты теста</string>
 <string name="connection_test_delete_unavailable">Удалить недоступные</string>
 <string name="connection_test_domain_not_found">Домен не найден</string>
@@ -486,6 +486,12 @@
 <string name="v7_preference_on">ВКЛ.</string>
 <string name="version_x">Версия (%s)</string>
 <string name="vpn_connected">Подключено, нажмите для проверки подключения</string>
+<string name="connection_status_connected">Подключено</string>
+<string name="backup_local">Локальная резервная копия</string>
+<string name="backup_webdav">Резервная копия WebDAV</string>
+<string name="webdav_settings">Настройки WebDAV</string>
+<string name="backup_to_webdav">Создать копию в WebDAV</string>
+<string name="restore_from_webdav">Восстановить из WebDAV</string>
 <string name="vpn_permission_denied">Отказано в разрешении на создание службы VPN</string>
 <string name="wake_reset_connections">Сбросить исходящие соединения при выходе из спящего режима</string>
 <string name="warp_generate">Создать конфигурацию</string>
@@ -500,4 +506,17 @@
 <string name="ws_path">Путь к WebSocket</string>
 <string name="xtls_flow">Flow (подпротокол VLESS)</string>
 <string name="yes">Да</string>
+<string name="interface_settings">Интерфейс</string>
+<string name="ui_style">Стиль интерфейса</string>
+<string name="ui_style_expressive">Новый</string>
+<string name="ui_style_classic">Классический</string>
+<string name="dynamic_colors">Динамические цвета</string>
+<string name="dynamic_colors_summary">Использовать системную палитру Material You</string>
+<string name="dynamic_colors_unavailable">Доступно на Android 12 и новее</string>
+<string name="dynamic_colors_classic">Доступно в новом интерфейсе</string>
+<string name="theme_fallback_summary">Используется, когда динамические цвета недоступны или выключены</string>
+<string name="more_options">Дополнительные действия</string>
+<string name="amoled_theme">Чисто черный фон (AMOLED)</string>
+<string name="amoled_theme_summary">Использовать абсолютно черный фон в темной теме</string>
+<string name="app_theme">Цвет акцента</string>
 </resources>

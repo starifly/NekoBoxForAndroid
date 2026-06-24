@@ -85,8 +85,8 @@
     <string name="speed_detail">Proxy： %1$s↑ %2$s↓\nDirect： %3$s↑ %4$s↓</string>
     <string name="speed">%s/s</string>
     <string name="connection_test_testing">Testing…</string>
-    <string name="connection_test_available">Success: HTTPS handshake took %dms</string>
-    <string name="connection_test_available_http">Success: HTTP handshake took %dms</string>
+    <string name="connection_test_available">Delay: %d ms</string>
+    <string name="connection_test_available_http">Delay: %d ms</string>
     <string name="connection_test_error">Failed: %s</string>
     <string name="connection_test_fail">Internet Unavailable</string>
     <string name="connection_test_error_status_code">Error code: #%d</string>
@@ -293,6 +293,7 @@
     <!-- status -->
     <string name="connecting">Connecting…</string>
     <string name="vpn_connected">Connected, tap to check connection</string>
+    <string name="connection_status_connected">Connected</string>
     <string name="not_connected">Not connected</string>
     <!-- subscriptions -->
     <string name="subscriptions">Subscriptions</string>
@@ -693,4 +694,17 @@
     <string name="vless_encryption_hint">mlkem768x25519plus.native.0rtt.KEY1.KEY2...</string>
     <string name="app_list_permission_denied">Unable to read installed apps.\nThis is usually because the system has restricted app read permissions.\nPlease grant permissions in the system settings.</string>
     <string name="open_app_settings">Open System Settings</string>
+    <string name="interface_settings">Interface</string>
+    <string name="ui_style">Interface style</string>
+    <string name="ui_style_expressive">New</string>
+    <string name="ui_style_classic">Classic</string>
+    <string name="dynamic_colors">Dynamic colors</string>
+    <string name="dynamic_colors_summary">Use the system Material You palette</string>
+    <string name="dynamic_colors_unavailable">Available on Android 12 and newer</string>
+    <string name="dynamic_colors_classic">Available with the new interface</string>
+    <string name="theme_fallback_summary">Used when dynamic colors are unavailable or disabled</string>
+    <string name="more_options">More options</string>
+    <string name="amoled_theme">AMOLED Dark Theme</string>
+    <string name="amoled_theme_summary">Pure black background in dark mode</string>
+    <string name="app_theme">Accent Color</string>
 </resources>

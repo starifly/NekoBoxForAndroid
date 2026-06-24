@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.appbar.AppBarLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/appbar"
     android:layout_width="match_parent"
-    android:layout_height="?attr/actionBarSize"
-    android:background="?attr/colorPrimary"
-    android:elevation="4dp">
+    android:layout_height="?attr/uiAppBarHeight"
+    android:background="?attr/uiAppBarBackground"
+    android:elevation="?attr/uiAppBarElevation"
+    tools:ignore="Overdraw">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="?attr/colorPrimary"
+        android:background="?attr/uiAppBarBackground"
+        android:paddingHorizontal="4dp"
         android:theme="?actionBarTheme"
         android:touchscreenBlocksFocus="false"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.DayNight"
+        app:navigationIconTint="?attr/colorOnSurface"
+        app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge"
+        app:titleTextColor="?attr/colorOnSurface"
         app:title="@string/app_name" />
 </com.google.android.material.appbar.AppBarLayout>

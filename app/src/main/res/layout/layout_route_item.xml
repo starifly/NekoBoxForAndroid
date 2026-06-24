@@ -5,8 +5,12 @@
     android:id="@+id/content"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
-    app:cardElevation="2dp">
+    android:layout_marginVertical="4dp"
+    app:cardBackgroundColor="?attr/colorSurfaceContainerLowest"
+    app:cardCornerRadius="?attr/uiCardCornerRadius"
+    app:cardElevation="?attr/uiCardElevation"
+    app:strokeColor="?attr/uiCardStrokeColor"
+    app:strokeWidth="?attr/uiCardStrokeWidth">
 
     <LinearLayout
         android:id="@+id/content_lin"
@@ -36,8 +40,8 @@
                     android:id="@+id/profile_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="?android:attr/textColorPrimary"
+                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                    android:textColor="?attr/colorOnSurface"
                     android:textStyle="bold"
                     tools:text="@string/profile_name" />
             </LinearLayout>
@@ -45,8 +49,8 @@
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/subscription"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_gravity="top"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/subscriptions"
@@ -57,8 +61,8 @@
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/edit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_gravity="top"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/edit"
@@ -112,8 +116,8 @@
                     android:id="@+id/profile_type"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="?colorSecondary" />
+                    android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <TextView
                     android:layout_marginTop="4dp"
@@ -121,16 +125,16 @@
                     android:id="@+id/route_outbound"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="?colorSecondary" />
+                    android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
 
             </LinearLayout>
 
-            <androidx.appcompat.widget.SwitchCompat
+            <com.google.android.material.materialswitch.MaterialSwitch
                 android:layout_marginBottom="2dp"
                 android:id="@+id/enable"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="48dp" />
 
         </LinearLayout>
 

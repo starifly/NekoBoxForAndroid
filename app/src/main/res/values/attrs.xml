@@ -10,4 +10,18 @@
     <attr name="fabColorBackground" format="color" />
     <attr name="selectedColorPrimary" format="color" />
     <attr name="whiteOrTextPrimary" format="color" />
+    <attr name="uiAppBarHeight" format="dimension" />
+    <attr name="uiAppBarElevation" format="dimension" />
+    <attr name="uiCardElevation" format="dimension" />
+    <attr name="uiCardCornerRadius" format="dimension" />
+    <attr name="uiCardStrokeWidth" format="dimension" />
+    <attr name="uiCardStrokeColor" format="color" />
+    <attr name="uiListItemMargin" format="dimension" />
+    <attr name="uiListOuterPadding" format="dimension" />
+    <attr name="uiSurfaceBackground" format="color" />
+    <attr name="uiAppBarBackground" format="color" />
+    <attr name="uiStatsBackground" format="color" />
+    <attr name="uiStatsForeground" format="color" />
+    <attr name="uiTabBackground" format="color" />
+    <attr name="uiNavigationItemFill" format="color" />
 </resources>

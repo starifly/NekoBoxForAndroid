@@ -1,8 +1,6 @@
 package io.nekohasekai.sagernet.ui
 
 import android.annotation.SuppressLint
-import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -35,9 +33,7 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
 
         binding = LayoutLogcatBinding.bind(view)
 
-        if (Build.VERSION.SDK_INT >= 23) {
-            binding.textview.breakStrategy = 0 // simple
-        }
+        binding.textview.breakStrategy = 0 // simple
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root, ListListener)
 
@@ -45,18 +41,18 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
     }
 
     private fun getColorForLine(line: String): ForegroundColorSpan {
-        var color = ForegroundColorSpan(Color.GRAY)
+        var color = ForegroundColorSpan(requireContext().getColorAttr(com.google.android.material.R.attr.colorOnSurfaceVariant))
         when {
             line.contains("INFO[") || line.contains(" [Info]") -> {
-                color = ForegroundColorSpan((0xFF86C166).toInt())
+                color = ForegroundColorSpan(requireContext().getColour(R.color.ui_success))
             }
 
             line.contains("ERROR[") || line.contains(" [Error]") -> {
-                color = ForegroundColorSpan(Color.RED)
+                color = ForegroundColorSpan(requireContext().getColour(R.color.ui_error))
             }
 
             line.contains("WARN[") || line.contains(" [Warning]") -> {
-                color = ForegroundColorSpan(Color.RED)
+                color = ForegroundColorSpan(requireContext().getColour(R.color.ui_warning))
             }
         }
         return color
