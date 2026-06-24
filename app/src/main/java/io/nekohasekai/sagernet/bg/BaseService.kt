@@ -359,7 +359,13 @@ class BaseService {
             }
 
             data.changeState(State.Connecting)
-            runOnMainDispatcher {
+            // Track the connect coroutine so stopRunner()/reload() can cancel an in-flight
+            // start. Without this, data.connectingJob stays null and stopRunner's
+            // cancelAndJoin() is a no-op: a superseded start's awaitExternalProcessesReady()
+            // keeps polling a now-killed sidecar port for its full (60s for MasterDnsVPN)
+            // window and then throws "sidecar listener not ready", surfacing a false
+            // "connection failed" even though the live instance is already carrying traffic.
+            data.connectingJob = runOnMainDispatcher {
                 try {
                     data.notification = createNotification(ServiceNotification.genTitle(profile))
 

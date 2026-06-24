@@ -291,6 +291,11 @@ abstract class BoxInstance(
             val deadline = SystemClock.elapsedRealtime() + readinessTimeoutMs
             val pending = ports.toMutableSet()
             while (pending.isNotEmpty() && SystemClock.elapsedRealtime() < deadline) {
+                // Honor cancellation promptly: if this start was superseded (reload/profile
+                // switch), the connect job is cancelled and the sidecars are torn down. Exiting
+                // here stops us from polling a now-dead port for the full (60s for MasterDnsVPN)
+                // window and then throwing a false "sidecar listener not ready".
+                ensureActive()
                 val iterator = pending.iterator()
                 while (iterator.hasNext()) {
                     val port = iterator.next()
@@ -306,6 +311,16 @@ abstract class BoxInstance(
                 if (pending.isNotEmpty()) delay(50)
             }
             if (pending.isNotEmpty()) {
+                // If the process pool is no longer active, its sidecars were torn down (e.g. a
+                // superseded start during reload). A port that never bound on a dead pool is an
+                // orphan, not a real failure - drop it instead of throwing.
+                if (!processes.isActive) {
+                    Logs.w(
+                        "sidecar listener not ready on port(s): ${pending.joinToString()}; " +
+                            "process pool already stopped (superseded start), ignoring"
+                    )
+                    return@withContext
+                }
                 // MasterDnsVPN must have its listener up before the first dial (it crashed
                 // otherwise), so a timeout there is fatal. Other sidecars (Mieru/Naïve/
                 // TrojanGo/Hysteria) were historically fire-and-forget: the first sing-box
