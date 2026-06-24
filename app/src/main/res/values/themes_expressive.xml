@@ -83,51 +83,16 @@
         <item name="whiteOrTextPrimary">?attr/colorOnPrimary</item>
     </style>
 
-    <style name="Theme.SagerNet.Expressive.Dialog" parent="Theme.Material3.DayNight.Dialog.Alert">
-        <item name="colorPrimary">@color/ui_primary</item>
-        <item name="colorOnPrimary">@color/ui_on_primary</item>
-        <item name="colorPrimaryContainer">@color/ui_primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/ui_on_primary_container</item>
-        <item name="colorSecondary">@color/ui_secondary</item>
-        <item name="colorOnSecondary">@color/ui_on_secondary</item>
-        <item name="colorSecondaryContainer">@color/ui_secondary_container</item>
-        <item name="colorOnSecondaryContainer">@color/ui_on_secondary_container</item>
-        <item name="colorSurface">@color/ui_surface</item>
-        <item name="colorOnSurface">@color/ui_on_surface</item>
-        <item name="colorSurfaceContainerHigh">@color/ui_surface_container_high</item>
-        <item name="colorOutline">@color/ui_outline</item>
-        <item name="colorOutlineVariant">@color/ui_outline_variant</item>
-        <item name="colorError">@color/ui_error</item>
-        <item name="uiAppBarHeight">64dp</item>
-        <item name="uiAppBarElevation">0dp</item>
-        <item name="actionBarTheme">@style/ThemeOverlay.Material3.ActionBar</item>
-        <item name="uiCardElevation">0dp</item>
-        <item name="uiCardCornerRadius">28dp</item>
-        <item name="uiCardStrokeWidth">0dp</item>
-        <item name="uiCardStrokeColor">@android:color/transparent</item>
-        <item name="uiListItemMargin">0dp</item>
-        <item name="uiListOuterPadding">12dp</item>
-        <item name="uiSurfaceBackground">?attr/colorSurface</item>
-        <item name="uiAppBarBackground">?attr/colorSurface</item>
-        <item name="tabTextColor">?attr/colorOnSurfaceVariant</item>
-        <item name="tabSelectedTextColor">?attr/colorPrimary</item>
-        <item name="tabIndicatorColor">?attr/colorPrimary</item>
-        <item name="tabRippleColor">?attr/colorPrimary</item>
-        <item name="uiTabBackground">?attr/colorSurface</item>
-        
-        <!-- Temporary aliases for legacy screens -->
-        <item name="colorAccent">?attr/colorPrimary</item>
-        <item name="colorMaterial100">?attr/colorPrimaryContainer</item>
-        <item name="colorMaterial300">?attr/colorSecondaryContainer</item>
-        <item name="accentOrTextSecondary">?attr/colorPrimary</item>
-        <item name="accentOrTextPrimary">?attr/colorPrimary</item>
-        <item name="primaryOrTextSecondary">?attr/colorPrimary</item>
-        <item name="primaryOrTextPrimary">?attr/colorPrimary</item>
-        <item name="fabColorBackground">?attr/colorPrimary</item>
-        <item name="selectedColorPrimary">?attr/colorPrimary</item>
-        <item name="whiteOrTextPrimary">?attr/colorOnPrimary</item>
-        <item name="colorSurfaceVariant">@color/ui_surface_variant</item>
-        <item name="colorOnSurfaceVariant">@color/ui_on_surface_variant</item>
+    <style name="Theme.SagerNet.Expressive.Dialog" parent="Theme.SagerNet.Expressive">
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowElevation">8dp</item>
+        <item name="android:windowCloseOnTouchOutside">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:windowBackground">@drawable/bg_expressive_dialog</item>
+        <item name="uiSurfaceBackground">@android:color/transparent</item>
+        <item name="uiAppBarBackground">@android:color/transparent</item>
+        <item name="uiTabBackground">@android:color/transparent</item>
     </style>
 
     <style name="ShapeAppearance.SagerNet.Expressive.Navigation" parent="ShapeAppearance.Material3.Corner.Full" />

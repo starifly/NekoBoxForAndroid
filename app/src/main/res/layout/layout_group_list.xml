@@ -16,7 +16,7 @@
         android:id="@+id/group_tab"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:background="?attr/colorSurface"
+        android:background="?attr/uiTabBackground"
         android:elevation="?attr/uiAppBarElevation"
         android:visibility="gone"
         app:tabGravity="center"
