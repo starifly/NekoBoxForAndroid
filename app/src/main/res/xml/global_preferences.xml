@@ -26,7 +26,7 @@
             app:useSimpleSummaryProvider="true" />
         <SwitchPreferenceCompat
             app:defaultValue="false"
-            app:icon="@drawable/ic_baseline_brightness_medium_24"
+            app:icon="@drawable/ic_baseline_wb_sunny_24"
             app:key="amoledTheme"
             app:summary="@string/amoled_theme_summary"
             app:title="@string/amoled_theme" />
