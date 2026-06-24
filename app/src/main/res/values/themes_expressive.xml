@@ -39,14 +39,16 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="actionBarTheme">@style/ThemeOverlay.Material3.ActionBar</item>
-        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item>
-        <item name="alertDialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog</item>
         <item name="android:dialogTheme">@style/Theme.Material3.DayNight.Dialog</item>
         <item name="dialogTheme">@style/Theme.Material3.DayNight.Dialog</item>
 
         <item name="popupMenuStyle">@style/Widget.Material3.PopupMenu</item>
         <item name="android:popupMenuStyle">@style/Widget.Material3.PopupMenu</item>
         <item name="actionOverflowMenuStyle">@style/Widget.Material3.PopupMenu.Overflow</item>
+        <item name="popupMenuBackground">@drawable/bg_popup_menu_m3</item>
+        <item name="android:popupBackground">@drawable/bg_popup_menu_m3</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay.SagerNet</item>
 
         <item name="tabTextColor">?attr/colorOnSurfaceVariant</item>
@@ -108,9 +110,17 @@
         <item name="android:textSize">14sp</item>
     </style>
 
+    <style name="ThemeOverlay.SagerNet.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="android:windowBackground">@drawable/bg_dialog_m3</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.Material3.Button.TextButton.Dialog</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.Material3.Button.TextButton.Dialog</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.Material3.Button.TextButton.Dialog</item>
+    </style>
+
     <style name="PreferenceThemeOverlay.SagerNet" parent="PreferenceThemeOverlay.v14.Material">
-        <item name="alertDialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item>
-        <item name="android:alertDialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog</item>
+        <item name="android:alertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog</item>
         <item name="preferenceStyle">@style/Preference.SagerNet</item>
         <item name="dialogPreferenceStyle">@style/Preference.SagerNet.Dialog</item>
         <item name="editTextPreferenceStyle">@style/Preference.SagerNet.EditText</item>

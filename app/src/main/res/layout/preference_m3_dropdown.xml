@@ -9,7 +9,7 @@
         android:layout_height="wrap_content"
         android:visibility="invisible"
         android:popupTheme="@style/ThemeOverlay.Material3"
-        android:popupBackground="?attr/colorSurfaceContainer" />
+        android:popupBackground="@drawable/bg_popup_menu_m3" />
 
     <include layout="@layout/preference_m3" />
 </FrameLayout>
