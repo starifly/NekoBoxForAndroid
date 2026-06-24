@@ -113,7 +113,7 @@
     <style name="ThemeOverlay.SagerNet.Amoled" parent="">
         <item name="android:colorBackground">@android:color/black</item>
         <item name="colorSurface">@android:color/black</item>
-        <item name="colorSurfaceContainerLowest">#080808</item>
+        <item name="colorSurfaceContainerLowest">#0B0B0B</item>
         <item name="colorSurfaceContainerLow">#0F0F0F</item>
         <item name="colorSurfaceContainer">#141414</item>
         <item name="colorSurfaceContainerHigh">#1F1F1F</item>
