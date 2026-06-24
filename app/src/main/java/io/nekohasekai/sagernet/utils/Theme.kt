@@ -1,28 +1,32 @@
 package io.nekohasekai.sagernet.utils
 
-import android.app.Activity
 import android.content.Context
 import android.content.res.Configuration
+import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
-import com.google.android.material.color.DynamicColors
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.app
 
 object Theme {
 
-    fun apply(context: Context) = context.setTheme(R.style.Theme_SagerNet_Expressive)
+    fun apply(context: Context) = context.setTheme(getTheme())
 
     fun applyDialog(context: Context) =
-        context.setTheme(R.style.Theme_SagerNet_Expressive_Dialog)
+        context.setTheme(getDialogTheme())
 
-    fun applyDynamicColors(activity: Activity) {
-        if (DataStore.dynamicColors) DynamicColors.applyToActivityIfAvailable(activity)
+    fun getTheme(): Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && DataStore.dynamicColors) {
+        R.style.Theme_SagerNet_Expressive_Dynamic
+    } else {
+        R.style.Theme_SagerNet_Expressive
     }
 
-    fun getTheme(): Int = R.style.Theme_SagerNet_Expressive
-
-    fun getDialogTheme(): Int = R.style.Theme_SagerNet_Expressive_Dialog
+    fun getDialogTheme(): Int =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && DataStore.dynamicColors) {
+            R.style.Theme_SagerNet_Expressive_Dynamic_Dialog
+        } else {
+            R.style.Theme_SagerNet_Expressive_Dialog
+        }
 
     var currentNightMode = -1
 

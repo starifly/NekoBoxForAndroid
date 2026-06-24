@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.widget.TooltipCompat
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.whenStarted
 import com.google.android.material.behavior.HideBottomViewOnScrollBehavior
@@ -29,6 +30,7 @@ class StatsBar @JvmOverloads constructor(
     private lateinit var statusText: TextView
     private lateinit var txText: TextView
     private lateinit var rxText: TextView
+    private lateinit var speedRow: View
     private lateinit var behavior: YourBehavior
 
     private val mainActivity: MainActivity
@@ -100,12 +102,18 @@ class StatsBar @JvmOverloads constructor(
         statusText = findViewById(R.id.status)
         txText = findViewById(R.id.tx)
         rxText = findViewById(R.id.rx)
+        speedRow = findViewById(R.id.speed_row)
+        refreshSpeedVisibility()
         super.setOnClickListener(l)
     }
 
-    private fun setStatus(text: CharSequence) {
+    private fun setStatus(text: CharSequence, tooltip: CharSequence = text) {
         statusText.text = text
-        TooltipCompat.setTooltipText(this, text)
+        TooltipCompat.setTooltipText(this, tooltip)
+    }
+
+    fun refreshSpeedVisibility() {
+        if (this::speedRow.isInitialized) speedRow.isVisible = DataStore.speedInterval > 0
     }
 
     fun changeState(state: BaseService.State) {
@@ -117,7 +125,11 @@ class StatsBar @JvmOverloads constructor(
         if ((state == BaseService.State.Connected).also { hideOnScroll = it }) {
             postWhenStarted {
                 if (allowShow) performShow()
-                setStatus(app.getText(R.string.vpn_connected))
+                refreshSpeedVisibility()
+                setStatus(
+                    app.getText(R.string.connection_status_connected),
+                    app.getText(R.string.vpn_connected)
+                )
             }
         } else {
             postWhenStarted {

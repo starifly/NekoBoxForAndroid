@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.ui
 
 import android.content.DialogInterface
 import android.annotation.SuppressLint
+import android.content.res.ColorStateList
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
@@ -1726,6 +1727,14 @@ class ConfigurationFragment @JvmOverloads constructor(
             val removeButton: ImageView = view.findViewById(R.id.remove)
 
             private fun updateSelectedAppearance(selected: Boolean) {
+                val primaryText = requireContext().getColorAttr(
+                    if (selected) com.google.android.material.R.attr.colorOnPrimaryContainer
+                    else com.google.android.material.R.attr.colorOnSurface
+                )
+                val secondaryText = requireContext().getColorAttr(
+                    if (selected) com.google.android.material.R.attr.colorOnPrimaryContainer
+                    else com.google.android.material.R.attr.colorOnSurfaceVariant
+                )
                 selectedView.visibility = if (selected) View.VISIBLE else View.INVISIBLE
                 (view as? MaterialCardView)?.setCardBackgroundColor(
                     requireContext().getColorAttr(
@@ -1739,6 +1748,14 @@ class ConfigurationFragment @JvmOverloads constructor(
                         else com.google.android.material.R.attr.colorSurfaceContainerLow
                     )
                 )
+                profileName.setTextColor(primaryText)
+                profileType.setTextColor(secondaryText)
+                profileAddress.setTextColor(secondaryText)
+                trafficText.setTextColor(secondaryText)
+                val actionTint = ColorStateList.valueOf(primaryText)
+                editButton.imageTintList = actionTint
+                doubleColumnMenuButton.imageTintList = actionTint
+                shareButton.imageTintList = actionTint
                 profileDivider.isInvisible = selected
             }
 
@@ -1974,9 +1991,10 @@ class ConfigurationFragment @JvmOverloads constructor(
                         onMainDispatcher {
                             shareLayer.setBackgroundColor(Color.TRANSPARENT)
                             shareButton.setImageResource(R.drawable.ic_social_share)
-                            shareButton.setColorFilter(
+                            shareButton.imageTintList = ColorStateList.valueOf(
                                 requireContext().getColorAttr(
-                                    com.google.android.material.R.attr.colorOnSurface
+                                    if (selected) com.google.android.material.R.attr.colorOnPrimaryContainer
+                                    else com.google.android.material.R.attr.colorOnSurface
                                 )
                             )
                             shareButton.isVisible = true

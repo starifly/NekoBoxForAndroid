@@ -486,6 +486,12 @@
 <string name="v7_preference_on">ВКЛ.</string>
 <string name="version_x">Версия (%s)</string>
 <string name="vpn_connected">Подключено, нажмите для проверки подключения</string>
+<string name="connection_status_connected">Подключено</string>
+<string name="backup_local">Локальная резервная копия</string>
+<string name="backup_webdav">Резервная копия WebDAV</string>
+<string name="webdav_settings">Настройки WebDAV</string>
+<string name="backup_to_webdav">Создать копию в WebDAV</string>
+<string name="restore_from_webdav">Восстановить из WebDAV</string>
 <string name="vpn_permission_denied">Отказано в разрешении на создание службы VPN</string>
 <string name="wake_reset_connections">Сбросить исходящие соединения при выходе из спящего режима</string>
 <string name="warp_generate">Создать конфигурацию</string>

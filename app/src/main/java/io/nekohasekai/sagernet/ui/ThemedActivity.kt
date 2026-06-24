@@ -29,7 +29,6 @@ abstract class ThemedActivity : AppCompatActivity {
         } else {
             Theme.applyDialog(this)
         }
-        Theme.applyDynamicColors(this)
         Theme.applyNightTheme()
 
         super.onCreate(savedInstanceState)
