@@ -4,6 +4,7 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <group android:scaleX="0.72" android:scaleY="0.72" android:pivotX="54" android:pivotY="54">
     <path
         android:fillColor="#FF000000"
         android:fillType="evenOdd"
@@ -109,4 +110,5 @@
         70.8,54.61 L 74.03,54.61 L 74.11,54.52 L 74.11,54.28 L 73.55,52.83 L 73.46,52.26 L 73.22,51.62 L 73.14,50.81 L 73.06,50.73 L 73.06,50.24 L
         72.98,50.16 L 72.9,47.18 L 72.98,47.09 L 72.98,46.45 L 73.06,46.29 Z M 31.39,50.81 L 31.22,52.1 L 31.14,52.18 L 30.98,53.31 L 30.66,54.44 L
         30.82,54.61 L 32.35,54.61 L 32.44,54.52 L 32.44,54.2 L 32.03,53.07 L 32.03,52.83 L 31.71,51.94 L 31.47,50.81 Z" />
+    </group>
 </vector>
