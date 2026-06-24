@@ -40,6 +40,43 @@ jobs:
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./run lib core
+      - name: Verify 16 KB ELF alignment
+        # issue #1125: arm64-v8a/x86_64 .so LOAD segments must be 16 KB (2**14) aligned for
+        # Android 15+ 16 KB-page devices. Extract the native libs from the AAR and fail if any
+        # required lib is unaligned. Runs on cache hits too so a stale unaligned AAR is caught.
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          unzip -o app/libs/libcore.aar -d "$tmp" >/dev/null
+          fail=0
+          for abi in arm64-v8a x86_64; do
+            so="$tmp/jni/$abi/libgojni.so"
+            if [ ! -f "$so" ]; then
+              echo "::error::missing required native lib $so"
+              fail=1
+              continue
+            fi
+            # Smallest LOAD p_align, reduced numerically. readelf prints hex like 0x4000;
+            # a lexicographic sort would mis-order (e.g. 0x10000 vs 0x4000), so convert each
+            # value to decimal in the shell and keep the minimum. No awk strtonum dependency.
+            min=""
+            for a in $(readelf -lW "$so" | awk '/LOAD/{print $NF}'); do
+              d="$(printf '%d' "$a")"
+              if [ -z "$min" ] || [ "$d" -lt "$min" ]; then min="$d"; fi
+            done
+            if [ -z "$min" ]; then
+              echo "::error::$abi libgojni.so has no LOAD segments"
+              fail=1
+              continue
+            fi
+            echo "$abi libgojni.so min LOAD align = $min (0x$(printf '%x' "$min"))"
+            if [ "$min" -lt 16384 ]; then
+              echo "::error::$abi libgojni.so is NOT 16 KB aligned ($min)"
+              fail=1
+            fi
+          done
+          rm -rf "$tmp"
+          exit "$fail"
       - name: Upload LibCore
         uses: namespace-actions/upload-artifact@v1
         with:
