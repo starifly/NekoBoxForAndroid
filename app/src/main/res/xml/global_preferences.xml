@@ -252,6 +252,10 @@
             app:key="appendHttpProxy"
             app:summary="@string/append_http_proxy_sum"
             app:title="@string/append_http_proxy" />
+        <EditTextPreference
+            app:key="httpProxyBypass"
+            app:summary="@string/http_proxy_bypass_sum"
+            app:title="@string/http_proxy_bypass" />
         <SwitchPreference
             app:defaultValue="true"
             app:key="strictRoute"

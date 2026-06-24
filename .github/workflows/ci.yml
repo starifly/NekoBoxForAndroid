@@ -138,7 +138,15 @@ jobs:
           echo "ndk.dir=${ANDROID_HOME}/ndk/25.0.8775105" >> local.properties
           export LOCAL_PROPERTIES="${{ secrets.LOCAL_PROPERTIES }}"
           ./run init action gradle
-          ./gradlew app:assembleOssDebug
+          # Sign debug builds with the stable hawkff-release key so every CI APK
+          # is signature-compatible and installs over a prior build without a
+          # data wipe. Helpers.kt signs debug with the release key when the
+          # keystore + KEYSTORE_PASS/ALIAS_NAME/ALIAS_PASS are present. If the
+          # KEYSTORE_B64 secret is unset, fall back to the default debug key.
+          if [ -n "${{ secrets.KEYSTORE_B64 }}" ]; then
+            echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > release.keystore
+          fi
+          KEYSTORE_PASS="${{ secrets.KEYSTORE_PASS }}" ALIAS_NAME="${{ secrets.ALIAS_NAME }}" ALIAS_PASS="${{ secrets.ALIAS_PASS }}" ./gradlew app:assembleOssDebug
           APK=$(find app/build/outputs/renamed_apks -name '*arm64-v8a*.apk' | head -n 1)
           if [ -z "$APK" ]; then
             echo "Error: no arm64-v8a APK found under app/build/outputs/renamed_apks" >&2
@@ -151,3 +159,15 @@ jobs:
         with:
           name: NekoBox-debug-apks
           path: ${{ env.APK }}
+      - name: Publish APK to Namespace workspace store
+        # Also push the arm64-v8a APK into the Namespace *workspace* artifact
+        # store so it can be fetched locally with `nsc artifact download`
+        # (the GitHub-Actions artifact above is only reachable from a runner or
+        # the dashboard). Path: nekobox/<branch>/<run>/<file>.apk. See AGENTS.md.
+        run: |
+          set -euo pipefail
+          APK_FILE=$(find "${{ env.APK }}" -name '*arm64-v8a*.apk' | head -n 1)
+          BRANCH="${GITHUB_REF_NAME//\//-}"
+          DEST="nekobox/${BRANCH}/${GITHUB_RUN_ID}/$(basename "$APK_FILE")"
+          nsc artifact upload "$APK_FILE" "$DEST"
+          echo "Uploaded to Namespace workspace store: $DEST"

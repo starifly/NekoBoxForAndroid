@@ -8,6 +8,7 @@ __MACOSX/
 .idea/
 .vscode/
 .cursor/
+.agents/
 AGENTS.md
 
 # Gradle / Kotlin build state
@@ -44,3 +45,4 @@ release.keystore
 
 #Extra
 currentArchitectureState/*
+localAPKs/

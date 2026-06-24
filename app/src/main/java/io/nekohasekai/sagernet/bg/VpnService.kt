@@ -199,7 +199,19 @@ class VpnService : BaseVpnService(),
                         "authentication. Disable Allow LAN access to use system HTTP proxy."
                 )
             } else {
-                builder.setHttpProxy(ProxyInfo.buildDirectProxy(LOCALHOST, DataStore.mixedPort))
+                val proxyInfo = runCatching {
+                    val exclusionList = parseHttpProxyBypass(DataStore.httpProxyBypass)
+                    if (exclusionList.isNotEmpty()) {
+                        ProxyInfo.buildDirectProxy(LOCALHOST, DataStore.mixedPort, exclusionList)
+                    } else {
+                        ProxyInfo.buildDirectProxy(LOCALHOST, DataStore.mixedPort)
+                    }
+                }.getOrElse {
+                    // A malformed exclusion entry must never block service start.
+                    Logs.w("Invalid HTTP proxy bypass list, ignoring it", it)
+                    ProxyInfo.buildDirectProxy(LOCALHOST, DataStore.mixedPort)
+                }
+                builder.setHttpProxy(proxyInfo)
             }
         }
 
@@ -208,6 +220,38 @@ class VpnService : BaseVpnService(),
         conn = builder.establish() ?: throw NullConnectionException()
 
         return conn!!.fd
+    }
+
+    // Build a validated exclusion list for the system HTTP proxy. Entries are
+    // Android ProxyInfo host/suffix patterns (NOT CIDRs), one per line (commas
+    // also accepted). Each entry is validated individually so a single bad
+    // pattern is dropped instead of invalidating the whole list or blocking
+    // service start.
+    private fun parseHttpProxyBypass(raw: String?): List<String> {
+        if (raw.isNullOrBlank()) return emptyList()
+        return raw.split('\n', ',')
+            .map { it.trim() }
+            .filter { it.isNotEmpty() && isValidProxyBypassEntry(it) }
+            .distinct()
+    }
+
+    // Mirror the host/suffix patterns Android's ProxyInfo accepts: a bare "*",
+    // or dot-separated labels where each label is alphanumeric (hyphens allowed
+    // internally) and a single "*" wildcard label is allowed only as the first
+    // or last label (e.g. "192.168.*", "*.example.com"). Rejects empty labels
+    // (e.g. ".."), leading/trailing dots and stray characters.
+    private fun isValidProxyBypassEntry(entry: String): Boolean {
+        if (entry == "*") return true
+        val labels = entry.split('.')
+        val label = Regex("^[A-Za-z0-9]+(-+[A-Za-z0-9]+)*$")
+        labels.forEachIndexed { index, l ->
+            if (l == "*") {
+                if (index != 0 && index != labels.lastIndex) return false
+            } else if (!label.matches(l)) {
+                return false
+            }
+        }
+        return true
     }
 
     fun updateUnderlyingNetwork(builder: Builder? = null) {

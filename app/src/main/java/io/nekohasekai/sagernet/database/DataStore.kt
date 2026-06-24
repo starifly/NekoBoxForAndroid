@@ -22,6 +22,21 @@ import io.nekohasekai.sagernet.ktx.stringToInt
 import io.nekohasekai.sagernet.ktx.stringToIntIfExists
 import moe.matsuri.nb4a.TempDatabase
 
+// Default exclusion patterns for the system HTTP proxy (appendHttpProxy).
+// These are Android ProxyInfo host/suffix patterns (NOT CIDRs): private and
+// loopback ranges so LAN hosts connect directly while proxied traffic flows.
+val DEFAULT_HTTP_PROXY_BYPASS = listOf(
+    "localhost",
+    "127.*",
+    "10.*",
+    "172.16.*", "172.17.*", "172.18.*", "172.19.*",
+    "172.20.*", "172.21.*", "172.22.*", "172.23.*",
+    "172.24.*", "172.25.*", "172.26.*", "172.27.*",
+    "172.28.*", "172.29.*", "172.30.*", "172.31.*",
+    "192.168.*",
+    "169.254.*",
+).joinToString("\n")
+
 object DataStore : OnPreferenceDataStoreChangeListener {
 
     // share service state in main & bg process
@@ -213,6 +228,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     val persistAcrossReboot by configurationStore.boolean(Key.PERSIST_ACROSS_REBOOT) { false }
 
     var appendHttpProxy by configurationStore.boolean(Key.APPEND_HTTP_PROXY)
+    var httpProxyBypass by configurationStore.string(Key.HTTP_PROXY_BYPASS) { DEFAULT_HTTP_PROXY_BYPASS }
     var strictRoute by configurationStore.boolean(Key.STRICT_ROUTE) { true }
     var connectionTestURL by configurationStore.string(Key.CONNECTION_TEST_URL) { CONNECTION_TEST_URL }
     var connectionTestConcurrent by configurationStore.int("connectionTestConcurrent") { 5 }

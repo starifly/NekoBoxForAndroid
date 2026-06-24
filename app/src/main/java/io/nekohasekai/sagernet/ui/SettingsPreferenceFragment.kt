@@ -124,6 +124,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val serviceMode = findPreference<Preference>(Key.SERVICE_MODE)!!
         val allowAccess = findPreference<Preference>(Key.ALLOW_ACCESS)!!
         val appendHttpProxy = findPreference<SwitchPreference>(Key.APPEND_HTTP_PROXY)!!
+        val httpProxyBypass = findPreference<EditTextPreference>(Key.HTTP_PROXY_BYPASS)!!
         val strictRoute = findPreference<SwitchPreference>(Key.STRICT_ROUTE)!!
 
         val showDirectSpeed = findPreference<SwitchPreference>(Key.SHOW_DIRECT_SPEED)!!
@@ -242,6 +243,19 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             }
         }
         strictRoute.onPreferenceChangeListener = reloadListener
+        httpProxyBypass.setOnBindEditTextListener { editText ->
+            editText.inputType = EditorInfo.TYPE_CLASS_TEXT or
+                EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE or
+                EditorInfo.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            editText.minLines = 4
+            editText.maxLines = 12
+            editText.setHorizontallyScrolling(false)
+        }
+        // Pre-fill with the stored value (or the default when unset) so opening
+        // the dialog and tapping OK doesn't overwrite the list with an empty
+        // string. Persist the default once so it survives untouched edits.
+        httpProxyBypass.text = DataStore.httpProxyBypass
+        httpProxyBypass.onPreferenceChangeListener = reloadListener
         showDirectSpeed.onPreferenceChangeListener = reloadListener
         trafficSniffing.onPreferenceChangeListener = reloadListener
         bypassLan.onPreferenceChangeListener = reloadListener

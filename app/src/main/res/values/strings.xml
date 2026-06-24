@@ -381,6 +381,8 @@
         supported apps), without going through the virtual NIC device (Android 10+)</string>
     <string name="append_http_proxy_security_title">Security Notice</string>
     <string name="append_http_proxy_security_message">When enabled, other apps on this device can directly use the local proxy port.\n\nRecommendation: Only enable this if you trust all installed apps.</string>
+    <string name="http_proxy_bypass">HTTP proxy bypass list</string>
+    <string name="http_proxy_bypass_sum">Hosts that skip the system HTTP proxy and connect directly when Append HTTP Proxy to VPN is on. One pattern per line, e.g. 192.168.* or 10.*. Defaults to private and loopback ranges.</string>
     <string name="enable_anyway">Enable Anyway</string>
     <string name="strict_route">Strict Route</string>
     <string name="protocol_settings">Protocol Settings</string>
