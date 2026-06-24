@@ -109,6 +109,25 @@
         <item name="uiListOuterPadding">12dp</item>
         <item name="uiSurfaceBackground">?attr/colorSurface</item>
         <item name="uiAppBarBackground">?attr/colorSurface</item>
+        <item name="tabTextColor">?attr/colorOnSurfaceVariant</item>
+        <item name="tabSelectedTextColor">?attr/colorPrimary</item>
+        <item name="tabIndicatorColor">?attr/colorPrimary</item>
+        <item name="tabRippleColor">?attr/colorPrimary</item>
+        <item name="uiTabBackground">?attr/colorSurface</item>
+        
+        <!-- Temporary aliases for legacy screens -->
+        <item name="colorAccent">?attr/colorPrimary</item>
+        <item name="colorMaterial100">?attr/colorPrimaryContainer</item>
+        <item name="colorMaterial300">?attr/colorSecondaryContainer</item>
+        <item name="accentOrTextSecondary">?attr/colorPrimary</item>
+        <item name="accentOrTextPrimary">?attr/colorPrimary</item>
+        <item name="primaryOrTextSecondary">?attr/colorPrimary</item>
+        <item name="primaryOrTextPrimary">?attr/colorPrimary</item>
+        <item name="fabColorBackground">?attr/colorPrimary</item>
+        <item name="selectedColorPrimary">?attr/colorPrimary</item>
+        <item name="whiteOrTextPrimary">?attr/colorOnPrimary</item>
+        <item name="colorSurfaceVariant">@color/ui_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/ui_on_surface_variant</item>
     </style>
 
     <style name="ShapeAppearance.SagerNet.Expressive.Navigation" parent="ShapeAppearance.Material3.Corner.Full" />
