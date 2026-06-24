@@ -46,8 +46,6 @@
 
         <item name="popupMenuStyle">@style/Widget.Material3.PopupMenu</item>
         <item name="android:popupMenuStyle">@style/Widget.Material3.PopupMenu</item>
-        <item name="listPopupWindowStyle">@style/Widget.Material3.ListPopupWindow</item>
-        <item name="android:listPopupWindowStyle">@style/Widget.Material3.ListPopupWindow</item>
         <item name="actionOverflowMenuStyle">@style/Widget.Material3.PopupMenu.Overflow</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay.SagerNet</item>
 
