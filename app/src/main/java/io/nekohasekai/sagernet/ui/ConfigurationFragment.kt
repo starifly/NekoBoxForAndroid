@@ -1955,11 +1955,11 @@ class ConfigurationFragment @JvmOverloads constructor(
                 
                 if (isDoubleColumn) {
                     editButton.isGone = true
-                    shareLayout.isGone = true
+                    shareButton.isGone = true
                     removeButton.isGone = true
                     doubleColumnMenuButton.isVisible = true
                 } else {
-                    shareLayout.isGone = selectOrChain
+                    shareButton.isGone = selectOrChain
                     editButton.isGone = select
                     removeButton.isGone = true
                     doubleColumnMenuButton.isGone = select
@@ -1967,7 +1967,7 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                 proxyEntity.nekoBean?.apply {
                     if (!isDoubleColumn) {
-                        shareLayout.isGone = true
+                        shareButton.isGone = true
                     }
                 }
 
