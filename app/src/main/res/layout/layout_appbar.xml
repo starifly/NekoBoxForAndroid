@@ -18,7 +18,7 @@
         android:theme="?actionBarTheme"
         android:touchscreenBlocksFocus="false"
         app:navigationIconTint="?attr/colorOnSurface"
-        app:titleTextAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+        app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge"
         app:titleTextColor="?attr/colorOnSurface"
         app:title="@string/app_name" />
 </com.google.android.material.appbar.AppBarLayout>

@@ -6,13 +6,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="?attr/uiListItemMargin"
-    app:cardBackgroundColor="?attr/colorSurface"
+    app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
     app:cardCornerRadius="?attr/uiCardCornerRadius"
     app:cardElevation="?attr/uiCardElevation"
     app:strokeColor="?attr/uiCardStrokeColor"
     app:strokeWidth="?attr/uiCardStrokeWidth">
-
-    <LinearLayout
         android:id="@+id/content_lin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
