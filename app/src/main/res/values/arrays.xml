@@ -625,14 +625,4 @@
         <item>@string/sniff_override</item>
     </string-array>
 
-    <string-array name="ui_style_entries">
-        <item>@string/ui_style_expressive</item>
-        <item>@string/ui_style_classic</item>
-    </string-array>
-
-    <string-array name="ui_style_values" translatable="false">
-        <item>expressive</item>
-        <item>classic</item>
-    </string-array>
-
 </resources>

@@ -13,7 +13,6 @@ import androidx.core.view.updatePadding
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.utils.Theme
 
 abstract class ThemedActivity : AppCompatActivity {
@@ -41,11 +40,7 @@ abstract class ThemedActivity : AppCompatActivity {
 
         val insetController = WindowCompat.getInsetsController(window, window.decorView)
         insetController.isAppearanceLightNavigationBars = !Theme.usingNightMode()
-        insetController.isAppearanceLightStatusBars = if (Theme.isExpressive()) {
-            !Theme.usingNightMode()
-        } else {
-            if (DataStore.appTheme == Theme.BLACK) !Theme.usingNightMode() else false
-        }
+        insetController.isAppearanceLightStatusBars = !Theme.usingNightMode()
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { _, insets ->
             val bars = insets.getInsets(

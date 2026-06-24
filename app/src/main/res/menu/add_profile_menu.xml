@@ -9,7 +9,7 @@
 
     <item
         android:id="@+id/action_add"
-        android:icon="@drawable/ic_action_note_add"
+        android:icon="@drawable/ic_toolbar_add_tonal"
         android:title="@string/add_profile"
         app:showAsAction="ifRoom">
         <menu>

@@ -48,7 +48,7 @@
             app:key="certificates"
             app:title="@string/certificates"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:icon="@drawable/ic_notification_enhanced_encryption"
             app:key="allowInsecure"
             app:summary="@string/allow_insecure_sum"

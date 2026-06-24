@@ -7,6 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="?attr/uiListItemMargin"
+    app:cardBackgroundColor="?attr/colorSurface"
     app:cardCornerRadius="?attr/uiCardCornerRadius"
     app:cardElevation="?attr/uiCardElevation"
     app:strokeColor="?attr/uiCardStrokeColor"
@@ -19,6 +20,7 @@
         android:layout_marginEnd="8dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
+        android:minHeight="72dp"
         android:padding="8dp">
 
         <ImageView
@@ -45,8 +47,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:textColor="?android:attr/textColorSecondary"
-                android:textSize="18sp"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                android:textColor="?attr/colorOnSurface"
                 tools:text="Package label" />
 
             <TextView
@@ -55,16 +57,16 @@
                 android:layout_height="wrap_content"
                 android:breakStrategy="high_quality"
                 android:ellipsize="end"
-                android:textColor="?android:attr/textColorTertiary"
-                android:textSize="12sp"
+                android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 tools:text="com.package.name (10000)" />
 
         </LinearLayout>
 
-        <androidx.appcompat.widget.SwitchCompat
+        <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/itemcheck"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:clickable="false"
             android:focusable="false"
             android:focusableInTouchMode="false"

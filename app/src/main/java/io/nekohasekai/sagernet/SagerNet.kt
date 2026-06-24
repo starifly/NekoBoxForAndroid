@@ -80,6 +80,10 @@ class SagerNet : Application(),
         }
 
         if (isMainProcess) {
+            if (DataStore.uiDesignVersion < 1) {
+                DataStore.dynamicColors = false
+                DataStore.uiDesignVersion = 1
+            }
             Theme.apply(this)
             Theme.applyNightTheme()
             runOnDefaultDispatcher {

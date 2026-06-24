@@ -94,10 +94,9 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var wakeResetConnections by configurationStore.boolean(Key.WAKE_RESET_CONNECTIONS)
 
     var isExpert by configurationStore.boolean(Key.APP_EXPERT)
-    var appTheme by configurationStore.int(Key.APP_THEME)
     var nightTheme by configurationStore.stringToInt(Key.NIGHT_THEME)
-    var uiStyle by configurationStore.string(Key.UI_STYLE) { "expressive" }
-    var dynamicColors by configurationStore.boolean(Key.DYNAMIC_COLORS) { true }
+    var dynamicColors by configurationStore.boolean(Key.DYNAMIC_COLORS)
+    var uiDesignVersion by configurationStore.int(Key.UI_DESIGN_VERSION)
     var serviceMode by configurationStore.string(Key.SERVICE_MODE) { Key.MODE_VPN }
 
     var trafficSniffing by configurationStore.stringToInt(Key.TRAFFIC_SNIFFING) { 1 }

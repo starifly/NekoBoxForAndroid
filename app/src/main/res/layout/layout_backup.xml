@@ -63,7 +63,7 @@
                         android:layout_marginTop="8dp"
                         android:text="@string/backup_summary"
                         android:textAppearance="?attr/textAppearanceBody2"
-                        android:textColor="?android:attr/textColorSecondary" />
+                        android:textColor="?attr/colorOnSurfaceVariant" />
 
                 </LinearLayout>
 

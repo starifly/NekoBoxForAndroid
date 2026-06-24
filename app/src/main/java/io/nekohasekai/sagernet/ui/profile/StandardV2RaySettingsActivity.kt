@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.SwitchPreference
+import androidx.preference.SwitchPreferenceCompat
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
@@ -175,7 +175,7 @@ abstract class StandardV2RaySettingsActivity : ProfileSettingsActivity<StandardV
 
         muxBrutal.preference.apply {
             updateMuxBrutal(muxBrutal.readBoolFromCache())
-            this as SwitchPreference
+            this as SwitchPreferenceCompat
             setOnPreferenceChangeListener { _, newValue ->
                 updateMuxBrutal(newValue as Boolean)
                 true

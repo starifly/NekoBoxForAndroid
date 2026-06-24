@@ -13,6 +13,10 @@ class SettingsFragment : ToolbarFragment(R.layout.layout_config_settings) {
 
         ViewCompat.setOnApplyWindowInsetsListener(view, ListListener)
         toolbar.setTitle(R.string.settings)
+        toolbar.setNavigationIcon(R.drawable.baseline_arrow_back_24)
+        toolbar.setNavigationOnClickListener {
+            (activity as MainActivity).displayFragmentWithId(R.id.nav_configuration)
+        }
 
         parentFragmentManager.beginTransaction()
             .replace(R.id.settings, SettingsPreferenceFragment())

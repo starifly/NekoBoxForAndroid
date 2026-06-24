@@ -24,7 +24,7 @@ import java.io.File
 
 class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
-    private lateinit var isProxyApps: SwitchPreference
+    private lateinit var isProxyApps: SwitchPreferenceCompat
     private lateinit var globalCustomConfig: EditConfigPreference
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -42,44 +42,14 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         DataStore.initGlobal()
         addPreferencesFromResource(R.xml.global_preferences)
 
-        val uiStyle = findPreference<SimpleMenuPreference>(Key.UI_STYLE)!!
-        val dynamicColors = findPreference<SwitchPreference>(Key.DYNAMIC_COLORS)!!
-        val appTheme = findPreference<ColorPickerPreference>(Key.APP_THEME)!!
-
-        fun updateInterfacePreferences(style: String) {
-            val expressive = style != Theme.STYLE_CLASSIC
-            appTheme.summary = if (expressive) getString(R.string.theme_fallback_summary) else null
-            dynamicColors.isEnabled = expressive && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-            dynamicColors.summary = getString(
-                when {
-                    !expressive -> R.string.dynamic_colors_classic
-                    Build.VERSION.SDK_INT < Build.VERSION_CODES.S -> R.string.dynamic_colors_unavailable
-                    else -> R.string.dynamic_colors_summary
-                }
-            )
-        }
-
-        updateInterfacePreferences(DataStore.uiStyle)
-        uiStyle.setOnPreferenceChangeListener { _, newStyle ->
-            updateInterfacePreferences(newStyle as String)
-            recreateActivityAfterPreferencePersisted()
-            true
-        }
+        val dynamicColors = findPreference<SwitchPreferenceCompat>(Key.DYNAMIC_COLORS)!!
+        dynamicColors.isEnabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        dynamicColors.summary = getString(
+            if (dynamicColors.isEnabled) R.string.dynamic_colors_summary
+            else R.string.dynamic_colors_unavailable
+        )
         dynamicColors.setOnPreferenceChangeListener { _, _ ->
             recreateActivityAfterPreferencePersisted()
-            true
-        }
-
-        appTheme.setOnPreferenceChangeListener { _, newTheme ->
-            if (DataStore.serviceState.started) {
-                SagerNet.reloadService()
-            }
-            val theme = Theme.getTheme(newTheme as Int)
-            app.setTheme(theme)
-            requireActivity().apply {
-                setTheme(theme)
-                ActivityCompat.recreate(this)
-            }
             true
         }
 
@@ -95,22 +65,22 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val mixedUsername = findPreference<EditTextPreference>(Key.MIXED_USERNAME)!!
         val mixedPassword = findPreference<EditTextPreference>(Key.MIXED_PASSWORD)!!
         val serviceMode = findPreference<Preference>(Key.SERVICE_MODE)!!
-        val allowAccess = findPreference<SwitchPreference>(Key.ALLOW_ACCESS)!!
-        val appendHttpProxy = findPreference<SwitchPreference>(Key.APPEND_HTTP_PROXY)!!
-        val strictRoute = findPreference<SwitchPreference>(Key.STRICT_ROUTE)!!
-        val showDirectSpeed = findPreference<SwitchPreference>(Key.SHOW_DIRECT_SPEED)!!
+        val allowAccess = findPreference<SwitchPreferenceCompat>(Key.ALLOW_ACCESS)!!
+        val appendHttpProxy = findPreference<SwitchPreferenceCompat>(Key.APPEND_HTTP_PROXY)!!
+        val strictRoute = findPreference<SwitchPreferenceCompat>(Key.STRICT_ROUTE)!!
+        val showDirectSpeed = findPreference<SwitchPreferenceCompat>(Key.SHOW_DIRECT_SPEED)!!
         val ipv6Mode = findPreference<Preference>(Key.IPV6_MODE)!!
         val trafficSniffing = findPreference<Preference>(Key.TRAFFIC_SNIFFING)!!
 
-        val bypassLan = findPreference<SwitchPreference>(Key.BYPASS_LAN)!!
-        val bypassLanInCore = findPreference<SwitchPreference>(Key.BYPASS_LAN_IN_CORE)!!
+        val bypassLan = findPreference<SwitchPreferenceCompat>(Key.BYPASS_LAN)!!
+        val bypassLanInCore = findPreference<SwitchPreferenceCompat>(Key.BYPASS_LAN_IN_CORE)!!
 
         val remoteDns = findPreference<EditTextPreference>(Key.REMOTE_DNS)!!
         val directDns = findPreference<EditTextPreference>(Key.DIRECT_DNS)!!
-        val enableDnsRouting = findPreference<SwitchPreference>(Key.ENABLE_DNS_ROUTING)!!
-        val enableFakeDns = findPreference<SwitchPreference>(Key.ENABLE_FAKEDNS)!!
+        val enableDnsRouting = findPreference<SwitchPreferenceCompat>(Key.ENABLE_DNS_ROUTING)!!
+        val enableFakeDns = findPreference<SwitchPreferenceCompat>(Key.ENABLE_FAKEDNS)!!
 
-        val enableTLSFragment = findPreference<SwitchPreference>(Key.ENABLE_TLS_FRAGMENT)!!
+        val enableTLSFragment = findPreference<SwitchPreferenceCompat>(Key.ENABLE_TLS_FRAGMENT)!!
 
         val logLevel = findPreference<LongClickListPreference>(Key.LOG_LEVEL)!!
         val mtu = findPreference<MTUPreference>(Key.MTU)!!
@@ -164,7 +134,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
 
         val profileTrafficStatistics =
-            findPreference<SwitchPreference>(Key.PROFILE_TRAFFIC_STATISTICS)!!
+            findPreference<SwitchPreferenceCompat>(Key.PROFILE_TRAFFIC_STATISTICS)!!
         val speedInterval = findPreference<SimpleMenuPreference>(Key.SPEED_INTERVAL)!!
         profileTrafficStatistics.isEnabled = speedInterval.value.toString() != "0"
         speedInterval.setOnPreferenceChangeListener { _, newValue ->
@@ -179,10 +149,10 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
 
         val tunImplementation = findPreference<SimpleMenuPreference>(Key.TUN_IMPLEMENTATION)!!
-        val resolveDestination = findPreference<SwitchPreference>(Key.RESOLVE_DESTINATION)!!
-        val acquireWakeLock = findPreference<SwitchPreference>(Key.ACQUIRE_WAKE_LOCK)!!
-        val hideFromRecentApps = findPreference<SwitchPreference>(Key.HIDE_FROM_RECENT_APPS)!!
-        val enableClashAPI = findPreference<SwitchPreference>(Key.ENABLE_CLASH_API)!!
+        val resolveDestination = findPreference<SwitchPreferenceCompat>(Key.RESOLVE_DESTINATION)!!
+        val acquireWakeLock = findPreference<SwitchPreferenceCompat>(Key.ACQUIRE_WAKE_LOCK)!!
+        val hideFromRecentApps = findPreference<SwitchPreferenceCompat>(Key.HIDE_FROM_RECENT_APPS)!!
+        val enableClashAPI = findPreference<SwitchPreferenceCompat>(Key.ENABLE_CLASH_API)!!
         enableClashAPI.setOnPreferenceChangeListener { _, newValue ->
             (activity as MainActivity?)?.refreshNavMenu(newValue as Boolean)
             needReload()
@@ -213,7 +183,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         bypassLanInCore.onPreferenceChangeListener = reloadListener
         mtu.onPreferenceChangeListener = reloadListener
 
-        val concurrentDial = findPreference<SwitchPreference>(Key.CONCURRENT_DIAL)!!
+        val concurrentDial = findPreference<SwitchPreferenceCompat>(Key.CONCURRENT_DIAL)!!
         concurrentDial.onPreferenceChangeListener = reloadListener
 
         enableFakeDns.onPreferenceChangeListener = reloadListener

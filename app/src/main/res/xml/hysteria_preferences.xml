@@ -68,7 +68,7 @@
             app:key="serverCertificates"
             app:title="@string/certificates"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:icon="@drawable/ic_notification_enhanced_encryption"
             app:key="serverAllowInsecure"
             app:summary="@string/allow_insecure_sum"
@@ -93,7 +93,7 @@
             app:key="serverConnectionReceiveWindow"
             app:title="@string/hysteria_connection_receive_window"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:icon="@drawable/ic_baseline_multiple_stop_24"
             app:key="serverDisableMtuDiscovery"
             app:title="@string/hysteria_disable_mtu_discovery" />

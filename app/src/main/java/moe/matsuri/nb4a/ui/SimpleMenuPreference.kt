@@ -22,12 +22,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Spinner
-import androidx.core.content.ContextCompat
 import androidx.preference.DropDownPreference
 import androidx.preference.PreferenceViewHolder
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.ktx.getColorAttr
-import io.nekohasekai.sagernet.utils.Theme
 
 /**
  * Bend [DropDownPreference] to support
@@ -74,11 +72,9 @@ open class SimpleMenuPreference
             if (position == currentPosition) {
                 view.setBackgroundColor(context.getColorAttr(R.attr.colorMaterial100))
             } else {
-                view.setBackgroundColor(if (Theme.isExpressive()) {
+                view.setBackgroundColor(
                     context.getColorAttr(com.google.android.material.R.attr.colorSurfaceContainer)
-                } else {
-                    ContextCompat.getColor(context, R.color.preference_simple_menu_background)
-                })
+                )
             }
             return view
         }

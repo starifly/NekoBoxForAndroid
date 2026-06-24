@@ -27,6 +27,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.net.toUri
 import androidx.core.view.isGone
+import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.view.size
 import kotlinx.coroutines.delay
@@ -747,29 +748,29 @@ class ConfigurationFragment @JvmOverloads constructor(
                 when (profile.status) {
                     -1 -> {
                         profileStatusText = profile.error
-                        profileStatusColor = context.getColorAttr(android.R.attr.textColorSecondary)
+                        profileStatusColor = context.getColorAttr(com.google.android.material.R.attr.colorOnSurfaceVariant)
                     }
 
                     0 -> {
                         profileStatusText = getString(R.string.connection_test_testing)
-                        profileStatusColor = context.getColorAttr(android.R.attr.textColorSecondary)
+                        profileStatusColor = context.getColorAttr(com.google.android.material.R.attr.colorOnSurfaceVariant)
                     }
 
                     1 -> {
                         profileStatusText = getString(R.string.available, profile.ping)
-                        profileStatusColor = context.getColour(R.color.material_green_500)
+                        profileStatusColor = context.getColour(R.color.ui_success)
                     }
 
                     2 -> {
                         profileStatusText = profile.error
-                        profileStatusColor = context.getColour(R.color.material_red_500)
+                        profileStatusColor = context.getColour(R.color.ui_error)
                     }
 
                     3 -> {
                         val err = profile.error ?: ""
                         val msg = Protocols.genFriendlyMsg(err)
                         profileStatusText = if (msg != err) msg else getString(R.string.unavailable)
-                        profileStatusColor = context.getColour(R.color.material_red_500)
+                        profileStatusColor = context.getColour(R.color.ui_error)
                     }
                 }
 
@@ -1711,6 +1712,9 @@ class ConfigurationFragment @JvmOverloads constructor(
             val profileType: TextView = view.findViewById(R.id.profile_type)
             val profileAddress: TextView = view.findViewById(R.id.profile_address)
             val profileStatus: TextView = view.findViewById(R.id.profile_status)
+            val profileIcon: ImageView = view.findViewById(R.id.profile_icon)
+            val profileIconContainer: MaterialCardView = view.findViewById(R.id.profile_icon_container)
+            val profileDivider: View = view.findViewById(R.id.profile_divider)
 
             val trafficText: TextView = view.findViewById(R.id.traffic_text)
             val selectedView: LinearLayout = view.findViewById(R.id.selected_view)
@@ -1723,14 +1727,36 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             private fun updateSelectedAppearance(selected: Boolean) {
                 selectedView.visibility = if (selected) View.VISIBLE else View.INVISIBLE
-                if (Theme.isExpressive()) {
-                    (view as? MaterialCardView)?.setCardBackgroundColor(
-                        requireContext().getColorAttr(
-                            if (selected) com.google.android.material.R.attr.colorPrimaryContainer
-                            else com.google.android.material.R.attr.colorSurface
-                        )
+                (view as? MaterialCardView)?.setCardBackgroundColor(
+                    requireContext().getColorAttr(
+                        if (selected) com.google.android.material.R.attr.colorPrimaryContainer
+                        else com.google.android.material.R.attr.colorSurface
                     )
-                }
+                )
+                profileIconContainer.setCardBackgroundColor(
+                    requireContext().getColorAttr(
+                        if (selected) com.google.android.material.R.attr.colorSecondaryContainer
+                        else com.google.android.material.R.attr.colorSurfaceContainerLow
+                    )
+                )
+                profileDivider.isInvisible = selected
+            }
+
+            private fun profileIconForType(type: Int): Int = when (type) {
+                ProxyEntity.TYPE_WG -> R.drawable.ic_baseline_security_24
+                ProxyEntity.TYPE_SSH -> R.drawable.ic_profile_terminal
+                ProxyEntity.TYPE_CHAIN,
+                ProxyEntity.TYPE_WATERFALL,
+                ProxyEntity.TYPE_FASTEST -> R.drawable.ic_profile_tree
+                ProxyEntity.TYPE_SS,
+                ProxyEntity.TYPE_SSR,
+                ProxyEntity.TYPE_TROJAN,
+                ProxyEntity.TYPE_TROJAN_GO,
+                ProxyEntity.TYPE_SHADOWTLS,
+                ProxyEntity.TYPE_ANYTLS -> R.drawable.ic_baseline_lock_24
+                ProxyEntity.TYPE_HTTP,
+                ProxyEntity.TYPE_SOCKS -> R.drawable.baseline_public_24
+                else -> R.drawable.ic_profile_hub
             }
 
             fun bind(proxyEntity: ProxyEntity, trafficData: TrafficData? = null) {
@@ -1776,7 +1802,10 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                 profileName.text = proxyEntity.displayName()
                 profileType.text = proxyEntity.displayType()
-                profileType.setTextColor(requireContext().getProtocolColor(proxyEntity.type))
+                profileType.setTextColor(
+                    requireContext().getColorAttr(com.google.android.material.R.attr.colorOnSurfaceVariant)
+                )
+                profileIcon.setImageResource(profileIconForType(proxyEntity.type))
 
                 var rx = proxyEntity.rx
                 var tx = proxyEntity.tx
@@ -1805,23 +1834,22 @@ class ConfigurationFragment @JvmOverloads constructor(
                     address = ""
                 }
 
-                profileAddress.text = address
-                (trafficText.parent as View).isGone =
-                    (!showTraffic || proxyEntity.status <= 0) && address.isBlank()
+                profileAddress.text = if (address.isBlank()) "" else "· $address"
+                profileAddress.isVisible = address.isNotBlank()
 
                 if (proxyEntity.status <= 0) {
                     if (showTraffic) {
                         profileStatus.text = trafficText.text
-                        profileStatus.setTextColor(requireContext().getColorAttr(android.R.attr.textColorSecondary))
+                        profileStatus.setTextColor(requireContext().getColorAttr(com.google.android.material.R.attr.colorOnSurfaceVariant))
                         trafficText.text = ""
                     } else {
                         profileStatus.text = ""
                     }
                 } else if (proxyEntity.status == 1) {
                     profileStatus.text = getString(R.string.available, proxyEntity.ping)
-                    profileStatus.setTextColor(requireContext().getColour(R.color.material_green_500))
+                    profileStatus.setTextColor(requireContext().getColour(R.color.ui_success))
                 } else {
-                    profileStatus.setTextColor(requireContext().getColour(R.color.material_red_500))
+                    profileStatus.setTextColor(requireContext().getColour(R.color.ui_error))
                     if (proxyEntity.status == 2) {
                         profileStatus.text = proxyEntity.error
                     }
@@ -1922,8 +1950,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                 } else {
                     shareLayout.isGone = selectOrChain
                     editButton.isGone = select
-                    removeButton.isGone = select
-                    doubleColumnMenuButton.isGone = true
+                    removeButton.isGone = true
+                    doubleColumnMenuButton.isGone = select
                 }
 
                 proxyEntity.nekoBean?.apply {
@@ -1946,7 +1974,11 @@ class ConfigurationFragment @JvmOverloads constructor(
                         onMainDispatcher {
                             shareLayer.setBackgroundColor(Color.TRANSPARENT)
                             shareButton.setImageResource(R.drawable.ic_social_share)
-                            shareButton.setColorFilter(Color.GRAY)
+                            shareButton.setColorFilter(
+                                requireContext().getColorAttr(
+                                    com.google.android.material.R.attr.colorOnSurface
+                                )
+                            )
                             shareButton.isVisible = true
 
                             shareLayout.setOnClickListener {

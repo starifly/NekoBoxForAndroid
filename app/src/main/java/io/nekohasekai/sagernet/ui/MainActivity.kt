@@ -53,8 +53,6 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.MessageStore
 import io.nekohasekai.sagernet.ui.publishClearCacheShortcut
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.dp2px
-import io.nekohasekai.sagernet.utils.Theme
 import moe.matsuri.nb4a.utils.Util
 
 class MainActivity : ThemedActivity(),
@@ -76,17 +74,7 @@ class MainActivity : ThemedActivity(),
 
         binding = LayoutMainBinding.inflate(layoutInflater)
         binding.fab.initProgress(binding.fabProgress)
-        configureExpressiveChrome()
-        if (themeResId !in intArrayOf(
-                R.style.Theme_SagerNet_Black
-            )
-        ) {
-            navigation = binding.navView
-            binding.drawerLayout.removeView(binding.navViewBlack)
-        } else {
-            navigation = binding.navViewBlack
-            binding.drawerLayout.removeView(binding.navView)
-        }
+        navigation = binding.navView
         navigation.setNavigationItemSelectedListener(this)
 
         if (savedInstanceState == null) {
@@ -141,20 +129,6 @@ class MainActivity : ThemedActivity(),
                 .setPositiveButton(android.R.string.ok, null)
                 .show()
         }
-    }
-
-    private fun configureExpressiveChrome() {
-        if (!Theme.isExpressive()) return
-
-        val horizontalMargin = dp2px(12)
-        val bottomMargin = dp2px(8)
-        (binding.stats.layoutParams as? androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams)?.apply {
-            marginStart = horizontalMargin
-            marginEnd = horizontalMargin
-            this.bottomMargin = bottomMargin
-            binding.stats.layoutParams = this
-        }
-        binding.fab.customSize = dp2px(64)
     }
 
     override fun onResume() {
