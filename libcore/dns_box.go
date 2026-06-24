@@ -54,6 +54,11 @@ func (p *platformLocalDNSTransport) Close() error {
 	return nil
 }
 
+// Reset implements adapter.DNSTransport (added in sing-box 1.13). The platform
+// transport holds no persistent connection of its own, so this is a no-op.
+func (p *platformLocalDNSTransport) Reset() {
+}
+
 func (p *platformLocalDNSTransport) Exchange(ctx context.Context, message *mDNS.Msg) (*mDNS.Msg, error) {
 	if p.raw && rawQueryFunc != nil {
 		// Raw - only available on Android 10 and above

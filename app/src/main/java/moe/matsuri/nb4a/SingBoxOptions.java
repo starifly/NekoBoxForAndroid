@@ -2897,6 +2897,9 @@ public class SingBoxOptions {
         public Integer mtu;
 
         // Generate note: Listable
+        public List<String> address;
+
+        // Generate note: Listable
         public List<String> inet4_address;
 
         // Generate note: Listable
@@ -4698,6 +4701,17 @@ public class SingBoxOptions {
         public String action;
 
         public String outbound;
+
+        // action = "sniff"
+        // Generate note: Listable
+        public List<String> sniffer;
+
+        public String timeout;
+
+        // action = "resolve"
+        public String strategy;
+
+        public String server;
 
     }
 
