@@ -41,3 +41,6 @@ local.properties
 release.keystore
 *.keystore
 *.jks
+
+#Extra
+currentArchitectureState/*
