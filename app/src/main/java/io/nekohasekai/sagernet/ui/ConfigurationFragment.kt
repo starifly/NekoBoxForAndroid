@@ -1734,7 +1734,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 (view as? MaterialCardView)?.setCardBackgroundColor(
                     requireContext().getColorAttr(
                         if (selected) com.google.android.material.R.attr.colorPrimaryContainer
-                        else com.google.android.material.R.attr.colorSurface
+                        else com.google.android.material.R.attr.colorSurfaceContainerLowest
                     )
                 )
                 profileIconContainer.setCardBackgroundColor(

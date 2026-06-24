@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="?attr/uiListItemMargin"
-    app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+    app:cardBackgroundColor="?attr/colorSurfaceContainerLowest"
     app:cardCornerRadius="?attr/uiCardCornerRadius"
     app:cardElevation="?attr/uiCardElevation"
     app:strokeColor="?attr/uiCardStrokeColor"
@@ -125,12 +125,12 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/group_update"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                app:icon="@drawable/ic_baseline_refresh_24"
-                android:contentDescription="@string/group_update" />
+                android:minHeight="48dp"
+                android:text="@string/group_update" />
         </LinearLayout>
 
     </LinearLayout>
