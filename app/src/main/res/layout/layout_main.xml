@@ -35,20 +35,18 @@
 
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="?attr/selectableItemBackground"
-                android:paddingStart="16dp"
-                android:paddingEnd="100dp"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp">
-
-
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="100dp"
+                    android:paddingTop="20dp"
+                    android:paddingBottom="20dp">
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="52dp"
@@ -119,38 +117,40 @@
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
+
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginEnd="16dp">
+
+                    <io.nekohasekai.sagernet.widget.ServiceButton
+                        android:id="@+id/fab"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:layout_gravity="center"
+                        android:elevation="6dp"
+                        app:backgroundTint="?attr/colorPrimary"
+                        app:fabCustomSize="80dp"
+                        app:maxImageSize="36dp"
+                        app:pressedTranslationZ="4dp"
+                        app:srcCompat="@drawable/ic_service_idle"
+                        app:tint="?attr/colorOnPrimary" />
+
+                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                        android:id="@+id/fabProgress"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:visibility="invisible"
+                        app:indicatorColor="?attr/colorOnPrimary"
+                        app:indicatorSize="88dp"
+                        app:trackColor="?attr/colorPrimaryContainer"
+                        app:trackCornerRadius="4dp"
+                        app:trackThickness="4dp" />
+                </FrameLayout>
             </FrameLayout>
         </io.nekohasekai.sagernet.widget.StatsBar>
-
-        <io.nekohasekai.sagernet.widget.ServiceButton
-            android:id="@+id/fab"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_marginEnd="18dp"
-            android:elevation="6dp"
-            android:nextFocusDown="@+id/stats"
-            app:backgroundTint="?attr/colorPrimary"
-            app:fabCustomSize="80dp"
-            app:maxImageSize="36dp"
-            app:layout_anchor="@id/stats"
-            app:layout_anchorGravity="end|center_vertical"
-            app:pressedTranslationZ="4dp"
-            app:srcCompat="@drawable/ic_service_idle"
-            app:tint="?attr/colorOnPrimary" />
-
-        <com.google.android.material.progressindicator.CircularProgressIndicator
-            android:id="@+id/fabProgress"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:max="1"
-            android:visibility="invisible"
-            app:indicatorColor="?attr/colorOnPrimary"
-            app:layout_anchor="@id/fab"
-            app:layout_anchorGravity="center"
-            app:layout_behavior="io.nekohasekai.sagernet.widget.FabProgressBehavior"
-            app:trackColor="?attr/colorPrimaryContainer"
-            app:trackCornerRadius="4dp"
-            app:trackThickness="4dp" />
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <com.google.android.material.navigation.NavigationView

@@ -39,8 +39,16 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="actionBarTheme">@style/ThemeOverlay.Material3.ActionBar</item>
-        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Material3Expressive.MaterialAlertDialog</item>
-        <item name="alertDialogTheme">@style/ThemeOverlay.Material3Expressive.MaterialAlertDialog</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item>
+        <item name="android:dialogTheme">@style/Theme.Material3.DayNight.Dialog</item>
+        <item name="dialogTheme">@style/Theme.Material3.DayNight.Dialog</item>
+
+        <item name="popupMenuStyle">@style/Widget.Material3.PopupMenu</item>
+        <item name="android:popupMenuStyle">@style/Widget.Material3.PopupMenu</item>
+        <item name="listPopupWindowStyle">@style/Widget.Material3.ListPopupWindow</item>
+        <item name="android:listPopupWindowStyle">@style/Widget.Material3.ListPopupWindow</item>
+        <item name="actionOverflowMenuStyle">@style/Widget.Material3.PopupMenu.Overflow</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay.SagerNet</item>
 
         <item name="tabTextColor">?attr/colorOnSurfaceVariant</item>
