@@ -1983,7 +1983,6 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                     if (!(select || isAggregate)) {
                         onMainDispatcher {
-                            shareLayer.setBackgroundColor(Color.TRANSPARENT)
                             shareButton.setImageResource(R.drawable.ic_social_share)
                             shareButton.imageTintList = ColorStateList.valueOf(
                                 requireContext().getColorAttr(
@@ -1993,7 +1992,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                             )
                             shareButton.isVisible = true
 
-                            shareLayout.setOnClickListener {
+                            shareButton.setOnClickListener {
                                 showShareMenu(it, proxyEntity)
                             }
                         }
