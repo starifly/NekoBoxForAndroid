@@ -11,7 +11,7 @@
         android:id="@+id/appbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary">
+        android:background="?attr/uiAppBarBackground">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:layout_width="match_parent"
@@ -19,34 +19,23 @@
             app:layout_scrollFlags="scroll|enterAlways"
             app:titleEnabled="false">
 
-            <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="?attr/colorPrimary"
-                android:elevation="4dp"
-                android:theme="?actionBarTheme"
-                android:touchscreenBlocksFocus="false"
-                app:layout_collapseMode="pin"
-                app:title="@string/app_name" />
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingTop="56dp">
+                android:paddingTop="?attr/actionBarSize">
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="4dp"
-                    app:cardElevation="?attr/uiCardElevation">
+                    app:cardCornerRadius="0dp"
+                    app:cardElevation="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="8dp">
+                        android:padding="12dp">
 
                         <com.google.android.material.chip.ChipGroup
                             android:id="@+id/bypassGroup"
@@ -113,12 +102,32 @@
 
                         </com.google.android.material.textfield.TextInputLayout>
 
-
                     </LinearLayout>
 
                 </com.google.android.material.card.MaterialCardView>
 
             </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="500dp"
+                android:layout_gravity="top"
+                android:layout_marginTop="-500dp"
+                android:background="?attr/uiAppBarBackground"
+                android:clickable="false"
+                android:focusable="false"
+                app:layout_collapseMode="pin" />
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/uiAppBarBackground"
+                android:elevation="0dp"
+                android:theme="?actionBarTheme"
+                android:touchscreenBlocksFocus="false"
+                app:layout_collapseMode="pin"
+                app:title="@string/app_name" />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
