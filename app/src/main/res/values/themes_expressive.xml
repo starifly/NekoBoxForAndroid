@@ -43,6 +43,7 @@
         <item name="alertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog</item>
         <item name="android:dialogTheme">@style/Theme.Material3.DayNight.Dialog</item>
         <item name="dialogTheme">@style/Theme.Material3.DayNight.Dialog</item>
+        <item name="chipStyle">@style/Widget.MaterialComponents.Chip.Choice.SagerNet</item>
 
         <item name="popupMenuStyle">@style/Widget.Material3.PopupMenu</item>
         <item name="android:popupMenuStyle">@style/Widget.Material3.PopupMenu</item>
