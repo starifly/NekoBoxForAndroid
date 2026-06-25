@@ -15,7 +15,7 @@ pushd sing-box
 # Ensure we point at the hawkff fork (a cached checkout may predate the switch
 # from starifly) and that the pinned commit is present before checking it out.
 git remote set-url origin https://github.com/hawkff/sing-box.git
-git fetch origin
+git fetch origin --tags --force
 git checkout "$COMMIT_SING_BOX"
 popd
 

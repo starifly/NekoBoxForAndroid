@@ -25,6 +25,10 @@ public class SubscriptionBean extends Serializable {
     public Integer filterMode;
     public String filterRegex;
 
+    // Optional resolver used ONLY for this subscription's server domains.
+    // Empty/null = unset (global DNS is used, unchanged behavior).
+    public String customDnsResolver;
+
     // SIP008
 
     public Long bytesUsed;
@@ -46,7 +50,7 @@ public class SubscriptionBean extends Serializable {
 
     @Override
     public void serializeToBuffer(ByteBufferOutput output) {
-        output.writeInt(2);
+        output.writeInt(3);
 
         output.writeInt(type);
 
@@ -65,6 +69,9 @@ public class SubscriptionBean extends Serializable {
         // v2
         output.writeInt(filterMode);
         output.writeString(filterRegex);
+
+        // v3
+        output.writeString(customDnsResolver);
     }
 
     public void serializeForShare(ByteBufferOutput output) {
@@ -100,6 +107,11 @@ public class SubscriptionBean extends Serializable {
             filterMode = input.readInt();
             filterRegex = input.readString();
         }
+
+        // v3
+        if (version >= 3) {
+            customDnsResolver = input.readString();
+        }
     }
 
     public void deserializeFromShare(ByteBufferInput input) {
@@ -127,6 +139,7 @@ public class SubscriptionBean extends Serializable {
         if (lastUpdated == null) lastUpdated = 0;
         if (filterMode == null) filterMode = 0;
         if (filterRegex == null) filterRegex = "";
+        if (customDnsResolver == null) customDnsResolver = "";
 
         if (bytesUsed == null) bytesUsed = 0L;
         if (bytesRemaining == null) bytesRemaining = 0L;

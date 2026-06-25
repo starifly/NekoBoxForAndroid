@@ -403,6 +403,9 @@
     <string name="filter_include">Include</string>
     <string name="filter_exclude">Exclude</string>
     <string name="filter_regex">Filter (Regex)</string>
+    <string name="subscription_custom_dns">Custom resolver</string>
+    <string name="subscription_custom_dns_sum">Optional DNS used only to resolve this subscription\'s server domains. Leave empty to use the global DNS. Accepts https://, tls://, quic:// or host[:port].</string>
+    <string name="subscription_custom_dns_invalid">Invalid resolver. Use https://, tls://, quic:// or host[:port], or leave empty.</string>
     <string name="raw">Raw</string>
     <string name="update_settings">Update Settings</string>
     <string name="auto_update">Auto Update</string>

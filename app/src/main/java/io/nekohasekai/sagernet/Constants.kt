@@ -205,6 +205,7 @@ object Key {
     const val SUBSCRIPTION_AUTO_UPDATE_DELAY = "subscriptionAutoUpdateDelay"
     const val SUBSCRIPTION_FILTER_MODE = "subscriptionFilterMode"
     const val SUBSCRIPTION_FILTER_REGEX = "subscriptionFilterRegex"
+    const val SUBSCRIPTION_CUSTOM_DNS = "subscriptionCustomDns"
 
     //
 

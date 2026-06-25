@@ -67,6 +67,7 @@ class GroupSettingsActivity(
         DataStore.subscriptionAutoUpdateDelay = subscription.autoUpdateDelay
         DataStore.subscriptionFilterMode = subscription.filterMode
         DataStore.subscriptionFilterRegex = subscription.filterRegex
+        DataStore.subscriptionCustomDns = subscription.customDnsResolver ?: ""
     }
 
     fun ProxyGroup.serialize() {
@@ -100,6 +101,7 @@ class GroupSettingsActivity(
                 autoUpdateDelay = DataStore.subscriptionAutoUpdateDelay
                 filterMode = DataStore.subscriptionFilterMode
                 filterRegex = DataStore.subscriptionFilterRegex
+                customDnsResolver = DataStore.subscriptionCustomDns
             }
         }
     }
@@ -205,6 +207,28 @@ class GroupSettingsActivity(
         subscriptionFilterMode.setOnPreferenceChangeListener { _, newValue ->
             updateFilterMode((newValue as String).toInt())
             true
+        }
+
+        val subscriptionCustomDns =
+            findPreference<EditTextPreference>(Key.SUBSCRIPTION_CUSTOM_DNS)!!
+        subscriptionCustomDns.setOnPreferenceChangeListener { pref, newValue ->
+            val value = (newValue as String).trim()
+            if (isValidCustomDnsResolver(value)) {
+                // Persist the normalized (trimmed) value rather than the raw input.
+                if (value != newValue) {
+                    (pref as EditTextPreference).text = value
+                    false
+                } else {
+                    true
+                }
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    R.string.subscription_custom_dns_invalid,
+                    Toast.LENGTH_LONG,
+                ).show()
+                false
+            }
         }
     }
 
@@ -449,4 +473,31 @@ class GroupSettingsActivity(
         }
     }
 
+}
+
+/**
+ * Validate a per-subscription custom resolver value.
+ * Empty = unset (allowed). Otherwise must be one of:
+ *  - a URL with scheme https/tls/quic and a non-empty host
+ *  - a bare IPv4/IPv6 literal or host[:port]
+ * No default is implied; sing-box performs final parsing at runtime.
+ */
+private fun isValidCustomDnsResolver(raw: String): Boolean {
+    val value = raw.trim()
+    if (value.isEmpty()) return true
+    if (value.any { it.isISOControl() || it.isWhitespace() }) return false
+
+    if (value.contains("://")) {
+        val scheme = value.substringBefore("://").lowercase()
+        if (scheme !in setOf("https", "tls", "quic")) return false
+        val rest = value.substringAfter("://")
+        val host = rest.substringBefore("/").substringBefore("?")
+        // strip optional [ipv6] / host:port; require a non-empty host
+        val bare = host.substringBeforeLast(":").trim('[', ']')
+        return bare.isNotEmpty()
+    }
+
+    // bare host[:port] / ip[:port]
+    val host = value.substringBeforeLast(":").trim('[', ']')
+    return host.isNotEmpty()
 }

@@ -78,6 +78,13 @@
             app:title="@string/filter_regex"
             app:useSimpleSummaryProvider="true" />
 
+        <EditTextPreference
+            app:icon="@drawable/ic_action_dns"
+            app:key="subscriptionCustomDns"
+            app:summary="@string/subscription_custom_dns_sum"
+            app:title="@string/subscription_custom_dns"
+            app:useSimpleSummaryProvider="true" />
+
     </PreferenceCategory>
 
     <PreferenceCategory

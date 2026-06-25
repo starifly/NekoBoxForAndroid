@@ -26,6 +26,7 @@ buildSrc/build
 jniLibs/
 /library/libcore_build/
 /libcore/.build/
+/libcore/version_gen.go
 /.masterdnsvpn-build/
 
 # Local config / generated app artifacts

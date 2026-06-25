@@ -365,6 +365,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var subscriptionAutoUpdateDelay by profileCacheStore.stringToInt(Key.SUBSCRIPTION_AUTO_UPDATE_DELAY) { 360 }
     var subscriptionFilterMode by profileCacheStore.stringToInt(Key.SUBSCRIPTION_FILTER_MODE) { 0 }
     var subscriptionFilterRegex by profileCacheStore.string(Key.SUBSCRIPTION_FILTER_REGEX)
+    var subscriptionCustomDns by profileCacheStore.string(Key.SUBSCRIPTION_CUSTOM_DNS)
 
     var rulesFirstCreate by profileCacheStore.boolean("rulesFirstCreate")
 
