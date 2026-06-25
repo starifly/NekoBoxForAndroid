@@ -27,7 +27,7 @@
             android:layout_marginEnd="12dp"
             android:layout_marginBottom="12dp"
             android:nextFocusUp="@+id/fab"
-            app:cardBackgroundColor="?attr/colorPrimaryContainer"
+            app:cardBackgroundColor="@android:color/transparent"
             app:cardCornerRadius="46dp"
             app:cardElevation="3dp"
             app:strokeWidth="0dp"
@@ -37,6 +37,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackground">
+
+                <com.github.mmin18.widget.RealtimeBlurView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:realtimeBlurRadius="16dp"
+                    app:realtimeOverlayColor="@android:color/transparent" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:alpha="0.65"
+                    android:background="?attr/colorPrimaryContainer" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
