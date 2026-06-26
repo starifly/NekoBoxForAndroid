@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <base-config cleartextTrafficPermitted="true"/>
+    <base-config cleartextTrafficPermitted="false"/>
+    <!-- Local Clash API / yacd dashboard runs over loopback HTTP (http://127.0.0.1:9090/ui). -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
 </network-security-config>
