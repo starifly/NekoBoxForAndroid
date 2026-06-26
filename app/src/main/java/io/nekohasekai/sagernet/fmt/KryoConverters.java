@@ -2,7 +2,6 @@ package io.nekohasekai.sagernet.fmt;
 
 import androidx.room.TypeConverter;
 
-import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
 
@@ -44,10 +43,28 @@ public class KryoConverters {
         if (bean == null) return NULL;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ByteBufferOutput buffer = KryosKt.byteBuffer(out);
-        bean.serializeToBuffer(buffer);
-        buffer.flush();
-        buffer.close();
+        try {
+            bean.serializeToBuffer(buffer);
+            buffer.flush();
+        } finally {
+            buffer.close();
+        }
         return out.toByteArray();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Serializable> T freshDefault(T bean) {
+        // Return a clean instance of the same concrete bean class, so a corrupt blob does
+        // not leave a half-populated bean masquerading as a valid proxy config. Beans have
+        // a public no-arg constructor (they are created as `new XBean()` elsewhere).
+        try {
+            return (T) bean.getClass().getDeclaredConstructor().newInstance();
+        } catch (ReflectiveOperationException e) {
+            // Should not happen for the bean types used here; if it does, fall back to the
+            // given instance (its fields will be reset by initializeDefaultValues below).
+            Logs.INSTANCE.w(e);
+            return bean;
+        }
     }
 
     public static <T extends Serializable> T deserialize(T bean, byte[] bytes) {
@@ -56,8 +73,15 @@ public class KryoConverters {
         ByteBufferInput buffer = KryosKt.byteBuffer(input);
         try {
             bean.deserializeFromBuffer(buffer);
-        } catch (KryoException e) {
+        } catch (Exception e) {
+            // Corrupt/partial blob: a truncated blob can throw KryoException,
+            // KryoBufferUnderflowException, or IndexOutOfBounds. Log and fall back to a
+            // clean default rather than returning a half-populated bean that would be
+            // treated as a valid (but wrong) proxy config.
             Logs.INSTANCE.w(e);
+            bean = freshDefault(bean);
+        } finally {
+            buffer.close();
         }
         bean.initializeDefaultValues();
         return bean;
