@@ -29,7 +29,6 @@ import moe.matsuri.nb4a.Protocols
 import moe.matsuri.nb4a.proxy.anytls.AnyTLSBean
 import moe.matsuri.nb4a.proxy.config.ConfigBean
 import moe.matsuri.nb4a.utils.Util
-import org.ini4j.Ini
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
@@ -37,7 +36,6 @@ import org.yaml.snakeyaml.LoaderOptions
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.SafeConstructor
 import org.yaml.snakeyaml.error.YAMLException
-import java.io.StringReader
 import androidx.core.net.toUri
 
 @Suppress("EXPERIMENTAL_API_USAGE")
@@ -996,7 +994,7 @@ object RawUpdater : GroupUpdater() {
     }
 
     fun parseWireGuard(conf: String): List<WireGuardBean> {
-        val ini = Ini(StringReader(conf))
+        val ini = IniConfig.parse(conf)
         val iface = ini["Interface"] ?: error("Missing 'Interface' selection")
         val bean = WireGuardBean().applyDefaultValues()
         val localAddresses = iface.getAll("Address")
@@ -1028,7 +1026,7 @@ object RawUpdater : GroupUpdater() {
     // the [Interface] section (Jc/Jmin/Jmax, S1-S4, H1-H4, I1-I5).
     private fun isAmneziaWGConf(conf: String): Boolean {
         return try {
-            val iface = Ini(StringReader(conf))["Interface"] ?: return false
+            val iface = IniConfig.parse(conf)["Interface"] ?: return false
             listOf(
                 "Jc", "Jmin", "Jmax",
                 "S1", "S2", "S3", "S4",
@@ -1041,7 +1039,7 @@ object RawUpdater : GroupUpdater() {
     }
 
     fun parseAmneziaWG(conf: String): List<AmneziaWGBean> {
-        val ini = Ini(StringReader(conf))
+        val ini = IniConfig.parse(conf)
         val iface = ini["Interface"] ?: error("Missing 'Interface' section")
         val bean = AmneziaWGBean().applyDefaultValues()
         val localAddresses = iface.getAll("Address")
