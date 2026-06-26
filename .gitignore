@@ -52,4 +52,8 @@ localAPKs/
 depot.json
 # Internal notes/docs - keep local, do not publish.
 /docs/
+# Local build env + local-only sources (kept off the public fork).
+buildenv.local.sh
+/libcore/gomobile/
+app/src/main/java/io/nekohasekai/sagernet/ktx/AgentDebugLog.kt
 

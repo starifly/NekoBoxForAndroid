@@ -9,7 +9,7 @@
 # then subsequent runs are green.
 #
 # Run ad-hoc against a branch's local tree:
-#   depot ci run --org pqphmjnk9s --workflow .depot/workflows/lint.yml
+#   depot ci run --org <org-id> --workflow .depot/workflows/lint.yml
 name: Lint
 on:
   push:
