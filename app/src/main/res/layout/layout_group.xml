@@ -20,6 +20,8 @@
             android:layout_height="match_parent"
             android:padding="?attr/uiListOuterPadding"
             android:scrollbarSize="0dp"
+            android:requiresFadingEdge="vertical"
+            android:fadingEdgeLength="24dp"
             app:fastScrollAutoHide="true"
             app:fastScrollThumbColor="?colorPrimary"
             app:fastScrollThumbInactiveColor="?colorPrimary">
