@@ -1091,7 +1091,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                             toolbar.title = if (hideTab) getString(R.string.app_name) else ""
                             groupPager.registerOnPageChangeCallback(updateSelectedCallback)
                         }
-                        toolbar.elevation = if (hideTab) 0F else dp2px(4).toFloat()
+                        toolbar.elevation = 0F
                     }
                 }
             }
