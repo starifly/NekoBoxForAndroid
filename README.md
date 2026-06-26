@@ -33,7 +33,7 @@ Grab the latest signed APK from the [**Releases**](https://github.com/hawkff/Nek
 
 ### 🔐 Modern TLS & multiplexing
 
-`AnyTLS` · `AnyReality` · `ShadowTLS` · `Snell 1–5` · `VLESS-XHTTP` · `VLESS-Reality`
+`AnyTLS` · `ShadowTLS` · `Snell 1–5` · `VLESS-XHTTP` · `VLESS-Reality`
 
 XHTTP / Reality config examples are below.
 
