@@ -131,11 +131,16 @@ object RawUpdater : GroupUpdater() {
         if (subscription.deduplication) {
             Logs.d("Before deduplication: ${proxies.size}")
             val uniqueProxies = LinkedHashSet<Protocols.Deduplication>()
+            val indexOf = HashMap<Protocols.Deduplication, Int>()
             val uniqueNames = HashMap<Protocols.Deduplication, String>()
             for (_proxy in proxies) {
                 val proxy = Protocols.Deduplication(_proxy, _proxy.javaClass.toString())
                 if (!uniqueProxies.add(proxy)) {
-                    val index = uniqueProxies.indexOf(proxy)
+                    // O(1) lookup of the first-seen insertion index instead of O(n)
+                    // LinkedHashSet.indexOf (which made dedup O(n^2) over the subscription).
+                    // The map stores `uniqueProxies.size - 1` at first insertion, which equals
+                    // the old indexOf result, so duplicate labels are byte-identical.
+                    val index = indexOf.getValue(proxy)
                     if (uniqueNames.containsKey(proxy)) {
                         val name = uniqueNames[proxy]!!.replace(" ($index)", "")
                         if (name.isNotBlank()) {
@@ -145,6 +150,7 @@ object RawUpdater : GroupUpdater() {
                     }
                     duplicate.add(_proxy.displayName() + " ($index)")
                 } else {
+                    indexOf[proxy] = uniqueProxies.size - 1
                     uniqueNames[proxy] = _proxy.displayName()
                 }
             }
@@ -173,6 +179,7 @@ object RawUpdater : GroupUpdater() {
         Logs.d("toReplace profiles: ${toReplace.size}")
 
         val toUpdate = ArrayList<ProxyEntity>()
+        val toInsert = ArrayList<ProxyEntity>()
         val added = mutableListOf<String>()
         val updated = mutableMapOf<String, String>()
         val deleted = toDelete.map { it.displayName() }
@@ -210,7 +217,10 @@ object RawUpdater : GroupUpdater() {
                 }
             } else {
                 changed++
-                SagerDatabase.proxyDao.addProxy(
+                // Accumulate for a single batch insert after the loop (one transaction)
+                // instead of one insert per row. userOrder is set here, same as before, so
+                // the persisted ordering is unchanged.
+                toInsert.add(
                     ProxyEntity(
                         groupId = proxyGroup.id, userOrder = userOrder
                     ).apply {
@@ -221,6 +231,9 @@ object RawUpdater : GroupUpdater() {
             }
             userOrder++
         }
+
+        SagerDatabase.proxyDao.insert(toInsert)
+        Logs.d("Inserted profiles: ${toInsert.size}")
 
         SagerDatabase.proxyDao.updateProxy(toUpdate).also {
             Logs.d("Updated profiles: $it")
