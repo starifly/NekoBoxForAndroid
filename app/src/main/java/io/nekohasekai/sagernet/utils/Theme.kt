@@ -56,7 +56,7 @@ object Theme {
         CATPPUCCIN,
     )
 
-    private fun defaultTheme() = PINK_SSR
+    private fun defaultTheme() = DARK_HIGH_CONTRAST
 
     /**
      * Metadata for a theme shown in the modern named picker.
