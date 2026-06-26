@@ -283,12 +283,24 @@ object RawUpdater : GroupUpdater() {
 
                 val globalClientFingerprint = yaml["global-client-fingerprint"]?.toString() ?: ""
 
-                for (proxy in (yaml["proxies"] as? (List<Map<String, Any?>>) ?: error(
+                for (rawProxy in (yaml["proxies"] as? List<*> ?: error(
                     app.getString(R.string.no_proxies_found_in_file)
                 ))) {
                     // Note: YAML numbers parsed as "Long"
 
-                    when (proxy["type"] as String) {
+                    // Per-entry resilience: a single malformed node (type-confused field,
+                    // missing required key, or a non-mapping list item) must be skipped, not
+                    // abort the whole subscription. The list is iterated as List<*> and each
+                    // item is cast inside the per-entry guard; the required `type` is resolved
+                    // safely; any remaining unchecked cast inside a branch is contained by the
+                    // per-proxy try/catch, so the bad node is skipped and the rest still import.
+                    val proxy = rawProxy as? Map<String, Any?> ?: run {
+                        Logs.w("skipping malformed Clash node: expected mapping, got ${rawProxy?.javaClass?.simpleName}")
+                        continue
+                    }
+                    val type = proxy["type"]?.toString() ?: continue
+                    try {
+                    when (type) {
                         "socks5" -> {
                             proxies.add(SOCKSBean().apply {
                                 serverAddress = proxy["server"] as String
@@ -367,7 +379,7 @@ object RawUpdater : GroupUpdater() {
                         }
 
                         "vmess", "vless", "trojan" -> {
-                            val bean = when (proxy["type"] as String) {
+                            val bean = when (type) {
                                 "vmess" -> VMessBean()
                                 "vless" -> VMessBean().apply {
                                     alterId = -1 // make it VLESS
@@ -889,6 +901,11 @@ object RawUpdater : GroupUpdater() {
                             proxies.add(bean)
                         }
                     }
+                    } catch (e: Exception) {
+                        // Malformed node (e.g. a type-confused field): skip it and keep the
+                        // rest of the subscription instead of failing the whole update.
+                        Logs.w("skipping malformed Clash node: ${e.readableMessage}", e)
+                    }
                 }
 
                 // Fix ent
@@ -909,6 +926,13 @@ object RawUpdater : GroupUpdater() {
                 return proxies
             } catch (e: YAMLException) {
                 Logs.w(e)
+            } catch (e: Exception) {
+                // Defensive: a type-confused field could still produce a
+                // ClassCastException/NumberFormatException outside the per-entry guards
+                // above. Keep whatever was parsed rather than discarding it and falling
+                // through to the JSON/base64/plain-text branches.
+                Logs.w(e)
+                if (proxies.isNotEmpty()) return proxies
             }
         } else if (text.contains("[Interface]")) {
             // amneziawg (wireguard with obfuscation params) or plain wireguard
