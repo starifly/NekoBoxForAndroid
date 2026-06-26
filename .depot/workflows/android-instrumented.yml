@@ -1,0 +1,107 @@
+# Depot CI workflow: instrumented Android tests on a KVM-accelerated emulator.
+#
+# Why Depot CI (not Namespace): every Depot CI sandbox exposes /dev/kvm with no extra
+# configuration, which is what reactivecircus/android-emulator-runner needs for a
+# hardware-accelerated Android emulator. The Namespace pipeline (.github/workflows/ci.yml)
+# stays the APK build host; this runs ONLY the instrumented Room migration test.
+#
+# The :app androidTest variant compiles the whole app module, which references libcore
+# (app/libs/libcore.aar). That native AAR is built here from source (Go + MatsuriDayo
+# gomobile + NDK), exactly like the Namespace `libcore` job (`./run lib core`), and cached
+# between runs so it is only rebuilt when the libcore/sing-box sources change.
+#
+# Run ad-hoc against a branch's local tree (no merge needed):
+#   depot ci run --workflow .depot/workflows/android-instrumented.yml
+# Automatic push/PR triggers register only after this file is merged to the default branch.
+name: Android Instrumented
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  GO_VERSION: '1.26.4'
+  NDK_VERSION: '25.0.8775105'
+jobs:
+  migration-test:
+    name: Room 8->9 Migration (emulator)
+    # Depot CI sandbox; /dev/kvm is available here for the emulator.
+    runs-on: depot-ubuntu-24.04-8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK platform + NDK
+        run: |
+          # gomobile bind needs an installed platform (android.jar) under $ANDROID_HOME/platforms.
+          sdkmanager --install "platforms;android-35" "build-tools;35.0.0" "ndk;${NDK_VERSION}"
+          echo "Installed SDK packages:"
+          ls "${ANDROID_HOME}/platforms" "${ANDROID_HOME}/ndk"
+
+      - name: local.properties
+        run: |
+          echo "sdk.dir=${ANDROID_HOME}" > local.properties
+          echo "ndk.dir=${ANDROID_HOME}/ndk/${NDK_VERSION}" >> local.properties
+
+      # Cache the built libcore.aar keyed on the libcore/sing-box source state so it is only
+      # rebuilt when those sources change (mirrors the Namespace libcore cache strategy).
+      - name: libcore status
+        run: |
+          find buildScript libcore/*.sh buildScript/lib/core/get_source_env.sh \
+            | sort | xargs cat | sha1sum | awk '{print $1}' > libcore_status
+          git ls-files libcore | sort | xargs cat | sha1sum | awk '{print $1}' >> libcore_status
+          cat libcore_status
+
+      - name: libcore cache
+        id: libcore-cache
+        uses: actions/cache@v4
+        with:
+          path: app/libs/libcore.aar
+          key: depot-libcore-${{ env.GO_VERSION }}-${{ env.NDK_VERSION }}-${{ hashFiles('libcore_status') }}
+
+      - name: Install Go
+        if: steps.libcore-cache.outputs.cache-hit != 'true'
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Build libcore (Go + gomobile)
+        if: steps.libcore-cache.outputs.cache-hit != 'true'
+        run: ./run lib core
+
+      - name: Download assets
+        run: ./run init action gradle
+
+      # MigrationTestHelper exercises only Room/SQLite (no JNI / libcore at runtime); the AAR
+      # above is needed only so the app module compiles.
+      - name: Confirm KVM is available
+        run: |
+          ls -l /dev/kvm
+          echo "KVM present"
+
+      - name: Run migration test on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          target: google_apis
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: >-
+            ./gradlew app:connectedOssDebugAndroidTest
+            -Pandroid.testInstrumentationRunnerArguments.class=io.nekohasekai.sagernet.database.SagerDatabaseMigrationTest

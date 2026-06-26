@@ -31,6 +31,9 @@ android {
             useLegacyPackaging = true
         }
     }
+    // Expose the exported Room schema JSON to instrumented tests so MigrationTestHelper
+    // can locate the v8/v9 schemas at runtime (see SagerDatabaseMigrationTest).
+    sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
     androidResources {
         generateLocaleConfig = true
     }
@@ -105,6 +108,12 @@ dependencies {
     // Robolectric is available for tests that must touch Android framework classes;
     // prefer extracting pure functions over using it (see Plan 007).
     testImplementation("org.robolectric:robolectric:4.13")
+
+    // Instrumented tests (androidTest) — Room migration verification on a real SQLite.
+    // Runs on a device/emulator (see .depot/workflows/android-instrumented.yml), not the JVM.
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.room:room-testing:2.7.2")
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }
