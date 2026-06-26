@@ -681,61 +681,75 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
     fun finishImport(
         content: JSONObject, profile: Boolean, rule: Boolean, setting: Boolean
     ) {
-        if (profile && content.has("profiles")) {
-            val profiles = mutableListOf<ProxyEntity>()
-            val jsonProfiles = content.getJSONArray("profiles")
-            for (i in 0 until jsonProfiles.length()) {
-                val data = Util.b64Decode(jsonProfiles[i] as String)
-                val parcel = Parcel.obtain()
-                parcel.unmarshall(data, 0, data.size)
-                parcel.setDataPosition(0)
-                profiles.add(ProxyEntity.CREATOR.createFromParcel(parcel))
-                parcel.recycle()
-            }
-            SagerDatabase.proxyDao.reset()
-            SagerDatabase.proxyDao.insert(profiles)
+        // Validate-then-commit: decode EVERY selected section into memory first. If any entry
+        // is malformed the decode throws here, BEFORE any destructive reset() runs, so a bad
+        // (or maliciously truncated) backup file can never partially wipe the live DB.
+        //
+        // profiles and groups are one logical section (a config backup always contains both);
+        // they are decoded and committed together so neither is left without the other.
+        val importConfigs = profile && content.has("profiles")
+        val profiles = if (importConfigs) {
+            decodeArray(content.getJSONArray("profiles")) { ProxyEntity.CREATOR.createFromParcel(it) }
+        } else null
+        val groups = if (importConfigs) {
+            decodeArray(content.getJSONArray("groups")) { ProxyGroup.CREATOR.createFromParcel(it) }
+        } else null
+        val rules = if (rule && content.has("rules")) {
+            decodeArray(content.getJSONArray("rules")) { ParcelizeBridge.createRule(it) }
+        } else null
+        val settings = if (setting && content.has("settings")) {
+            decodeArray(content.getJSONArray("settings")) { KeyValuePair.CREATOR.createFromParcel(it) }
+        } else null
 
-            val groups = mutableListOf<ProxyGroup>()
-            val jsonGroups = content.getJSONArray("groups")
-            for (i in 0 until jsonGroups.length()) {
-                val data = Util.b64Decode(jsonGroups[i] as String)
-                val parcel = Parcel.obtain()
+        // Commit phase: only reached if every section above decoded successfully. Each
+        // reset()+insert() pair runs in its own DB transaction so it is atomic - an
+        // interruption can't leave a table cleared-but-not-repopulated.
+        if (profiles != null && groups != null) {
+            SagerDatabase.instance.runInTransaction {
+                SagerDatabase.proxyDao.reset()
+                SagerDatabase.proxyDao.insert(profiles)
+                SagerDatabase.groupDao.reset()
+                SagerDatabase.groupDao.insert(groups)
+            }
+        }
+        rules?.let {
+            SagerDatabase.instance.runInTransaction {
+                SagerDatabase.rulesDao.reset()
+                SagerDatabase.rulesDao.insert(it)
+            }
+        }
+        settings?.let {
+            PublicDatabase.instance.runInTransaction {
+                PublicDatabase.kvPairDao.reset()
+                PublicDatabase.kvPairDao.insert(it)
+            }
+        }
+    }
+
+    /**
+     * Decode every base64'd, Parcel-marshalled entry in [array] into memory. Each entry is
+     * decoded in its own try/finally so the Parcel is always recycled; a malformed entry
+     * throws (aborting the whole import) before the caller commits any reset+insert.
+     *
+     * NOTE: Parcel.unmarshall on imported bytes is a known deserialization hazard and an
+     * unstable persistence format (see Plan 014). This retains backward compatibility with
+     * existing backups; the validate-then-commit ordering above removes the partial-wipe
+     * risk. Migrating the encoding off Parcel is tracked as follow-up work.
+     */
+    private fun <T> decodeArray(array: JSONArray, create: (Parcel) -> T): List<T> {
+        val out = ArrayList<T>(array.length())
+        for (i in 0 until array.length()) {
+            val data = Util.b64Decode(array[i] as String)
+            val parcel = Parcel.obtain()
+            try {
                 parcel.unmarshall(data, 0, data.size)
                 parcel.setDataPosition(0)
-                groups.add(ProxyGroup.CREATOR.createFromParcel(parcel))
+                out.add(create(parcel))
+            } finally {
                 parcel.recycle()
             }
-            SagerDatabase.groupDao.reset()
-            SagerDatabase.groupDao.insert(groups)
         }
-        if (rule && content.has("rules")) {
-            val rules = mutableListOf<RuleEntity>()
-            val jsonRules = content.getJSONArray("rules")
-            for (i in 0 until jsonRules.length()) {
-                val data = Util.b64Decode(jsonRules[i] as String)
-                val parcel = Parcel.obtain()
-                parcel.unmarshall(data, 0, data.size)
-                parcel.setDataPosition(0)
-                rules.add(ParcelizeBridge.createRule(parcel))
-                parcel.recycle()
-            }
-            SagerDatabase.rulesDao.reset()
-            SagerDatabase.rulesDao.insert(rules)
-        }
-        if (setting && content.has("settings")) {
-            val settings = mutableListOf<KeyValuePair>()
-            val jsonSettings = content.getJSONArray("settings")
-            for (i in 0 until jsonSettings.length()) {
-                val data = Util.b64Decode(jsonSettings[i] as String)
-                val parcel = Parcel.obtain()
-                parcel.unmarshall(data, 0, data.size)
-                parcel.setDataPosition(0)
-                settings.add(KeyValuePair.CREATOR.createFromParcel(parcel))
-                parcel.recycle()
-            }
-            PublicDatabase.kvPairDao.reset()
-            PublicDatabase.kvPairDao.insert(settings)
-        }
+        return out
     }
 
     private fun showMessage(message: String) {
