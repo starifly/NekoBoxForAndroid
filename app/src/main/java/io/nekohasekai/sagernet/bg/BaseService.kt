@@ -270,7 +270,14 @@ class BaseService {
         }
 
         fun persistStats() {
-            // TODO NEW save app stats?
+            // Flush the final per-profile cumulative rx/tx so a hard ACTION_SHUTDOWN doesn't
+            // drop the last session's bytes (normal teardown already persists via
+            // TrafficLooper.stop()). Per-profile cumulative traffic reuses the existing
+            // ProxyEntity.tx/rx columns - no new table / migration (see Plan 024 findings).
+            // Run synchronously: ACTION_SHUTDOWN may kill the process immediately, so a
+            // fire-and-forget dispatch could be dropped before the write lands. Bound it with
+            // a timeout so a slow DB/IPC at shutdown can't ANR the broadcast receiver.
+            runCatching { runBlocking { withTimeout(5_000) { data.proxy?.looper?.persist() } } }
         }
 
         // networks

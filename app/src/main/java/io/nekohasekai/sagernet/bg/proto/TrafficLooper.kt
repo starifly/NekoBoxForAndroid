@@ -24,11 +24,24 @@ class TrafficLooper
     suspend fun stop() {
         job?.cancel()
         // finally traffic post
+        persist()
+    }
+
+    /**
+     * Flush the current per-profile cumulative rx/tx into the DB (ProxyEntity.tx/rx via
+     * ProfileManager.updateTraffic) and broadcast a final traffic update. Safe to call more
+     * than once. Called from stop() (normal teardown) and from the service's persistStats()
+     * hook on ACTION_SHUTDOWN so a hard shutdown doesn't drop the last session's bytes.
+     */
+    suspend fun persist() {
         if (!DataStore.profileTrafficStatistics) return
         val traffic = mutableMapOf<Long, TrafficData>()
         data.proxy?.config?.trafficMap?.forEach { (_, ents) ->
             for (ent in ents) {
-                val item = idMap[ent.id] ?: return@forEach
+                // Skip just this entity if its live data isn't in the map yet (e.g. on the
+                // hard-shutdown path before the loop has populated it); continue with the
+                // rest of the group rather than abandoning the whole forEach.
+                val item = idMap[ent.id] ?: continue
                 ent.rx = item.rx
                 ent.tx = item.tx
                 ProfileManager.updateTraffic(ent.id, ent.rx, ent.tx)
