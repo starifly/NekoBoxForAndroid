@@ -26,6 +26,23 @@ import java.io.FileWriter
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
+/**
+ * Reduce an untrusted file name (e.g. a content provider's DISPLAY_NAME) to a safe basename
+ * for an importable asset, or null if invalid. Strips any directory component and rejects
+ * path separators, "..", NUL, and non-".db" names so it can't be used for path traversal.
+ */
+fun sanitizeAssetFileName(raw: String): String? {
+    // Reject anything that isn't already a bare basename: a path separator, "..", NUL, or a
+    // name whose basename differs from the input (i.e. it carried a directory component).
+    if (raw.isBlank()) return null
+    if (raw.contains('/') || raw.contains('\\') || raw.contains('\u0000')) return null
+    if (raw == "." || raw == "..") return null
+    val base = File(raw).name
+    if (base != raw) return null // defensive: any residual path component
+    if (!base.endsWith(".db")) return null
+    return base
+}
+
 class AssetsActivity : ThemedActivity() {
 
     lateinit var adapter: AssetAdapter
@@ -98,28 +115,38 @@ class AssetsActivity : ThemedActivity() {
 
     val importFile = registerForActivityResult(ActivityResultContracts.GetContent()) { file ->
         if (file != null) {
-            val fileName = contentResolver.query(file, null, null, null, null)?.use { cursor ->
-                cursor.moveToFirst()
-                cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME).let(cursor::getString)
+            val rawName = contentResolver.query(file, null, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (idx >= 0) cursor.getString(idx) else null
+                } else {
+                    null
+                }
             }?.takeIf { it.isNotBlank() } ?: file.pathSegments.last()
                 .substringAfterLast('/')
                 .substringAfter(':')
 
-            if (!fileName.endsWith(".db")) {
-                alert(getString(R.string.route_not_asset, fileName)).show()
+            // DISPLAY_NAME is attacker-controllable (a malicious content provider returns any
+            // name). Reduce to a safe basename and reject path separators / ".." so a name like
+            // "../../databases/sager_net.db" can't traverse out of the assets dir.
+            val fileName = sanitizeAssetFileName(rawName) ?: run {
+                alert(getString(R.string.route_not_asset, rawName)).show()
                 return@registerForActivityResult
             }
             val filesDir = getExternalFilesDir(null) ?: filesDir
 
             runOnDefaultDispatcher {
                 runCatching {
-                    val outFile = File(filesDir, fileName).apply {
-                        parentFile?.mkdirs()
-                    }
+                    val outFile = File(filesDir, fileName)
+                    // Defense-in-depth: assert the resolved paths stay within filesDir.
+                    val baseCanonical = filesDir.canonicalPath + File.separator
+                    require(outFile.canonicalPath.startsWith(baseCanonical)) { "unsafe path" }
+                    outFile.parentFile?.mkdirs()
 
                     // Copy into a temp file first, then atomically replace the
                     // target so a failed copy can't leave a partial/corrupt .db.
                     val tmpFile = File(outFile.parentFile, "$fileName.tmp")
+                    require(tmpFile.canonicalPath.startsWith(baseCanonical)) { "unsafe path" }
                     try {
                         contentResolver.openInputStream(file)?.use(tmpFile.outputStream())
                             ?: error("Unable to open the selected file")
