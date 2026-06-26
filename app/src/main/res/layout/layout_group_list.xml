@@ -10,7 +10,7 @@
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar"
         android:layout_width="match_parent"
-        android:layout_height="?attr/uiAppBarHeight"
+        android:layout_height="wrap_content"
         android:background="?attr/uiSurfaceBackground"
         android:elevation="0dp"
         app:elevation="0dp"
@@ -19,7 +19,7 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="?attr/uiAppBarHeight"
             android:background="?attr/uiSurfaceBackground"
             android:paddingHorizontal="4dp"
             android:theme="?actionBarTheme"
@@ -29,7 +29,7 @@
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/group_tab"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:background="@android:color/transparent"
                 app:tabGravity="center"
@@ -52,6 +52,7 @@
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/group_pager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
 </LinearLayout>
