@@ -31,6 +31,7 @@ class StatsBar @JvmOverloads constructor(
     private lateinit var txText: TextView
     private lateinit var rxText: TextView
     private lateinit var speedRow: View
+    private lateinit var textContainer: View
     private lateinit var behavior: YourBehavior
 
     private val mainActivity: MainActivity
@@ -45,6 +46,31 @@ class StatsBar @JvmOverloads constructor(
 
     var allowShow = true
     private var hideOnScroll = true
+
+    private fun ensureViews() {
+        if (!::statusText.isInitialized) {
+            statusText = findViewById(R.id.status)
+            txText = findViewById(R.id.tx)
+            rxText = findViewById(R.id.rx)
+            speedRow = findViewById(R.id.speed_row)
+            textContainer = findViewById(R.id.text_container)
+        }
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val parentWidth = View.MeasureSpec.getSize(widthMeasureSpec)
+        val lp = layoutParams as? android.view.ViewGroup.MarginLayoutParams
+        val margins = (lp?.leftMargin ?: 0) + (lp?.rightMargin ?: 0)
+        val maxAllowedWidth = parentWidth - margins
+        
+        val newWidthMeasureSpec = View.MeasureSpec.makeMeasureSpec(maxAllowedWidth, View.MeasureSpec.AT_MOST)
+        super.onMeasure(newWidthMeasureSpec, heightMeasureSpec)
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        radius = h / 2f
+    }
 
     override fun getBehavior(): YourBehavior {
         if (!this::behavior.isInitialized) behavior = YourBehavior { allowShow }
@@ -98,31 +124,40 @@ class StatsBar @JvmOverloads constructor(
 
 
     override fun setOnClickListener(l: OnClickListener?) {
-        statusText = findViewById(R.id.status)
-        txText = findViewById(R.id.tx)
-        rxText = findViewById(R.id.rx)
-        speedRow = findViewById(R.id.speed_row)
+        ensureViews()
         refreshSpeedVisibility()
         super.setOnClickListener(l)
     }
 
     private fun setStatus(text: CharSequence, tooltip: CharSequence = text) {
+        ensureViews()
         statusText.text = text
         TooltipCompat.setTooltipText(this, tooltip)
     }
 
     fun refreshSpeedVisibility() {
+        ensureViews()
         if (this::speedRow.isInitialized) speedRow.isVisible = DataStore.speedInterval > 0
     }
 
     fun changeState(state: BaseService.State) {
         val activity = mainActivity
+        val showText = state != BaseService.State.Idle && state != BaseService.State.Stopped
         fun postWhenStarted(what: () -> Unit) = activity.lifecycleScope.launch(Dispatchers.Main) {
             delay(100L)
             activity.whenStarted { what() }
         }
         if (state == BaseService.State.Connected) {
             postWhenStarted {
+                ensureViews()
+                val transition = android.transition.AutoTransition().apply {
+                    duration = 250
+                }
+                (parent as? android.view.ViewGroup)?.let {
+                    android.transition.TransitionManager.beginDelayedTransition(it, transition)
+                }
+                textContainer.visibility = if (showText) View.VISIBLE else View.GONE
+
                 if (allowShow) performShow()
                 refreshSpeedVisibility()
                 setStatus(
@@ -132,23 +167,33 @@ class StatsBar @JvmOverloads constructor(
             }
         } else {
             postWhenStarted {
+                ensureViews()
+                val transition = android.transition.AutoTransition().apply {
+                    duration = 250
+                }
+                (parent as? android.view.ViewGroup)?.let {
+                    android.transition.TransitionManager.beginDelayedTransition(it, transition)
+                }
+                textContainer.visibility = if (showText) View.VISIBLE else View.GONE
+
                 if (allowShow) performShow()
-            }
-            updateSpeed(0, 0)
-            setStatus(
-                context.getText(
-                    when (state) {
-                        BaseService.State.Connecting -> R.string.connecting
-                        BaseService.State.Stopping -> R.string.stopping
-                        else -> R.string.not_connected
-                    }
+                updateSpeed(0, 0)
+                setStatus(
+                    context.getText(
+                        when (state) {
+                            BaseService.State.Connecting -> R.string.connecting
+                            BaseService.State.Stopping -> R.string.stopping
+                            else -> R.string.not_connected
+                        }
+                    )
                 )
-            )
+            }
         }
     }
 
     @SuppressLint("SetTextI18n")
     fun updateSpeed(txRate: Long, rxRate: Long) {
+        ensureViews()
         txText.text = "▲  ${
             context.getString(
                 R.string.speed, Formatter.formatFileSize(context, txRate)
