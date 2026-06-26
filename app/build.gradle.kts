@@ -99,7 +99,6 @@ dependencies {
     implementation("org.yaml:snakeyaml:2.3")
     implementation("com.jakewharton:process-phoenix:2.1.2")
     implementation("com.esotericsoftware:kryo:5.2.1")
-    implementation("com.google.guava:guava:33.4.0-android")
     implementation("org.ini4j:ini4j:0.5.4")
 
     implementation("me.zhanghai.android.fastscroll:library:1.3.0")
