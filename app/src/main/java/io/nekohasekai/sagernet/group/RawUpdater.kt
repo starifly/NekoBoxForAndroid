@@ -8,6 +8,7 @@ import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria1Json
+import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria2Json
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.parseShadowsocks
 import io.nekohasekai.sagernet.fmt.shadowsocksr.ShadowsocksRBean
@@ -1091,6 +1092,13 @@ object RawUpdater : GroupUpdater() {
             when {
                 json.has("server") && (json.has("up") || json.has("up_mbps")) -> {
                     return listOf(json.parseHysteria1Json())
+                }
+
+                // HY2 client config: server + a string auth. Distinguished from HY1 by the
+                // absence of HY1's up/up_mbps (tls/obfs/bandwidth are optional in HY2).
+                json.has("server") && json.getStr("auth") != null &&
+                    !json.has("up") && !json.has("up_mbps") -> {
+                    return listOf(json.parseHysteria2Json())
                 }
 
                 json.has("method") && json.has("obfs") && json.has("protocol") -> {
