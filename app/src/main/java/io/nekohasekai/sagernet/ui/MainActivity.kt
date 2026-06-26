@@ -42,19 +42,18 @@ import io.nekohasekai.sagernet.fmt.KryoConverters
 import io.nekohasekai.sagernet.fmt.PluginEntry
 import io.nekohasekai.sagernet.group.GroupInterfaceAdapter
 import io.nekohasekai.sagernet.group.GroupUpdater
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.alert
-import io.nekohasekai.sagernet.ktx.isPlay
 import io.nekohasekai.sagernet.ktx.isPreview
 import io.nekohasekai.sagernet.ktx.launchCustomTab
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.parseProxies
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.ui.MessageStore
-import io.nekohasekai.sagernet.ktx.Logs
 import moe.matsuri.nb4a.utils.Util
 
-class MainActivity : ThemedActivity(),
+class MainActivity :
+    ThemedActivity(),
     SagerConnection.Callback,
     OnPreferenceDataStoreChangeListener,
     NavigationView.OnNavigationItemSelectedListener {
@@ -69,7 +68,7 @@ class MainActivity : ThemedActivity(),
         binding = LayoutMainBinding.inflate(layoutInflater)
         binding.fab.initProgress(binding.fabProgress)
         if (themeResId !in intArrayOf(
-                R.style.Theme_SagerNet_Black
+                R.style.Theme_SagerNet_Black,
             )
         ) {
             navigation = binding.navView
@@ -92,9 +91,13 @@ class MainActivity : ThemedActivity(),
         }
 
         binding.fab.setOnClickListener {
-            if (DataStore.serviceState.canStop) SagerNet.stopService() else connect.launch(
-                null
-            )
+            if (DataStore.serviceState.canStop) {
+                SagerNet.stopService()
+            } else {
+                connect.launch(
+                    null,
+                )
+            }
         }
         binding.stats.setOnClickListener { if (DataStore.serviceState.connected) binding.stats.testConnection() }
 
@@ -115,9 +118,11 @@ class MainActivity : ThemedActivity(),
             val checkPermission =
                 ContextCompat.checkSelfPermission(this@MainActivity, POST_NOTIFICATIONS)
             if (checkPermission != PackageManager.PERMISSION_GRANTED) {
-                //request dynamically
+                // request dynamically
                 ActivityCompat.requestPermissions(
-                    this@MainActivity, arrayOf(POST_NOTIFICATIONS), 0
+                    this@MainActivity,
+                    arrayOf(POST_NOTIFICATIONS),
+                    0,
                 )
             }
         }
@@ -134,12 +139,12 @@ class MainActivity : ThemedActivity(),
     override fun onResume() {
         super.onResume()
         MessageStore.setCurrentActivity(this)
-        
+
         if (DataStore.hideFromRecentApps) {
             applyHideFromRecentApps(DataStore.hideFromRecentApps)
         }
     }
-    
+
     fun applyHideFromRecentApps(hide: Boolean) {
         try {
             val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
@@ -196,7 +201,8 @@ class MainActivity : ThemedActivity(),
             val data = uri.encodedQuery.takeIf { !it.isNullOrBlank() } ?: return
             try {
                 group = KryoConverters.deserialize(
-                    ProxyGroup().apply { export = true }, Util.zlibDecompress(Util.b64Decode(data))
+                    ProxyGroup().apply { export = true },
+                    Util.zlibDecompress(Util.b64Decode(data)),
                 ).apply {
                     export = false
                 }
@@ -209,14 +215,13 @@ class MainActivity : ThemedActivity(),
         }
 
         val name = group.name.takeIf { !it.isNullOrBlank() } ?: group.subscription?.link
-        ?: group.subscription?.token
+            ?: group.subscription?.token
         if (name.isNullOrBlank()) return
 
         group.name = group.name.takeIf { !it.isNullOrBlank() }
             ?: ("Subscription #" + System.currentTimeMillis())
 
         onMainDispatcher {
-
             displayFragmentWithId(R.id.nav_group)
 
             MaterialAlertDialogBuilder(this@MainActivity).setTitle(R.string.subscription_import)
@@ -228,9 +233,7 @@ class MainActivity : ThemedActivity(),
                 }
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
-
         }
-
     }
 
     private suspend fun finishImportSubscription(subscription: ProxyGroup) {
@@ -259,7 +262,6 @@ class MainActivity : ThemedActivity(),
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
         }
-
     }
 
     private suspend fun finishImportProfile(profile: AbstractBean) {
@@ -288,8 +290,10 @@ class MainActivity : ThemedActivity(),
         MaterialAlertDialogBuilder(this).setTitle(R.string.missing_plugin)
             .setMessage(
                 getString(
-                    R.string.profile_requiring_plugin, profileName, pluginEntity.displayName
-                )
+                    R.string.profile_requiring_plugin,
+                    profileName,
+                    pluginEntity.displayName,
+                ),
             )
             .setPositiveButton(R.string.action_download) { _, _ ->
                 showDownloadDialog(pluginEntity)
@@ -319,7 +323,9 @@ class MainActivity : ThemedActivity(),
         MaterialAlertDialogBuilder(this).setTitle(pluginEntry.name)
             .setItems(items.toTypedArray()) { _, which ->
                 when (which) {
-                    playIndex -> launchCustomTab("https://play.google.com/store/apps/details?id=${pluginEntry.packageName}")
+                    playIndex -> launchCustomTab(
+                        "https://play.google.com/store/apps/details?id=${pluginEntry.packageName}",
+                    )
                     fdroidIndex -> launchCustomTab("https://f-droid.org/packages/${pluginEntry.packageName}/")
                     downloadIndex -> launchCustomTab(pluginEntry.downloadSource.downloadLink)
                 }
@@ -328,12 +334,13 @@ class MainActivity : ThemedActivity(),
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        if (item.isChecked) binding.drawerLayout.closeDrawers() else {
+        if (item.isChecked) {
+            binding.drawerLayout.closeDrawers()
+        } else {
             return displayFragmentWithId(item.itemId)
         }
         return true
     }
-
 
     @SuppressLint("CommitTransaction")
     fun displayFragment(fragment: ToolbarFragment) {
@@ -371,11 +378,7 @@ class MainActivity : ThemedActivity(),
         return true
     }
 
-    private fun changeState(
-        state: BaseService.State,
-        msg: String? = null,
-        animate: Boolean = false,
-    ) {
+    private fun changeState(state: BaseService.State, msg: String? = null, animate: Boolean = false) {
         DataStore.serviceState = state
 
         binding.fab.changeState(state, DataStore.serviceState, animate)
@@ -402,7 +405,7 @@ class MainActivity : ThemedActivity(),
             BaseService.State.values()[service.state]
         } catch (_: RemoteException) {
             BaseService.State.Idle
-        }
+        },
     )
 
     override fun onServiceDisconnected() = changeState(BaseService.State.Idle)
@@ -490,5 +493,4 @@ class MainActivity : ThemedActivity(),
             supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ToolbarFragment
         return fragment != null && fragment.onKeyDown(keyCode, event)
     }
-
 }

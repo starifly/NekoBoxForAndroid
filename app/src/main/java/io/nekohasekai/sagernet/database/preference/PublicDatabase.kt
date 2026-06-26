@@ -25,5 +25,4 @@ abstract class PublicDatabase : RoomDatabase() {
     }
 
     abstract fun keyValuePairDao(): KeyValuePair.Dao
-
 }

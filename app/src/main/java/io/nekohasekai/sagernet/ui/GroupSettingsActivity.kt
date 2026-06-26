@@ -112,10 +112,7 @@ class GroupSettingsActivity(
         return DataStore.dirty
     }
 
-    fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.group_preferences)
 
         frontProxyPreference = findPreference(Key.GROUP_FRONT_PROXY)!!
@@ -126,12 +123,13 @@ class GroupSettingsActivity(
                 if (newValue.toString() == OutboundPreference.VALUE_SELECT_PROFILE) {
                     selectProfileForAddFront.launch(
                         Intent(
-                            this@GroupSettingsActivity, ProfileSelectActivity::class.java
+                            this@GroupSettingsActivity,
+                            ProfileSelectActivity::class.java,
                         ).apply {
                             ProfileManager.getProfile(DataStore.frontProxy)?.let {
                                 putExtra(ProfileSelectActivity.EXTRA_SELECTED, it)
                             }
-                        }
+                        },
                     )
                     false
                 } else {
@@ -147,12 +145,13 @@ class GroupSettingsActivity(
                 if (newValue.toString() == OutboundPreference.VALUE_SELECT_PROFILE) {
                     selectProfileForAddLanding.launch(
                         Intent(
-                            this@GroupSettingsActivity, ProfileSelectActivity::class.java
+                            this@GroupSettingsActivity,
+                            ProfileSelectActivity::class.java,
                         ).apply {
                             ProfileManager.getProfile(DataStore.landingProxy)?.let {
                                 putExtra(ProfileSelectActivity.EXTRA_SELECTED, it)
                             }
-                        }
+                        },
                     )
                     false
                 } else {
@@ -274,7 +273,9 @@ class GroupSettingsActivity(
         onBackPressedDispatcher.addCallback(this) {
             if (needSave()) {
                 UnsavedChangesDialogFragment().apply { key() }.show(supportFragmentManager, null)
-            } else finish()
+            } else {
+                finish()
+            }
         }
         // ViewBinding intentionally not used here: this activity sets its content via the
         // ThemedActivity(@LayoutRes) constructor (contentLayoutId), not by inflating a binding,
@@ -295,7 +296,7 @@ class GroupSettingsActivity(
                 if (editingId == 0L) {
                     val group = ProxyGroup()
                     group.init()
-                    
+
                     // if there's a subscription link, set it to subscription type and fill in the link
                     if (!subscriptionLink.isNullOrEmpty()) {
                         DataStore.groupType = GroupType.SUBSCRIPTION
@@ -322,13 +323,10 @@ class GroupSettingsActivity(
                     DataStore.profileCacheStore.registerChangeListener(this@GroupSettingsActivity)
                 }
             }
-
         }
-
     }
 
     suspend fun saveAndExit() {
-
         val editingId = DataStore.editingId
         if (editingId == 0L) {
             val newGroup = GroupManager.createGroup(ProxyGroup().apply { serialize() })
@@ -341,17 +339,18 @@ class GroupSettingsActivity(
                 finish()
                 return
             }
-            val keepUserInfo = (entity.type == GroupType.SUBSCRIPTION &&
+            val keepUserInfo = (
+                entity.type == GroupType.SUBSCRIPTION &&
                     DataStore.groupType == GroupType.SUBSCRIPTION &&
-                    entity.subscription?.link == DataStore.subscriptionLink)
+                    entity.subscription?.link == DataStore.subscriptionLink
+                )
             if (!keepUserInfo) {
-                entity.subscription?.subscriptionUserinfo = "";
+                entity.subscription?.subscriptionUserinfo = ""
             }
             GroupManager.updateGroup(entity.apply { serialize() })
         }
 
         finish()
-
     }
 
     val child by lazy { supportFragmentManager.findFragmentById(R.id.settings) as MyPreferenceFragmentCompat }
@@ -395,7 +394,7 @@ class GroupSettingsActivity(
                 Toast.makeText(
                     SagerNet.application,
                     "Error on createPreferences, please try again.",
-                    Toast.LENGTH_SHORT
+                    Toast.LENGTH_SHORT,
                 ).show()
                 Logs.e(e)
             }
@@ -429,7 +428,6 @@ class GroupSettingsActivity(
 
             else -> false
         }
-
     }
 
     object PasswordSummaryProvider : Preference.SummaryProvider<EditTextPreference> {
@@ -442,37 +440,39 @@ class GroupSettingsActivity(
                 "\u2022".repeat(text.length)
             }
         }
-
     }
 
     val selectProfileForAddFront = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
+        ActivityResultContracts.StartActivityForResult(),
     ) {
-        if (it.resultCode == Activity.RESULT_OK) runOnDefaultDispatcher {
-            val profile = ProfileManager.getProfile(
-                it.data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0)
-            ) ?: return@runOnDefaultDispatcher
-            DataStore.frontProxy = profile.id
-            onMainDispatcher {
-                frontProxyPreference.value = OutboundPreference.VALUE_SELECT_PROFILE
+        if (it.resultCode == Activity.RESULT_OK) {
+            runOnDefaultDispatcher {
+                val profile = ProfileManager.getProfile(
+                    it.data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0),
+                ) ?: return@runOnDefaultDispatcher
+                DataStore.frontProxy = profile.id
+                onMainDispatcher {
+                    frontProxyPreference.value = OutboundPreference.VALUE_SELECT_PROFILE
+                }
             }
         }
     }
 
     val selectProfileForAddLanding = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
+        ActivityResultContracts.StartActivityForResult(),
     ) {
-        if (it.resultCode == Activity.RESULT_OK) runOnDefaultDispatcher {
-            val profile = ProfileManager.getProfile(
-                it.data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0)
-            ) ?: return@runOnDefaultDispatcher
-            DataStore.landingProxy = profile.id
-            onMainDispatcher {
-                landingProxyPreference.value = OutboundPreference.VALUE_SELECT_PROFILE
+        if (it.resultCode == Activity.RESULT_OK) {
+            runOnDefaultDispatcher {
+                val profile = ProfileManager.getProfile(
+                    it.data!!.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0),
+                ) ?: return@runOnDefaultDispatcher
+                DataStore.landingProxy = profile.id
+                onMainDispatcher {
+                    landingProxyPreference.value = OutboundPreference.VALUE_SELECT_PROFILE
+                }
             }
         }
     }
-
 }
 
 /**

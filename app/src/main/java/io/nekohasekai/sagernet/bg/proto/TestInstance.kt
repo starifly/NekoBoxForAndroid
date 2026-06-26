@@ -52,5 +52,4 @@ class TestInstance(profile: ProxyEntity, val link: String, private val timeout: 
         if (BuildConfig.DEBUG) Logs.d(config.config)
         box = Libcore.newSingBoxInstance(config.config, LocalResolverImpl)
     }
-
 }

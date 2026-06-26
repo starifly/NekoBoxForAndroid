@@ -22,8 +22,7 @@ class StringCollectionConverter {
         } else {
             str.split(SPLIT_FLAG)
         }
-        */
-
+         */
 
         @TypeConverter
         @JvmStatic

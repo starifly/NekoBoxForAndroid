@@ -11,7 +11,6 @@ import java.io.IOException
 import java.sql.SQLException
 import java.util.*
 
-
 object ProfileManager {
 
     interface Listener {
@@ -194,15 +193,15 @@ object ProfileManager {
                     name = app.getString(R.string.route_opt_block_quic),
                     port = "443",
                     network = "udp",
-                    outbound = -2
-                )
+                    outbound = -2,
+                ),
             )
             createRule(
                 RuleEntity(
                     name = app.getString(R.string.route_opt_block_ads),
                     domains = "geosite:category-ads-all",
-                    outbound = -2
-                )
+                    outbound = -2,
+                ),
             )
             val fuckedCountry = mutableListOf("cn:中国")
             if (Locale.getDefault().country != Locale.CHINA.country) {
@@ -214,30 +213,34 @@ object ProfileManager {
                 val country = c.substringBefore(":")
                 val displayCountry = c.substringAfter(":")
                 //
-                if (country == "cn") createRule(
-                    RuleEntity(
-                        name = app.getString(R.string.route_play_store, displayCountry),
-                        domains = "domain:googleapis.cn\ndomain:xn--ngstr-lra8j.com\ndomain:xn--ngstr-cn-8za9o.com",
-                    ), false
-                )
+                if (country == "cn") {
+                    createRule(
+                        RuleEntity(
+                            name = app.getString(R.string.route_play_store, displayCountry),
+                            domains = "domain:googleapis.cn\ndomain:xn--ngstr-lra8j.com\ndomain:xn--ngstr-cn-8za9o.com",
+                        ),
+                        false,
+                    )
+                }
                 createRule(
                     RuleEntity(
                         name = app.getString(R.string.route_bypass_domain, displayCountry),
                         domains = "geosite:$country",
-                        outbound = -1
-                    ), false
+                        outbound = -1,
+                    ),
+                    false,
                 )
                 createRule(
                     RuleEntity(
                         name = app.getString(R.string.route_bypass_ip, displayCountry),
                         ip = "geoip:$country",
-                        outbound = -1
-                    ), false
+                        outbound = -1,
+                    ),
+                    false,
                 )
             }
             rules = SagerDatabase.rulesDao.allRules()
         }
         return rules
     }
-
 }

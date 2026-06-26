@@ -10,7 +10,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.Base64
 import java.util.Properties
-import kotlin.system.exitProcess
 
 private val Project.android get() = extensions.getByName<ApplicationExtension>("android")
 private val Project.androidComponents
@@ -34,7 +33,6 @@ fun Project.requireLocalProperties(): Properties {
 
         val base64 = System.getenv("LOCAL_PROPERTIES")
         if (!base64.isNullOrBlank()) {
-
             localProperties.load(Base64.getDecoder().decode(base64).inputStream())
         } else if (project.rootProject.file("local.properties").exists()) {
             localProperties.load(rootProject.file("local.properties").inputStream())
@@ -82,8 +80,8 @@ fun Project.setupCommon() {
                     "org/**",
                     "**/*.java",
                     "**/*.proto",
-                    "okhttp3/**"
-                )
+                    "okhttp3/**",
+                ),
             )
         }
         // Under AGP 9's new DSL the build types below are configured directly on
@@ -177,7 +175,7 @@ fun Project.setupApp() {
             getByName("release") {
                 proguardFiles(
                     getDefaultProguardFile("proguard-android-optimize.txt"),
-                    file("proguard-rules.pro")
+                    file("proguard-rules.pro"),
                 )
             }
         }
@@ -201,7 +199,7 @@ fun Project.setupApp() {
                 buildConfigField(
                     "String",
                     "PRE_VERSION_NAME",
-                    "\"${requireMetadata().getProperty("PRE_VERSION_NAME")}\""
+                    "\"${requireMetadata().getProperty("PRE_VERSION_NAME")}\"",
                 )
             }
         }
@@ -226,7 +224,9 @@ fun Project.setupApp() {
         val isPreview = variant.flavorName == "preview" ||
             variant.productFlavors.any { (_, flavor) -> flavor == "preview" }
         val version = if (isPreview) previewVersionName else verName
-        val renameTask = tasks.register<RenameApkTask>("renameApksFor${variant.name.replaceFirstChar { it.uppercase() }}") {
+        val renameTask = tasks.register<RenameApkTask>(
+            "renameApksFor${variant.name.replaceFirstChar { it.uppercase() }}",
+        ) {
             output.set(layout.buildDirectory.dir("outputs/renamed_apks/${variant.name}"))
             builtArtifactsLoader.set(variant.artifacts.getBuiltArtifactsLoader())
             baseName.set("NekoBox-$version")

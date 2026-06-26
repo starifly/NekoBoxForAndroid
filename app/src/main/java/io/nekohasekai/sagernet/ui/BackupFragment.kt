@@ -8,15 +8,16 @@ import android.os.Parcelable
 import android.provider.OpenableColumns
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import com.jakewharton.processphoenix.ProcessPhoenix
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
-import io.nekohasekai.sagernet.bg.Executable
 import io.nekohasekai.sagernet.database.*
 import io.nekohasekai.sagernet.database.preference.KeyValuePair
 import io.nekohasekai.sagernet.database.preference.PublicDatabase
@@ -24,28 +25,23 @@ import io.nekohasekai.sagernet.databinding.LayoutBackupBinding
 import io.nekohasekai.sagernet.databinding.LayoutImportBinding
 import io.nekohasekai.sagernet.databinding.LayoutProgressBinding
 import io.nekohasekai.sagernet.ktx.*
-import kotlinx.coroutines.delay
+import io.nekohasekai.sagernet.ktx.snackbar
 import moe.matsuri.nb4a.utils.Util
+import okhttp3.Credentials
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.*
-import okhttp3.Credentials
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
-import androidx.annotation.StringRes
-import com.google.android.material.snackbar.Snackbar
-import io.nekohasekai.sagernet.ktx.snackbar
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
-import java.io.BufferedInputStream
-import java.util.zip.ZipInputStream
-import java.util.concurrent.TimeUnit
 import java.util.zip.Deflater
-import java.io.BufferedOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
 class BackupFragment : NamedFragment(R.layout.layout_backup) {
 
@@ -110,11 +106,12 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 backupData = doBackup(
                     binding.backupConfigurations.isChecked,
                     binding.backupRules.isChecked,
-                    binding.backupSettings.isChecked
+                    binding.backupSettings.isChecked,
                 )
                 onMainDispatcher {
                     startFilesForResult(
-                        exportSettings, "nekobox_backup_${Date().toLocaleString()}.json"
+                        exportSettings,
+                        "nekobox_backup_${Date().toLocaleString()}.json",
                     )
                 }
             }
@@ -125,11 +122,12 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 backupData = doBackup(
                     binding.backupConfigurations.isChecked,
                     binding.backupRules.isChecked,
-                    binding.backupSettings.isChecked
+                    binding.backupSettings.isChecked,
                 )
                 app.cacheDir.mkdirs()
                 val cacheFile = File(
-                    app.cacheDir, "nekobox_backup_${Date().toLocaleString()}.json"
+                    app.cacheDir,
+                    "nekobox_backup_${Date().toLocaleString()}.json",
                 )
                 cacheFile.writeBytes(backupData)
                 onMainDispatcher {
@@ -138,14 +136,17 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                             Intent(Intent.ACTION_SEND).setType("application/json")
                                 .setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                 .putExtra(
-                                    Intent.EXTRA_STREAM, FileProvider.getUriForFile(
-                                        app, BuildConfig.APPLICATION_ID + ".cache", cacheFile
-                                    )
-                                ), app.getString(R.string.abc_shareactionprovider_share_with)
-                        )
+                                    Intent.EXTRA_STREAM,
+                                    FileProvider.getUriForFile(
+                                        app,
+                                        BuildConfig.APPLICATION_ID + ".cache",
+                                        cacheFile,
+                                    ),
+                                ),
+                            app.getString(R.string.abc_shareactionprovider_share_with),
+                        ),
                     )
                 }
-
             }
         }
 
@@ -160,7 +161,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
         binding.webdavSettings.setOnClickListener {
             startActivity(Intent(requireContext(), WebDAVSettingsActivity::class.java))
         }
-        
+
         binding.backupToWebdav.setOnClickListener {
             if (DataStore.webdavServer.isNullOrEmpty()) {
                 showMessage(R.string.webdav_server_empty)
@@ -168,7 +169,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
             }
             backupToWebDAV()
         }
-        
+
         binding.restoreFromWebdav.setOnClickListener {
             if (DataStore.webdavServer.isNullOrEmpty()) {
                 showMessage(R.string.webdav_server_empty)
@@ -189,12 +190,12 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
             try {
                 isWebDAVBackup = true
                 val backupData = doBackup(
-                    true,  // back up configs and groups
-                    true,  // back up route rules
-                    true   // back up settings
+                    true, // back up configs and groups
+                    true, // back up route rules
+                    true, // back up settings
                 )
                 isWebDAVBackup = false
-                
+
                 val client = OkHttpClient()
 
                 // normalize URL
@@ -227,10 +228,13 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 val propfindRequest = Request.Builder()
                     .url(dirUrl)
                     .method("PROPFIND", null)
-                    .header("Authorization", Credentials.basic(
-                        DataStore.webdavUsername ?: "",
-                        DataStore.webdavPassword ?: ""
-                    ))
+                    .header(
+                        "Authorization",
+                        Credentials.basic(
+                            DataStore.webdavUsername ?: "",
+                            DataStore.webdavPassword ?: "",
+                        ),
+                    )
                     .header("Depth", "0")
                     .build()
 
@@ -257,10 +261,13 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     val mkcolRequest = Request.Builder()
                         .url(dirUrl)
                         .method("MKCOL", null)
-                        .header("Authorization", Credentials.basic(
-                            DataStore.webdavUsername ?: "",
-                            DataStore.webdavPassword ?: ""
-                        ))
+                        .header(
+                            "Authorization",
+                            Credentials.basic(
+                                DataStore.webdavUsername ?: "",
+                                DataStore.webdavPassword ?: "",
+                            ),
+                        )
                         .build()
 
                     client.newCall(mkcolRequest).execute().use { response ->
@@ -277,10 +284,13 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     .url(fileUrl)
                     .put(backupData.toRequestBody("application/zip".toMediaType()))
                     .apply {
-                        header("Authorization", Credentials.basic(
-                            DataStore.webdavUsername ?: "",
-                            DataStore.webdavPassword ?: ""
-                        ))
+                        header(
+                            "Authorization",
+                            Credentials.basic(
+                                DataStore.webdavUsername ?: "",
+                                DataStore.webdavPassword ?: "",
+                            ),
+                        )
                     }
                     .build()
 
@@ -297,7 +307,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     MessageStore.showMessage(activity, R.string.webdav_backup_success)
                 }
             } catch (e: Exception) {
-                isWebDAVBackup = false  // ensure the flag is reset even when an exception occurs
+                isWebDAVBackup = false // ensure the flag is reset even when an exception occurs
                 Logs.w(e)
 
                 val errorMessage = try {
@@ -309,7 +319,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 } catch (ex: Exception) {
                     "WebDAV backup failed: ${e.message ?: ""}"
                 }
-                
+
                 onMainDispatcher {
                     MessageStore.showMessage(activity, errorMessage)
                 }
@@ -347,10 +357,13 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 val propfindRequest = Request.Builder()
                     .url(dirUrl)
                     .method("PROPFIND", null)
-                    .header("Authorization", Credentials.basic(
-                        DataStore.webdavUsername ?: "",
-                        DataStore.webdavPassword ?: ""
-                    ))
+                    .header(
+                        "Authorization",
+                        Credentials.basic(
+                            DataStore.webdavUsername ?: "",
+                            DataStore.webdavPassword ?: "",
+                        ),
+                    )
                     .header("Depth", "1")
                     .build()
 
@@ -364,15 +377,15 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
 
                     val responseBody = response.body?.string() ?: throw Exception("Empty response")
                     Logs.d("WebDAV restore - Directory listing: $responseBody")
-                    
+
                     val patterns = listOf(
                         """<D:href>[^<]*?nekobox_backup_[^<]*?\d{8}_\d{6}\.(json|zip)</D:href>""".toRegex(),
                         """<d:href>[^<]*?nekobox_backup_[^<]*?\d{8}_\d{6}\.(json|zip)</d:href>""".toRegex(),
-                        """<href>[^<]*?nekobox_backup_[^<]*?\d{8}_\d{6}\.(json|zip)</href>""".toRegex()
+                        """<href>[^<]*?nekobox_backup_[^<]*?\d{8}_\d{6}\.(json|zip)</href>""".toRegex(),
                     )
-                    
+
                     val backupFiles = mutableListOf<String>()
-                    
+
                     for (pattern in patterns) {
                         val matches = pattern.findAll(responseBody)
                         matches.forEach { match ->
@@ -386,7 +399,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                         }
                         if (backupFiles.isNotEmpty()) break
                     }
-                    
+
                     Logs.d("WebDAV restore - Found ${backupFiles.size} backup files: ${backupFiles.joinToString()}")
 
                     backupFiles.maxByOrNull { fileName ->
@@ -403,10 +416,13 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 val getRequest = Request.Builder()
                     .url(fileUrl)
                     .get()
-                    .header("Authorization", Credentials.basic(
-                        DataStore.webdavUsername ?: "",
-                        DataStore.webdavPassword ?: ""
-                    ))
+                    .header(
+                        "Authorization",
+                        Credentials.basic(
+                            DataStore.webdavUsername ?: "",
+                            DataStore.webdavPassword ?: "",
+                        ),
+                    )
                     .build()
 
                 val content = client.newCall(getRequest).execute().use { response ->
@@ -479,10 +495,11 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                                         json,
                                         import.backupConfigurations.isChecked,
                                         import.backupRules.isChecked,
-                                        import.backupSettings.isChecked
+                                        import.backupSettings.isChecked,
                                     )
                                     ProcessPhoenix.triggerRebirth(
-                                        activity, Intent(activity, MainActivity::class.java)
+                                        activity,
+                                        Intent(activity, MainActivity::class.java),
                                     )
                                 }.onFailure {
                                     Logs.w(it)
@@ -520,39 +537,47 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
         }
     }
 
-    private fun doBackup(
-        profile: Boolean,
-        rule: Boolean,
-        setting: Boolean
-    ): ByteArray {
+    private fun doBackup(profile: Boolean, rule: Boolean, setting: Boolean): ByteArray {
         val out = JSONObject().apply {
             put("version", 1)
             if (profile) {
-                put("profiles", JSONArray().apply {
-                    SagerDatabase.proxyDao.getAll().forEach {
-                        put(it.toBase64Str())
-                    }
-                })
+                put(
+                    "profiles",
+                    JSONArray().apply {
+                        SagerDatabase.proxyDao.getAll().forEach {
+                            put(it.toBase64Str())
+                        }
+                    },
+                )
 
-                put("groups", JSONArray().apply {
-                    SagerDatabase.groupDao.allGroups().forEach {
-                        put(it.toBase64Str())
-                    }
-                })
+                put(
+                    "groups",
+                    JSONArray().apply {
+                        SagerDatabase.groupDao.allGroups().forEach {
+                            put(it.toBase64Str())
+                        }
+                    },
+                )
             }
             if (rule) {
-                put("rules", JSONArray().apply {
-                    SagerDatabase.rulesDao.allRules().forEach {
-                        put(it.toBase64Str())
-                    }
-                })
+                put(
+                    "rules",
+                    JSONArray().apply {
+                        SagerDatabase.rulesDao.allRules().forEach {
+                            put(it.toBase64Str())
+                        }
+                    },
+                )
             }
             if (setting) {
-                put("settings", JSONArray().apply {
-                    PublicDatabase.kvPairDao.all().forEach {
-                        put(it.toBase64Str())
-                    }
-                })
+                put(
+                    "settings",
+                    JSONArray().apply {
+                        PublicDatabase.kvPairDao.all().forEach {
+                            put(it.toBase64Str())
+                        }
+                    },
+                )
             }
         }
 
@@ -561,17 +586,17 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
             ByteArrayOutputStream().use { bos ->
                 ZipOutputStream(bos).use { zos ->
                     zos.setLevel(Deflater.BEST_COMPRESSION)
-                    
+
                     val entry = ZipEntry("nekobox_backup.json").apply {
                         method = ZipEntry.DEFLATED
                     }
-                    
+
                     // write data
                     zos.putNextEntry(entry)
                     val bytes = jsonContent.toByteArray(Charsets.UTF_8)
                     zos.write(bytes)
                     zos.closeEntry()
-                    
+
                     // ensure all data is written and compressed
                     zos.finish()
                 }
@@ -655,7 +680,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                                     json,
                                     import.backupConfigurations.isChecked,
                                     import.backupRules.isChecked,
-                                    import.backupSettings.isChecked
+                                    import.backupSettings.isChecked,
                                 )
                                 triggerFullRestart(requireContext())
                             }.onFailure {
@@ -678,9 +703,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
         }
     }
 
-    fun finishImport(
-        content: JSONObject, profile: Boolean, rule: Boolean, setting: Boolean
-    ) {
+    fun finishImport(content: JSONObject, profile: Boolean, rule: Boolean, setting: Boolean) {
         // Validate-then-commit: decode EVERY selected section into memory first. If any entry
         // is malformed the decode throws here, BEFORE any destructive reset() runs, so a bad
         // (or maliciously truncated) backup file can never partially wipe the live DB.
@@ -690,16 +713,24 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
         val importConfigs = profile && content.has("profiles")
         val profiles = if (importConfigs) {
             decodeArray(content.getJSONArray("profiles")) { ProxyEntity.CREATOR.createFromParcel(it) }
-        } else null
+        } else {
+            null
+        }
         val groups = if (importConfigs) {
             decodeArray(content.getJSONArray("groups")) { ProxyGroup.CREATOR.createFromParcel(it) }
-        } else null
+        } else {
+            null
+        }
         val rules = if (rule && content.has("rules")) {
             decodeArray(content.getJSONArray("rules")) { ParcelizeBridge.createRule(it) }
-        } else null
+        } else {
+            null
+        }
         val settings = if (setting && content.has("settings")) {
             decodeArray(content.getJSONArray("settings")) { KeyValuePair.CREATOR.createFromParcel(it) }
-        } else null
+        } else {
+            null
+        }
 
         // Commit phase: only reached if every section above decoded successfully. Each
         // reset()+insert() pair runs in its own DB transaction so it is atomic - an
@@ -763,5 +794,4 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
     private fun showMessage(@StringRes resId: Int, vararg args: Any) {
         MessageStore.showMessage(requireActivity(), resId, *args)
     }
-
 }

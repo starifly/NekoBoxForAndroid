@@ -43,7 +43,7 @@ object Commandline {
             arg.indices.map { arg[it] }.forEach {
                 when (it) {
                     ' ', '\\', '"', '\'' -> {
-                        result.append('\\')  // intentionally no break
+                        result.append('\\') // intentionally no break
                         result.append(it)
                     }
                     else -> result.append(it)
@@ -60,8 +60,7 @@ object Commandline {
      * @return empty string for null or no command, else every argument split
      * by spaces and quoted by quoting rules.
      */
-    fun toString(args: Array<String>) =
-        toString(args.asIterable()) // thanks to Java, arrays aren't iterable
+    fun toString(args: Array<String>) = toString(args.asIterable()) // thanks to Java, arrays aren't iterable
 
     /**
      * Crack a command line.
@@ -71,7 +70,7 @@ object Commandline {
      */
     fun translateCommandline(toProcess: String?): Array<String> {
         if (toProcess == null || toProcess.isEmpty()) {
-            //no command? no string
+            // no command? no string
             return arrayOf()
         }
         // parse with a simple finite state machine
@@ -92,7 +91,9 @@ object Commandline {
                 inQuote -> if ("\'" == nextTok) {
                     lastTokenHasBeenQuoted = true
                     state = normal
-                } else current.append(nextTok)
+                } else {
+                    current.append(nextTok)
+                }
                 inDoubleQuote -> when (nextTok) {
                     "\"" -> if (lastTokenIsSlash) {
                         current.append(nextTok)
@@ -104,10 +105,12 @@ object Commandline {
                     "\\" -> lastTokenIsSlash = if (lastTokenIsSlash) {
                         current.append(nextTok)
                         false
-                    } else true
+                    } else {
+                        true
+                    }
                     else -> {
                         if (lastTokenIsSlash) {
-                            current.append("\\")   // unescaped
+                            current.append("\\") // unescaped
                             lastTokenIsSlash = false
                         }
                         current.append(nextTok)

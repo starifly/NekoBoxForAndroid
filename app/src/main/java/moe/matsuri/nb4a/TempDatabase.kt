@@ -22,7 +22,6 @@ abstract class TempDatabase : RoomDatabase() {
         }
 
         val profileCacheDao get() = instance.profileCacheDao()
-
     }
 
     abstract fun profileCacheDao(): KeyValuePair.Dao

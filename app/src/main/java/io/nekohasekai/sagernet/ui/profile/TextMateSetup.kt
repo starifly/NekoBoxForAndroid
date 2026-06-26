@@ -46,12 +46,7 @@ object TextMateSetup {
         initialized = true
     }
 
-    private fun loadTheme(
-        registry: ThemeRegistry,
-        name: String,
-        assetPath: String,
-        dark: Boolean,
-    ) {
+    private fun loadTheme(registry: ThemeRegistry, name: String, assetPath: String, dark: Boolean) {
         val input = FileProviderRegistry.getInstance().tryGetInputStream(assetPath)
             ?: error("Missing TextMate theme asset: $assetPath")
         val source = input.use { IThemeSource.fromInputStream(it, assetPath, null) }

@@ -32,7 +32,7 @@ import java.net.InetSocketAddress
 import java.net.Socket
 
 abstract class BoxInstance(
-    val profile: ProxyEntity
+    val profile: ProxyEntity,
 ) : AbstractInstance {
 
     lateinit var config: ConfigBuildResult
@@ -89,7 +89,8 @@ abstract class BoxInstance(
                         initPlugin("hysteria-plugin")
                         pluginConfigs[port] = profile.type to bean.buildHysteria1Config(port) {
                             File(
-                                app.cacheDir, "hysteria_" + SystemClock.elapsedRealtime() + ".ca"
+                                app.cacheDir,
+                                "hysteria_" + SystemClock.elapsedRealtime() + ".ca",
                             ).apply {
                                 parentFile?.mkdirs()
                                 cacheFiles.add(this)
@@ -100,7 +101,8 @@ abstract class BoxInstance(
                     is MasterDnsVpnBean -> {
                         initPlugin("masterdnsvpn-plugin")
                         pluginConfigs[port] = profile.type to bean.buildMasterDnsVpnConfig(
-                            port, File(app.noBackupFilesDir, "protect_path").absolutePath
+                            port,
+                            File(app.noBackupFilesDir, "protect_path").absolutePath,
                         )
                     }
                 }
@@ -127,14 +129,17 @@ abstract class BoxInstance(
 
                     bean is TrojanGoBean -> {
                         val configFile = File(
-                            cacheDir, "trojan_go_" + SystemClock.elapsedRealtime() + ".json"
+                            cacheDir,
+                            "trojan_go_" + SystemClock.elapsedRealtime() + ".json",
                         )
                         configFile.parentFile?.mkdirs()
                         configFile.writeText(config)
                         cacheFiles.add(configFile)
 
                         val commands = mutableListOf(
-                            initPlugin("trojan-go-plugin").path, "-config", configFile.absolutePath
+                            initPlugin("trojan-go-plugin").path,
+                            "-config",
+                            configFile.absolutePath,
                         )
 
                         processes.start(commands)
@@ -142,7 +147,8 @@ abstract class BoxInstance(
 
                     bean is MieruBean -> {
                         val configFile = File(
-                            cacheDir, "mieru_" + SystemClock.elapsedRealtime() + ".json"
+                            cacheDir,
+                            "mieru_" + SystemClock.elapsedRealtime() + ".json",
                         )
 
                         configFile.parentFile?.mkdirs()
@@ -154,7 +160,8 @@ abstract class BoxInstance(
                         envMap["MIERU_PROTECT_PATH"] = "protect_path"
 
                         val commands = mutableListOf(
-                            initPlugin("mieru-plugin").path, "run",
+                            initPlugin("mieru-plugin").path,
+                            "run",
                         )
 
                         processes.start(commands, envMap)
@@ -162,7 +169,8 @@ abstract class BoxInstance(
 
                     bean is NaiveBean -> {
                         val configFile = File(
-                            cacheDir, "naive_" + SystemClock.elapsedRealtime() + ".json"
+                            cacheDir,
+                            "naive_" + SystemClock.elapsedRealtime() + ".json",
                         )
 
                         configFile.parentFile?.mkdirs()
@@ -173,7 +181,8 @@ abstract class BoxInstance(
 
                         if (bean.certificates.isNotBlank()) {
                             val certFile = File(
-                                cacheDir, "naive_" + SystemClock.elapsedRealtime() + ".crt"
+                                cacheDir,
+                                "naive_" + SystemClock.elapsedRealtime() + ".crt",
                             )
 
                             certFile.parentFile?.mkdirs()
@@ -184,7 +193,8 @@ abstract class BoxInstance(
                         }
 
                         val commands = mutableListOf(
-                            initPlugin("naive-plugin").path, configFile.absolutePath
+                            initPlugin("naive-plugin").path,
+                            configFile.absolutePath,
                         )
 
                         processes.start(commands, envMap)
@@ -192,7 +202,8 @@ abstract class BoxInstance(
 
                     bean is HysteriaBean -> {
                         val configFile = File(
-                            cacheDir, "hysteria_" + SystemClock.elapsedRealtime() + ".json"
+                            cacheDir,
+                            "hysteria_" + SystemClock.elapsedRealtime() + ".json",
                         )
 
                         configFile.parentFile?.mkdirs()
@@ -206,7 +217,7 @@ abstract class BoxInstance(
                             configFile.absolutePath,
                             "--log-level",
                             if (DataStore.logLevel > 0) "trace" else "warn",
-                            "client"
+                            "client",
                         )
 
                         if (bean.protocol == HysteriaBean.PROTOCOL_FAKETCP) {
@@ -231,8 +242,10 @@ abstract class BoxInstance(
 
                         val commands = mutableListOf(
                             initPlugin("masterdnsvpn-plugin").path,
-                            "-json", configFile.absolutePath,
-                            "-resolvers", resolversFile.absolutePath,
+                            "-json",
+                            configFile.absolutePath,
+                            "-resolvers",
+                            resolversFile.absolutePath,
                         )
 
                         // The bundled MasterDnsVPN client is a CGO/PIE Go binary. When it is
@@ -317,7 +330,7 @@ abstract class BoxInstance(
                 if (!processes.isActive) {
                     Logs.w(
                         "sidecar listener not ready on port(s): ${pending.joinToString()}; " +
-                            "process pool already stopped (superseded start), ignoring"
+                            "process pool already stopped (superseded start), ignoring",
                     )
                     return@withContext
                 }
@@ -345,7 +358,10 @@ abstract class BoxInstance(
             }
         }
 
-        cacheFiles.removeAll { it.delete(); true }
+        cacheFiles.removeAll {
+            it.delete()
+            true
+        }
 
         if (::processes.isInitialized) processes.close(GlobalScope + Dispatchers.IO)
 
@@ -353,5 +369,4 @@ abstract class BoxInstance(
             box.close()
         }
     }
-
 }

@@ -17,7 +17,7 @@ import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 
 class SagerConnection(
     private var connectionId: Int,
-    private var listenForDeath: Boolean = false
+    private var listenForDeath: Boolean = false,
 ) : ServiceConnection, IBinder.DeathRecipient {
 
     companion object {
@@ -99,7 +99,6 @@ class SagerConnection(
                 callback.missingPlugin(profileName, pluginName)
             }
         }
-
     }
 
     private var binder: IBinder? = null
@@ -147,9 +146,11 @@ class SagerConnection(
 
     private fun unregisterCallback() {
         val service = service
-        if (service != null && callbackRegistered) try {
-            service.unregisterCallback(serviceCallback)
-        } catch (_: RemoteException) {
+        if (service != null && callbackRegistered) {
+            try {
+                service.unregisterCallback(serviceCallback)
+            } catch (_: RemoteException) {
+            }
         }
         callbackRegistered = false
     }
@@ -165,14 +166,18 @@ class SagerConnection(
 
     fun disconnect(context: Context) {
         unregisterCallback()
-        if (connectionActive) try {
-            context.unbindService(this)
-        } catch (_: IllegalArgumentException) {
-        }   // ignore
+        if (connectionActive) {
+            try {
+                context.unbindService(this)
+            } catch (_: IllegalArgumentException) {
+            } // ignore
+        }
         connectionActive = false
-        if (listenForDeath) try {
-            binder?.unlinkToDeath(this, 0)
-        } catch (_: NoSuchElementException) {
+        if (listenForDeath) {
+            try {
+                binder?.unlinkToDeath(this, 0)
+            } catch (_: NoSuchElementException) {
+            }
         }
         binder = null
         service = null

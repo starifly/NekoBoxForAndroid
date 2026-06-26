@@ -31,12 +31,14 @@ class VpnRequestActivity : AppCompatActivity() {
                 registerReceiver(
                     receiver,
                     IntentFilter(Intent.ACTION_USER_PRESENT),
-                    Context.RECEIVER_EXPORTED
+                    Context.RECEIVER_EXPORTED,
                 )
             } else {
                 registerReceiver(receiver, IntentFilter(Intent.ACTION_USER_PRESENT))
             }
-        } else connect.launch(null)
+        } else {
+            connect.launch(null)
+        }
     }
 
     private val connect = registerForActivityResult(StartService()) {
@@ -52,30 +54,25 @@ class VpnRequestActivity : AppCompatActivity() {
     class StartService : ActivityResultContract<Void?, Boolean>() {
         private var cachedIntent: Intent? = null
 
-        override fun getSynchronousResult(
-            context: Context,
-            input: Void?,
-        ): SynchronousResult<Boolean>? {
-            if (DataStore.serviceMode == Key.MODE_VPN) VpnService.prepare(context)?.let { intent ->
-                cachedIntent = intent
-                return null
+        override fun getSynchronousResult(context: Context, input: Void?): SynchronousResult<Boolean>? {
+            if (DataStore.serviceMode == Key.MODE_VPN) {
+                VpnService.prepare(context)?.let { intent ->
+                    cachedIntent = intent
+                    return null
+                }
             }
             SagerNet.startService()
             return SynchronousResult(false)
         }
 
-        override fun createIntent(context: Context, input: Void?) =
-            cachedIntent!!.also { cachedIntent = null }
+        override fun createIntent(context: Context, input: Void?) = cachedIntent!!.also { cachedIntent = null }
 
-        override fun parseResult(resultCode: Int, intent: Intent?) =
-            if (resultCode == Activity.RESULT_OK) {
-                SagerNet.startService()
-                false
-            } else {
-                Logs.e("Failed to start VpnService: $intent")
-                true
-            }
+        override fun parseResult(resultCode: Int, intent: Intent?) = if (resultCode == Activity.RESULT_OK) {
+            SagerNet.startService()
+            false
+        } else {
+            Logs.e("Failed to start VpnService: $intent")
+            true
+        }
     }
-
-
 }

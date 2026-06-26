@@ -62,5 +62,4 @@ class StunActivity : ThemedActivity() {
             }
         }
     }
-
 }

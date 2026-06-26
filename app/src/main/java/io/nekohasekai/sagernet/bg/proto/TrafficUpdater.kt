@@ -23,9 +23,11 @@ class TrafficUpdater(
         val now = System.currentTimeMillis()
         val interval = now - item.lastUpdate
         item.lastUpdate = now
-        if (interval <= 0) return item.apply {
-            rxRate = 0
-            txRate = 0
+        if (interval <= 0) {
+            return item.apply {
+                rxRate = 0
+                txRate = 0
+            }
         }
 
         // query

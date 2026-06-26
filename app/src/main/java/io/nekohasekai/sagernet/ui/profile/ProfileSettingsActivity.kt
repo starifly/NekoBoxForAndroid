@@ -94,8 +94,12 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         onBackPressedDispatcher.addCallback(this) {
-            if (DataStore.dirty) UnsavedChangesDialogFragment().apply { key() }
-                .show(supportFragmentManager, null) else finish()
+            if (DataStore.dirty) {
+                UnsavedChangesDialogFragment().apply { key() }
+                    .show(supportFragmentManager, null)
+            } else {
+                finish()
+            }
         }
         // ViewBinding intentionally not used here: this activity sets its content via the
         // ThemedActivity(@LayoutRes) constructor (contentLayoutId), not by inflating a binding,
@@ -132,14 +136,10 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                         .commit()
                 }
             }
-
-
         }
-
     }
 
     open suspend fun saveAndExit() {
-
         val editingId = DataStore.editingId
         if (editingId == 0L) {
             val editingGroup = DataStore.editingGroup
@@ -155,7 +155,6 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
             ProfileManager.updateProfile(proxyEntity!!.apply { (requireBean() as T).serialize() })
         }
         finish()
-
     }
 
     val child by lazy { supportFragmentManager.findFragmentById(R.id.settings) as MyPreferenceFragmentCompat }
@@ -163,11 +162,13 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.profile_config_menu, menu)
         menu.findItem(R.id.action_move)?.apply {
-            if (DataStore.editingId != 0L // not new profile
-                && SagerDatabase.groupDao.getById(DataStore.editingGroup)?.type == GroupType.BASIC // not in subscription group
-                && SagerDatabase.groupDao.allGroups()
+            if (DataStore.editingId != 0L && // not new profile
+                SagerDatabase.groupDao.getById(DataStore.editingGroup)?.type == GroupType.BASIC && // not in subscription group
+                SagerDatabase.groupDao.allGroups()
                     .filter { it.type == GroupType.BASIC }.size > 1 // have other basic group
-            ) isVisible = true
+            ) {
+                isVisible = true
+            }
         }
         menu.findItem(R.id.action_create_shortcut)?.apply {
             if (Build.VERSION.SDK_INT >= 26 && DataStore.editingId != 0L) {
@@ -200,10 +201,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
         }
     }
 
-    abstract fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    )
+    abstract fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?)
 
     open fun PreferenceFragmentCompat.viewCreated(view: View, savedInstanceState: Bundle?) {
     }
@@ -226,7 +224,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                 Toast.makeText(
                     SagerNet.application,
                     "Error on createPreferences, please try again.",
-                    Toast.LENGTH_SHORT
+                    Toast.LENGTH_SHORT,
                 ).show()
                 Logs.e(e)
             }
@@ -248,13 +246,13 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
         var callbackCustomOutbound: ((String) -> Unit)? = null
 
         val resultCallbackCustom = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
+            ActivityResultContracts.StartActivityForResult(),
         ) { (_, _) ->
             callbackCustom?.let { it(DataStore.serverCustom) }
         }
 
         val resultCallbackCustomOutbound = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
+            ActivityResultContracts.StartActivityForResult(),
         ) { (_, _) ->
             callbackCustomOutbound?.let { it(DataStore.serverCustomOutbound) }
         }
@@ -268,8 +266,9 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                     DeleteConfirmationDialogFragment().apply {
                         arg(
                             ProfileIdArg(
-                                DataStore.editingId, DataStore.editingGroup
-                            )
+                                DataStore.editingId,
+                                DataStore.editingGroup,
+                            ),
                         )
                         key()
                     }.show(parentFragmentManager, null)
@@ -292,10 +291,11 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                     resultCallbackCustomOutbound.launch(
                         Intent(
                             requireContext(),
-                            ConfigEditActivity::class.java
+                            ConfigEditActivity::class.java,
                         ).apply {
                             putExtra("key", Key.SERVER_CUSTOM_OUTBOUND)
-                        })
+                        },
+                    )
                 }
                 true
             }
@@ -308,10 +308,11 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                     resultCallbackCustom.launch(
                         Intent(
                             requireContext(),
-                            ConfigEditActivity::class.java
+                            ConfigEditActivity::class.java,
                         ).apply {
                             putExtra("key", Key.SERVER_CUSTOM)
-                        })
+                        },
+                    )
                 }
                 true
             }
@@ -324,14 +325,18 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                     .setLongLabel(ent.displayName())
                     .setIcon(
                         IconCompat.createWithResource(
-                            activity, R.drawable.ic_qu_shadowsocks_launcher
-                        )
-                    ).setIntent(Intent(
-                        context, QuickToggleShortcut::class.java
-                    ).apply {
-                        action = Intent.ACTION_MAIN
-                        putExtra("profile", ent.id)
-                    }).build()
+                            activity,
+                            R.drawable.ic_qu_shadowsocks_launcher,
+                        ),
+                    ).setIntent(
+                        Intent(
+                            context,
+                            QuickToggleShortcut::class.java,
+                        ).apply {
+                            action = Intent.ACTION_MAIN
+                            putExtra("profile", ent.id)
+                        },
+                    ).build()
                 ShortcutManagerCompat.requestPinShortcut(activity, shortcut, null)
             }
 
@@ -382,7 +387,6 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
             }
             super.onDisplayPreferenceDialog(preference)
         }
-
     }
 
     object PasswordSummaryProvider : Preference.SummaryProvider<EditTextPreference> {
@@ -395,7 +399,5 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                 "\u2022".repeat(text.length)
             }
         }
-
     }
-
 }

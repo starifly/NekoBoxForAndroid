@@ -84,7 +84,7 @@ fun AnyTLSBean.toUri(): String {
 fun parseAnytls(url: String): AnyTLSBean {
     // https://github.com/anytls/anytls-go/blob/main/docs/uri_scheme.md
     val link = url.replace("anytls://", "https://").toHttpUrlOrNull() ?: error(
-        "invalid anytls link $url"
+        "invalid anytls link $url",
     )
     return AnyTLSBean().apply {
         serverAddress = link.host

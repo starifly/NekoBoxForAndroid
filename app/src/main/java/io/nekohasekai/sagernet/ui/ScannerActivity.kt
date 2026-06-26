@@ -12,7 +12,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.OptIn as AndroidXOptIn
 import androidx.appcompat.widget.Toolbar
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
@@ -40,6 +39,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import androidx.annotation.OptIn as AndroidXOptIn
 
 class ScannerActivity : ThemedActivity() {
 
@@ -54,7 +54,7 @@ class ScannerActivity : ThemedActivity() {
         BarcodeScanning.getClient(
             BarcodeScannerOptions.Builder()
                 .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
-                .build()
+                .build(),
         )
     }
 
@@ -62,7 +62,7 @@ class ScannerActivity : ThemedActivity() {
     private val importedN = AtomicInteger(0)
 
     private val requestCamera = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
+        ActivityResultContracts.RequestPermission(),
     ) { granted ->
         if (granted) startCamera() else finish()
     }
@@ -112,8 +112,8 @@ class ScannerActivity : ThemedActivity() {
                 .setResolutionStrategy(
                     ResolutionStrategy(
                         Size(1280, 720),
-                        ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER
-                    )
+                        ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER,
+                    ),
                 )
                 .build()
 
@@ -126,12 +126,18 @@ class ScannerActivity : ThemedActivity() {
             try {
                 provider.unbindAll()
                 camera = provider.bindToLifecycle(
-                    this, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis
+                    this,
+                    CameraSelector.DEFAULT_BACK_CAMERA,
+                    preview,
+                    analysis,
                 )
                 // Hide the torch button if the device has no flash unit.
                 binding.fabTorch.visibility =
-                    if (camera?.cameraInfo?.hasFlashUnit() == true) android.view.View.VISIBLE
-                    else android.view.View.GONE
+                    if (camera?.cameraInfo?.hasFlashUnit() == true) {
+                        android.view.View.VISIBLE
+                    } else {
+                        android.view.View.GONE
+                    }
                 binding.fabTorch.contentDescription = getString(R.string.scan_torch_turn_on)
             } catch (e: Exception) {
                 Logs.w(e)
@@ -172,11 +178,11 @@ class ScannerActivity : ThemedActivity() {
         torchOn = !torchOn
         cam.cameraControl.enableTorch(torchOn)
         binding.fabTorch.setImageResource(
-            if (torchOn) R.drawable.ic_baseline_flash_on_24 else R.drawable.ic_baseline_flash_off_24
+            if (torchOn) R.drawable.ic_baseline_flash_on_24 else R.drawable.ic_baseline_flash_off_24,
         )
         // Keep the accessibility label describing the action the button will perform.
         binding.fabTorch.contentDescription = getString(
-            if (torchOn) R.string.scan_torch_turn_off else R.string.scan_torch_turn_on
+            if (torchOn) R.string.scan_torch_turn_off else R.string.scan_torch_turn_on,
         )
     }
 
@@ -195,7 +201,7 @@ class ScannerActivity : ThemedActivity() {
     }
 
     private val importCodeFile = registerForActivityResult(
-        ActivityResultContracts.GetMultipleContents()
+        ActivityResultContracts.GetMultipleContents(),
     ) { uris ->
         if (uris.isEmpty()) return@registerForActivityResult
         runOnDefaultDispatcher {
@@ -206,7 +212,7 @@ class ScannerActivity : ThemedActivity() {
                     val bitmap = decodeBoundedBitmap(uri)
                     val barcodes = try {
                         com.google.android.gms.tasks.Tasks.await(
-                            barcodeScanner.process(InputImage.fromBitmap(bitmap, 0))
+                            barcodeScanner.process(InputImage.fromBitmap(bitmap, 0)),
                         )
                     } finally {
                         bitmap.recycle()
@@ -243,7 +249,7 @@ class ScannerActivity : ThemedActivity() {
     private fun decodeBoundedBitmap(uri: android.net.Uri): android.graphics.Bitmap {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             ImageDecoder.decodeBitmap(
-                ImageDecoder.createSource(contentResolver, uri)
+                ImageDecoder.createSource(contentResolver, uri),
             ) { decoder, info, _ ->
                 decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
                 decoder.isMutableRequired = true
@@ -252,7 +258,7 @@ class ScannerActivity : ThemedActivity() {
                     val scale = MAX_IMPORT_DIMEN.toFloat() / longer
                     decoder.setTargetSize(
                         (info.size.width * scale).toInt().coerceAtLeast(1),
-                        (info.size.height * scale).toInt().coerceAtLeast(1)
+                        (info.size.height * scale).toInt().coerceAtLeast(1),
                     )
                 }
             }
@@ -267,9 +273,11 @@ class ScannerActivity : ThemedActivity() {
             val longer = maxOf(bounds.outWidth, bounds.outHeight)
             while (longer / sample > MAX_IMPORT_DIMEN) sample *= 2
             val opts = android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }
-            (contentResolver.openInputStream(uri)?.use {
-                android.graphics.BitmapFactory.decodeStream(it, null, opts)
-            }) ?: error("Cannot decode image")
+            (
+                contentResolver.openInputStream(uri)?.use {
+                    android.graphics.BitmapFactory.decodeStream(it, null, opts)
+                }
+                ) ?: error("Cannot decode image")
         }
     }
 
@@ -301,10 +309,12 @@ class ScannerActivity : ThemedActivity() {
                 0
             }
         } catch (e: SubscriptionFoundException) {
-            startActivity(Intent(this@ScannerActivity, MainActivity::class.java).apply {
-                action = Intent.ACTION_VIEW
-                data = e.link.toUri()
-            })
+            startActivity(
+                Intent(this@ScannerActivity, MainActivity::class.java).apply {
+                    action = Intent.ACTION_VIEW
+                    data = e.link.toUri()
+                },
+            )
             0
         } catch (e: Throwable) {
             Logs.w(e)

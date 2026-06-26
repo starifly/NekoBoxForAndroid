@@ -46,10 +46,7 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
         publicKey = DataStore.serverCertificates
     }
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    override fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.ssh_preferences)
         findPreference<EditTextPreference>(Key.SERVER_PORT)!!.apply {
             setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
@@ -73,5 +70,4 @@ class SSHSettingsActivity : ProfileSettingsActivity<SSHBean>() {
             true
         }
     }
-
 }

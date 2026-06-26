@@ -13,7 +13,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.DiffUtil
@@ -47,7 +46,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
     private val adapter = AboutAdapter()
 
     private val requestIgnoreBatteryOptimizations = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
+        ActivityResultContracts.StartActivityForResult(),
     ) {
         // The battery-optimization request/settings screen returns RESULT_CANCELED even
         // when the user actually granted the exemption, so don't gate on the result code
@@ -91,10 +90,12 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                             " (${Plugins.displayExeProvider(pkg.packageName)})",
                         subText = "v" + pkg.versionName,
                         onClick = {
-                            startActivity(Intent().apply {
-                                action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                                data = Uri.fromParts("package", pkg.packageName, null)
-                            })
+                            startActivity(
+                                Intent().apply {
+                                    action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                                    data = Uri.fromParts("package", pkg.packageName, null)
+                                },
+                            )
                         },
                     )
                 } catch (e: Exception) {
@@ -118,7 +119,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
             subText = SagerNet.appVersionNameForDisplay,
             onClick = {
                 requireContext().launchCustomTab(
-                    "https://github.com/hawkff/NekoBoxForAndroid/releases"
+                    "https://github.com/hawkff/NekoBoxForAndroid/releases",
                 )
             },
         )
@@ -145,8 +146,11 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                 icon = R.drawable.ic_baseline_running_with_errors_24,
                 text = getString(R.string.ignore_battery_optimizations),
                 subText = getString(
-                    if (ignoring) R.string.battery_optimization_enabled
-                    else R.string.battery_optimization_disabled
+                    if (ignoring) {
+                        R.string.battery_optimization_enabled
+                    } else {
+                        R.string.battery_optimization_disabled
+                    },
                 ),
                 onClick = {
                     // The ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS dialog only appears while
@@ -158,7 +162,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                     } else {
                         Intent(
                             Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                            "package:${app.packageName}".toUri()
+                            "package:${app.packageName}".toUri(),
                         )
                     }
                     requestIgnoreBatteryOptimizations.launch(intent)
@@ -177,7 +181,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                     trySocks5(
                         DataStore.mixedPort,
                         DataStore.mixedInboundUser,
-                        DataStore.mixedInboundPass
+                        DataStore.mixedInboundPass,
                     )
                 }
                 val response = client.newRequest().apply {
@@ -219,8 +223,8 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                                 context.getString(
                                     R.string.update_dialog_message,
                                     SagerNet.appVersionNameForDisplay,
-                                    releaseName
-                                )
+                                    releaseName,
+                                ),
                             )
                             .setPositiveButton(R.string.yes) { _, _ ->
                                 val intent = Intent(Intent.ACTION_VIEW, releaseUrl.toUri())
@@ -254,8 +258,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
         companion object {
             // AboutItem carries an onClick lambda, so compare only the visible content.
             private val DIFF = object : DiffUtil.ItemCallback<AboutItem>() {
-                override fun areItemsTheSame(oldItem: AboutItem, newItem: AboutItem) =
-                    oldItem.text == newItem.text
+                override fun areItemsTheSame(oldItem: AboutItem, newItem: AboutItem) = oldItem.text == newItem.text
 
                 override fun areContentsTheSame(oldItem: AboutItem, newItem: AboutItem) =
                     oldItem.icon == newItem.icon &&
@@ -267,8 +270,10 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AboutViewHolder {
             return AboutViewHolder(
                 LayoutAboutItemBinding.inflate(
-                    LayoutInflater.from(parent.context), parent, false
-                )
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false,
+                ),
             )
         }
 

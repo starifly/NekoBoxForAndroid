@@ -23,8 +23,7 @@ class KryoFormatCompatTest {
     private val goldenSocksHex =
         "020000003139322e302e322e31b03804000002000000757365f2706173f30101000000676f6c64656e2d736f636bf38181"
 
-    private fun String.hexToBytes(): ByteArray =
-        chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+    private fun String.hexToBytes(): ByteArray = chunked(2).map { it.toInt(16).toByte() }.toByteArray()
 
     @Test
     fun golden5_2_1_bytes_stillDeserialize() {

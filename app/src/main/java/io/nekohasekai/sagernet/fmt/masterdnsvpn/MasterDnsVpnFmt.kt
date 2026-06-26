@@ -12,8 +12,8 @@ package io.nekohasekai.sagernet.fmt.masterdnsvpn
 import io.nekohasekai.sagernet.fmt.LOCALHOST
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.linkBuilder
-import io.nekohasekai.sagernet.ktx.toStringPretty
 import io.nekohasekai.sagernet.ktx.toLink
+import io.nekohasekai.sagernet.ktx.toStringPretty
 import io.nekohasekai.sagernet.ktx.urlSafe
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.json.JSONArray
@@ -57,9 +57,12 @@ fun MasterDnsVpnBean.buildMasterDnsVpnConfig(port: Int, protectPath: String): St
         // Loopback-only listener, no SOCKS auth (matches the other sidecars).
         put("SOCKS5_AUTH", false)
 
-        put("DOMAINS", JSONArray().apply {
-            domainList.forEach { put(it) }
-        })
+        put(
+            "DOMAINS",
+            JSONArray().apply {
+                domainList.forEach { put(it) }
+            },
+        )
         put("DATA_ENCRYPTION_METHOD", dataEncryptionMethod)
         put("ENCRYPTION_KEY", encryptionKey)
 
@@ -98,8 +101,11 @@ fun MasterDnsVpnBean.buildMasterDnsVpnConfig(port: Int, protectPath: String): St
         // Malformed override JSON must not crash config generation / VPN start.
         try {
             val protectedKeys = setOf(
-                "FD_CONTROL_UNIX_SOCKET", "LISTEN_IP", "LISTEN_PORT",
-                "PROTOCOL_TYPE", "SOCKS5_AUTH",
+                "FD_CONTROL_UNIX_SOCKET",
+                "LISTEN_IP",
+                "LISTEN_PORT",
+                "PROTOCOL_TYPE",
+                "SOCKS5_AUTH",
             )
             val extra = JSONObject(advancedJson)
             for (key in extra.keys()) {

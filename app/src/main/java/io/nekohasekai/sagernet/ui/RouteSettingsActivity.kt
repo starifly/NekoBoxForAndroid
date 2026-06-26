@@ -108,10 +108,7 @@ class RouteSettingsActivity(
         return DataStore.dirty
     }
 
-    fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.route_preferences)
 
         editConfigPreference = findPreference(Key.SERVER_CONFIG)!!
@@ -126,23 +123,26 @@ class RouteSettingsActivity(
     }
 
     val selectProfileForAdd = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
+        ActivityResultContracts.StartActivityForResult(),
     ) { (resultCode, data) ->
-        if (resultCode == Activity.RESULT_OK) runOnDefaultDispatcher {
-            val profile = ProfileManager.getProfile(
-                data!!.getLongExtra(
-                    ProfileSelectActivity.EXTRA_PROFILE_ID, 0
-                )
-            ) ?: return@runOnDefaultDispatcher
-            DataStore.routeOutboundRule = profile.id
-            onMainDispatcher {
-                outbound.value = OutboundPreference.VALUE_SELECT_PROFILE
+        if (resultCode == Activity.RESULT_OK) {
+            runOnDefaultDispatcher {
+                val profile = ProfileManager.getProfile(
+                    data!!.getLongExtra(
+                        ProfileSelectActivity.EXTRA_PROFILE_ID,
+                        0,
+                    ),
+                ) ?: return@runOnDefaultDispatcher
+                DataStore.routeOutboundRule = profile.id
+                onMainDispatcher {
+                    outbound.value = OutboundPreference.VALUE_SELECT_PROFILE
+                }
             }
         }
     }
 
     val selectAppList = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
+        ActivityResultContracts.StartActivityForResult(),
     ) { (_, _) ->
         apps.postUpdate()
     }
@@ -158,12 +158,13 @@ class RouteSettingsActivity(
             if (newValue.toString() == OutboundPreference.VALUE_SELECT_PROFILE) {
                 selectProfileForAdd.launch(
                     Intent(
-                        this@RouteSettingsActivity, ProfileSelectActivity::class.java
+                        this@RouteSettingsActivity,
+                        ProfileSelectActivity::class.java,
                     ).apply {
                         ProfileManager.getProfile(DataStore.routeOutboundRule)?.let {
                             putExtra(ProfileSelectActivity.EXTRA_SELECTED, it)
                         }
-                    }
+                    },
                 )
                 false
             } else {
@@ -174,8 +175,9 @@ class RouteSettingsActivity(
         apps.setOnPreferenceClickListener {
             selectAppList.launch(
                 Intent(
-                    this@RouteSettingsActivity, AppListActivity::class.java
-                )
+                    this@RouteSettingsActivity,
+                    AppListActivity::class.java,
+                ),
             )
             true
         }
@@ -225,7 +227,9 @@ class RouteSettingsActivity(
         onBackPressedDispatcher.addCallback(this) {
             if (needSave()) {
                 UnsavedChangesDialogFragment().apply { key() }.show(supportFragmentManager, null)
-            } else finish()
+            } else {
+                finish()
+            }
         }
         // ViewBinding intentionally not used here: this activity sets its content via the
         // ThemedActivity(@LayoutRes) constructor (contentLayoutId), not by inflating a binding,
@@ -263,14 +267,10 @@ class RouteSettingsActivity(
                     DataStore.profileCacheStore.registerChangeListener(this@RouteSettingsActivity)
                 }
             }
-
-
         }
-
     }
 
     suspend fun saveAndExit() {
-
         if (!needSave()) {
             onMainDispatcher {
                 MaterialAlertDialogBuilder(this@RouteSettingsActivity).setTitle(R.string.empty_route)
@@ -297,7 +297,6 @@ class RouteSettingsActivity(
             ProfileManager.updateRule(entity.apply { serialize() })
         }
         finish()
-
     }
 
     val child by lazy { supportFragmentManager.findFragmentById(R.id.settings) as MyPreferenceFragmentCompat }
@@ -341,7 +340,7 @@ class RouteSettingsActivity(
                 Toast.makeText(
                     SagerNet.application,
                     "Error on createPreferences, please try again.",
-                    Toast.LENGTH_SHORT
+                    Toast.LENGTH_SHORT,
                 ).show()
                 Logs.e(e)
             }
@@ -386,7 +385,6 @@ class RouteSettingsActivity(
             }
             super.onDisplayPreferenceDialog(preference)
         }
-
     }
 
     object PasswordSummaryProvider : Preference.SummaryProvider<EditTextPreference> {
@@ -399,7 +397,5 @@ class RouteSettingsActivity(
                 "\u2022".repeat(text.length)
             }
         }
-
     }
-
 }

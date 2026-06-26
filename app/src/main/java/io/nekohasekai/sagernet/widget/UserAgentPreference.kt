@@ -9,9 +9,13 @@ import io.nekohasekai.sagernet.ktx.USER_AGENT
 
 class UserAgentPreference
 @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null, defStyle: Int = TypedArrayUtils.getAttr(
-        context, R.attr.editTextPreferenceStyle, android.R.attr.editTextPreferenceStyle
-    )
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyle: Int = TypedArrayUtils.getAttr(
+        context,
+        R.attr.editTextPreferenceStyle,
+        android.R.attr.editTextPreferenceStyle,
+    ),
 ) : EditTextPreference(context, attrs, defStyle) {
 
     public override fun notifyChanged() {
@@ -24,5 +28,4 @@ class UserAgentPreference
         }
         return super.getSummary()
     }
-
 }

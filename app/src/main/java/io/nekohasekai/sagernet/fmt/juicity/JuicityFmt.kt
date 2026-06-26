@@ -12,7 +12,7 @@ import java.util.Base64
 
 fun parseJuicity(url: String): JuicityBean {
     val link = url.replace("juicity://", "https://").toHttpUrlOrNull() ?: error(
-        "invalid juicity link $url"
+        "invalid juicity link $url",
     )
     return JuicityBean().apply {
         name = link.fragment

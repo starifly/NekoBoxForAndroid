@@ -9,11 +9,10 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.json.JSONObject
 import java.io.File
 
-
 // hysteria://host:port?auth=123456&peer=sni.domain&insecure=1|0&upmbps=100&downmbps=100&alpn=hysteria&obfs=xplus&obfsParam=123456#remarks
 fun parseHysteria1(url: String): HysteriaBean {
     val link = url.replace("hysteria://", "https://").toHttpUrlOrNull() ?: error(
-        "invalid hysteria link $url"
+        "invalid hysteria link $url",
     )
     return HysteriaBean().apply {
         protocolVersion = 1
@@ -327,11 +326,12 @@ fun HysteriaBean.buildHysteria1Config(port: Int, cacheFile: (() -> File)?): Stri
         put("up_mbps", uploadMbps)
         put("down_mbps", downloadMbps)
         put(
-            "socks5", JSONObject(
+            "socks5",
+            JSONObject(
                 mapOf(
                     "listen" to "$LOCALHOST:$port",
-                )
-            )
+                ),
+            ),
         )
         put("retry", 5)
         put("fast_open", true)
@@ -508,10 +508,7 @@ fun hopPortsToSingboxList(s: String): List<String> {
  * @param port local SOCKS5 port for the sidecar to listen on (== sing-box outbound port).
  * @param protectPath absolute path to libcore's protect unix socket.
  */
-fun HysteriaBean.buildHysteria2SidecarConfig(
-    port: Int,
-    protectPath: String,
-): String {
+fun HysteriaBean.buildHysteria2SidecarConfig(port: Int, protectPath: String): String {
     if (protocolVersion != 2) {
         throw Exception("error version: $protocolVersion")
     }
@@ -522,46 +519,73 @@ fun HysteriaBean.buildHysteria2SidecarConfig(
     return JSONObject().apply {
         put("server", "$serverAddress:$serverPorts")
         if (authPayload.isNotBlank()) put("auth", authPayload)
-        put("tls", JSONObject().apply {
-            if (realSni.isNotBlank()) put("sni", realSni)
-            put("insecure", allowInsecure || DataStore.globalAllowInsecure)
-            if (caText.isNotBlank()) put("ca", caText)
-        })
+        put(
+            "tls",
+            JSONObject().apply {
+                if (realSni.isNotBlank()) put("sni", realSni)
+                put("insecure", allowInsecure || DataStore.globalAllowInsecure)
+                if (caText.isNotBlank()) put("ca", caText)
+            },
+        )
         if (hysteria2ObfsType == HysteriaBean.OBFS_GECKO && obfuscation.isNotBlank()) {
             // Clamp to hysteria's accepted bounds: 1 <= min <= max <= 2048.
             val min = geckoMinPacketSize.coerceIn(1, 2048)
             val max = geckoMaxPacketSize.coerceIn(min, 2048)
-            put("obfs", JSONObject().apply {
-                put("type", "gecko")
-                put("gecko", JSONObject().apply {
-                    put("password", obfuscation)
-                    put("minPacketSize", min)
-                    put("maxPacketSize", max)
-                })
-            })
+            put(
+                "obfs",
+                JSONObject().apply {
+                    put("type", "gecko")
+                    put(
+                        "gecko",
+                        JSONObject().apply {
+                            put("password", obfuscation)
+                            put("minPacketSize", min)
+                            put("maxPacketSize", max)
+                        },
+                    )
+                },
+            )
         } else if (hysteria2ObfsType == HysteriaBean.OBFS_SALAMANDER && obfuscation.isNotBlank()) {
-            put("obfs", JSONObject().apply {
-                put("type", "salamander")
-                put("salamander", JSONObject().apply {
-                    put("password", obfuscation)
-                })
-            })
+            put(
+                "obfs",
+                JSONObject().apply {
+                    put("type", "salamander")
+                    put(
+                        "salamander",
+                        JSONObject().apply {
+                            put("password", obfuscation)
+                        },
+                    )
+                },
+            )
         }
         if (uploadMbps > 0 || downloadMbps > 0) {
-            put("bandwidth", JSONObject().apply {
-                if (uploadMbps > 0) put("up", "$uploadMbps mbps")
-                if (downloadMbps > 0) put("down", "$downloadMbps mbps")
-            })
+            put(
+                "bandwidth",
+                JSONObject().apply {
+                    if (uploadMbps > 0) put("up", "$uploadMbps mbps")
+                    if (downloadMbps > 0) put("down", "$downloadMbps mbps")
+                },
+            )
         }
-        put("quic", JSONObject().apply {
-            put("sockopts", JSONObject().apply {
-                put("fdControlUnixSocket", protectPath)
-            })
-        })
-        put("socks5", JSONObject().apply {
-            put("listen", "$LOCALHOST:$port")
-            put("disableUDP", false)
-        })
+        put(
+            "quic",
+            JSONObject().apply {
+                put(
+                    "sockopts",
+                    JSONObject().apply {
+                        put("fdControlUnixSocket", protectPath)
+                    },
+                )
+            },
+        )
+        put(
+            "socks5",
+            JSONObject().apply {
+                put("listen", "$LOCALHOST:$port")
+                put("disableUDP", false)
+            },
+        )
         put("lazy", true)
     }.toStringPretty()
 }

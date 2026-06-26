@@ -37,10 +37,7 @@ class ShadowsocksRSettingsActivity : ProfileSettingsActivity<ShadowsocksRBean>()
         obfsParam = DataStore.serverObfsParam
     }
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    override fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.shadowsocksr_preferences)
         findPreference<EditTextPreference>(Key.SERVER_PORT)!!.apply {
             setOnBindEditTextListener(EditTextPreferenceModifiers.Port)

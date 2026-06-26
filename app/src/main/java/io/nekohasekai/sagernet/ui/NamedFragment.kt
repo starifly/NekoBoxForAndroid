@@ -10,5 +10,4 @@ abstract class NamedFragment : Fragment {
     private val name by lazy { name0() }
     fun name() = name
     protected abstract fun name0(): String
-
 }

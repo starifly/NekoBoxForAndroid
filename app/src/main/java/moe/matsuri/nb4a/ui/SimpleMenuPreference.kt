@@ -34,13 +34,12 @@ import io.nekohasekai.sagernet.ktx.getColorAttr
  * [Simple Menus](https://material.google.com/components/menus.html#menus-behavior).
  */
 
-
 open class SimpleMenuPreference
 @JvmOverloads constructor(
     context: Context?,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = androidx.preference.R.attr.dropdownPreferenceStyle,
-    defStyleRes: Int = 0
+    defStyleRes: Int = 0,
 ) : DropDownPreference(context!!, attrs, defStyleAttr, defStyleRes) {
 
     private lateinit var mAdapter: SimpleMenuAdapter
@@ -79,7 +78,8 @@ open class SimpleMenuPreference
         // text low-contrast on dark themes. ~20% alpha reads on any background
         // while keeping the text legible.
         private val selectedColor = ColorUtils.setAlphaComponent(
-            context.getColorAttr(R.attr.colorPrimary), 41 // 0.16 alpha, matches nav_item_fill.xml
+            context.getColorAttr(R.attr.colorPrimary),
+            41, // 0.16 alpha, matches nav_item_fill.xml
         )
 
         private val topDrawable = GradientDrawable().apply {

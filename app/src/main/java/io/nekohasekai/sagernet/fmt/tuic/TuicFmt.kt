@@ -11,7 +11,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 fun parseTuic(url: String): TuicBean {
     // https://github.com/daeuniverse/dae/discussions/182
     val link = url.replace("tuic://", "https://").toHttpUrlOrNull() ?: error(
-        "invalid tuic link $url"
+        "invalid tuic link $url",
     )
     return TuicBean().apply {
         protocolVersion = 5

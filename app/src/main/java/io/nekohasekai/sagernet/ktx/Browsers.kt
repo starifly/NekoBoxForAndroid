@@ -1,4 +1,4 @@
-  package io.nekohasekai.sagernet.ktx
+package io.nekohasekai.sagernet.ktx
 
 import android.content.Context
 import android.net.Uri
@@ -13,13 +13,13 @@ fun Context.launchCustomTab(link: String) {
             CustomTabsIntent.COLOR_SCHEME_LIGHT,
             CustomTabColorSchemeParams.Builder().apply {
                 setToolbarColor(getColorAttr(R.attr.colorPrimary))
-            }.build()
+            }.build(),
         )
         setColorSchemeParams(
             CustomTabsIntent.COLOR_SCHEME_DARK,
             CustomTabColorSchemeParams.Builder().apply {
                 setToolbarColor(getColorAttr(R.attr.colorPrimary))
-            }.build()
+            }.build(),
         )
     }.build().apply {
         if (intent.resolveActivity(packageManager) != null) {

@@ -29,7 +29,7 @@ import java.util.*
 class ServiceButton @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = 0,
 ) :
     FloatingActionButton(context, attrs, defStyleAttr), DynamicAnimation.OnAnimationEndListener {
 
@@ -47,7 +47,7 @@ class ServiceButton @JvmOverloads constructor(
 
     private inner class AnimatedState(
         @DrawableRes resId: Int,
-        private val onStart: BaseProgressIndicator<*>.() -> Unit = { hideProgress() }
+        private val onStart: BaseProgressIndicator<*>.() -> Unit = { hideProgress() },
     ) {
         val icon: AnimatedVectorDrawableCompat =
             AnimatedVectorDrawableCompat.create(context, resId)!!.apply {
@@ -97,8 +97,10 @@ class ServiceButton @JvmOverloads constructor(
     }
 
     override fun onAnimationEnd(
-        animation: DynamicAnimation<out DynamicAnimation<*>>?, canceled: Boolean, value: Float,
-        velocity: Float
+        animation: DynamicAnimation<out DynamicAnimation<*>>?,
+        canceled: Boolean,
+        value: Float,
+        velocity: Float,
     ) {
         if (!canceled) progress.hide()
     }
@@ -110,10 +112,12 @@ class ServiceButton @JvmOverloads constructor(
 
     override fun onCreateDrawableState(extraSpace: Int): IntArray {
         val drawableState = super.onCreateDrawableState(extraSpace + 1)
-        if (checked) View.mergeDrawableStates(
-            drawableState,
-            intArrayOf(android.R.attr.state_checked)
-        )
+        if (checked) {
+            View.mergeDrawableStates(
+                drawableState,
+                intArrayOf(android.R.attr.state_checked),
+            )
+        }
         return drawableState
     }
 
@@ -134,10 +138,12 @@ class ServiceButton @JvmOverloads constructor(
         TooltipCompat.setTooltipText(this, description)
         val enabled = state.canStop || state == BaseService.State.Stopped
         isEnabled = enabled
-        if (Build.VERSION.SDK_INT >= 24) pointerIcon = PointerIcon.getSystemIcon(
-            context,
-            if (enabled) PointerIcon.TYPE_HAND else PointerIcon.TYPE_WAIT
-        )
+        if (Build.VERSION.SDK_INT >= 24) {
+            pointerIcon = PointerIcon.getSystemIcon(
+                context,
+                if (enabled) PointerIcon.TYPE_HAND else PointerIcon.TYPE_WAIT,
+            )
+        }
     }
 
     private fun applyStateTint(state: BaseService.State) {
@@ -156,20 +162,21 @@ class ServiceButton @JvmOverloads constructor(
     }
 
     private fun changeState(icon: AnimatedState, animate: Boolean) {
-        fun counters(a: AnimatedState, b: AnimatedState): Boolean =
-            a == iconStopped && b == iconConnecting ||
-                    a == iconConnecting && b == iconStopped ||
-                    a == iconConnected && b == iconStopping ||
-                    a == iconStopping && b == iconConnected
+        fun counters(a: AnimatedState, b: AnimatedState): Boolean = a == iconStopped && b == iconConnecting ||
+            a == iconConnecting && b == iconStopped ||
+            a == iconConnected && b == iconStopping ||
+            a == iconStopping && b == iconConnected
         if (animate) {
             if (animationQueue.size < 2 || !counters(animationQueue.last, icon)) {
                 animationQueue.add(icon)
                 if (animationQueue.size == 1) icon.start()
-            } else animationQueue.removeLast()
+            } else {
+                animationQueue.removeLast()
+            }
         } else {
             animationQueue.peekFirst()?.stop()
             animationQueue.clear()
-            icon.start()    // force ensureAnimatorSet to be called so that stop() will work
+            icon.start() // force ensureAnimatorSet to be called so that stop() will work
             icon.stop()
         }
     }

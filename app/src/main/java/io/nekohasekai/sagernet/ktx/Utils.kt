@@ -123,24 +123,25 @@ fun parsePort(str: String?, default: Int, min: Int = 1025): Int {
     return if (value < min || value > 65535) default else value
 }
 
-fun broadcastReceiver(callback: (Context, Intent) -> Unit): BroadcastReceiver =
-    object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) = callback(context, intent)
-    }
+fun broadcastReceiver(callback: (Context, Intent) -> Unit): BroadcastReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) = callback(context, intent)
+}
 
-fun Context.listenForPackageChanges(onetime: Boolean = true, callback: () -> Unit) =
-    object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            callback()
-            if (onetime) context.unregisterReceiver(this)
-        }
-    }.apply {
-        registerReceiver(this, IntentFilter().apply {
+fun Context.listenForPackageChanges(onetime: Boolean = true, callback: () -> Unit) = object : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        callback()
+        if (onetime) context.unregisterReceiver(this)
+    }
+}.apply {
+    registerReceiver(
+        this,
+        IntentFilter().apply {
             addAction(Intent.ACTION_PACKAGE_ADDED)
             addAction(Intent.ACTION_PACKAGE_REMOVED)
             addDataScheme("package")
-        })
-    }
+        },
+    )
+}
 
 /**
  * Based on: https://stackoverflow.com/a/26348729/2245107
@@ -167,9 +168,14 @@ private val parseNumericAddress by lazy {
 
 fun String?.parseNumericAddress(): InetAddress? =
     Os.inet_pton(OsConstants.AF_INET, this) ?: Os.inet_pton(OsConstants.AF_INET6, this)?.let {
-        if (Build.VERSION.SDK_INT >= 29) it else parseNumericAddress.invoke(
-            null, this
-        ) as InetAddress
+        if (Build.VERSION.SDK_INT >= 29) {
+            it
+        } else {
+            parseNumericAddress.invoke(
+                null,
+                this,
+            ) as InetAddress
+        }
     }
 
 @JvmOverloads
@@ -191,8 +197,10 @@ fun String.unUrlSafe(): String {
 }
 
 fun RecyclerView.scrollTo(index: Int, force: Boolean = false) {
-    if (force) post {
-        scrollToPosition(index)
+    if (force) {
+        post {
+            scrollToPosition(index)
+        }
     }
     postDelayed({
         try {
@@ -230,13 +238,10 @@ fun View.crossFadeFrom(other: View) {
     }).duration = shortAnimTime
 }
 
-
 fun Fragment.snackbar(textId: Int) = (requireActivity() as MainActivity).snackbar(textId)
 fun Fragment.snackbar(text: CharSequence) = (requireActivity() as MainActivity).snackbar(text)
 
-fun ThemedActivity.startFilesForResult(
-    launcher: ActivityResultLauncher<String>, input: String
-) {
+fun ThemedActivity.startFilesForResult(launcher: ActivityResultLauncher<String>, input: String) {
     try {
         return launcher.launch(input)
     } catch (_: ActivityNotFoundException) {
@@ -245,9 +250,7 @@ fun ThemedActivity.startFilesForResult(
     snackbar(getString(R.string.file_manager_missing)).show()
 }
 
-fun Fragment.startFilesForResult(
-    launcher: ActivityResultLauncher<String>, input: String
-) {
+fun Fragment.startFilesForResult(launcher: ActivityResultLauncher<String>, input: String) {
     try {
         return launcher.launch(input)
     } catch (_: ActivityNotFoundException) {
@@ -276,18 +279,17 @@ fun triggerFullRestart(ctx: Context) {
         delay(500)
         SagerConnection.restartingApp = true
         val connection = SagerConnection(SagerConnection.CONNECTION_ID_RESTART_BG)
-        connection.connect(ctx, RestartCallback {
-            ProcessPhoenix.triggerRebirth(ctx, Intent(ctx, MainActivity::class.java))
-        })
+        connection.connect(
+            ctx,
+            RestartCallback {
+                ProcessPhoenix.triggerRebirth(ctx, Intent(ctx, MainActivity::class.java))
+            },
+        )
     }
 }
 
 private class RestartCallback(val callback: () -> Unit) : SagerConnection.Callback {
-    override fun stateChanged(
-        state: BaseService.State,
-        profileName: String?,
-        msg: String?
-    ) {
+    override fun stateChanged(state: BaseService.State, profileName: String?, msg: String?) {
     }
 
     override fun onServiceConnected(service: ISagerNetService) {
@@ -338,13 +340,10 @@ fun <T> Continuation<T>.tryResumeWithException(exception: Throwable) {
 }
 
 operator fun <F> KProperty0<F>.getValue(thisRef: Any?, property: KProperty<*>): F = get()
-operator fun <F> KMutableProperty0<F>.setValue(
-    thisRef: Any?, property: KProperty<*>, value: F
-) = set(value)
+operator fun <F> KMutableProperty0<F>.setValue(thisRef: Any?, property: KProperty<*>, value: F) = set(value)
 
 operator fun AtomicBoolean.getValue(thisRef: Any?, property: KProperty<*>): Boolean = get()
-operator fun AtomicBoolean.setValue(thisRef: Any?, property: KProperty<*>, value: Boolean) =
-    set(value)
+operator fun AtomicBoolean.setValue(thisRef: Any?, property: KProperty<*>, value: Boolean) = set(value)
 
 operator fun AtomicInteger.getValue(thisRef: Any?, property: KProperty<*>): Int = get()
 operator fun AtomicInteger.setValue(thisRef: Any?, property: KProperty<*>, value: Int) = set(value)
@@ -353,20 +352,13 @@ operator fun AtomicLong.getValue(thisRef: Any?, property: KProperty<*>): Long = 
 operator fun AtomicLong.setValue(thisRef: Any?, property: KProperty<*>, value: Long) = set(value)
 
 operator fun <T> AtomicReference<T>.getValue(thisRef: Any?, property: KProperty<*>): T = get()
-operator fun <T> AtomicReference<T>.setValue(thisRef: Any?, property: KProperty<*>, value: T) =
-    set(value)
+operator fun <T> AtomicReference<T>.setValue(thisRef: Any?, property: KProperty<*>, value: T) = set(value)
 
 operator fun <K, V> Map<K, V>.getValue(thisRef: K, property: KProperty<*>) = get(thisRef)
 operator fun <K, V> MutableMap<K, V>.setValue(thisRef: K, property: KProperty<*>, value: V?) {
-
     if (value != null) {
-
         put(thisRef, value)
-
     } else {
-
         remove(thisRef)
-
     }
-
 }

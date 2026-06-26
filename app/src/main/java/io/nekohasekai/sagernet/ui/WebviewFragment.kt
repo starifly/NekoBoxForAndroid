@@ -55,9 +55,7 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
             setSupportMultipleWindows(false)
         }
         mWebView.webViewClient = object : WebViewClient() {
-            override fun onReceivedError(
-                view: WebView?, request: WebResourceRequest?, error: WebResourceError?
-            ) {
+            override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                 WebViewUtil.onReceivedError(view, request, error)
             }
 

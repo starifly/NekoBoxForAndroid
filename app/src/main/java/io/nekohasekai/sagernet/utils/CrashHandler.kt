@@ -35,9 +35,12 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
         } catch (e: Exception) {
         }
 
-        ProcessPhoenix.triggerRebirth(app, Intent(app, BlankActivity::class.java).apply {
-            putExtra("sendLog", "NB4A Crash")
-        })
+        ProcessPhoenix.triggerRebirth(
+            app,
+            Intent(app, BlankActivity::class.java).apply {
+                putExtra("sendLog", "NB4A Crash")
+            },
+        )
     }
 
     fun formatThrowable(throwable: Throwable): String {
@@ -96,7 +99,6 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
             Build.SUPPORTED_ABIS.filter { it.isNotBlank() }.joinToString(", ")
         }\n\n"
 
-
         try {
             report += "Settings: \n"
             for (pair in PublicDatabase.kvPairDao.all()) {
@@ -137,21 +139,24 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
                 if (matcher.matches()) {
                     key = matcher.group(1)
                     value = matcher.group(2)
-                    if (key != null && value != null && !key.isEmpty() && !value.isEmpty()) systemProperties[key] =
-                        value
+                    if (key != null && value != null && !key.isEmpty() && !value.isEmpty()) {
+                        systemProperties[key] =
+                            value
+                    }
                 }
             }
             bufferedReader.close()
             process.destroy()
         } catch (e: IOException) {
             Logs.e(
-                "Failed to get run \"/system/bin/getprop\" to get system properties.", e
+                "Failed to get run \"/system/bin/getprop\" to get system properties.",
+                e,
             )
         }
 
-        //for (String key : systemProperties.stringPropertyNames()) {
+        // for (String key : systemProperties.stringPropertyNames()) {
         //    Logger.logVerbose(key + ": " +  systemProperties.get(key));
-        //}
+        // }
         return systemProperties
     }
 
@@ -170,5 +175,4 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
         df.timeZone = TimeZone.getTimeZone("UTC")
         return df.format(Date())
     }
-
 }

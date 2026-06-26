@@ -33,10 +33,7 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
         pbm.fromCacheAll(this)
     }
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    override fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.wireguard_preferences)
         pbm.setPreferenceFragment(this)
 
@@ -45,5 +42,4 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
         (privateKey.preference as EditTextPreference).summaryProvider = PasswordSummaryProvider
         (mtu.preference as EditTextPreference).setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
     }
-
 }

@@ -2,7 +2,6 @@ package moe.matsuri.nb4a.proxy
 
 import androidx.preference.PreferenceFragmentCompat
 
-
 class PreferenceBindingManager {
     val items = mutableListOf<PreferenceBinding>()
 
@@ -30,5 +29,4 @@ class PreferenceBindingManager {
             it.pf = pf
         }
     }
-
 }

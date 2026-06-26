@@ -11,5 +11,4 @@ class UrlTest {
     suspend fun doTest(profile: ProxyEntity): Int {
         return TestInstance(profile, link, timeout).doTest()
     }
-
 }

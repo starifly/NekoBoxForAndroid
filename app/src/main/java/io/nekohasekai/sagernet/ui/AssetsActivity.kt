@@ -76,12 +76,11 @@ class AssetsActivity : ThemedActivity() {
         undoManager = UndoSnackbarManager(this, adapter)
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
-            0, ItemTouchHelper.START
+            0,
+            ItemTouchHelper.START,
         ) {
 
-            override fun getSwipeDirs(
-                recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder
-            ): Int {
+            override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
                 val index = viewHolder.bindingAdapterPosition
                 if (index < 2) return 0
                 return super.getSwipeDirs(recyclerView, viewHolder)
@@ -96,9 +95,8 @@ class AssetsActivity : ThemedActivity() {
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
+                target: RecyclerView.ViewHolder,
             ) = false
-
         }).attachToRecyclerView(binding.recyclerView)
     }
 
@@ -175,7 +173,6 @@ class AssetsActivity : ThemedActivity() {
                     }
                 }
             }
-
         }
     }
 
@@ -189,7 +186,8 @@ class AssetsActivity : ThemedActivity() {
         return false
     }
 
-    inner class AssetAdapter : RecyclerView.Adapter<AssetHolder>(),
+    inner class AssetAdapter :
+        RecyclerView.Adapter<AssetHolder>(),
         UndoSnackbarManager.Interface<File> {
 
         val assets = ArrayList<File>()
@@ -242,7 +240,6 @@ class AssetsActivity : ThemedActivity() {
                 groups.forEach { it.deleteRecursively() }
             }
         }
-
     }
 
     val updating = AtomicInteger()
@@ -298,9 +295,7 @@ class AssetsActivity : ThemedActivity() {
                     }
                 }
             }
-
         }
-
     }
 
     private val rulesProviders = listOf(
@@ -313,15 +308,15 @@ class AssetsActivity : ThemedActivity() {
             "soffchen/sing-geosite",
         ),
         RuleAssetsProvider(
-            "Chocolate4U/Iran-sing-box-rules"
+            "Chocolate4U/Iran-sing-box-rules",
         ),
         RuleAssetsProvider(
-            "L11R/antizapret-sing-box-geo"
+            "L11R/antizapret-sing-box-geo",
         ),
     )
 
     suspend fun updateAsset(file: File, versionFile: File, localVersion: String) {
-        if (DataStore.rulesProvider == 4){
+        if (DataStore.rulesProvider == 4) {
             return updateCustomAsset(file, versionFile)
         }
         val fileName = file.name
@@ -333,7 +328,7 @@ class AssetsActivity : ThemedActivity() {
             trySocks5(
                 DataStore.mixedPort,
                 DataStore.mixedInboundUser,
-                DataStore.mixedInboundPass
+                DataStore.mixedInboundPass,
             )
         }
 
@@ -400,7 +395,7 @@ class AssetsActivity : ThemedActivity() {
             trySocks5(
                 DataStore.mixedPort,
                 DataStore.mixedInboundUser,
-                DataStore.mixedInboundPass
+                DataStore.mixedInboundPass,
             )
         }
         try {
@@ -441,7 +436,7 @@ class AssetsActivity : ThemedActivity() {
     }
 
     private data class RuleAssetsProvider(
-        val repoByFileName: Map<String, String>
+        val repoByFileName: Map<String, String>,
     ) {
         constructor(
             geoipRepo: String,
@@ -450,7 +445,7 @@ class AssetsActivity : ThemedActivity() {
             mapOf(
                 "geoip.db" to geoipRepo,
                 "geosite.db" to geositeRepo,
-            )
+            ),
         )
     }
 }

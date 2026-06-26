@@ -20,5 +20,4 @@ object AppLocale {
     fun apply(tag: String? = DataStore.appLanguage) {
         AppCompatDelegate.setApplicationLocales(localeList(tag))
     }
-
 }

@@ -1,27 +1,19 @@
 package io.nekohasekai.sagernet.ui
 
 import android.os.Bundle
-import android.view.MenuItem
 import android.text.InputType
-import androidx.annotation.StringRes
-import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.PreferenceDataStore
+import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.databinding.LayoutWebdavSettingsBinding
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.ktx.snackbar
-import kotlinx.coroutines.launch
 import okhttp3.Credentials
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import com.google.android.material.snackbar.Snackbar
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
 
 class WebDAVSettingsActivity : ThemedActivity() {
@@ -39,7 +31,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.ic_navigation_close)
         }
-        
+
         supportFragmentManager.beginTransaction()
             .replace(R.id.settings, WebDAVSettingsFragment())
             .commit()
@@ -52,7 +44,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
 
     class WebDAVSettingsFragment : PreferenceFragmentCompat(), PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
         private var lastClickTime = 0L
-        private val DEBOUNCE_TIME = 1000L  // no repeated clicks allowed within 1 second
+        private val DEBOUNCE_TIME = 1000L // no repeated clicks allowed within 1 second
         private var isFragmentAlive = true
 
         private fun isClickAllowed(): Boolean {
@@ -72,7 +64,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             preferenceManager.preferenceDataStore = DataStore.configurationStore
             addPreferencesFromResource(R.xml.webdav_preferences)
-            
+
             findPreference<EditTextPreference>("webdavServer")?.apply {
                 setOnBindEditTextListener { editText ->
                     editText.setSingleLine()
@@ -80,7 +72,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                 }
                 summaryProvider = EditTextPreference.SimpleSummaryProvider.getInstance()
             }
-            
+
             findPreference<EditTextPreference>("webdavUsername")?.apply {
                 setOnBindEditTextListener { editText ->
                     editText.setSingleLine()
@@ -88,7 +80,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                 }
                 summaryProvider = EditTextPreference.SimpleSummaryProvider.getInstance()
             }
-            
+
             findPreference<EditTextPreference>("webdavPassword")?.apply {
                 setOnBindEditTextListener { editText ->
                     editText.setSingleLine()
@@ -98,7 +90,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                 // use the hidden summary style consistent with other password fields
                 summaryProvider = GroupSettingsActivity.PasswordSummaryProvider
             }
-            
+
             findPreference<EditTextPreference>("webdavPath")?.apply {
                 setOnBindEditTextListener { editText ->
                     editText.setSingleLine()
@@ -106,7 +98,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                 }
                 summaryProvider = EditTextPreference.SimpleSummaryProvider.getInstance()
             }
-            
+
             findPreference<Preference>("webdavTest")?.setOnPreferenceClickListener {
                 if (isClickAllowed()) {
                     testWebDAV()
@@ -141,7 +133,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                         .apply {
                             val credentials = Credentials.basic(
                                 DataStore.webdavUsername ?: "",
-                                DataStore.webdavPassword ?: ""
+                                DataStore.webdavPassword ?: "",
                             )
                             header("Authorization", credentials)
                             header("Depth", "0")
@@ -149,7 +141,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                         .build()
 
                     val response = client.newCall(authRequest).execute()
-                    
+
                     when (response.code) {
                         401 -> throw Exception(getString(R.string.webdav_auth_error))
                         403 -> throw Exception(getString(R.string.webdav_permission_denied))
@@ -176,14 +168,14 @@ class WebDAVSettingsActivity : ThemedActivity() {
                             .apply {
                                 val credentials = Credentials.basic(
                                     DataStore.webdavUsername ?: "",
-                                    DataStore.webdavPassword ?: ""
+                                    DataStore.webdavPassword ?: "",
                                 )
                                 header("Authorization", credentials)
                             }
                             .build()
 
                         val dirResponse = client.newCall(dirRequest).execute()
-                        if (!dirResponse.isSuccessful && dirResponse.code != 405) {  // 405 means the directory already exists
+                        if (!dirResponse.isSuccessful && dirResponse.code != 405) { // 405 means the directory already exists
                             throw Exception(getString(R.string.webdav_create_dir_failed))
                         }
                     }
@@ -193,7 +185,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                         Snackbar.make(
                             requireView(),
                             getString(R.string.webdav_test_success),
-                            Snackbar.LENGTH_SHORT
+                            Snackbar.LENGTH_SHORT,
                         ).show()
                     }
                 } catch (e: Exception) {
@@ -202,7 +194,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                         Snackbar.make(
                             requireView(),
                             getString(R.string.webdav_test_failed, e.message),
-                            Snackbar.LENGTH_SHORT
+                            Snackbar.LENGTH_SHORT,
                         ).show()
                     }
                 }

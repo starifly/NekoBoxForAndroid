@@ -77,26 +77,26 @@ class MasterDnsVpnSettingsActivity : ProfileSettingsActivity<MasterDnsVpnBean>()
         advancedJson = DataStore.mdvAdvancedJson
     }
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    override fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.masterdnsvpn_preferences)
         findPreference<EditTextPreference>(Key.MDV_ENCRYPTION_KEY)!!.apply {
             summaryProvider = PasswordSummaryProvider
         }
         for (numberKey in listOf(
-            Key.MDV_PACKET_DUP, Key.MDV_SETUP_PACKET_DUP, Key.MDV_COMPRESSION_MIN_SIZE,
-            Key.MDV_MIN_UPLOAD_MTU, Key.MDV_MIN_DOWNLOAD_MTU, Key.MDV_MAX_UPLOAD_MTU,
+            Key.MDV_PACKET_DUP,
+            Key.MDV_SETUP_PACKET_DUP,
+            Key.MDV_COMPRESSION_MIN_SIZE,
+            Key.MDV_MIN_UPLOAD_MTU,
+            Key.MDV_MIN_DOWNLOAD_MTU,
+            Key.MDV_MAX_UPLOAD_MTU,
             Key.MDV_MAX_DOWNLOAD_MTU,
         )) {
             findPreference<EditTextPreference>(numberKey)?.setOnBindEditTextListener(
-                EditTextPreferenceModifiers.Number
+                EditTextPreferenceModifiers.Number,
             )
         }
         findPreference<EditTextPreference>(Key.MDV_LOCAL_DNS_PORT)?.setOnBindEditTextListener(
-            EditTextPreferenceModifiers.Port
+            EditTextPreferenceModifiers.Port,
         )
     }
-
 }

@@ -38,13 +38,17 @@ import kotlin.math.roundToInt
  */
 class ThemePickerPreference
 @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null, defStyle: Int = TypedArrayUtils.getAttr(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyle: Int = TypedArrayUtils.getAttr(
         context,
         androidx.preference.R.attr.editTextPreferenceStyle,
-        android.R.attr.editTextPreferenceStyle
-    )
+        android.R.attr.editTextPreferenceStyle,
+    ),
 ) : Preference(
-    context, attrs, defStyle
+    context,
+    attrs,
+    defStyle,
 ) {
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
@@ -60,7 +64,7 @@ class ThemePickerPreference
         // stale instance flag would leave the new frame without its swatch.
         if (widgetFrame.childCount == 0) {
             widgetFrame.addView(
-                nekoImageView(context.getColorAttr(R.attr.colorPrimary), 48, 0)
+                nekoImageView(context.getColorAttr(R.attr.colorPrimary), 48, 0),
             )
             widgetFrame.visibility = View.VISIBLE
         }
@@ -80,7 +84,9 @@ class ThemePickerPreference
 
     private fun nekoAtColor(res: Resources, color: Int): Drawable {
         val neko = ResourcesCompat.getDrawable(
-            res, R.drawable.ic_baseline_fiber_manual_record_24, null
+            res,
+            R.drawable.ic_baseline_fiber_manual_record_24,
+            null,
         )!!
         DrawableCompat.setTint(neko.mutate(), color)
         return neko
@@ -105,8 +111,7 @@ class ThemePickerPreference
         }
     }
 
-    private fun dp(value: Int): Int =
-        (value * context.resources.displayMetrics.density).roundToInt()
+    private fun dp(value: Int): Int = (value * context.resources.displayMetrics.density).roundToInt()
 
     override fun onClick() {
         super.onClick()
@@ -125,7 +130,9 @@ class ThemePickerPreference
         for (info in Theme.MODERN_THEMES) {
             val ring = if (info.ringColor != 0) {
                 ResourcesCompat.getColor(context.resources, info.ringColor, context.theme)
-            } else null
+            } else {
+                null
+            }
             container.addView(
                 buildRow(
                     name = context.getString(info.nameRes),
@@ -134,7 +141,7 @@ class ThemePickerPreference
                 ) {
                     select(info.id)
                     dialog.dismiss()
-                }
+                },
             )
         }
 
@@ -147,7 +154,7 @@ class ThemePickerPreference
             ) {
                 dialog.dismiss()
                 showClassicGrid()
-            }
+            },
         )
 
         dialog = MaterialAlertDialogBuilder(context)
@@ -175,7 +182,9 @@ class ThemePickerPreference
             // Selectable item background for ripple feedback.
             val outValue = android.util.TypedValue()
             context.theme.resolveAttribute(
-                android.R.attr.selectableItemBackground, outValue, true
+                android.R.attr.selectableItemBackground,
+                outValue,
+                true,
             )
             setBackgroundResource(outValue.resourceId)
             // Announce the theme name to screen readers when the row is focused.
@@ -190,9 +199,10 @@ class ThemePickerPreference
                     setImageDrawable(
                         ResourcesCompat.getDrawable(resources, icon, context.theme)?.also {
                             DrawableCompat.setTint(
-                                it.mutate(), context.getColorAttr(android.R.attr.textColorPrimary)
+                                it.mutate(),
+                                context.getColorAttr(android.R.attr.textColorPrimary),
                             )
-                        }
+                        },
                     )
                 }
                 else -> View(context).apply {
@@ -201,15 +211,19 @@ class ThemePickerPreference
             }
             addView(leading)
 
-            addView(TextView(context).apply {
-                text = name
-                setPadding(dp(16), 0, 0, 0)
-                textSize = 16f
-                setTextColor(context.getColorAttr(android.R.attr.textColorPrimary))
-                layoutParams = LinearLayout.LayoutParams(
-                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f
-                )
-            })
+            addView(
+                TextView(context).apply {
+                    text = name
+                    setPadding(dp(16), 0, 0, 0)
+                    textSize = 16f
+                    setTextColor(context.getColorAttr(android.R.attr.textColorPrimary))
+                    layoutParams = LinearLayout.LayoutParams(
+                        0,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        1f,
+                    )
+                },
+            )
 
             setOnClickListener { onClick() }
         }
@@ -229,26 +243,31 @@ class ThemePickerPreference
                 val themeId = index + 1
                 if (Theme.MODERN_THEMES.any { it.id == themeId }) continue
 
-                addView(nekoImageView(color, 64, 0).apply {
-                    contentDescription =
-                        context.getString(R.string.theme_classic_color_swatch, themeId)
-                    setOnClickListener {
-                        select(themeId)
-                        dialog.dismiss()
-                    }
-                })
+                addView(
+                    nekoImageView(color, 64, 0).apply {
+                        contentDescription =
+                            context.getString(R.string.theme_classic_color_swatch, themeId)
+                        setOnClickListener {
+                            select(themeId)
+                            dialog.dismiss()
+                        }
+                    },
+                )
             }
         }
 
         dialog = MaterialAlertDialogBuilder(context)
             .setTitle(R.string.theme_classic_colors)
-            .setView(LinearLayout(context).apply {
-                gravity = Gravity.CENTER
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-                addView(grid)
-            })
+            .setView(
+                LinearLayout(context).apply {
+                    gravity = Gravity.CENTER
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                    )
+                    addView(grid)
+                },
+            )
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }

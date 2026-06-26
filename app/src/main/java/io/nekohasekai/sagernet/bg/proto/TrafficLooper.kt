@@ -12,9 +12,9 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import kotlinx.coroutines.*
 
-class TrafficLooper
-    (
-    val data: BaseService.Data, private val sc: CoroutineScope
+class TrafficLooper(
+    val data: BaseService.Data,
+    private val sc: CoroutineScope,
 ) {
 
     private var job: Job? = null
@@ -142,7 +142,8 @@ class TrafficLooper
                 }
                 //
                 trafficUpdater = TrafficUpdater(
-                    box = proxy.box, items = idMap.values.toList()
+                    box = proxy.box,
+                    items = idMap.values.toList(),
                 )
                 proxy.box.setV2rayStats(tags.joinToString("\n"))
             }
@@ -171,12 +172,12 @@ class TrafficLooper
                 if (showDirectSpeed) itemBypass.txRate else 0L,
                 if (showDirectSpeed) itemBypass.rxRate else 0L,
                 mainTx,
-                mainRx
+                mainRx,
             )
 
             // broadcast (MainActivity)
-            if (data.state == BaseService.State.Connected
-                && data.binder.callbackIdMap.containsValue(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND)
+            if (data.state == BaseService.State.Connected &&
+                data.binder.callbackIdMap.containsValue(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND)
             ) {
                 data.binder.broadcast { b ->
                     if (data.binder.callbackIdMap[b] == SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND) {
@@ -184,7 +185,7 @@ class TrafficLooper
                         if (profileTrafficStatistics) {
                             idMap.forEach { (id, item) ->
                                 b.cbTrafficUpdate(
-                                    TrafficData(id = id, rx = item.rx, tx = item.tx) // display
+                                    TrafficData(id = id, rx = item.rx, tx = item.tx), // display
                                 )
                             }
                         }

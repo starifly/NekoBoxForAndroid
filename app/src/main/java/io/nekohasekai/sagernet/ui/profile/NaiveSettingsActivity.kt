@@ -41,10 +41,7 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
         sUoT = DataStore.profileCacheStore.getBoolean("sUoT")
     }
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    override fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.naive_preferences)
         findPreference<EditTextPreference>(Key.SERVER_PORT)!!.apply {
             setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
@@ -65,5 +62,4 @@ class NaiveSettingsActivity : ProfileSettingsActivity<NaiveBean>() {
         }
         super.finish()
     }
-
 }

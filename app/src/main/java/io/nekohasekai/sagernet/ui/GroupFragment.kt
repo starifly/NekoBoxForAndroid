@@ -24,17 +24,18 @@ import io.nekohasekai.sagernet.databinding.LayoutGroupItemBinding
 import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.ktx.*
-import me.zhanghai.android.fastscroll.FastScrollerBuilder
 import io.nekohasekai.sagernet.widget.ListListener
 import io.nekohasekai.sagernet.widget.QRCodeDialog
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.delay
+import me.zhanghai.android.fastscroll.FastScrollerBuilder
 import moe.matsuri.nb4a.utils.Util
 import moe.matsuri.nb4a.utils.toBytesString
 import java.lang.NumberFormatException
 import java.util.*
 
-class GroupFragment : ToolbarFragment(R.layout.layout_group),
+class GroupFragment :
+    ToolbarFragment(R.layout.layout_group),
     Toolbar.OnMenuItemClickListener {
 
     lateinit var activity: MainActivity
@@ -63,11 +64,10 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
         undoManager = UndoSnackbarManager(activity, groupAdapter)
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
-            ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.START
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN,
+            ItemTouchHelper.START,
         ) {
-            override fun getSwipeDirs(
-                recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder
-            ): Int {
+            override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
                 val proxyGroup = (viewHolder as GroupHolder).proxyGroup
                 if (proxyGroup.ungrouped || proxyGroup.id in GroupUpdater.updating) {
                     return 0
@@ -75,9 +75,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                 return super.getSwipeDirs(recyclerView, viewHolder)
             }
 
-            override fun getDragDirs(
-                recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder
-            ): Int {
+            override fun getDragDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
                 val proxyGroup = (viewHolder as GroupHolder).proxyGroup
                 if (proxyGroup.ungrouped || proxyGroup.id in GroupUpdater.updating) {
                     return 0
@@ -93,21 +91,18 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
 
             override fun onMove(
                 recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder,
             ): Boolean {
                 groupAdapter.move(viewHolder.bindingAdapterPosition, target.bindingAdapterPosition)
                 return true
             }
 
-            override fun clearView(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-            ) {
+            override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
                 super.clearView(recyclerView, viewHolder)
                 groupAdapter.commitMove()
             }
         }).attachToRecyclerView(groupListView)
-
     }
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
@@ -143,7 +138,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                     val links = profiles.joinToString("\n") { it.toStdLink(compact = true) }
                     try {
                         (requireActivity() as MainActivity).contentResolver.openOutputStream(
-                            data
+                            data,
                         )!!.bufferedWriter().use {
                             it.write(links)
                         }
@@ -156,12 +151,12 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                             snackbar(e.readableMessage).show()
                         }
                     }
-
                 }
             }
         }
 
-    inner class GroupAdapter : RecyclerView.Adapter<GroupHolder>(),
+    inner class GroupAdapter :
+        RecyclerView.Adapter<GroupHolder>(),
         GroupManager.Listener,
         UndoSnackbarManager.Interface<ProxyGroup> {
 
@@ -169,7 +164,14 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
 
         suspend fun reload() {
             val groups = SagerDatabase.groupDao.allGroups().toMutableList()
-            if (groups.size > 1 && SagerDatabase.proxyDao.countByGroup(groups.find { it.ungrouped }!!.id) == 0L) groups.removeAll { it.ungrouped }
+            if (groups.size > 1 && SagerDatabase.proxyDao.countByGroup(
+                    groups.find {
+                        it.ungrouped
+                    }!!.id,
+                ) == 0L
+            ) {
+                groups.removeAll { it.ungrouped }
+            }
             groupList.clear()
             groupList.addAll(groups)
             groupListView.post {
@@ -206,9 +208,14 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
         fun move(from: Int, to: Int) {
             val first = groupList[from]
             var previousOrder = first.userOrder
-            val (step, range) = if (from < to) Pair(1, from until to) else Pair(
-                -1, to + 1 downTo from
-            )
+            val (step, range) = if (from < to) {
+                Pair(1, from until to)
+            } else {
+                Pair(
+                    -1,
+                    to + 1 downTo from,
+                )
+            }
             for (i in range) {
                 val next = groupList[i + step]
                 val order = next.userOrder
@@ -302,7 +309,6 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                 notifyItemChanged(index)
             }
         }
-
     }
 
     override fun onDestroy() {
@@ -331,7 +337,6 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
         val subscriptionUpdateProgress = binding.subscriptionUpdateProgress
 
         override fun onMenuItemClick(item: MenuItem): Boolean {
-
             fun export(link: String) {
                 val success = SagerNet.trySetPrimaryClip(link)
                 activity.snackbar(if (success) R.string.action_export_msg else R.string.action_export_err)
@@ -341,7 +346,8 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             when (item.itemId) {
                 R.id.action_universal_qr -> {
                     QRCodeDialog(
-                        proxyGroup.toUniversalLink(), proxyGroup.displayName()
+                        proxyGroup.toUniversalLink(),
+                        proxyGroup.displayName(),
                     ).showAllowingStateLoss(parentFragmentManager)
                 }
 
@@ -380,7 +386,6 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             return true
         }
 
-
         fun bind(group: ProxyGroup) {
             proxyGroup = group
 
@@ -391,9 +396,11 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             groupName.text = proxyGroup.displayName()
 
             editButton.setOnClickListener {
-                startActivity(Intent(it.context, GroupSettingsActivity::class.java).apply {
-                    putExtra(GroupSettingsActivity.EXTRA_GROUP_ID, group.id)
-                })
+                startActivity(
+                    Intent(it.context, GroupSettingsActivity::class.java).apply {
+                        putExtra(GroupSettingsActivity.EXTRA_GROUP_ID, group.id)
+                    },
+                )
             }
 
             updateButton.setOnClickListener {
@@ -447,17 +454,23 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                 groupTraffic.isVisible = true
                 groupTraffic.text = if (subscription.bytesRemaining > 0L) {
                     app.getString(
-                        R.string.subscription_traffic, Formatter.formatFileSize(
-                            app, subscription.bytesUsed
-                        ), Formatter.formatFileSize(
-                            app, subscription.bytesRemaining
-                        )
+                        R.string.subscription_traffic,
+                        Formatter.formatFileSize(
+                            app,
+                            subscription.bytesUsed,
+                        ),
+                        Formatter.formatFileSize(
+                            app,
+                            subscription.bytesRemaining,
+                        ),
                     )
                 } else {
                     app.getString(
-                        R.string.subscription_used, Formatter.formatFileSize(
-                            app, subscription.bytesUsed
-                        )
+                        R.string.subscription_used,
+                        Formatter.formatFileSize(
+                            app,
+                            subscription.bytesUsed,
+                        ),
                     )
                 }
                 groupStatus.setPadding(0)
@@ -485,7 +498,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                             getString(
                                 R.string.subscription_traffic,
                                 used.toBytesString(),
-                                remain.toBytesString()
+                                remain.toBytesString(),
                             )
                         } else {
                             getString(R.string.subscription_used, used.toBytesString())
@@ -495,7 +508,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                         text += "\n"
                         text += getString(
                             R.string.subscription_expire,
-                            Util.timeStamp2Text(this.toLong() * 1000)
+                            Util.timeStamp2Text(this.toLong() * 1000),
                         )
                     }
                 } catch (_: NumberFormatException) {
@@ -517,7 +530,8 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             runOnDefaultDispatcher {
                 val size = SagerDatabase.proxyDao.countByGroup(group.id)
                 onMainDispatcher {
-                    @Suppress("DEPRECATION") when (group.type) {
+                    @Suppress("DEPRECATION")
+                    when (group.type) {
                         GroupType.BASIC -> {
                             if (size == 0L) {
                                 groupStatus.setText(R.string.group_status_empty)
@@ -534,17 +548,13 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                                 getString(
                                     R.string.group_status_proxies_subscription,
                                     size,
-                                    "${date.month + 1} - ${date.date}"
+                                    "${date.month + 1} - ${date.date}",
                                 )
                             }
-
                         }
                     }
                 }
-
             }
-
         }
     }
-
 }

@@ -9,7 +9,6 @@ import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
 import android.text.style.ForegroundColorSpan
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.doOnLayout
@@ -20,7 +19,8 @@ import io.nekohasekai.sagernet.widget.ListListener
 import libcore.Libcore
 import moe.matsuri.nb4a.utils.SendLog
 
-class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
+class LogcatFragment :
+    ToolbarFragment(R.layout.layout_logcat),
     Toolbar.OnMenuItemClickListener {
 
     lateinit var binding: LayoutLogcatBinding
@@ -64,13 +64,16 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
 
     private fun reloadSession() {
         val span = SpannableString(
-            String(SendLog.getNekoLog(50 * 1024))
+            String(SendLog.getNekoLog(50 * 1024)),
         )
         var offset = 0
         for (line in span.lines()) {
             val color = getColorForLine(line)
             span.setSpan(
-                color, offset, offset + line.length, SPAN_EXCLUSIVE_EXCLUSIVE
+                color,
+                offset,
+                offset + line.length,
+                SPAN_EXCLUSIVE_EXCLUSIVE,
             )
             offset += line.length + 1
         }
@@ -99,7 +102,6 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
                         binding.textview.text = ""
                     }
                 }
-
             }
 
             R.id.action_send_logcat -> {
@@ -115,5 +117,4 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         }
         return true
     }
-
 }

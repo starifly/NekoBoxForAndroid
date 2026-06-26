@@ -5,7 +5,8 @@ import android.util.AttributeSet
 import androidx.appcompat.widget.AppCompatSpinner
 
 class ReselectableSpinner @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null
+    context: Context,
+    attrs: AttributeSet? = null,
 ) : AppCompatSpinner(context, attrs) {
 
     var onPopupClosed: (() -> Unit)? = null
@@ -40,7 +41,10 @@ class ReselectableSpinner @JvmOverloads constructor(
     private fun notifyReselected(position: Int) {
         if (position < 0) return
         onItemSelectedListener?.onItemSelected(
-            this, selectedView, position, adapter?.getItemId(position) ?: 0L
+            this,
+            selectedView,
+            position,
+            adapter?.getItemId(position) ?: 0L,
         )
     }
 }

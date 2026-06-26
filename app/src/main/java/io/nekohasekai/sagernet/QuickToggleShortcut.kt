@@ -42,20 +42,35 @@ class QuickToggleShortcut : Activity(), SagerConnection.Callback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (intent.action == Intent.ACTION_CREATE_SHORTCUT) {
-            setResult(RESULT_OK, ShortcutManagerCompat.createShortcutResultIntent(this,
-                ShortcutInfoCompat.Builder(this, "toggle")
-                    .setIntent(Intent(this,
-                        QuickToggleShortcut::class.java).setAction(Intent.ACTION_MAIN))
-                    .setIcon(IconCompat.createWithResource(this,
-                        R.drawable.ic_qu_shadowsocks_launcher))
-                    .setShortLabel(getString(R.string.quick_toggle))
-                    .build()))
+            setResult(
+                RESULT_OK,
+                ShortcutManagerCompat.createShortcutResultIntent(
+                    this,
+                    ShortcutInfoCompat.Builder(this, "toggle")
+                        .setIntent(
+                            Intent(
+                                this,
+                                QuickToggleShortcut::class.java,
+                            ).setAction(Intent.ACTION_MAIN),
+                        )
+                        .setIcon(
+                            IconCompat.createWithResource(
+                                this,
+                                R.drawable.ic_qu_shadowsocks_launcher,
+                            ),
+                        )
+                        .setShortLabel(getString(R.string.quick_toggle))
+                        .build(),
+                ),
+            )
             finish()
         } else {
             profileId = intent.getLongExtra("profile", -1L)
             connection.connect(this, this)
             if (Build.VERSION.SDK_INT >= 25) {
-                getSystemService<ShortcutManager>()!!.reportShortcutUsed(if (profileId >= 0) "shortcut-profile-$profileId" else "toggle")
+                getSystemService<ShortcutManager>()!!.reportShortcutUsed(
+                    if (profileId >= 0) "shortcut-profile-$profileId" else "toggle",
+                )
             }
         }
     }

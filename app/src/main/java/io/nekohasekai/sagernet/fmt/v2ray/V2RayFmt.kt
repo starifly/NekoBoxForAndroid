@@ -14,7 +14,13 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONObject
 
 private val supportedKcpHeaderType = arrayOf(
-    "none", "srtp", "utp", "wechat-video", "dtls", "wireguard", "dns"
+    "none",
+    "srtp",
+    "utp",
+    "wechat-video",
+    "dtls",
+    "wireguard",
+    "dns",
 )
 
 data class VmessQRCode(
@@ -378,10 +384,10 @@ fun parseV2RayN(link: String): VMessBean {
     val vmessQRCode = Gson().fromJson(result, VmessQRCode::class.java)
 
     // Although VmessQRCode fields are non null, looks like Gson may still create null fields
-    if (TextUtils.isEmpty(vmessQRCode.add)
-        || TextUtils.isEmpty(vmessQRCode.port)
-        || TextUtils.isEmpty(vmessQRCode.id)
-        || TextUtils.isEmpty(vmessQRCode.net)
+    if (TextUtils.isEmpty(vmessQRCode.add) ||
+        TextUtils.isEmpty(vmessQRCode.port) ||
+        TextUtils.isEmpty(vmessQRCode.id) ||
+        TextUtils.isEmpty(vmessQRCode.net)
     ) {
         throw Exception("invalid VmessQRCode")
     }
@@ -418,7 +424,6 @@ fun parseV2RayN(link: String): VMessBean {
 }
 
 private fun parseCsvVMess(csv: String): VMessBean {
-
     val args = csv.split(",")
 
     val bean = VMessBean()
@@ -429,7 +434,6 @@ private fun parseCsvVMess(csv: String): VMessBean {
     bean.uuid = args[4].replace("\"", "")
 
     args.subList(5, args.size).forEach {
-
         when {
             it == "over-tls=true" -> bean.security = "tls"
             it.startsWith("tls-host=") -> bean.host = it.substringAfter("=")
@@ -441,15 +445,11 @@ private fun parseCsvVMess(csv: String): VMessBean {
                 runCatching {
                     bean.host = it.substringAfter("Host:").substringBefore("[")
                 }
-
             }
-
         }
-
     }
 
     return bean
-
 }
 
 fun VMessBean.toV2rayN(): String {
@@ -713,7 +713,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
                 host = bean.host.takeIf { it.isNotBlank() }
                 path = bean.path.takeIf { it.isNotBlank() } ?: "/"
             }
-            
+
             // Merge xhttpExtra JSON config if present
             if (bean.xhttpExtra.isNotBlank()) {
                 try {
@@ -743,7 +743,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
                         "seq_key",
                         "uplink_data_placement",
                         "uplink_data_key",
-                        "uplink_chunk_size"
+                        "uplink_chunk_size",
                     )
                     allowedKeys.forEach { key ->
                         if (extraJson.has(key)) {
@@ -826,24 +826,26 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound {
         }
 
         is VMessBean -> {
-            if (bean.isVLESS) return Outbound_VLESSOptions().apply {
-                type = "vless"
-                server = bean.serverAddress
-                server_port = bean.serverPort
-                uuid = bean.uuid
-                if (bean.encryption.isNotBlank() && bean.encryption != "auto") {
-                    flow = bean.encryption
+            if (bean.isVLESS) {
+                return Outbound_VLESSOptions().apply {
+                    type = "vless"
+                    server = bean.serverAddress
+                    server_port = bean.serverPort
+                    uuid = bean.uuid
+                    if (bean.encryption.isNotBlank() && bean.encryption != "auto") {
+                        flow = bean.encryption
+                    }
+                    if (bean.vlessEncryption.isNotBlank() && bean.vlessEncryption != "none") {
+                        encryption = bean.vlessEncryption
+                    }
+                    when (bean.packetEncoding) {
+                        0 -> packet_encoding = ""
+                        1 -> packet_encoding = "packetaddr"
+                        2 -> packet_encoding = "xudp"
+                    }
+                    tls = buildSingBoxOutboundTLS(bean)
+                    transport = buildSingBoxOutboundStreamSettings(bean)
                 }
-                if (bean.vlessEncryption.isNotBlank() && bean.vlessEncryption != "none") {
-                    encryption = bean.vlessEncryption
-                }
-                when (bean.packetEncoding) {
-                    0 -> packet_encoding = ""
-                    1 -> packet_encoding = "packetaddr"
-                    2 -> packet_encoding = "xudp"
-                }
-                tls = buildSingBoxOutboundTLS(bean)
-                transport = buildSingBoxOutboundStreamSettings(bean)
             }
             return Outbound_VMessOptions().apply {
                 type = "vmess"

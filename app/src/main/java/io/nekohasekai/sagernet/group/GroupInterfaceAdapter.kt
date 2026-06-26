@@ -33,37 +33,45 @@ class GroupInterfaceAdapter(val context: ThemedActivity) : GroupManager.Interfac
         updated: Map<String, String>,
         deleted: List<String>,
         duplicate: List<String>,
-        byUser: Boolean
+        byUser: Boolean,
     ) {
         if (changed == 0 && duplicate.isEmpty()) {
-            if (byUser) context.snackbar(
+            if (byUser) {
+                context.snackbar(
                     context.getString(
-                            R.string.group_no_difference, group.displayName()
-                    )
-            ).show()
+                        R.string.group_no_difference,
+                        group.displayName(),
+                    ),
+                ).show()
+            }
         } else {
             context.snackbar(context.getString(R.string.group_updated, group.name, changed)).show()
 
             var status = ""
             if (added.isNotEmpty()) {
                 status += context.getString(
-                        R.string.group_added, added.joinToString("\n", postfix = "\n\n")
+                    R.string.group_added,
+                    added.joinToString("\n", postfix = "\n\n"),
                 )
             }
             if (updated.isNotEmpty()) {
-                status += context.getString(R.string.group_changed,
-                        updated.map { it }.joinToString("\n", postfix = "\n\n") {
-                            if (it.key == it.value) it.key else "${it.key} => ${it.value}"
-                        })
+                status += context.getString(
+                    R.string.group_changed,
+                    updated.map { it }.joinToString("\n", postfix = "\n\n") {
+                        if (it.key == it.value) it.key else "${it.key} => ${it.value}"
+                    },
+                )
             }
             if (deleted.isNotEmpty()) {
                 status += context.getString(
-                        R.string.group_deleted, deleted.joinToString("\n", postfix = "\n\n")
+                    R.string.group_deleted,
+                    deleted.joinToString("\n", postfix = "\n\n"),
                 )
             }
             if (duplicate.isNotEmpty()) {
                 status += context.getString(
-                        R.string.group_duplicate, duplicate.joinToString("\n", postfix = "\n\n")
+                    R.string.group_duplicate,
+                    duplicate.joinToString("\n", postfix = "\n\n"),
                 )
             }
 
@@ -71,14 +79,13 @@ class GroupInterfaceAdapter(val context: ThemedActivity) : GroupManager.Interfac
                 delay(1000L)
 
                 MaterialAlertDialogBuilder(context).setTitle(
-                        context.getString(
-                                R.string.group_diff, group.displayName()
-                        )
+                    context.getString(
+                        R.string.group_diff,
+                        group.displayName(),
+                    ),
                 ).setMessage(status.trim()).setPositiveButton(android.R.string.ok, null).show()
             }
-
         }
-
     }
 
     override suspend fun onUpdateFailure(group: ProxyGroup, message: String) {
@@ -98,5 +105,4 @@ class GroupInterfaceAdapter(val context: ThemedActivity) : GroupManager.Interfac
             }
         }
     }
-
 }

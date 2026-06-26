@@ -118,6 +118,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var isExpert by configurationStore.boolean(Key.APP_EXPERT)
     var appTheme by configurationStore.int(Key.APP_THEME)
     var nightTheme by configurationStore.stringToInt(Key.NIGHT_THEME)
+
     // -1 = not set (no dark-only-theme override active). Otherwise holds the
     // night-mode value to restore when leaving a dark-only theme (Dracula or
     // Dark High Contrast). Key name kept for backward compatibility.
@@ -135,6 +136,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var concurrentDial by configurationStore.boolean(Key.CONCURRENT_DIAL)
 
     var allowAccess by configurationStore.boolean(Key.ALLOW_ACCESS)
+
     // Default must match global_preferences.xml (1000ms). Without a non-zero code
     // default, a fresh install that never opens Settings reads 0, which disables the
     // TrafficLooper stats loop entirely (TrafficLooper.loop() returns on delayMs == 0),
@@ -155,9 +157,15 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var acquireWakeLock by configurationStore.boolean(Key.ACQUIRE_WAKE_LOCK)
     var hideFromRecentApps by configurationStore.boolean(Key.HIDE_FROM_RECENT_APPS)
 
-    var rulesGeositeUrl by configurationStore.string(Key.RULES_GEOSITE_URL) { "https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db" }
-    var rulesGeoipUrl by configurationStore.string(Key.RULES_GEOIP_URL) { "https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db" }
-    var rulesUpdateInterval by configurationStore.string(Key.RULES_UPDATE_INTERVAL) { "0" } // defaults to 0, no automatic update
+    var rulesGeositeUrl by configurationStore.string(Key.RULES_GEOSITE_URL) {
+        "https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db"
+    }
+    var rulesGeoipUrl by configurationStore.string(Key.RULES_GEOIP_URL) {
+        "https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db"
+    }
+    var rulesUpdateInterval by configurationStore.string(Key.RULES_UPDATE_INTERVAL) {
+        "0"
+    } // defaults to 0, no automatic update
 
     // hopefully hashCode = mHandle doesn't change, currently this is true from KitKat to Nougat
     private val userIndex by lazy { Binder.getCallingUserHandle().hashCode() }
@@ -184,8 +192,10 @@ object DataStore : OnPreferenceDataStoreChangeListener {
                 // Loopback-only inbound: keep the prior behavior. In VPN mode the
                 // inbound is authenticated, except when appendHttpProxy is active on
                 // Android Q+ (the system HTTP proxy cannot supply credentials).
-                (serviceMode == Key.MODE_VPN &&
-                    !(appendHttpProxy && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)) ||
+                (
+                    serviceMode == Key.MODE_VPN &&
+                        !(appendHttpProxy && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+                    ) ||
                 // Proxy service mode loopback inbound: optionally authenticate too
                 // (issue #1197 residual gap). Off by default to preserve the
                 // "open localhost proxy" use case; users opt in for hardening.
@@ -207,7 +217,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
             mixedPort = mixedPort
         }
     }
-
 
     private fun getLocalPort(key: String, default: Int): Int {
         return parsePort(configurationStore.getString(key), default + userIndex)
@@ -384,7 +393,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         set(value) = configurationStore.putString("webdavPassword", value)
 
     var webdavPath: String?
-        get() = configurationStore.getString("webdavPath") ?: "NekoBox"  // set default value
+        get() = configurationStore.getString("webdavPath") ?: "NekoBox" // set default value
         set(value) = configurationStore.putString("webdavPath", value)
 
     var globalMode by configurationStore.boolean(Key.GLOBAL_MODE)

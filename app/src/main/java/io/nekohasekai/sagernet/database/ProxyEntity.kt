@@ -7,12 +7,14 @@ import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.fmt.*
+import io.nekohasekai.sagernet.fmt.amneziawg.AmneziaWGBean
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.http.toUri
 import io.nekohasekai.sagernet.fmt.hysteria.*
 import io.nekohasekai.sagernet.fmt.internal.ChainBean
+import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
+import io.nekohasekai.sagernet.fmt.juicity.toUri
 import io.nekohasekai.sagernet.fmt.masterdnsvpn.MasterDnsVpnBean
-import io.nekohasekai.sagernet.fmt.masterdnsvpn.toUri as toMasterDnsVpnUri
 import io.nekohasekai.sagernet.fmt.mieru.MieruBean
 import io.nekohasekai.sagernet.fmt.mieru.buildMieruConfig
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
@@ -21,7 +23,6 @@ import io.nekohasekai.sagernet.fmt.naive.toUri
 import io.nekohasekai.sagernet.fmt.shadowsocks.*
 import io.nekohasekai.sagernet.fmt.shadowsocksr.ShadowsocksRBean
 import io.nekohasekai.sagernet.fmt.shadowsocksr.toUri
-import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
 import io.nekohasekai.sagernet.fmt.snell.SnellBean
 import io.nekohasekai.sagernet.fmt.snell.toUri
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
@@ -33,11 +34,8 @@ import io.nekohasekai.sagernet.fmt.trojan_go.buildTrojanGoConfig
 import io.nekohasekai.sagernet.fmt.trojan_go.toUri
 import io.nekohasekai.sagernet.fmt.tuic.TuicBean
 import io.nekohasekai.sagernet.fmt.tuic.toUri
-import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
-import io.nekohasekai.sagernet.fmt.juicity.toUri
 import io.nekohasekai.sagernet.fmt.v2ray.*
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
-import io.nekohasekai.sagernet.fmt.amneziawg.AmneziaWGBean
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ui.profile.*
 import moe.matsuri.nb4a.SingBoxOptions.BrutalOptions
@@ -48,10 +46,13 @@ import moe.matsuri.nb4a.proxy.anytls.toUri
 import moe.matsuri.nb4a.proxy.config.ConfigBean
 import moe.matsuri.nb4a.proxy.config.ConfigSettingActivity
 import moe.matsuri.nb4a.proxy.neko.*
+import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity
+import io.nekohasekai.sagernet.fmt.masterdnsvpn.toUri as toMasterDnsVpnUri
 
 @Entity(
-    tableName = "proxy_entities", indices = [Index("groupId", name = "groupId")]
+    tableName = "proxy_entities",
+    indices = [Index("groupId", name = "groupId")],
 )
 data class ProxyEntity(
     @PrimaryKey(autoGenerate = true) var id: Long = 0L,
@@ -180,7 +181,6 @@ data class ProxyEntity(
 
         dirty = input.readBoolean()
     }
-
 
     fun putByteArray(byteArray: ByteArray) {
         when (type) {
@@ -579,7 +579,8 @@ data class ProxyEntity(
 
     fun settingIntent(ctx: Context, isSubscription: Boolean): Intent {
         return Intent(
-            ctx, when (type) {
+            ctx,
+            when (type) {
                 TYPE_SOCKS -> SocksSettingsActivity::class.java
                 TYPE_HTTP -> HttpSettingsActivity::class.java
                 TYPE_SS -> ShadowsocksSettingsActivity::class.java
@@ -602,7 +603,7 @@ data class ProxyEntity(
                 TYPE_SNELL -> SnellSettingsActivity::class.java
                 TYPE_MASTERDNSVPN -> MasterDnsVpnSettingsActivity::class.java
                 else -> throw IllegalArgumentException()
-            }
+            },
         ).apply {
             putExtra(ProfileSettingsActivity.EXTRA_PROFILE_ID, id)
             putExtra(ProfileSettingsActivity.EXTRA_IS_SUBSCRIPTION, isSubscription)
@@ -668,7 +669,6 @@ data class ProxyEntity(
 
         @Query("DELETE FROM proxy_entities")
         fun reset()
-
     }
 
     override fun describeContents(): Int {

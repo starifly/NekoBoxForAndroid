@@ -38,9 +38,9 @@ object PackageCache {
     fun reload() {
         val rawPackageInfo = app.packageManager.getInstalledPackages(
             PackageManager.MATCH_UNINSTALLED_PACKAGES
-                    or PackageManager.GET_PERMISSIONS
-                    or PackageManager.GET_PROVIDERS
-                    or PackageManager.GET_META_DATA
+                or PackageManager.GET_PERMISSIONS
+                or PackageManager.GET_PROVIDERS
+                or PackageManager.GET_META_DATA,
         )
 
         installedPackages = rawPackageInfo.filter {
@@ -91,5 +91,4 @@ object PackageCache {
         labelMap[packageName] = label
         return label
     }
-
 }

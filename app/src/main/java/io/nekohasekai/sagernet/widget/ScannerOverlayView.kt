@@ -17,7 +17,9 @@ import kotlin.math.min
  * Replaces the zxing-lite ViewfinderView (removed with the ZXing dependency).
  */
 class ScannerOverlayView @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0,
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0,
 ) : View(context, attrs, defStyleAttr) {
 
     private val scrimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {

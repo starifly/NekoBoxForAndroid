@@ -69,7 +69,8 @@ class KeyValuePair() : Parcelable {
         get() = if (valueType == TYPE_INT) ByteBuffer.wrap(value).int else null
     val long: Long?
         get() = when (valueType) {
-            @Suppress("DEPRECATION") TYPE_INT,
+            @Suppress("DEPRECATION")
+            TYPE_INT,
             -> ByteBuffer.wrap(value).int.toLong()
             TYPE_LONG -> ByteBuffer.wrap(value).long
             else -> null
@@ -86,7 +87,9 @@ class KeyValuePair() : Parcelable {
                 result.add(String(chArr))
             }
             result
-        } else null
+        } else {
+            null
+        }
 
     @Ignore
     constructor(key: String) : this() {
@@ -166,5 +169,4 @@ class KeyValuePair() : Parcelable {
     override fun describeContents(): Int {
         return 0
     }
-
 }

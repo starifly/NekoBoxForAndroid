@@ -14,7 +14,8 @@ object Protocols {
     // Deduplication
 
     class Deduplication(
-        val bean: AbstractBean, val type: String
+        val bean: AbstractBean,
+        val type: String,
     ) {
 
         fun hash(): String {
@@ -36,7 +37,6 @@ object Protocols {
 
             return hash() == other.hash()
         }
-
     }
 
     // Display
@@ -64,5 +64,4 @@ object Protocols {
             else -> msg
         }
     }
-
 }

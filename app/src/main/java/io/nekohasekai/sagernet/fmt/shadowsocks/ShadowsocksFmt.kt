@@ -13,18 +13,20 @@ fun ShadowsocksBean.fixPluginName() {
 }
 
 fun parseShadowsocks(url: String): ShadowsocksBean {
-
     if (url.substringBefore("#").contains("@")) {
         var link = url.replace("ss://", "https://").toHttpUrlOrNull() ?: error(
-            "invalid ss-android link $url"
+            "invalid ss-android link $url",
         )
 
         if (link.username.isBlank()) { // fix justmysocks's shit link
-            link = (("https://" + url.substringAfter("ss://")
-                .substringBefore("#")
-                .decodeBase64UrlSafe()).toHttpUrlOrNull()
-                ?: error("invalid jms link $url")
-                    ).newBuilder().fragment(url.substringAfter("#")).build()
+            link = (
+                (
+                    "https://" + url.substringAfter("ss://")
+                        .substringBefore("#")
+                        .decodeBase64UrlSafe()
+                    ).toHttpUrlOrNull()
+                    ?: error("invalid jms link $url")
+                ).newBuilder().fragment(url.substringAfter("#")).build()
         }
 
         // ss-android style
@@ -58,8 +60,10 @@ fun parseShadowsocks(url: String): ShadowsocksBean {
 
         if (v2Url.contains("#")) v2Url = v2Url.substringBefore("#")
 
-        val link = ("https://" + v2Url.substringAfter("ss://")
-            .decodeBase64UrlSafe()).toHttpUrlOrNull() ?: error("invalid v2rayN link $url")
+        val link = (
+            "https://" + v2Url.substringAfter("ss://")
+                .decodeBase64UrlSafe()
+            ).toHttpUrlOrNull() ?: error("invalid v2rayN link $url")
 
         return ShadowsocksBean().apply {
             serverAddress = link.host
@@ -71,11 +75,9 @@ fun parseShadowsocks(url: String): ShadowsocksBean {
             if (remarks.isNotBlank()) name = remarks
         }
     }
-
 }
 
 fun ShadowsocksBean.toUri(): String {
-
     val builder = linkBuilder().username(Util.b64EncodeUrlSafe("$method:$password"))
         .host(serverAddress)
         .port(serverPort)
@@ -89,7 +91,6 @@ fun ShadowsocksBean.toUri(): String {
     }
 
     return builder.toLink("ss").replace("$serverPort/", "$serverPort")
-
 }
 
 fun JSONObject.parseShadowsocks(): ShadowsocksBean {

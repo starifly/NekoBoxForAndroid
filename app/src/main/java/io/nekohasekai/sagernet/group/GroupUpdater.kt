@@ -27,20 +27,18 @@ abstract class GroupUpdater {
         proxyGroup: ProxyGroup,
         subscription: SubscriptionBean,
         userInterface: GroupManager.Interface?,
-        byUser: Boolean
+        byUser: Boolean,
     )
 
     data class Progress(
-        var max: Int
+        var max: Int,
     ) {
         private val counter = AtomicInteger()
         val progress get() = counter.get()
         fun increment() = counter.incrementAndGet()
     }
 
-    protected suspend fun forceResolve(
-        profiles: List<AbstractBean>, groupId: Long?
-    ) {
+    protected suspend fun forceResolve(profiles: List<AbstractBean>, groupId: Long?) {
         val ipv6Mode = DataStore.ipv6Mode
         val lookupPool = newFixedThreadPoolContext(5, "DNS Lookup")
         val progress = Progress(profiles.size)
@@ -95,9 +93,7 @@ abstract class GroupUpdater {
         }
     }
 
-    protected fun rewriteAddress(
-        bean: AbstractBean, addresses: List<InetAddress>, ipv6First: Boolean
-    ) {
+    protected fun rewriteAddress(bean: AbstractBean, addresses: List<InetAddress>, ipv6First: Boolean) {
         val address = addresses.sortedBy { (it is Inet4Address) xor ipv6First }[0].hostAddress
 
         with(bean) {
@@ -145,8 +141,16 @@ abstract class GroupUpdater {
                 val connected = DataStore.serviceState.connected
                 val userInterface = GroupManager.userInterface
 
-                if (byUser && (subscription.link?.startsWith("http://") == true || subscription.updateWhenConnectedOnly) && !connected) {
-                    if (userInterface == null || !userInterface.confirm(app.getString(R.string.update_subscription_warning))) {
+                if (byUser && (
+                        subscription.link?.startsWith(
+                            "http://",
+                        ) == true || subscription.updateWhenConnectedOnly
+                        ) && !connected
+                ) {
+                    if (userInterface == null || !userInterface.confirm(
+                            app.getString(R.string.update_subscription_warning),
+                        )
+                    ) {
                         finishUpdate(proxyGroup)
                         cancel()
                         return@coroutineScope true
@@ -165,13 +169,10 @@ abstract class GroupUpdater {
             }
         }
 
-
         suspend fun finishUpdate(proxyGroup: ProxyGroup) {
             updating.remove(proxyGroup.id)
             progress.remove(proxyGroup.id)
             GroupManager.postUpdate(proxyGroup)
         }
-
     }
-
 }

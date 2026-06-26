@@ -51,10 +51,11 @@ fun ShadowsocksRBean.toUri(): String {
             Util.b64EncodeUrlSafe("%s".format(Locale.ENGLISH, protocolParam)),
             Util.b64EncodeUrlSafe(
                 "%s".format(
-                    Locale.ENGLISH, name ?: ""
-                )
-            )
-        )
+                    Locale.ENGLISH,
+                    name ?: "",
+                ),
+            ),
+        ),
     )
 }
 

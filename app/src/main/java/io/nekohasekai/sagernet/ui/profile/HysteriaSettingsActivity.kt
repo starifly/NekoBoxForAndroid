@@ -64,10 +64,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         hopInterval = DataStore.serverHopInterval
     }
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    override fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.hysteria_preferences)
 
         val authType = findPreference<SimpleMenuPreference>(Key.SERVER_AUTH_TYPE)!!
@@ -111,7 +108,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         obfsType.setOnPreferenceChangeListener { _, newValue ->
             updateObfs(
                 newValue.toString().toIntOrNull() ?: HysteriaBean.OBFS_NONE,
-                DataStore.protocolVersion
+                DataStore.protocolVersion,
             )
             true
         }
@@ -179,5 +176,4 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
             setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
         }
     }
-
 }

@@ -43,13 +43,13 @@ abstract class ThemedActivity : AppCompatActivity {
         super.onCreate(savedInstanceState)
 
         uiMode = resources.configuration.uiMode
-        
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             WindowCompat.setDecorFitsSystemWindows(window, false)
-            
+
             val insetController = WindowCompat.getInsetsController(window, window.decorView)
             insetController.isAppearanceLightNavigationBars = !Theme.usingNightMode()
-            insetController.isAppearanceLightStatusBars = 
+            insetController.isAppearanceLightStatusBars =
                 if (DataStore.appTheme == Theme.BLACK) !Theme.usingNightMode() else false
         }
 
@@ -58,7 +58,7 @@ abstract class ThemedActivity : AppCompatActivity {
         // resolved across whatever layout the subclass set - no single binding owns them.
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { _, insets ->
             val bars = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout(),
             )
             findViewById<AppBarLayout>(R.id.appbar)?.apply {
                 updatePadding(top = bars.top)
@@ -110,5 +110,4 @@ abstract class ThemedActivity : AppCompatActivity {
     }
 
     internal open fun snackbarInternal(text: CharSequence): Snackbar = throw NotImplementedError()
-
 }

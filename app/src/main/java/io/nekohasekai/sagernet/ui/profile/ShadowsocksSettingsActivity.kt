@@ -11,7 +11,6 @@ import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
 import moe.matsuri.nb4a.proxy.PreferenceBinding
 import moe.matsuri.nb4a.proxy.PreferenceBindingManager
 import moe.matsuri.nb4a.proxy.Type
-
 import moe.matsuri.nb4a.ui.SimpleMenuPreference
 
 class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
@@ -55,10 +54,7 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
         plugin = if (pn.isNotBlank()) "$pn;$pc" else ""
     }
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    override fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.shadowsocks_preferences)
         pbm.setPreferenceFragment(this)
 
@@ -104,5 +100,4 @@ class ShadowsocksSettingsActivity : ProfileSettingsActivity<ShadowsocksBean>() {
         muxMaxConnections.preference.isVisible = !isMaxStreamsMode
         muxMinStreams.preference.isVisible = !isMaxStreamsMode
     }
-
 }

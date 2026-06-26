@@ -35,7 +35,8 @@ import moe.matsuri.nb4a.utils.cleanWebview
 import java.io.File
 import androidx.work.Configuration as WorkConfiguration
 
-class SagerNet : Application(),
+class SagerNet :
+    Application(),
     WorkConfiguration.Provider {
 
     override fun attachBaseContext(base: Context) {
@@ -66,7 +67,7 @@ class SagerNet : Application(),
                 externalAssets.absolutePath + "/",
                 DataStore.logBufSize,
                 DataStore.logLevel > 0,
-                nativeInterface, nativeInterface, LocalResolverImpl
+                nativeInterface, nativeInterface, LocalResolverImpl,
             )
 
             // fix multi process issue in Android 9+
@@ -99,7 +100,7 @@ class SagerNet : Application(),
                     .detectLeakedClosableObjects()
                     .detectLeakedRegistrationObjects()
                     .penaltyLog()
-                    .build()
+                    .build(),
             )
         }
     }
@@ -135,9 +136,10 @@ class SagerNet : Application(),
                     it,
                     0,
                     Intent(
-                        application, MainActivity::class.java
+                        application,
+                        MainActivity::class.java,
                     ).setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0,
                 )
             }
         }
@@ -163,42 +165,49 @@ class SagerNet : Application(),
         }
 
         fun updateNotificationChannels() {
-            if (Build.VERSION.SDK_INT >= 26) @RequiresApi(26) {
-                notification.createNotificationChannels(
-                    listOf(
-                        NotificationChannel(
-                            "service-vpn",
-                            application.getText(R.string.service_vpn),
-                            if (Build.VERSION.SDK_INT >= 28) NotificationManager.IMPORTANCE_MIN
-                            else NotificationManager.IMPORTANCE_LOW
-                        ),   // #1355
-                        NotificationChannel(
-                            "service-proxy",
-                            application.getText(R.string.service_proxy),
-                            NotificationManager.IMPORTANCE_LOW
-                        ), NotificationChannel(
-                            "service-subscription",
-                            application.getText(R.string.service_subscription),
-                            NotificationManager.IMPORTANCE_DEFAULT
-                        ), NotificationChannel(
-                            "connection-test",
-                            application.getText(R.string.connection_test),
-                            NotificationManager.IMPORTANCE_DEFAULT
-                        )
+            if (Build.VERSION.SDK_INT >= 26) {
+                @RequiresApi(26)
+                {
+                    notification.createNotificationChannels(
+                        listOf(
+                            NotificationChannel(
+                                "service-vpn",
+                                application.getText(R.string.service_vpn),
+                                if (Build.VERSION.SDK_INT >= 28) {
+                                    NotificationManager.IMPORTANCE_MIN
+                                } else {
+                                    NotificationManager.IMPORTANCE_LOW
+                                },
+                            ), // #1355
+                            NotificationChannel(
+                                "service-proxy",
+                                application.getText(R.string.service_proxy),
+                                NotificationManager.IMPORTANCE_LOW,
+                            ),
+                            NotificationChannel(
+                                "service-subscription",
+                                application.getText(R.string.service_subscription),
+                                NotificationManager.IMPORTANCE_DEFAULT,
+                            ),
+                            NotificationChannel(
+                                "connection-test",
+                                application.getText(R.string.connection_test),
+                                NotificationManager.IMPORTANCE_DEFAULT,
+                            ),
+                        ),
                     )
-                )
+                }
             }
         }
 
         fun startService() = ContextCompat.startForegroundService(
-            application, Intent(application, SagerConnection.serviceClass)
+            application,
+            Intent(application, SagerConnection.serviceClass),
         )
 
-        fun reloadService() =
-            application.sendBroadcast(Intent(Action.RELOAD).setPackage(application.packageName))
+        fun reloadService() = application.sendBroadcast(Intent(Action.RELOAD).setPackage(application.packageName))
 
-        fun stopService() =
-            application.sendBroadcast(Intent(Action.CLOSE).setPackage(application.packageName))
+        fun stopService() = application.sendBroadcast(Intent(Action.CLOSE).setPackage(application.packageName))
 
         var underlyingNetwork: Network? = null
 
@@ -215,5 +224,4 @@ class SagerNet : Application(),
             n
         }()
     }
-
 }

@@ -19,10 +19,7 @@ class FixedLinearLayoutManager(val recyclerView: RecyclerView) :
 
     private var listenerDisabled = false
 
-    override fun scrollVerticallyBy(
-        dx: Int, recycler: RecyclerView.Recycler,
-        state: RecyclerView.State
-    ): Int {
+    override fun scrollVerticallyBy(dx: Int, recycler: RecyclerView.Recycler, state: RecyclerView.State): Int {
         // Matsuri style
         if (!DataStore.showBottomBar) return super.scrollVerticallyBy(dx, recycler, state)
 
@@ -38,13 +35,15 @@ class FixedLinearLayoutManager(val recyclerView: RecyclerView) :
         val overscroll = dx - scrollRange
         if (overscroll > 0) {
             val view =
-                (recyclerView.findViewHolderForAdapterPosition(findLastVisibleItemPosition())
-                    ?: return scrollRange).itemView
+                (
+                    recyclerView.findViewHolderForAdapterPosition(findLastVisibleItemPosition())
+                        ?: return scrollRange
+                    ).itemView
             val itemLocation = Rect().also { view.getGlobalVisibleRect(it) }
             val fabLocation = Rect().also { activity.binding.fab.getGlobalVisibleRect(it) }
             if (!itemLocation.contains(fabLocation.left, fabLocation.top) && !itemLocation.contains(
                     fabLocation.right,
-                    fabLocation.bottom
+                    fabLocation.bottom,
                 )
             ) {
                 return scrollRange
@@ -71,7 +70,6 @@ class FixedLinearLayoutManager(val recyclerView: RecyclerView) :
         }
         return scrollRange
     }
-
 }
 
 class FixedGridLayoutManager(val recyclerView: RecyclerView, spanCount: Int) :
@@ -90,10 +88,7 @@ class FixedGridLayoutManager(val recyclerView: RecyclerView, spanCount: Int) :
         return false
     }
 
-    override fun scrollVerticallyBy(
-        dx: Int, recycler: RecyclerView.Recycler,
-        state: RecyclerView.State
-    ): Int {
+    override fun scrollVerticallyBy(dx: Int, recycler: RecyclerView.Recycler, state: RecyclerView.State): Int {
         // Matsuri style
         if (!DataStore.showBottomBar) return super.scrollVerticallyBy(dx, recycler, state)
 
@@ -109,13 +104,15 @@ class FixedGridLayoutManager(val recyclerView: RecyclerView, spanCount: Int) :
         val overscroll = dx - scrollRange
         if (overscroll > 0) {
             val view =
-                (recyclerView.findViewHolderForAdapterPosition(findLastVisibleItemPosition())
-                    ?: return scrollRange).itemView
+                (
+                    recyclerView.findViewHolderForAdapterPosition(findLastVisibleItemPosition())
+                        ?: return scrollRange
+                    ).itemView
             val itemLocation = Rect().also { view.getGlobalVisibleRect(it) }
             val fabLocation = Rect().also { activity.binding.fab.getGlobalVisibleRect(it) }
             if (!itemLocation.contains(fabLocation.left, fabLocation.top) && !itemLocation.contains(
                     fabLocation.right,
-                    fabLocation.bottom
+                    fabLocation.bottom,
                 )
             ) {
                 return scrollRange
@@ -130,5 +127,4 @@ class FixedGridLayoutManager(val recyclerView: RecyclerView, spanCount: Int) :
         }
         return scrollRange
     }
-
 }

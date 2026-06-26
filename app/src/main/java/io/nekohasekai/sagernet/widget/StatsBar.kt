@@ -23,7 +23,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class StatsBar @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null,
+    context: Context,
+    attrs: AttributeSet? = null,
     defStyleAttr: Int = R.attr.bottomAppBarStyle,
 ) : BottomAppBar(context, attrs, defStyleAttr) {
     private lateinit var statusText: TextView
@@ -41,9 +42,15 @@ class StatsBar @JvmOverloads constructor(
     class YourBehavior(val getAllowShow: () -> Boolean) : Behavior() {
 
         override fun onNestedScroll(
-            coordinatorLayout: CoordinatorLayout, child: BottomAppBar, target: View,
-            dxConsumed: Int, dyConsumed: Int, dxUnconsumed: Int, dyUnconsumed: Int,
-            type: Int, consumed: IntArray,
+            coordinatorLayout: CoordinatorLayout,
+            child: BottomAppBar,
+            target: View,
+            dxConsumed: Int,
+            dyConsumed: Int,
+            dxUnconsumed: Int,
+            dyUnconsumed: Int,
+            type: Int,
+            consumed: IntArray,
         ) {
             super.onNestedScroll(
                 coordinatorLayout,
@@ -54,7 +61,7 @@ class StatsBar @JvmOverloads constructor(
                 dxUnconsumed,
                 0,
                 type,
-                consumed
+                consumed,
             )
         }
 
@@ -68,7 +75,6 @@ class StatsBar @JvmOverloads constructor(
             super.slideDown(child)
         }
     }
-
 
     override fun setOnClickListener(l: OnClickListener?) {
         // findViewById (not ViewBinding): status/tx/rx are sibling views declared in the host
@@ -86,9 +92,7 @@ class StatsBar @JvmOverloads constructor(
 
     // Two-tone status: color the lead segment (split at [sep], kept with the lead)
     // and the remainder separately. Used for "Connected, …" and "Success: …".
-    private fun setStatusTwoTone(
-        full: CharSequence, sep: Char, leadAttr: Int, restAttr: Int
-    ) {
+    private fun setStatusTwoTone(full: CharSequence, sep: Char, leadAttr: Int, restAttr: Int) {
         val s = full.toString()
         val idx = s.indexOf(sep)
         if (idx < 0) {
@@ -100,11 +104,15 @@ class StatsBar @JvmOverloads constructor(
         val span = SpannableStringBuilder(s)
         span.setSpan(
             ForegroundColorSpan(context.getColorAttr(leadAttr)),
-            0, cut, SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE
+            0,
+            cut,
+            SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE,
         )
         span.setSpan(
             ForegroundColorSpan(context.getColorAttr(restAttr)),
-            cut, s.length, SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE
+            cut,
+            s.length,
+            SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE,
         )
         setStatus(span)
     }
@@ -134,8 +142,10 @@ class StatsBar @JvmOverloads constructor(
                 if (allowShow) performShow()
                 // "Connected," in green; the "tap to check connection" hint in detail color.
                 setStatusTwoTone(
-                    app.getText(R.string.vpn_connected), ',',
-                    R.attr.statusConnectedColor, R.attr.statusDetailColor
+                    app.getText(R.string.vpn_connected),
+                    ',',
+                    R.attr.statusConnectedColor,
+                    R.attr.statusDetailColor,
                 )
             }
         } else {
@@ -150,8 +160,8 @@ class StatsBar @JvmOverloads constructor(
                         BaseService.State.Connecting -> R.string.connecting
                         BaseService.State.Stopping -> R.string.stopping
                         else -> R.string.not_connected
-                    }
-                )
+                    },
+                ),
             )
         }
     }
@@ -163,12 +173,14 @@ class StatsBar @JvmOverloads constructor(
         rxText.setTextColor(speedColor)
         txText.text = "▲  ${
             context.getString(
-                R.string.speed, Formatter.formatFileSize(context, txRate)
+                R.string.speed,
+                Formatter.formatFileSize(context, txRate),
             )
         }"
         rxText.text = "▼  ${
             context.getString(
-                R.string.speed, Formatter.formatFileSize(context, rxRate)
+                R.string.speed,
+                Formatter.formatFileSize(context, rxRate),
             )
         }"
     }
@@ -191,12 +203,14 @@ class StatsBar @JvmOverloads constructor(
                                 R.string.connection_test_available
                             } else {
                                 R.string.connection_test_available_http
-                            }, elapsed
-                        ), ':',
-                        R.attr.statusConnectedColor, R.attr.statusDetailColor
+                            },
+                            elapsed,
+                        ),
+                        ':',
+                        R.attr.statusConnectedColor,
+                        R.attr.statusDetailColor,
                     )
                 }
-
             } catch (e: Exception) {
                 Logs.w(e.toString())
                 onMainDispatcher {
@@ -206,12 +220,12 @@ class StatsBar @JvmOverloads constructor(
 
                     activity.snackbar(
                         app.getString(
-                            R.string.connection_test_error, e.readableMessage
-                        )
+                            R.string.connection_test_error,
+                            e.readableMessage,
+                        ),
                     ).show()
                 }
             }
         }
     }
-
 }

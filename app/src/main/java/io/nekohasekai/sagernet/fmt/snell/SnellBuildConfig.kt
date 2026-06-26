@@ -1,6 +1,5 @@
 package io.nekohasekai.sagernet.fmt.snell
 
-import io.nekohasekai.sagernet.ktx.isIpAddress
 import moe.matsuri.nb4a.SingBoxOptions
 
 fun buildSingBoxOutboundSnellBean(bean: SnellBean): SingBoxOptions.Outbound_SnellOptions {

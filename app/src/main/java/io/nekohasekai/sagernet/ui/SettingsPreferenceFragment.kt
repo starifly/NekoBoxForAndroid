@@ -3,9 +3,12 @@ package io.nekohasekai.sagernet.ui
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.preference.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -18,9 +21,6 @@ import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.utils.AppLocale
 import io.nekohasekai.sagernet.utils.Theme
 import moe.matsuri.nb4a.ui.*
-import android.os.Handler
-import android.os.Looper
-import android.widget.Toast
 import java.io.File
 
 class SettingsPreferenceFragment : PreferenceFragmentCompat() {
@@ -28,7 +28,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
     private lateinit var isProxyApps: SwitchPreference
 
     private lateinit var globalCustomConfig: EditConfigPreference
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -333,31 +332,35 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         try {
             val cacheDir = SagerNet.application.cacheDir
             clearDirFiles(cacheDir, skipFiles = setOf("neko.log"))
-            
+
             val parentDir = cacheDir.parentFile
             val relativeCache = File(parentDir, "cache")
             if (relativeCache.exists() && relativeCache.isDirectory) {
                 clearDirFiles(relativeCache)
             }
-            
+
             Toast.makeText(requireContext(), R.string.clear_cache_success, Toast.LENGTH_SHORT).show()
-            
+
             Handler(Looper.getMainLooper()).postDelayed({
                 needReload()
             }, 500)
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), getString(R.string.clear_cache_failed, e.message), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.clear_cache_failed, e.message),
+                Toast.LENGTH_SHORT,
+            ).show()
             e.printStackTrace()
         }
     }
-    
+
     private fun clearDirFiles(dir: File, skipFiles: Set<String> = emptySet()): Boolean {
         if (dir.isDirectory) {
             val children = dir.list() ?: return true
-            
+
             for (child in children) {
                 val childFile = File(dir, child)
-                
+
                 if (child == "neko.log") {
                     try {
                         childFile.writeText("")
@@ -366,21 +369,20 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                         e.printStackTrace()
                     }
                 }
-                
+
                 if (child in skipFiles) {
                     continue
                 }
-                
+
                 if (childFile.isDirectory) {
                     clearDirFiles(childFile, skipFiles)
                 } else {
                     childFile.delete()
                 }
             }
-            
+
             return true
         }
         return false
     }
-
 }

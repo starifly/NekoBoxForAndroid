@@ -52,7 +52,6 @@ object Logs {
     fun e(exception: Throwable) {
         Libcore.nekoLogPrintln("[Error] [${mkTag()}] " + exception.stackTraceToString())
     }
-
 }
 
 fun InputStream.use(out: OutputStream) {

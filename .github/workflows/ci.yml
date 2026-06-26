@@ -77,6 +77,8 @@ jobs:
         run: |
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
           ./gradlew app:lintOssDebug
+      - name: Spotless
+        run: ./gradlew spotlessCheck
   libcore:
     name: Native Build (LibCore)
     runs-on: namespace-profile-nekoyay

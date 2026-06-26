@@ -47,10 +47,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
         initializeDefaultValues()
     }
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    override fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.name_preferences)
     }
 
@@ -73,30 +70,34 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
         FastScrollerBuilder(configurationList).useMd2Style().build()
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
-            ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.START
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN,
+            ItemTouchHelper.START,
         ) {
-            override fun getSwipeDirs(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-            ) = if (viewHolder is ProfileHolder) {
-                super.getSwipeDirs(recyclerView, viewHolder)
-            } else 0
+            override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) =
+                if (viewHolder is ProfileHolder) {
+                    super.getSwipeDirs(recyclerView, viewHolder)
+                } else {
+                    0
+                }
 
-            override fun getDragDirs(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-            ) = if (viewHolder is ProfileHolder) {
-                super.getDragDirs(recyclerView, viewHolder)
-            } else 0
+            override fun getDragDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) =
+                if (viewHolder is ProfileHolder) {
+                    super.getDragDirs(recyclerView, viewHolder)
+                } else {
+                    0
+                }
 
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
                 target: RecyclerView.ViewHolder,
             ): Boolean {
-                return if (target !is ProfileHolder) false else {
+                return if (target !is ProfileHolder) {
+                    false
+                } else {
                     configurationAdapter.move(
-                        viewHolder.bindingAdapterPosition, target.bindingAdapterPosition
+                        viewHolder.bindingAdapterPosition,
+                        target.bindingAdapterPosition,
                     )
                     true
                 }
@@ -105,7 +106,6 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 configurationAdapter.remove(viewHolder.bindingAdapterPosition)
             }
-
         }).attachToRecyclerView(configurationList)
     }
 
@@ -182,7 +182,6 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
         override fun getItemCount(): Int {
             return proxyList.size + 1
         }
-
     }
 
     fun testProfileAllowed(profile: ProxyEntity): Boolean {
@@ -214,29 +213,32 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
 
     val selectProfileForAdd =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { (resultCode, data) ->
-            if (resultCode == Activity.RESULT_OK) runOnDefaultDispatcher {
-                DataStore.dirty = true
+            if (resultCode == Activity.RESULT_OK) {
+                runOnDefaultDispatcher {
+                    DataStore.dirty = true
 
-                val profile = ProfileManager.getProfile(
-                    data!!.getLongExtra(
-                        ProfileSelectActivity.EXTRA_PROFILE_ID, 0
-                    )
-                )!!
+                    val profile = ProfileManager.getProfile(
+                        data!!.getLongExtra(
+                            ProfileSelectActivity.EXTRA_PROFILE_ID,
+                            0,
+                        ),
+                    )!!
 
-                if (!testProfileAllowed(profile)) {
-                    onMainDispatcher {
-                        MaterialAlertDialogBuilder(this@ChainSettingsActivity).setTitle(R.string.circular_reference)
-                            .setMessage(R.string.circular_reference_sum)
-                            .setPositiveButton(android.R.string.ok, null).show()
-                    }
-                } else {
-                    configurationList.post {
-                        if (replacing != 0) {
-                            proxyList[replacing - 1] = profile
-                            configurationAdapter.notifyItemChanged(replacing)
-                        } else {
-                            proxyList.add(profile)
-                            configurationAdapter.notifyItemInserted(proxyList.size)
+                    if (!testProfileAllowed(profile)) {
+                        onMainDispatcher {
+                            MaterialAlertDialogBuilder(this@ChainSettingsActivity).setTitle(R.string.circular_reference)
+                                .setMessage(R.string.circular_reference_sum)
+                                .setPositiveButton(android.R.string.ok, null).show()
+                        }
+                    } else {
+                        configurationList.post {
+                            if (replacing != 0) {
+                                proxyList[replacing - 1] = profile
+                                configurationAdapter.notifyItemChanged(replacing)
+                            } else {
+                                proxyList.add(profile)
+                                configurationAdapter.notifyItemInserted(proxyList.size)
+                            }
                         }
                     }
                 }
@@ -250,8 +252,9 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
                 replacing = 0
                 selectProfileForAdd.launch(
                     Intent(
-                        this@ChainSettingsActivity, ProfileSelectActivity::class.java
-                    )
+                        this@ChainSettingsActivity,
+                        ProfileSelectActivity::class.java,
+                    ),
                 )
             }
         }
@@ -267,7 +270,6 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
         val shareLayout = binding.share
 
         fun bind(proxyEntity: ProxyEntity) {
-
             profileName.text = proxyEntity.displayName()
             profileType.text = proxyEntity.displayType()
             profileType.setTextColor(getProtocolColor(proxyEntity.type))
@@ -281,22 +283,23 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
                 trafficText.text = itemView.context.getString(
                     R.string.traffic,
                     Formatter.formatFileSize(itemView.context, tx),
-                    Formatter.formatFileSize(itemView.context, rx)
+                    Formatter.formatFileSize(itemView.context, rx),
                 )
             }
 
             editButton.setOnClickListener {
                 replacing = bindingAdapterPosition
-                selectProfileForAdd.launch(Intent(
-                    this@ChainSettingsActivity, ProfileSelectActivity::class.java
-                ).apply {
-                    putExtra(ProfileSelectActivity.EXTRA_SELECTED, proxyEntity)
-                })
+                selectProfileForAdd.launch(
+                    Intent(
+                        this@ChainSettingsActivity,
+                        ProfileSelectActivity::class.java,
+                    ).apply {
+                        putExtra(ProfileSelectActivity.EXTRA_SELECTED, proxyEntity)
+                    },
+                )
             }
 
             shareLayout.isVisible = false
         }
-
     }
-
 }

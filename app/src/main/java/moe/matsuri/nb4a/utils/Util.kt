@@ -132,12 +132,12 @@ object Util {
                 val currentMap = (dst[k] as Map<*, *>).toMutableMap()
                 dst[k] = mergeMap(map2StringMap(currentMap), map2StringMap(v))
             } else if (v is List<*>) {
-                if (k.startsWith("+")) {  // prepend
+                if (k.startsWith("+")) { // prepend
                     val dstKey = k.removePrefix("+")
                     var currentList = (dst[dstKey] as? List<*>)?.toMutableList() ?: mutableListOf()
                     currentList = (v + currentList).toMutableList()
                     dst[dstKey] = currentList
-                } else if (k.endsWith("+")) {  // append
+                } else if (k.endsWith("+")) { // append
                     val dstKey = k.removeSuffix("+")
                     var currentList = (dst[dstKey] as? List<*>)?.toMutableList() ?: mutableListOf()
                     currentList = (currentList + v).toMutableList()

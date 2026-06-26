@@ -37,10 +37,7 @@ class SocksSettingsActivity : ProfileSettingsActivity<SOCKSBean>() {
         sUoT = DataStore.profileCacheStore.getBoolean("sUoT")
     }
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    override fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.socks_preferences)
         findPreference<EditTextPreference>(Key.SERVER_PORT)!!.apply {
             setOnBindEditTextListener(EditTextPreferenceModifiers.Port)

@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.*
-import android.app.ActivityManager
 import android.widget.Toast
 import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.BootReceiver
@@ -38,7 +37,11 @@ class BaseService {
         /**
          * Idle state is only used by UI and will never be returned by BaseService.
          */
-        Idle, Connecting(true, true, false), Connected(true, true, true), Stopping, Stopped,
+        Idle,
+        Connecting(true, true, false),
+        Connected(true, true, true),
+        Stopping,
+        Stopped,
     }
 
     interface ExpectedException
@@ -91,7 +94,9 @@ class BaseService {
         }
     }
 
-    class Binder(private var data: Data? = null) : ISagerNetService.Stub(), CoroutineScope,
+    class Binder(private var data: Data? = null) :
+        ISagerNetService.Stub(),
+        CoroutineScope,
         AutoCloseable {
         private val callbacks = object : RemoteCallbackList<ISagerNetServiceCallback>() {
             override fun onCallbackDied(callback: ISagerNetServiceCallback?, cookie: Any?) {
@@ -147,7 +152,9 @@ class BaseService {
             }
             try {
                 return Libcore.urlTest(
-                    data!!.proxy!!.box, DataStore.connectionTestURL, DataStore.connectionTestTimeout
+                    data!!.proxy!!.box,
+                    DataStore.connectionTestURL,
+                    DataStore.connectionTestTimeout,
                 )
             } catch (e: Exception) {
                 error(Protocols.genFriendlyMsg(e.readableMessage))
@@ -176,8 +183,7 @@ class BaseService {
         val tag: String
         fun createNotification(profileName: String): ServiceNotification
 
-        fun onBind(intent: Intent): IBinder? =
-            if (intent.action == Action.SERVICE) data.binder else null
+        fun onBind(intent: Intent): IBinder? = if (intent.action == Action.SERVICE) data.binder else null
 
         fun reload() {
             if (DataStore.selectedProxy == 0L) {
@@ -220,8 +226,11 @@ class BaseService {
 
         fun startRunner() {
             this as Context
-            if (Build.VERSION.SDK_INT >= 26) startForegroundService(Intent(this, javaClass))
-            else startService(Intent(this, javaClass))
+            if (Build.VERSION.SDK_INT >= 26) {
+                startForegroundService(Intent(this, javaClass))
+            } else {
+                startService(Intent(this, javaClass))
+            }
         }
 
         fun killProcesses() {
@@ -263,7 +272,9 @@ class BaseService {
                 // change the state
                 data.changeState(State.Stopped, msg)
                 // stop the service if nothing has bound to it
-                if (restart) startRunner() else {
+                if (restart) {
+                    startRunner()
+                } else {
                     stopSelf()
                 }
             }
@@ -353,14 +364,14 @@ class BaseService {
                         filter,
                         "$packageName.SERVICE",
                         null,
-                        Context.RECEIVER_EXPORTED
+                        Context.RECEIVER_EXPORTED,
                     )
                 } else {
                     registerReceiver(
                         data.receiver,
                         filter,
                         "$packageName.SERVICE",
-                        null
+                        null,
                     )
                 }
                 data.closeReceiverRegistered = true
@@ -377,7 +388,7 @@ class BaseService {
                 try {
                     data.notification = createNotification(ServiceNotification.genTitle(profile))
 
-                    Executable.killAll()    // clean up old processes
+                    Executable.killAll() // clean up old processes
                     preInit()
                     proxy.init()
                     DataStore.currentProfile = profile.id
@@ -407,7 +418,8 @@ class BaseService {
                         Logs.w(exc)
                     }
                     stopRunner(
-                        false, "${getString(R.string.service_failed)}: ${exc.readableMessage}"
+                        false,
+                        "${getString(R.string.service_failed)}: ${exc.readableMessage}",
                     )
                 } finally {
                     data.connectingJob = null
@@ -416,5 +428,4 @@ class BaseService {
             return Service.START_NOT_STICKY
         }
     }
-
 }

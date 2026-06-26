@@ -24,8 +24,8 @@ object Plugins {
         if (pkg.providers?.isEmpty() == true) return false
         val provider = pkg.providers?.get(0) ?: return false
         val auth = provider.authority ?: return false
-        return auth.startsWith(AUTHORITIES_PREFIX_SEKAI_EXE)
-                || auth.startsWith(AUTHORITIES_PREFIX_NEKO_EXE)
+        return auth.startsWith(AUTHORITIES_PREFIX_SEKAI_EXE) ||
+            auth.startsWith(AUTHORITIES_PREFIX_NEKO_EXE)
     }
 
     fun preferExePrefix(): String {
@@ -38,7 +38,7 @@ object Plugins {
                 return true
             }
         }
-        return false;
+        return false
     }
 
     fun displayExeProvider(pkgName: String): String {
@@ -107,10 +107,12 @@ object Plugins {
                 flags or PackageManager.MATCH_DIRECT_BOOT_UNAWARE or PackageManager.MATCH_DIRECT_BOOT_AWARE
         }
         val list1 = SagerNet.application.packageManager.queryIntentContentProviders(
-            Intent(ACTION_NATIVE_PLUGIN, buildUri(pluginId, "io.nekohasekai.sagernet")), flags
+            Intent(ACTION_NATIVE_PLUGIN, buildUri(pluginId, "io.nekohasekai.sagernet")),
+            flags,
         )
         val list2 = SagerNet.application.packageManager.queryIntentContentProviders(
-            Intent(ACTION_NATIVE_PLUGIN, buildUri(pluginId, "moe.matsuri.lite")), flags
+            Intent(ACTION_NATIVE_PLUGIN, buildUri(pluginId, "moe.matsuri.lite")),
+            flags,
         )
         return (list1 + list2).mapNotNull {
             it.providerInfo

@@ -33,5 +33,4 @@ object TypeMap : HashMap<String, Int>() {
             reversed[type] = key
         }
     }
-
 }

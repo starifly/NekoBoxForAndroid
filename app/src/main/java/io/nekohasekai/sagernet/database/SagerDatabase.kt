@@ -22,8 +22,8 @@ import kotlinx.coroutines.launch
         AutoMigration(from = 5, to = 6),
         AutoMigration(from = 6, to = 7),
         AutoMigration(from = 7, to = 8),
-        AutoMigration(from = 8, to = 9)
-    ]
+        AutoMigration(from = 8, to = 9),
+    ],
 )
 @TypeConverters(value = [KryoConverters::class, GsonConverters::class])
 abstract class SagerDatabase : RoomDatabase() {
@@ -44,11 +44,9 @@ abstract class SagerDatabase : RoomDatabase() {
         val groupDao get() = instance.groupDao()
         val proxyDao get() = instance.proxyDao()
         val rulesDao get() = instance.rulesDao()
-
     }
 
     abstract fun groupDao(): ProxyGroup.Dao
     abstract fun proxyDao(): ProxyEntity.Dao
     abstract fun rulesDao(): RuleEntity.Dao
-
 }

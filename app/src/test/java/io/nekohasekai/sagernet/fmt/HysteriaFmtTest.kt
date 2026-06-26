@@ -28,7 +28,7 @@ class HysteriaFmtTest {
               "tls": { "sni": "cdn.example.com", "insecure": true },
               "bandwidth": { "up": 50, "down": 200 }
             }
-            """.trimIndent()
+            """.trimIndent(),
         )
         val bean = json.parseHysteria2Json()
         assertEquals(2, bean.protocolVersion)
@@ -51,7 +51,7 @@ class HysteriaFmtTest {
               "auth": "pw",
               "obfs": { "type": "salamander", "salamander": { "password": "obfspw" } }
             }
-            """.trimIndent()
+            """.trimIndent(),
         )
         val bean = json.parseHysteria2Json()
         assertEquals(HysteriaBean.OBFS_SALAMANDER, bean.hysteria2ObfsType)
@@ -67,7 +67,7 @@ class HysteriaFmtTest {
               "auth": "pw",
               "obfs": { "type": "gecko", "gecko": { "password": "g", "min_packet_size": 100, "max_packet_size": 900 } }
             }
-            """.trimIndent()
+            """.trimIndent(),
         )
         val bean = json.parseHysteria2Json()
         assertEquals(HysteriaBean.OBFS_GECKO, bean.hysteria2ObfsType)
@@ -86,7 +86,7 @@ class HysteriaFmtTest {
     @Test
     fun parseHysteria2Json_bandwidthStringUnits() {
         val bean = JSONObject(
-            """{ "server": "h:443", "auth": "a", "bandwidth": { "up": "100 mbps", "down": "1 gbps" } }"""
+            """{ "server": "h:443", "auth": "a", "bandwidth": { "up": "100 mbps", "down": "1 gbps" } }""",
         ).parseHysteria2Json()
         assertEquals(100, bean.uploadMbps)
         assertEquals(1000, bean.downloadMbps)

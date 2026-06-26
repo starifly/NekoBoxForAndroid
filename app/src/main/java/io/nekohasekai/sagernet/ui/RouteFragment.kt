@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
-import io.nekohasekai.sagernet.ktx.getColorAttr
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -21,9 +20,10 @@ import io.nekohasekai.sagernet.databinding.LayoutEmptyRouteBinding
 import io.nekohasekai.sagernet.databinding.LayoutRouteBinding
 import io.nekohasekai.sagernet.databinding.LayoutRouteItemBinding
 import io.nekohasekai.sagernet.ktx.*
-import me.zhanghai.android.fastscroll.FastScrollerBuilder
+import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.widget.ListListener
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
+import me.zhanghai.android.fastscroll.FastScrollerBuilder
 
 class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItemClickListener {
 
@@ -50,25 +50,24 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
         FastScrollerBuilder(ruleListView).useMd2Style().build()
         undoManager = UndoSnackbarManager(activity, ruleAdapter)
 
-        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.START) {
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN,
+            ItemTouchHelper.START,
+        ) {
 
-            override fun getSwipeDirs(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-            ) = if (viewHolder is RuleAdapter.DocumentHolder) {
-                0
-            } else {
-                super.getSwipeDirs(recyclerView, viewHolder)
-            }
+            override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) =
+                if (viewHolder is RuleAdapter.DocumentHolder) {
+                    0
+                } else {
+                    super.getSwipeDirs(recyclerView, viewHolder)
+                }
 
-            override fun getDragDirs(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-            ) = if (viewHolder is RuleAdapter.DocumentHolder) {
-                0
-            } else {
-                super.getDragDirs(recyclerView, viewHolder)
-            }
+            override fun getDragDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) =
+                if (viewHolder is RuleAdapter.DocumentHolder) {
+                    0
+                } else {
+                    super.getDragDirs(recyclerView, viewHolder)
+                }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val index = viewHolder.bindingAdapterPosition
@@ -78,7 +77,8 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
 
             override fun onMove(
                 recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder,
             ): Boolean {
                 return if (target is RuleAdapter.DocumentHolder) {
                     false
@@ -88,10 +88,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
                 }
             }
 
-            override fun clearView(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-            ) {
+            override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
                 super.clearView(recyclerView, viewHolder)
                 ruleAdapter.commitMove()
             }
@@ -148,10 +145,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
             }
         }
 
-        override fun onCreateViewHolder(
-            parent: ViewGroup,
-            viewType: Int,
-        ): RecyclerView.ViewHolder {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
             return if (viewType == 0) {
                 DocumentHolder(LayoutEmptyRouteBinding.inflate(layoutInflater, parent, false))
             } else {
@@ -251,10 +245,12 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
                 onMainDispatcher {
                     needReload()
                 }
-            } else ruleListView.post {
-                ruleList.removeAt(index)
-                ruleAdapter.notifyItemRemoved(index + 1)
-                needReload()
+            } else {
+                ruleListView.post {
+                    ruleList.removeAt(index)
+                    ruleAdapter.notifyItemRemoved(index + 1)
+                    needReload()
+                }
             }
         }
 
@@ -293,9 +289,9 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
                 // set text color based on route type
                 val ctx = itemView.context
                 val outboundColor = when (rule.outbound) {
-                    -2L -> ContextCompat.getColor(ctx, R.color.color_route_block)   // block: red
-                    -1L -> ContextCompat.getColor(ctx, R.color.color_route_direct)  // direct: green
-                    0L -> ctx.getColorAttr(R.attr.routeProxyColor)                  // proxy: blue/cyan
+                    -2L -> ContextCompat.getColor(ctx, R.color.color_route_block) // block: red
+                    -1L -> ContextCompat.getColor(ctx, R.color.color_route_direct) // direct: green
+                    0L -> ctx.getColorAttr(R.attr.routeProxyColor) // proxy: blue/cyan
                     else -> ContextCompat.getColor(ctx, R.color.color_route_config) // config: purple
                 }
                 routeOutbound.setTextColor(outboundColor)
@@ -315,13 +311,13 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
                     }
                 }
                 editButton.setOnClickListener {
-                    startActivity(Intent(it.context, RouteSettingsActivity::class.java).apply {
-                        putExtra(RouteSettingsActivity.EXTRA_ROUTE_ID, rule.id)
-                    })
+                    startActivity(
+                        Intent(it.context, RouteSettingsActivity::class.java).apply {
+                            putExtra(RouteSettingsActivity.EXTRA_ROUTE_ID, rule.id)
+                        },
+                    )
                 }
             }
         }
-
     }
-
 }

@@ -50,10 +50,7 @@ class AmneziaWGSettingsActivity : ProfileSettingsActivity<AmneziaWGBean>() {
         pbm.fromCacheAll(this)
     }
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    override fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.amneziawg_preferences)
         pbm.setPreferenceFragment(this)
 
@@ -66,5 +63,4 @@ class AmneziaWGSettingsActivity : ProfileSettingsActivity<AmneziaWGBean>() {
                 .setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
         }
     }
-
 }

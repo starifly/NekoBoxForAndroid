@@ -266,14 +266,14 @@ object XhttpExtraConverter {
 
     private fun isSingBoxFormat(json: JSONObject): Boolean {
         return json.has("x_padding_bytes") || json.has("sc_max_each_post_bytes") ||
-               json.has("sc_min_posts_interval_ms") || json.has("sc_stream_up_server_secs") ||
-               json.has("download")
+            json.has("sc_min_posts_interval_ms") || json.has("sc_stream_up_server_secs") ||
+            json.has("download")
     }
 
     private fun isXrayFormat(json: JSONObject): Boolean {
         return json.has("xPaddingBytes") || json.has("scMaxEachPostBytes") ||
-               json.has("scMinPostsIntervalMs") || json.has("scStreamUpServerSecs") ||
-               json.has("downloadSettings")
+            json.has("scMinPostsIntervalMs") || json.has("scStreamUpServerSecs") ||
+            json.has("downloadSettings")
     }
 
     private fun convertField(from: JSONObject, to: JSONObject, fromKey: String, toKey: String) {

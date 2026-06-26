@@ -35,20 +35,19 @@ class QRCodeDialog() : DialogFragment() {
 
     constructor(url: String, displayName: String) : this() {
         arguments = bundleOf(
-            Pair(KEY_URL, url), Pair(KEY_NAME, displayName)
+            Pair(KEY_URL, url),
+            Pair(KEY_NAME, displayName),
         )
     }
 
     /**
      * Based on:
      * https://android.googlesource.com/platform/
-    packages/apps/Settings/+/0d706f0/src/com/android/settings/wifi/qrcode/QrCodeGenerator.java
+     packages/apps/Settings/+/0d706f0/src/com/android/settings/wifi/qrcode/QrCodeGenerator.java
      * https://android.googlesource.com/platform/
-    packages/apps/Settings/+/8a9ccfd/src/com/android/settings/wifi/dpp/WifiDppQrCodeGeneratorFragment.java#153
+     packages/apps/Settings/+/8a9ccfd/src/com/android/settings/wifi/dpp/WifiDppQrCodeGeneratorFragment.java#153
      */
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ) = try {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) = try {
         // get display size
         var pixelMin = 0
 
@@ -77,7 +76,8 @@ class QRCodeDialog() : DialogFragment() {
             // QR Code Image View (bitmap filled asynchronously below)
             val imageView = ImageView(context).apply {
                 layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
                 )
             }
             addView(imageView)
@@ -107,13 +107,16 @@ class QRCodeDialog() : DialogFragment() {
             }
 
             // Text View
-            addView(TextView(context).apply {
-                gravity = Gravity.CENTER
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-                text = displayName
-            })
+            addView(
+                TextView(context).apply {
+                    gravity = Gravity.CENTER
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                    )
+                    text = displayName
+                },
+            )
         }
     } catch (e: WriterException) {
         Logs.w(e)

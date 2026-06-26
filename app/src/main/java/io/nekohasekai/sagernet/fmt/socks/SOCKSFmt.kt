@@ -2,11 +2,9 @@ package io.nekohasekai.sagernet.fmt.socks
 
 import io.nekohasekai.sagernet.ktx.decodeBase64UrlSafe
 import io.nekohasekai.sagernet.ktx.toLink
-import io.nekohasekai.sagernet.ktx.unUrlSafe
 import io.nekohasekai.sagernet.ktx.urlSafe
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.utils.NGUtil
-import moe.matsuri.nb4a.utils.Util
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
@@ -38,17 +36,14 @@ fun parseSOCKS(link: String): SOCKSBean {
 }
 
 fun SOCKSBean.toUri(): String {
-
     val builder = HttpUrl.Builder().scheme("http").host(serverAddress).port(serverPort)
     if (!username.isNullOrBlank()) builder.username(username)
     if (!password.isNullOrBlank()) builder.password(password)
     if (!name.isNullOrBlank()) builder.encodedFragment(name.urlSafe())
     return builder.toLink("socks${protocolVersion()}")
-
 }
 
 fun SOCKSBean.toV2rayN(): String {
-
     var link = ""
     if (username.isNotBlank()) {
         link += username.urlSafe() + ":" + password.urlSafe() + "@"
@@ -60,7 +55,6 @@ fun SOCKSBean.toV2rayN(): String {
     }
 
     return link
-
 }
 
 fun buildSingBoxOutboundSocksBean(bean: SOCKSBean): SingBoxOptions.Outbound_SocksOptions {

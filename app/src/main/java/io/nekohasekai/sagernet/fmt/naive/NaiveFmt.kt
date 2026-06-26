@@ -81,7 +81,7 @@ fun NaiveBean.buildNaiveConfig(port: Int, listenUsername: String? = null, listen
         if (!listenUsername.isNullOrBlank() && !listenPassword.isNullOrBlank()) {
             put(
                 "listen",
-                "socks://${listenUsername.urlSafe()}:${listenPassword.urlSafe()}@$LOCALHOST:$port"
+                "socks://${listenUsername.urlSafe()}:${listenPassword.urlSafe()}@$LOCALHOST:$port",
             )
         } else {
             put("listen", "socks://$LOCALHOST:$port")

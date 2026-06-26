@@ -64,10 +64,7 @@ class TrojanGoSettingsActivity : ProfileSettingsActivity<TrojanGoBean>() {
     val trojanGoMethods = app.resources.getStringArray(R.array.trojan_go_methods)
     val trojanGoNetworks = app.resources.getStringArray(R.array.trojan_go_networks_value)
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    override fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.trojan_go_preferences)
         findPreference<EditTextPreference>(Key.SERVER_PORT)!!.apply {
             setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
@@ -126,5 +123,4 @@ class TrojanGoSettingsActivity : ProfileSettingsActivity<TrojanGoBean>() {
             }
         }
     }
-
 }

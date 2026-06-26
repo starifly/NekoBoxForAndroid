@@ -47,7 +47,13 @@ object Theme {
      * the first such theme; the modern M3 themes are dark-only too.
      */
     val DARK_ONLY_THEMES = setOf(
-        DRACULA, DARK_HIGH_CONTRAST, DRACULA_M3, NORD, MONOKAI, AYU, CATPPUCCIN,
+        DRACULA,
+        DARK_HIGH_CONTRAST,
+        DRACULA_M3,
+        NORD,
+        MONOKAI,
+        AYU,
+        CATPPUCCIN,
     )
 
     private fun defaultTheme() = PINK_SSR
@@ -84,8 +90,10 @@ object Theme {
      */
     val MODERN_THEMES: List<ThemeInfo> = listOf(
         ThemeInfo(
-            DARK_HIGH_CONTRAST, R.string.theme_dark_high_contrast,
-            R.color.dhc_background, R.color.white,
+            DARK_HIGH_CONTRAST,
+            R.string.theme_dark_high_contrast,
+            R.color.dhc_background,
+            R.color.white,
         ),
         ThemeInfo(DRACULA_M3, R.string.theme_dracula_m3, R.color.draculam3_primary),
         ThemeInfo(NORD, R.string.theme_nord, R.color.nord_primary),
@@ -211,5 +219,4 @@ object Theme {
     fun applyNightTheme() {
         AppCompatDelegate.setDefaultNightMode(getNightMode())
     }
-
 }

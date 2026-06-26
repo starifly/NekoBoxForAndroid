@@ -45,12 +45,13 @@ object SubscriptionUpdater {
                 .apply {
                     if (minInitDelay > 0) setInitialDelay(minInitDelay, TimeUnit.SECONDS)
                 }
-                .build()
+                .build(),
         )
     }
 
     class UpdateTask(
-        appContext: Context, params: WorkerParameters
+        appContext: Context,
+        params: WorkerParameters,
     ) : CoroutineWorker(appContext, params) {
 
         val nm = NotificationManagerCompat.from(applicationContext)
@@ -72,22 +73,24 @@ object SubscriptionUpdater {
                 subscriptions = subscriptions.filter { (_, sub) -> !sub.updateWhenConnectedOnly }
             }
 
-            if (subscriptions.isNotEmpty()) for ((profile, subscription) in subscriptions) {
+            if (subscriptions.isNotEmpty()) {
+                for ((profile, subscription) in subscriptions) {
+                    if (((System.currentTimeMillis() / 1000).toInt() - subscription.lastUpdated) < subscription.autoUpdateDelay * 60) {
+                        Logs.d("work: not updating " + profile.displayName())
+                        continue
+                    }
+                    Logs.d("work: updating " + profile.displayName())
 
-                if (((System.currentTimeMillis() / 1000).toInt() - subscription.lastUpdated) < subscription.autoUpdateDelay * 60) {
-                    Logs.d("work: not updating " + profile.displayName())
-                    continue
-                }
-                Logs.d("work: updating " + profile.displayName())
-
-                notification.setContentText(
-                    applicationContext.getString(
-                        R.string.subscription_update_message, profile.displayName()
+                    notification.setContentText(
+                        applicationContext.getString(
+                            R.string.subscription_update_message,
+                            profile.displayName(),
+                        ),
                     )
-                )
-                nm.notify(2, notification.build())
+                    nm.notify(2, notification.build())
 
-                GroupUpdater.executeUpdate(profile, false)
+                    GroupUpdater.executeUpdate(profile, false)
+                }
             }
 
             nm.cancel(2)
@@ -95,5 +98,4 @@ object SubscriptionUpdater {
             return Result.success()
         }
     }
-
 }

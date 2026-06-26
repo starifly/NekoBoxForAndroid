@@ -6,6 +6,7 @@ import io.nekohasekai.sagernet.fmt.Serializable
 import io.nekohasekai.sagernet.fmt.http.parseHttp
 import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria1
 import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria2
+import io.nekohasekai.sagernet.fmt.juicity.parseJuicity
 import io.nekohasekai.sagernet.fmt.masterdnsvpn.parseMasterDnsVpn
 import io.nekohasekai.sagernet.fmt.naive.parseNaive
 import io.nekohasekai.sagernet.fmt.parseUniversal
@@ -14,9 +15,8 @@ import io.nekohasekai.sagernet.fmt.shadowsocksr.parseShadowsocksR
 import io.nekohasekai.sagernet.fmt.snell.parseSnell
 import io.nekohasekai.sagernet.fmt.socks.parseSOCKS
 import io.nekohasekai.sagernet.fmt.trojan.parseTrojan
-import io.nekohasekai.sagernet.fmt.tuic.parseTuic
-import io.nekohasekai.sagernet.fmt.juicity.parseJuicity
 import io.nekohasekai.sagernet.fmt.trojan_go.parseTrojanGo
+import io.nekohasekai.sagernet.fmt.tuic.parseTuic
 import io.nekohasekai.sagernet.fmt.v2ray.parseV2Ray
 import moe.matsuri.nb4a.proxy.anytls.parseAnytls
 import moe.matsuri.nb4a.utils.JavaUtil.gson
@@ -88,7 +88,6 @@ fun JSONObject.getBool(name: String): Boolean? {
     }
 }
 
-
 // name collision, nya
 fun JSONObject.getIntNya(name: String): Int? {
     return try {
@@ -97,7 +96,6 @@ fun JSONObject.getIntNya(name: String): Int? {
         null
     }
 }
-
 
 fun String.decodeBase64UrlSafe(): String {
     return String(Util.b64Decode(this))
@@ -132,7 +130,7 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
                 Logs.w(it)
             }
         } else if (startsWith("socks://") || startsWith("socks4://") || startsWith("socks4a://") || startsWith(
-                "socks5://"
+                "socks5://",
             )
         ) {
             Logs.d("Try parse socks link: $this")
@@ -273,12 +271,17 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
         subscriptionCandidate?.let { throw SubscriptionFoundException(it) }
     }
 //    var isBadLink = false
-    if (entities.onEach { it.initializeDefaultValues() }.size == entitiesByLine.onEach { it.initializeDefaultValues() }.size) run test@{
-        entities.forEachIndexed { index, bean ->
-            val lineBean = entitiesByLine[index]
-            if (bean == lineBean && bean.displayName() != lineBean.displayName()) {
+    if (entities.onEach {
+            it.initializeDefaultValues()
+        }.size == entitiesByLine.onEach { it.initializeDefaultValues() }.size
+    ) {
+        run test@{
+            entities.forEachIndexed { index, bean ->
+                val lineBean = entitiesByLine[index]
+                if (bean == lineBean && bean.displayName() != lineBean.displayName()) {
 //                isBadLink = true
-                return@test
+                    return@test
+                }
             }
         }
     }

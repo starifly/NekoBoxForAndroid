@@ -8,7 +8,9 @@ import moe.matsuri.nb4a.ui.SimpleMenuPreference
 
 class GroupPreference
 @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null, defStyle: Int = R.attr.dropdownPreferenceStyle
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyle: Int = R.attr.dropdownPreferenceStyle,
 ) : SimpleMenuPreference(context, attrs, defStyle, 0) {
 
     init {
@@ -25,5 +27,4 @@ class GroupPreference
         }
         return super.getSummary()
     }
-
 }

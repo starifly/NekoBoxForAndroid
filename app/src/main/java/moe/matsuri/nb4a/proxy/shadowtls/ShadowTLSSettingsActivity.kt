@@ -28,17 +28,13 @@ class ShadowTLSSettingsActivity : ProfileSettingsActivity<ShadowTLSBean>() {
 
     override fun ShadowTLSBean.init() {
         pbm.writeToCacheAll(this)
-
     }
 
     override fun ShadowTLSBean.serialize() {
         pbm.fromCacheAll(this)
     }
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    override fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.shadowtls_preferences)
         pbm.setPreferenceFragment(this)
 
@@ -51,5 +47,4 @@ class ShadowTLSSettingsActivity : ProfileSettingsActivity<ShadowTLSBean>() {
             summaryProvider = PasswordSummaryProvider
         }
     }
-
 }

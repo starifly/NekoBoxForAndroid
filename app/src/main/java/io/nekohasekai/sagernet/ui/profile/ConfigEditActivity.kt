@@ -56,8 +56,12 @@ class ConfigEditActivity : ThemedActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         onBackPressedDispatcher.addCallback(this) {
-            if (dirty) UnsavedChangesDialogFragment().apply { key() }
-                .show(supportFragmentManager, null) else finish()
+            if (dirty) {
+                UnsavedChangesDialogFragment().apply { key() }
+                    .show(supportFragmentManager, null)
+            } else {
+                finish()
+            }
         }
 
         intent?.extras?.apply {

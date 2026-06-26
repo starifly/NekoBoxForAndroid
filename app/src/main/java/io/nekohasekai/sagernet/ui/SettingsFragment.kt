@@ -18,5 +18,4 @@ class SettingsFragment : ToolbarFragment(R.layout.layout_config_settings) {
             .replace(R.id.settings, SettingsPreferenceFragment())
             .commitAllowingStateLoss()
     }
-
 }

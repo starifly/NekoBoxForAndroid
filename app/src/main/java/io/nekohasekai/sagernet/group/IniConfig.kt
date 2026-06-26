@@ -23,8 +23,7 @@ class IniConfig private constructor(private val sections: List<Section>) {
         }
 
         /** First value for [key], or null if absent (mirrors ini4j Section.get / section[key]). */
-        operator fun get(key: String): String? =
-            entries.firstOrNull { it.first == key }?.second
+        operator fun get(key: String): String? = entries.firstOrNull { it.first == key }?.second
 
         /** All values for [key] in order, or null if none (mirrors ini4j Section.getAll). */
         fun getAll(key: String): List<String>? =
@@ -35,8 +34,7 @@ class IniConfig private constructor(private val sections: List<Section>) {
     operator fun get(name: String): Section? = sections.firstOrNull { it.name == name }
 
     /** All sections named [name] in order, or null if none (mirrors ini4j Ini.getAll). */
-    fun getAll(name: String): List<Section>? =
-        sections.filter { it.name == name }.takeIf { it.isNotEmpty() }
+    fun getAll(name: String): List<Section>? = sections.filter { it.name == name }.takeIf { it.isNotEmpty() }
 
     companion object {
         private val sectionHeader = Regex("""^\[(.+)]$""")

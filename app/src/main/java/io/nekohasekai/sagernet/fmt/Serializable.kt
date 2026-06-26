@@ -23,5 +23,4 @@ abstract class Serializable : Parcelable {
             return KryoConverters.deserialize(newInstance(), source.createByteArray())
         }
     }
-
 }

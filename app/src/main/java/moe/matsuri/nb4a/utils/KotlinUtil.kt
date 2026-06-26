@@ -60,5 +60,5 @@ fun Long.toBytesString(): String {
 // List
 
 fun String.listByLineOrComma(): List<String> {
-    return this.split(",","\n").map { it.trim() }.filter { it.isNotEmpty() }
+    return this.split(",", "\n").map { it.trim() }.filter { it.isNotEmpty() }
 }

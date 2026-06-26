@@ -17,7 +17,7 @@ class PreferenceBinding(
     val type: Int = Type.Text,
     var fieldName: String,
     var bean: Any? = null,
-    var pf: PreferenceFragmentCompat? = null
+    var pf: PreferenceFragmentCompat? = null,
 ) {
 
     var cacheName = fieldName

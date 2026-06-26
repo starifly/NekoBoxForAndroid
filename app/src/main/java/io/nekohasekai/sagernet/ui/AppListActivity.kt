@@ -23,8 +23,6 @@ import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import me.zhanghai.android.fastscroll.FastScrollerBuilder
-import me.zhanghai.android.fastscroll.PopupTextProvider
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
@@ -41,6 +39,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.zhanghai.android.fastscroll.FastScrollerBuilder
+import me.zhanghai.android.fastscroll.PopupTextProvider
 import kotlin.coroutines.coroutineContext
 
 class AppListActivity : ThemedActivity() {
@@ -54,18 +54,20 @@ class AppListActivity : ThemedActivity() {
     }
 
     private class ProxiedApp(
-        private val pm: PackageManager, private val appInfo: ApplicationInfo,
+        private val pm: PackageManager,
+        private val appInfo: ApplicationInfo,
         val packageName: String,
     ) {
-        val name: CharSequence = appInfo.loadLabel(pm)    // cached for sorting
+        val name: CharSequence = appInfo.loadLabel(pm) // cached for sorting
         val icon: Drawable get() = appInfo.loadIcon(pm)
         val uid get() = appInfo.uid
         val sys get() = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
     }
 
-    private inner class AppViewHolder(val binding: LayoutAppsItemBinding) : RecyclerView.ViewHolder(
-        binding.root
-    ),
+    private inner class AppViewHolder(val binding: LayoutAppsItemBinding) :
+        RecyclerView.ViewHolder(
+            binding.root,
+        ),
         View.OnClickListener {
         private lateinit var item: ProxiedApp
 
@@ -96,7 +98,8 @@ class AppListActivity : ThemedActivity() {
         }
     }
 
-    private inner class AppsAdapter : RecyclerView.Adapter<AppViewHolder>(),
+    private inner class AppsAdapter :
+        RecyclerView.Adapter<AppViewHolder>(),
         Filterable,
         PopupTextProvider {
         var filteredApps = apps
@@ -109,12 +112,12 @@ class AppListActivity : ThemedActivity() {
             }.sortedWith(compareBy({ !isProxiedApp(it) }, { it.name.toString() }))
         }
 
-        override fun onBindViewHolder(holder: AppViewHolder, position: Int) =
-            holder.bind(filteredApps[position])
+        override fun onBindViewHolder(holder: AppViewHolder, position: Int) = holder.bind(filteredApps[position])
 
         override fun onBindViewHolder(holder: AppViewHolder, position: Int, payloads: List<Any>) {
             if (payloads.isNotEmpty()) {
-                @Suppress("UNCHECKED_CAST") holder.handlePayload(payloads as List<String>)
+                @Suppress("UNCHECKED_CAST")
+                holder.handlePayload(payloads as List<String>)
                 return
             }
 
@@ -128,10 +131,15 @@ class AppListActivity : ThemedActivity() {
 
         private val filterImpl = object : Filter() {
             override fun performFiltering(constraint: CharSequence) = FilterResults().apply {
-                var filteredApps = if (constraint.isEmpty()) apps else apps.filter {
-                    it.name.contains(constraint, true) || it.packageName.contains(
-                        constraint, true
-                    ) || it.uid.toString().contains(constraint)
+                var filteredApps = if (constraint.isEmpty()) {
+                    apps
+                } else {
+                    apps.filter {
+                        it.name.contains(constraint, true) || it.packageName.contains(
+                            constraint,
+                            true,
+                        ) || it.uid.toString().contains(constraint)
+                    }
                 }
                 if (!sysApps) filteredApps = filteredApps.filter { !it.sys }
                 count = filteredApps.size
@@ -150,7 +158,6 @@ class AppListActivity : ThemedActivity() {
         override fun getPopupText(view: View, position: Int): CharSequence {
             return filteredApps[position].name.firstOrNull()?.toString() ?: ""
         }
-
     }
 
     private val loading by lazy { binding.loading }
@@ -277,7 +284,7 @@ class AppListActivity : ThemedActivity() {
                 Snackbar.make(
                     binding.list,
                     if (success) R.string.action_export_msg else R.string.action_export_err,
-                    Snackbar.LENGTH_LONG
+                    Snackbar.LENGTH_LONG,
                 ).show()
                 return true
             }
@@ -291,7 +298,9 @@ class AppListActivity : ThemedActivity() {
                         val apps = if (i < 0) "" else proxiedAppString.substring(i + 1)
                         DataStore.routePackages = apps
                         Snackbar.make(
-                            binding.list, R.string.action_import_msg, Snackbar.LENGTH_LONG
+                            binding.list,
+                            R.string.action_import_msg,
+                            Snackbar.LENGTH_LONG,
                         ).show()
                         initProxiedUids(apps)
                         appsAdapter.notifyItemRangeChanged(0, appsAdapter.itemCount, SWITCH)
@@ -315,7 +324,9 @@ class AppListActivity : ThemedActivity() {
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent?) = if (keyCode == KeyEvent.KEYCODE_MENU) {
         if (binding.toolbar.isOverflowMenuShowing) binding.toolbar.hideOverflowMenu() else binding.toolbar.showOverflowMenu()
-    } else super.onKeyUp(keyCode, event)
+    } else {
+        super.onKeyUp(keyCode, event)
+    }
 
     override fun onDestroy() {
         loader?.cancel()

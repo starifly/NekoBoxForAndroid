@@ -19,5 +19,4 @@ class NetworkFragment : NamedFragment(R.layout.layout_network) {
             startActivity(Intent(requireContext(), StunActivity::class.java))
         }
     }
-
 }

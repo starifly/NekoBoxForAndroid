@@ -59,7 +59,7 @@ object LocalResolverImpl : LocalDNSTransport {
             DnsResolver.FLAG_NO_RETRY,
             Dispatchers.IO.asExecutor(),
             signal,
-            callback
+            callback,
         )
     }
 
@@ -111,7 +111,7 @@ object LocalResolverImpl : LocalDNSTransport {
                     DnsResolver.FLAG_NO_RETRY,
                     Dispatchers.IO.asExecutor(),
                     signal,
-                    callback
+                    callback,
                 )
             } else {
                 DnsResolver.getInstance().query(
@@ -120,7 +120,7 @@ object LocalResolverImpl : LocalDNSTransport {
                     DnsResolver.FLAG_NO_RETRY,
                     Dispatchers.IO.asExecutor(),
                     signal,
-                    callback
+                    callback,
                 )
             }
         } else {
@@ -147,5 +147,4 @@ object LocalResolverImpl : LocalDNSTransport {
             }
         }
     }
-
 }

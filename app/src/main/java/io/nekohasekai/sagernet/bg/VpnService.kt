@@ -18,7 +18,8 @@ import io.nekohasekai.sagernet.ui.VpnRequestActivity
 import io.nekohasekai.sagernet.utils.Subnet
 import android.net.VpnService as BaseVpnService
 
-class VpnService : BaseVpnService(),
+class VpnService :
+    BaseVpnService(),
     BaseService.Interface {
 
     companion object {
@@ -28,7 +29,6 @@ class VpnService : BaseVpnService(),
         const val FAKEDNS_VLAN4_CLIENT = "198.18.0.0"
         const val PRIVATE_VLAN6_CLIENT = "fdfe:dcba:9876::1"
         const val PRIVATE_VLAN6_ROUTER = "fdfe:dcba:9876::2"
-
     }
 
     var conn: ParcelFileDescriptor? = null
@@ -64,24 +64,27 @@ class VpnService : BaseVpnService(),
 
     override val data = BaseService.Data(this)
     override val tag = "SagerNetVpnService"
-    override fun createNotification(profileName: String) =
-        ServiceNotification(this, profileName, "service-vpn")
+    override fun createNotification(profileName: String) = ServiceNotification(this, profileName, "service-vpn")
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (DataStore.serviceMode == Key.MODE_VPN) {
             if (prepare(this) != null) {
                 startActivity(
                     Intent(
-                        this, VpnRequestActivity::class.java
-                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        this,
+                        VpnRequestActivity::class.java,
+                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                 )
-            } else return super<BaseService.Interface>.onStartCommand(intent, flags, startId)
+            } else {
+                return super<BaseService.Interface>.onStartCommand(intent, flags, startId)
+            }
         }
         stopRunner()
         return Service.START_NOT_STICKY
     }
 
-    inner class NullConnectionException : NullPointerException(),
+    inner class NullConnectionException :
+        NullPointerException(),
         BaseService.ExpectedException {
         override fun getLocalizedMessage() = getString(R.string.reboot_required)
     }
@@ -196,7 +199,7 @@ class VpnService : BaseVpnService(),
                 // Skip it instead of weakening inbound auth and exposing an open LAN proxy.
                 Logs.w(
                     "Append HTTP proxy was skipped because LAN access requires proxy " +
-                        "authentication. Disable Allow LAN access to use system HTTP proxy."
+                        "authentication. Disable Allow LAN access to use system HTTP proxy.",
                 )
             } else {
                 val proxyInfo = runCatching {
