@@ -1,0 +1,25 @@
+# Depot CI workflow: repo guardrails.
+#
+# Fails fast if AGENTS.md ever becomes tracked by git. AGENTS.md holds local-only
+# credentials (per the maintainer decision it stays gitignored and offline), so it must
+# never be committed. Machine-enforces the "never publish AGENTS.md" rule (Plan 003).
+name: Repo Guards
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  guard:
+    name: Repo Guards
+    runs-on: depot-ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Guard - AGENTS.md must stay untracked
+        run: bash ./scripts/check-agents-untracked.sh
