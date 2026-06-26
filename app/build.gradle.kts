@@ -98,7 +98,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:5.3.0")
     implementation("org.yaml:snakeyaml:2.3")
     implementation("com.jakewharton:process-phoenix:2.1.2")
-    implementation("com.esotericsoftware:kryo:5.2.1")
+    implementation("com.esotericsoftware:kryo:5.6.2")
 
     implementation("me.zhanghai.android.fastscroll:library:1.3.0")
 
