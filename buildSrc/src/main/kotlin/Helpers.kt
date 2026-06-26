@@ -65,6 +65,7 @@ fun Project.setupCommon() {
             checkAllWarnings = true
             checkReleaseBuilds = true
             warningsAsErrors = true
+            baseline = project.file("lint-baseline.xml")
             textOutput = project.file("build/lint.txt")
             htmlOutput = project.file("build/lint.html")
         }

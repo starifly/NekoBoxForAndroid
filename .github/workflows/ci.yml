@@ -42,6 +42,33 @@ jobs:
         run: |
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
           ./gradlew app:testOssDebugUnitTest
+  lint:
+    name: Android Lint
+    runs-on: namespace-profile-nekoyay
+    needs:
+      - libcore
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Download LibCore
+        uses: namespace-actions/download-artifact@v1
+        with:
+          name: libcore-aar-ci
+          path: app/libs
+      - name: Gradle cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.gradle
+          key: gradle-lint-${{ hashFiles('**/*.gradle.kts') }}-ci
+      - name: Lint
+        run: |
+          echo "sdk.dir=${ANDROID_HOME}" > local.properties
+          ./gradlew app:lintOssDebug
   libcore:
     name: Native Build (LibCore)
     runs-on: namespace-profile-nekoyay
