@@ -18,7 +18,9 @@ import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
+import io.nekohasekai.sagernet.ktx.runOnLifecycleDispatcher
 import io.nekohasekai.sagernet.ui.MainActivity
 import java.nio.charset.StandardCharsets
 import kotlin.math.roundToInt
@@ -67,23 +69,42 @@ class QRCodeDialog() : DialogFragment() {
 
         val hints = mutableMapOf<EncodeHintType, Any>()
         if (!iso88591.canEncode(url)) hints[EncodeHintType.CHARACTER_SET] = StandardCharsets.UTF_8.name()
-        val qrBits = MultiFormatWriter().encode(url, BarcodeFormat.QR_CODE, size, size, hints)
         LinearLayout(context).apply {
             // Layout
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
 
-            // QR Code Image View
-            addView(ImageView(context).apply {
+            // QR Code Image View (bitmap filled asynchronously below)
+            val imageView = ImageView(context).apply {
                 layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
                 )
-                setImageBitmap(Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565).apply {
-                    for (x in 0 until size) for (y in 0 until size) {
-                        setPixel(x, y, if (qrBits.get(x, y)) Color.BLACK else Color.WHITE)
+            }
+            addView(imageView)
+
+            // Encode + fill the bitmap off the UI thread, then set it on the main thread.
+            // Lifecycle-scoped so it does not leak if the dialog is dismissed early.
+            runOnLifecycleDispatcher {
+                try {
+                    val qrBits = MultiFormatWriter().encode(url, BarcodeFormat.QR_CODE, size, size, hints)
+                    // setPixels/createBitmap(int[]) expect row-major (y * width + x).
+                    val pixels = IntArray(size * size)
+                    for (y in 0 until size) {
+                        val offset = y * size
+                        for (x in 0 until size) {
+                            pixels[offset + x] = if (qrBits.get(x, y)) Color.BLACK else Color.WHITE
+                        }
                     }
-                })
-            })
+                    val bitmap = Bitmap.createBitmap(pixels, size, size, Bitmap.Config.RGB_565)
+                    onMainDispatcher { imageView.setImageBitmap(bitmap) }
+                } catch (e: WriterException) {
+                    Logs.w(e)
+                    onMainDispatcher {
+                        (activity as? MainActivity)?.snackbar(e.readableMessage)?.show()
+                        dismiss()
+                    }
+                }
+            }
 
             // Text View
             addView(TextView(context).apply {
