@@ -200,6 +200,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         super.onViewCreated(view, savedInstanceState)
 
         if (!select) {
+            toolbar.title = ""
             toolbar.inflateMenu(R.menu.add_profile_menu)
             toolbar.menu.findItem(R.id.action_global_mode)?.isChecked = DataStore.globalMode
             toolbar.setOnMenuItemClickListener(this)
@@ -224,6 +225,36 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
 
         groupPager = view.findViewById(R.id.group_pager)
+        val recyclerView = groupPager.getChildAt(0) as? androidx.recyclerview.widget.RecyclerView
+        recyclerView?.addOnItemTouchListener(object : androidx.recyclerview.widget.RecyclerView.OnItemTouchListener {
+            private var startX = 0f
+            override fun onInterceptTouchEvent(rv: androidx.recyclerview.widget.RecyclerView, e: android.view.MotionEvent): Boolean {
+                when (e.action) {
+                    android.view.MotionEvent.ACTION_DOWN -> {
+                        startX = e.x
+                    }
+                    android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                        val endX = e.x
+                        val diffX = endX - startX
+                        val currentItem = groupPager.currentItem
+                        val count = adapter.itemCount
+                        val threshold = rv.width / 5
+                        if (count > 1) {
+                            if (currentItem == 0 && diffX > threshold) {
+                                groupPager.setCurrentItem(count - 1, true)
+                                return true
+                            } else if (currentItem == count - 1 && diffX < -threshold) {
+                                groupPager.setCurrentItem(0, true)
+                                return true
+                            }
+                        }
+                    }
+                }
+                return false
+            }
+            override fun onTouchEvent(rv: androidx.recyclerview.widget.RecyclerView, e: android.view.MotionEvent) {}
+            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+        })
         tabLayout = view.findViewById(R.id.group_tab)
         adapter = GroupPagerAdapter()
         ProfileManager.addListener(adapter)
@@ -1056,10 +1087,11 @@ class ConfigurationFragment @JvmOverloads constructor(
                         if (set) groupPager.setCurrentItem(selectedGroupIndex, false)
                         val hideTab = groupList.size < 2
                         tabLayout.isGone = hideTab
-                        toolbar.elevation = if (hideTab) 0F else dp2px(4).toFloat()
                         if (!select) {
+                            toolbar.title = if (hideTab) getString(R.string.app_name) else ""
                             groupPager.registerOnPageChangeCallback(updateSelectedCallback)
                         }
+                        toolbar.elevation = if (hideTab) 0F else dp2px(4).toFloat()
                     }
                 }
             }
