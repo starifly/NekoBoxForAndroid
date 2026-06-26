@@ -34,6 +34,12 @@ android {
     // Expose the exported Room schema JSON to instrumented tests so MigrationTestHelper
     // can locate the v8/v9 schemas at runtime (see SagerDatabaseMigrationTest).
     sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
+    }
     androidResources {
         generateLocaleConfig = true
     }
