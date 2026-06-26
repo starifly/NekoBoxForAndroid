@@ -24,15 +24,16 @@ object SubscriptionUpdater {
         RemoteWorkManager.getInstance(app).cancelUniqueWork(WORK_NAME)
 
         val subscriptions = SagerDatabase.groupDao.subscriptions()
-            .filter { it.subscription!!.autoUpdate }
+            .mapNotNull { group -> group.subscription?.let { group to it } }
+            .filter { (_, sub) -> sub.autoUpdate }
         if (subscriptions.isEmpty()) return
 
         // PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS
         var minDelay =
-            subscriptions.minByOrNull { it.subscription!!.autoUpdateDelay }!!.subscription!!.autoUpdateDelay.toLong()
+            subscriptions.minByOrNull { (_, sub) -> sub.autoUpdateDelay }!!.second.autoUpdateDelay.toLong()
         val now = System.currentTimeMillis() / 1000L
         var minInitDelay =
-            subscriptions.minOf { now - it.subscription!!.lastUpdated - (minDelay * 60) }
+            subscriptions.minOf { (_, sub) -> now - sub.lastUpdated - (minDelay * 60) }
         if (minDelay < 15) minDelay = 15
         if (minInitDelay > 60) minInitDelay = 60
 
@@ -63,14 +64,15 @@ object SubscriptionUpdater {
 
         override suspend fun doWork(): Result {
             var subscriptions =
-                SagerDatabase.groupDao.subscriptions().filter { it.subscription!!.autoUpdate }
+                SagerDatabase.groupDao.subscriptions()
+                    .mapNotNull { group -> group.subscription?.let { group to it } }
+                    .filter { (_, sub) -> sub.autoUpdate }
             if (!DataStore.serviceState.connected) {
                 Logs.d("work: not connected")
-                subscriptions = subscriptions.filter { !it.subscription!!.updateWhenConnectedOnly }
+                subscriptions = subscriptions.filter { (_, sub) -> !sub.updateWhenConnectedOnly }
             }
 
-            if (subscriptions.isNotEmpty()) for (profile in subscriptions) {
-                val subscription = profile.subscription!!
+            if (subscriptions.isNotEmpty()) for ((profile, subscription) in subscriptions) {
 
                 if (((System.currentTimeMillis() / 1000).toInt() - subscription.lastUpdated) < subscription.autoUpdateDelay * 60) {
                     Logs.d("work: not updating " + profile.displayName())
