@@ -100,7 +100,10 @@ class TrafficLooper
             }
 
             if (trafficUpdater == null) {
-                if (!proxy.isInitialized()) continue
+                if (!proxy.isInitialized()) {
+                    delay(delayMs)
+                    continue
+                }
                 idMap.clear()
                 idMap[-1] = itemBypass
                 //
