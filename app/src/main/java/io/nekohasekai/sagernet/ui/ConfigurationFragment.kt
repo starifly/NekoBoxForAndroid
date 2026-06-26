@@ -1520,7 +1520,11 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             fun filter(name: String) {
                 if (name.isEmpty()) {
-                    reloadProfiles()
+                    // Clearing the search box fires from onQueryTextChange on the UI thread;
+                    // reloadProfiles() runs a full-group DB scan (getByGroup), so route it to a
+                    // background dispatcher (its UI updates are already posted via
+                    // configurationListView.post). Mirrors the onResume reload pattern.
+                    runOnDefaultDispatcher { reloadProfiles() }
                     return
                 }
                 configurationIdList.clear()
