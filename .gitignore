@@ -48,3 +48,8 @@ release.keystore
 currentArchitectureState/*
 localAPKs/
 
+# Depot project id is local-only infra metadata, not for the public fork.
+depot.json
+# Internal notes/docs - keep local, do not publish.
+docs/
+
