@@ -67,6 +67,11 @@ class StatsBar @JvmOverloads constructor(
         super.onMeasure(newWidthMeasureSpec, heightMeasureSpec)
     }
 
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        radius = h / 2f
+    }
+
     override fun getBehavior(): YourBehavior {
         if (!this::behavior.isInitialized) behavior = YourBehavior { allowShow }
         return behavior

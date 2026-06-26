@@ -25,13 +25,11 @@
             android:layout_gravity="bottom|center_horizontal"
             android:layout_marginStart="12dp"
             android:layout_marginEnd="12dp"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="28dp"
             android:nextFocusUp="@+id/fab"
             app:cardBackgroundColor="@color/translucent_primary_container"
-            app:cardCornerRadius="46dp"
             app:cardElevation="3dp"
-            app:strokeWidth="0dp"
-            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.SagerNet.ConnectionPanel">
+            app:strokeWidth="0dp">
 
             <FrameLayout
                 android:layout_width="wrap_content"
@@ -43,10 +41,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="start|center_vertical"
-                    android:layout_marginStart="104dp"
-                    android:layout_marginEnd="24dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginStart="88dp"
+                    android:layout_marginEnd="20dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp"
                     android:orientation="vertical">
 
                     <TextView
@@ -103,13 +101,13 @@
 
                     <io.nekohasekai.sagernet.widget.ServiceButton
                         android:id="@+id/fab"
-                        android:layout_width="80dp"
-                        android:layout_height="80dp"
+                        android:layout_width="68dp"
+                        android:layout_height="68dp"
                         android:layout_gravity="center"
                         android:elevation="6dp"
                         app:backgroundTint="?attr/colorPrimary"
-                        app:fabCustomSize="80dp"
-                        app:maxImageSize="36dp"
+                        app:fabCustomSize="68dp"
+                        app:maxImageSize="30dp"
                         app:pressedTranslationZ="4dp"
                         app:srcCompat="@drawable/ic_service_idle"
                         app:tint="?attr/colorOnPrimary" />
@@ -121,7 +119,7 @@
                         android:layout_gravity="center"
                         android:visibility="invisible"
                         app:indicatorColor="?attr/colorOnPrimary"
-                        app:indicatorSize="88dp"
+                        app:indicatorSize="74dp"
                         app:trackColor="?attr/colorPrimaryContainer"
                         app:trackCornerRadius="4dp"
                         app:trackThickness="4dp" />
