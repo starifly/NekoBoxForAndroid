@@ -13,8 +13,8 @@ import io.nekohasekai.sagernet.ktx.Logs
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.actor
-import kotlinx.coroutines.runBlocking
 import java.net.UnknownHostException
 
 object DefaultNetworkListener {
@@ -31,7 +31,10 @@ object DefaultNetworkListener {
         class Lost(val network: Network) : NetworkMessage()
     }
 
-    private val networkActor = GlobalScope.actor<NetworkMessage>(Dispatchers.Unconfined) {
+    private val networkActor = GlobalScope.actor<NetworkMessage>(
+        Dispatchers.Unconfined,
+        capacity = Channel.UNLIMITED,
+    ) {
         val listeners = mutableMapOf<Any, (Network?) -> Unit>()
         var network: Network? = null
         val pendingRequests = arrayListOf<NetworkMessage.Get>()
@@ -95,15 +98,29 @@ object DefaultNetworkListener {
 
     suspend fun stop(key: Any) = networkActor.send(NetworkMessage.Stop(key))
 
-    // NB: this runs in ConnectivityThread, and this behavior cannot be changed until API 26
-    private object Callback : ConnectivityManager.NetworkCallback() {
-        override fun onAvailable(network: Network) = runBlocking { networkActor.send(NetworkMessage.Put(network)) }
+    // NB: this runs in ConnectivityThread; offer events non-blocking (trySend) so we never
+    // park the framework callback thread on the actor. The actor is UNLIMITED, so trySend only
+    // fails if the actor channel is closed (actor coroutine died) - log that rather than
+    // silently dropping, since it means network-change handling has stopped working.
+    private fun offer(message: NetworkMessage) {
+        val result = networkActor.trySend(message)
+        if (result.isFailure) {
+            Logs.w("DefaultNetworkListener: dropped ${message.javaClass.simpleName} (actor closed?)")
+        }
+    }
 
-        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) { // it's a good idea to refresh capabilities
-            runBlocking { networkActor.send(NetworkMessage.Update(network)) }
+    private object Callback : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            offer(NetworkMessage.Put(network))
         }
 
-        override fun onLost(network: Network) = runBlocking { networkActor.send(NetworkMessage.Lost(network)) }
+        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) { // it's a good idea to refresh capabilities
+            offer(NetworkMessage.Update(network))
+        }
+
+        override fun onLost(network: Network) {
+            offer(NetworkMessage.Lost(network))
+        }
     }
 
     private var fallback = false
