@@ -147,12 +147,10 @@ class BaseService {
         }
 
         override fun urlTest(): Int {
-            if (data?.proxy?.box == null) {
-                error("core not started")
-            }
-            try {
-                return Libcore.urlTest(
-                    data!!.proxy!!.box,
+            val box = data?.proxy?.box ?: error("core not started")
+            return try {
+                Libcore.urlTest(
+                    box,
                     DataStore.connectionTestURL,
                     DataStore.connectionTestTimeout,
                 )
