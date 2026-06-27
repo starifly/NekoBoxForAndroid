@@ -96,12 +96,12 @@ class QuickToggleShortcut : Activity(), SagerConnection.Callback {
                             SagerNet.stopService()
                         } else {
                             DataStore.selectedProxy = validProfileId
-                            SagerNet.reloadService()
+                            SagerNet.reloadService(validProfileId)
                         }
                     }
                     state == BaseService.State.Stopped -> {
                         if (validProfileId >= 0L) DataStore.selectedProxy = validProfileId
-                        SagerNet.startService()
+                        SagerNet.startService(validProfileId)
                     }
                 }
                 finish()

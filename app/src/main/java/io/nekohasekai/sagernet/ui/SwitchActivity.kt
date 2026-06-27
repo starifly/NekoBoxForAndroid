@@ -31,7 +31,9 @@ class SwitchActivity :
             ProfileManager.postUpdate(old, true)
             ProfileManager.postUpdate(profileId, true)
         }
-        SagerNet.reloadService()
+        // Carry the freshly-selected id in the reload IPC so :bg uses it authoritatively rather
+        // than re-reading selectedProxy from the DB before the async write-through commit lands.
+        SagerNet.reloadService(profileId)
         finish()
     }
 }

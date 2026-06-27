@@ -46,7 +46,11 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     @Volatile
     var mixedInboundAuthed: Boolean = false
 
-    val configurationStore = RoomPreferenceDataStore(PublicDatabase.kvPairDao)
+    val configurationStore = RoomPreferenceDataStore(
+        PublicDatabase.kvPairDao,
+        cached = true,
+        database = PublicDatabase.database,
+    )
     val profileCacheStore = RoomPreferenceDataStore(TempDatabase.profileCacheDao)
 
     // last used, but may not be running

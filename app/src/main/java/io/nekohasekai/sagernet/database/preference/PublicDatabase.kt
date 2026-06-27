@@ -14,13 +14,16 @@ abstract class PublicDatabase : RoomDatabase() {
             SagerNet.application.getDatabasePath(Key.DB_PROFILE).parentFile?.mkdirs()
             Room.databaseBuilder(SagerNet.application, PublicDatabase::class.java, Key.DB_PUBLIC)
                 .setJournalMode(JournalMode.TRUNCATE)
-                .allowMainThreadQueries()
                 .enableMultiInstanceInvalidation()
                 .setQueryExecutor(DbExecutors.query)
                 .build()
         }
 
         val kvPairDao get() = instance.keyValuePairDao()
+
+        /** Exposed for the cached [RoomPreferenceDataStore] to observe `KeyValuePair`
+         *  invalidations (cross-process refresh). */
+        val database get() = instance
     }
 
     abstract fun keyValuePairDao(): KeyValuePair.Dao

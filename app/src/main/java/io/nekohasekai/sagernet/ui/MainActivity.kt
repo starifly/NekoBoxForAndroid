@@ -446,7 +446,22 @@ class MainActivity :
             Key.PROXY_APPS, Key.BYPASS_MODE, Key.INDIVIDUAL -> {
                 if (DataStore.serviceState.canStop) {
                     snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {
-                        SagerNet.reloadService()
+                        // Await the cached store's async write-through before reload so :bg reads
+                        // the new proxy-apps/bypass/individual values from a durable DB.
+                        runOnDefaultDispatcher {
+                            try {
+                                DataStore.configurationStore.awaitWrites()
+                                SagerNet.reloadService()
+                            } catch (e: Exception) {
+                                Logs.w(e)
+                                onMainDispatcher {
+                                    // The coroutine can outlive the activity; guard fragment/UI APIs.
+                                    if (!isFinishing && !isDestroyed) {
+                                        snackbar(getString(R.string.service_failed)).show()
+                                    }
+                                }
+                            }
+                        }
                     }.show()
                 }
             }

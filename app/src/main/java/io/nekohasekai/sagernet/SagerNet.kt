@@ -60,6 +60,25 @@ class SagerNet :
         if (isMainProcess || isBgProcess) {
             externalAssets.mkdirs()
             Seq.setContext(this)
+            // Prime the cached configurationStore off the main thread before the first
+            // synchronous read below (logBufSize/logLevel). PublicDatabase no longer allows
+            // main-thread queries, so the bulk-SELECT prime must run on PrefSnapshotExecutor;
+            // join here so cold-start reads are served from the snapshot. One-time, pre-UI.
+            // Capture any prime failure off the daemon thread (Thread.join does not rethrow) so
+            // it is logged here rather than silently deferred to the first read.
+            val primeError = arrayOfNulls<Throwable>(1)
+            Thread {
+                try {
+                    DataStore.configurationStore.prime()
+                } catch (t: Throwable) {
+                    primeError[0] = t
+                }
+            }.apply {
+                isDaemon = true
+                start()
+                join()
+            }
+            primeError[0]?.let { Logs.w("configurationStore prime failed", it) }
             Libcore.initCore(
                 process,
                 cacheDir.absolutePath + "/",
@@ -200,12 +219,22 @@ class SagerNet :
             }
         }
 
-        fun startService() = ContextCompat.startForegroundService(
+        // Default to carrying the current in-process selection so :bg starts the profile the UI
+        // last selected, even if the async write-through DB commit hasn't landed yet. Callers with
+        // a specific id (e.g. a shortcut switching profile) pass it explicitly. A non-resolving id
+        // (incl. 0L "none") is ignored by :bg, which then falls back to its refreshed snapshot/DB.
+        fun startService(profileId: Long = DataStore.selectedProxy) = ContextCompat.startForegroundService(
             application,
-            Intent(application, SagerConnection.serviceClass),
+            Intent(application, SagerConnection.serviceClass).apply {
+                if (profileId >= 0L) putExtra(Action.EXTRA_PROFILE_ID, profileId)
+            },
         )
 
-        fun reloadService() = application.sendBroadcast(Intent(Action.RELOAD).setPackage(application.packageName))
+        fun reloadService(profileId: Long = -1L) = application.sendBroadcast(
+            Intent(Action.RELOAD).setPackage(application.packageName).apply {
+                if (profileId >= 0L) putExtra(Action.EXTRA_PROFILE_ID, profileId)
+            },
+        )
 
         fun stopService() = application.sendBroadcast(Intent(Action.CLOSE).setPackage(application.packageName))
 

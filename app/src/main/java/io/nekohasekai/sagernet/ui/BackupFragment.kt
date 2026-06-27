@@ -538,7 +538,12 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
         }
     }
 
-    private fun doBackup(profile: Boolean, rule: Boolean, setting: Boolean): ByteArray {
+    private suspend fun doBackup(profile: Boolean, rule: Boolean, setting: Boolean): ByteArray {
+        if (setting) {
+            // configurationStore writes are async write-through; drain pending commits so a
+            // just-changed setting is present in the backup rather than only in the live snapshot.
+            DataStore.configurationStore.awaitWrites()
+        }
         val out = JSONObject().apply {
             put("version", 1)
             if (profile) {
@@ -704,7 +709,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
         }
     }
 
-    fun finishImport(content: JSONObject, profile: Boolean, rule: Boolean, setting: Boolean) {
+    suspend fun finishImport(content: JSONObject, profile: Boolean, rule: Boolean, setting: Boolean) {
         // Validate-then-commit: decode EVERY selected section into memory first. If any entry
         // is malformed the decode throws here, BEFORE any destructive reset() runs, so a bad
         // (or maliciously truncated) backup file can never partially wipe the live DB.
@@ -751,6 +756,10 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
             }
         }
         settings?.let {
+            // Drain pending async write-through commits before the destructive reset()+insert(),
+            // so a not-yet-committed pre-import write can't land after the import and overwrite a
+            // restored setting. (The app process restarts right after import, re-priming the cache.)
+            DataStore.configurationStore.awaitWrites()
             PublicDatabase.instance.runInTransaction {
                 PublicDatabase.kvPairDao.reset()
                 PublicDatabase.kvPairDao.insert(it)

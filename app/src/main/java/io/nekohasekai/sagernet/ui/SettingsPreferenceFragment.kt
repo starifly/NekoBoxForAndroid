@@ -295,8 +295,24 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 setMessage(R.string.reset_settings_message)
                 setNegativeButton(R.string.no, null)
                 setPositiveButton(R.string.yes) { _, _ ->
-                    DataStore.configurationStore.reset()
-                    triggerFullRestart(requireContext())
+                    // reset() clears the snapshot synchronously but commits the DB wipe on the
+                    // ordered disk executor; await it before restarting so the rebirth can't race
+                    // ahead of the commit and leave old settings on disk.
+                    runOnDefaultDispatcher {
+                        var ok = false
+                        try {
+                            DataStore.configurationStore.reset()
+                            DataStore.configurationStore.awaitWrites()
+                            ok = true
+                        } catch (e: Exception) {
+                            Logs.w(e)
+                        }
+                        onMainDispatcher {
+                            // Only restart if the DB wipe actually committed; otherwise a rebirth
+                            // could race ahead of the commit and leave old settings on disk.
+                            if (ok && isAdded) triggerFullRestart(requireContext())
+                        }
+                    }
                 }
             }.show()
             true

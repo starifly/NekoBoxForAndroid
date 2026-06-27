@@ -114,7 +114,6 @@ import io.nekohasekai.sagernet.widget.UndoSnackbarManager
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -711,13 +710,13 @@ class ConfigurationFragment @JvmOverloads constructor(
                 if (DataStore.serviceState.canStop) {
                     runOnDefaultDispatcher {
                         try {
-                            // wait a while to ensure the config has been saved
-                            delay(500)
+                            // ensure the globalMode write-through has committed before offering
+                            // reload (the :bg reload re-reads globalMode from the DB)
+                            DataStore.configurationStore.awaitWrites()
                             snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {
                                 runOnDefaultDispatcher {
                                     try {
-                                        // wait again to ensure the config has been saved
-                                        delay(100)
+                                        DataStore.configurationStore.awaitWrites()
                                         SagerNet.reloadService()
                                     } catch (e: Exception) {
                                         Logs.w(e)
@@ -1880,7 +1879,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                             if (update) {
                                 ProfileManager.postUpdate(lastSelected)
                                 if (DataStore.serviceState.canStop && reloadAccess.tryLock()) {
-                                    SagerNet.reloadService()
+                                    SagerNet.reloadService(proxyEntity.id)
                                     reloadAccess.unlock()
                                 }
                             } else if (SagerNet.isTv) {

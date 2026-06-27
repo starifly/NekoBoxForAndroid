@@ -269,7 +269,21 @@ fun Fragment.startFilesForResult(launcher: ActivityResultLauncher<String>, input
 fun Fragment.needReload() {
     if (DataStore.serviceState.started) {
         snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {
-            SagerNet.reloadService()
+            // Drain the cached settings store's async write-through commits before telling :bg to
+            // reload, so the service re-reads the just-changed setting from a durable DB rather
+            // than a stale row.
+            runOnDefaultDispatcher {
+                try {
+                    DataStore.configurationStore.awaitWrites()
+                    SagerNet.reloadService()
+                } catch (e: Exception) {
+                    Logs.w(e)
+                    // The coroutine can outlive the fragment; only touch fragment APIs while attached.
+                    onMainDispatcher {
+                        if (isAdded) snackbar(getString(R.string.service_failed)).show()
+                    }
+                }
+            }
         }.show()
     }
 }
@@ -282,6 +296,15 @@ fun Fragment.needRestart() {
 
 fun triggerFullRestart(ctx: Context) {
     runOnDefaultDispatcher {
+        // Drain async preference write-through before tearing down + rebirthing, so same-gesture
+        // restart-required settings (e.g. logLevel/logBufSize, read by SagerNet.onCreate in both
+        // processes) are durable before the process restarts. Best-effort: a drain failure must
+        // not block the user-requested restart.
+        try {
+            DataStore.configurationStore.awaitWrites()
+        } catch (e: Exception) {
+            Logs.w(e)
+        }
         SagerNet.stopService()
         delay(500)
         SagerConnection.restartingApp = true

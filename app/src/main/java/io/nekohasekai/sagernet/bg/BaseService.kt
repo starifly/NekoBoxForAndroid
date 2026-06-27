@@ -15,6 +15,7 @@ import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.ISagerNetServiceCallback
 import io.nekohasekai.sagernet.bg.proto.ProxyInstance
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.plugin.PluginManager
@@ -27,6 +28,7 @@ import moe.matsuri.nb4a.Protocols
 import moe.matsuri.nb4a.utils.Util
 import java.net.UnknownHostException
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 class BaseService {
 
@@ -55,10 +57,16 @@ class BaseService {
         val receiver = broadcastReceiverWithSelf { self, ctx, intent ->
             when (intent.action) {
                 Intent.ACTION_SHUTDOWN -> service.persistStats(self)
-                Action.RELOAD -> service.reload()
+                Action.RELOAD -> service.reload(
+                    intent.getLongExtra(Action.EXTRA_PROFILE_ID, -1L),
+                )
                 // Action.SWITCH_WAKE_LOCK -> runOnDefaultDispatcher { service.switchWakeLock() }
                 PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    // Only act once fully Connected: the close receiver is now registered during
+                    // Connecting (so stop/reload aren't lost), but proxy.box is a lateinit that
+                    // isn't built until proxy.init() finishes, so sleep()/wake() here during
+                    // startup would throw UninitializedPropertyAccessException.
+                    if (state == State.Connected && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         if (SagerNet.power.isDeviceIdleMode) {
                             proxy?.box?.sleep()
                         } else {
@@ -87,8 +95,23 @@ class BaseService {
         val binder = Binder(this)
         var connectingJob: Job? = null
 
+        // True while a reload-induced restart (stopRunner(restart=true)) is in flight. An explicit
+        // CLOSE/user stop racing the teardown clears it so the restart is cancelled rather than
+        // reviving a service the user stopped. Touched only on the main dispatcher.
+        var pendingRestart = false
+
+        // Bumped only when the service transitions into a stop (Stopping/Stopped). An async
+        // reload() captures this at entry and bails in reloadInner() if it advanced, so a stop
+        // that raced the async refresh can't revive a stopped service. Crucially this does NOT
+        // bump on Connecting->Connected progress, so a legitimate reload/profile-switch issued
+        // while connecting is not falsely dropped. ABA-safe (monotonic).
+        val stopGeneration = AtomicLong(0)
+
         fun changeState(s: State, msg: String? = null) {
             if (state == s && msg == null) return
+            if (s == State.Stopping || s == State.Stopped) {
+                stopGeneration.incrementAndGet()
+            }
             state = s
             DataStore.serviceState = s
             binder.stateChanged(s, msg)
@@ -184,11 +207,58 @@ class BaseService {
 
         fun onBind(intent: Intent): IBinder? = if (intent.action == Action.SERVICE) data.binder else null
 
-        fun reload() {
+        fun reload(profileId: Long = -1L) {
+            // Run off the main thread: refreshSuspend() does a DB read (PublicDatabase no longer
+            // allows main-thread queries) and the selectedProxy/getById lookups below read the
+            // config store + profile DB. The IPC-carried profileId (when >= 0) is authoritative
+            // for the freshly-selected profile so we don't depend on the UI's async write-through
+            // DB commit having landed yet.
+            // Capture the stop generation now (on the receiver thread) so a stop that races the
+            // async refresh below makes reloadInner() a no-op instead of reviving a stopped
+            // service. This does NOT trip on Connecting->Connected progress, so a reload issued
+            // while connecting still applies.
+            val reloadStopGeneration = data.stopGeneration.get()
+            runOnDefaultDispatcher {
+                try {
+                    DataStore.configurationStore.refreshSuspend()
+                    // Apply the IPC-carried selection authoritatively: 0L means "no profile"
+                    // (explicit empty selection), a positive id must resolve to a real profile;
+                    // a negative/absent id leaves selectedProxy as the refreshed snapshot value.
+                    when {
+                        profileId == 0L -> DataStore.selectedProxy = 0L
+                        profileId > 0L && SagerDatabase.proxyDao.getById(profileId) != null ->
+                            DataStore.selectedProxy = profileId
+                    }
+                    onMainDispatcher { reloadInner(reloadStopGeneration) }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Logs.w(e)
+                    onMainDispatcher {
+                        stopRunner(
+                            false,
+                            "${(this@Interface as Context).getString(R.string.service_failed)}: ${e.readableMessage}",
+                        )
+                    }
+                }
+            }
+        }
+
+        private fun reloadInner(reloadStopGeneration: Long) {
+            // A stop raced the async refresh: drop this stale reload so it can't restart a service
+            // the user stopped. (A Connecting->Connected transition does NOT bump stopGeneration,
+            // so an in-flight legitimate reload still applies.)
+            if (data.stopGeneration.get() != reloadStopGeneration) return
             if (DataStore.selectedProxy == 0L) {
                 stopRunner(false, (this as Context).getString(R.string.profile_empty))
+                return
             }
-            if (canReloadSelector()) {
+            val s = data.state
+            // Only take the in-place selector fast-path when fully Connected: during Connecting
+            // data.proxy is set but proxy.init() may not have built config/box yet, and during
+            // Stopping the box is being torn down — touching them would throw or act on a dead
+            // instance. In those states fall through to the state machine below.
+            if (s == State.Connected && canReloadSelector()) {
                 val ent = SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
                 val tag = data.proxy!!.config.profileTagMap[ent?.id] ?: ""
                 if (tag.isNotBlank() && ent != null) {
@@ -199,7 +269,6 @@ class BaseService {
                 }
                 return
             }
-            val s = data.state
             when {
                 s == State.Stopped -> startRunner()
                 s.canStop -> stopRunner(true)
@@ -248,7 +317,15 @@ class BaseService {
             DataStore.vpnService = null
             DataStore.mixedInboundAuthed = false
 
-            if (data.state == State.Stopping) return
+            if (data.state == State.Stopping) {
+                // A teardown is already in progress. If this is an explicit stop (restart=false)
+                // racing a reload-induced restart (restart=true), cancel the pending restart so an
+                // explicit CLOSE/user-stop wins instead of being silently dropped while the
+                // in-flight stopRunner(true) goes on to call startRunner().
+                if (!restart) data.pendingRestart = false
+                return
+            }
+            data.pendingRestart = restart
             data.notification?.destroy()
             data.notification = null
             this as Service
@@ -270,8 +347,9 @@ class BaseService {
 
                 // change the state
                 data.changeState(State.Stopped, msg)
-                // stop the service if nothing has bound to it
-                if (restart) {
+                // stop the service if nothing has bound to it. Re-read pendingRestart: an explicit
+                // CLOSE that raced this teardown may have cleared it.
+                if (data.pendingRestart) {
                     startRunner()
                 } else {
                     stopSelf()
@@ -349,55 +427,106 @@ class BaseService {
 
             val data = data
             if (data.state != State.Stopped) return Service.START_NOT_STICKY
-            val profile = SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
             this as Context
-            if (profile == null) { // gracefully shutdown: https://stackoverflow.com/q/47337857/2245107
-                data.notification = createNotification("")
-                stopRunner(false, getString(R.string.profile_empty))
-                return Service.START_NOT_STICKY
-            }
 
-            val proxy = ProxyInstance(profile, this)
-            data.proxy = proxy
-            BootReceiver.enabled = DataStore.persistAcrossReboot
-            if (!data.closeReceiverRegistered) {
-                val filter = IntentFilter().apply {
-                    addAction(Action.RELOAD)
-                    addAction(Intent.ACTION_SHUTDOWN)
-                    addAction(Action.CLOSE)
-                    // addAction(Action.SWITCH_WAKE_LOCK)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)
-                    }
-                    addAction(Action.RESET_UPSTREAM_CONNECTIONS)
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    registerReceiver(
-                        data.receiver,
-                        filter,
-                        "$packageName.SERVICE",
-                        null,
-                        Context.RECEIVER_EXPORTED,
-                    )
-                } else {
-                    registerReceiver(
-                        data.receiver,
-                        filter,
-                        "$packageName.SERVICE",
-                        null,
-                    )
-                }
-                data.closeReceiverRegistered = true
-            }
+            // The IPC-carried profile id (when >= 0) is authoritative for a cold start triggered
+            // right after a UI profile selection, so :bg does not depend on the UI's async
+            // write-through DB commit having landed. -1 / absent => read selectedProxy from store.
+            val ipcProfileId = intent?.getLongExtra(Action.EXTRA_PROFILE_ID, -1L) ?: -1L
 
             data.changeState(State.Connecting)
+            // Register the CLOSE/RELOAD/SHUTDOWN receiver SYNCHRONOUSLY here, before the async
+            // refresh below, so a stop/reload broadcast issued during the cold-start window is
+            // delivered rather than lost (the receiver used to be registered only after the
+            // off-main work, opening a drop window).
+            registerCloseReceiver()
+            // Read config off-main first (PublicDatabase no longer allows main-thread queries),
+            // then run the existing connect logic on the main dispatcher. onStartCommand returns
+            // synchronously; the null-profile short-circuit now lives inside the job.
             // Track the connect coroutine so stopRunner()/reload() can cancel an in-flight
             // start. Without this, data.connectingJob stays null and stopRunner's
             // cancelAndJoin() is a no-op: a superseded start's awaitExternalProcessesReady()
             // keeps polling a now-killed sidecar port for its full (60s for MasterDnsVPN)
             // window and then throws "sidecar listener not ready", surfacing a false
             // "connection failed" even though the live instance is already carrying traffic.
-            data.connectingJob = runOnMainDispatcher {
+            data.connectingJob = runOnDefaultDispatcher {
+                try {
+                    DataStore.configurationStore.refreshSuspend()
+                    when {
+                        ipcProfileId == 0L -> DataStore.selectedProxy = 0L
+                        ipcProfileId > 0L && SagerDatabase.proxyDao.getById(ipcProfileId) != null ->
+                            DataStore.selectedProxy = ipcProfileId
+                    }
+                    val profile = SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
+                    onMainDispatcher {
+                        // Assign connectingJob to the inner connect job from HERE (after
+                        // onStartConnect returns it), not from inside onStartConnect, so a
+                        // racing stopRunner() never sees this outer setup coroutine as the
+                        // tracked job once the inner connect job exists.
+                        data.connectingJob = onStartConnect(profile)
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Logs.w(e)
+                    onMainDispatcher {
+                        stopRunner(
+                            false,
+                            "${getString(R.string.service_failed)}: ${e.readableMessage}",
+                        )
+                    }
+                }
+            }
+            return Service.START_NOT_STICKY
+        }
+
+        private fun registerCloseReceiver() {
+            this as Context
+            val data = data
+            if (data.closeReceiverRegistered) return
+            val filter = IntentFilter().apply {
+                addAction(Action.RELOAD)
+                addAction(Intent.ACTION_SHUTDOWN)
+                addAction(Action.CLOSE)
+                // addAction(Action.SWITCH_WAKE_LOCK)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)
+                }
+                addAction(Action.RESET_UPSTREAM_CONNECTIONS)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(
+                    data.receiver,
+                    filter,
+                    "$packageName.SERVICE",
+                    null,
+                    Context.RECEIVER_EXPORTED,
+                )
+            } else {
+                registerReceiver(
+                    data.receiver,
+                    filter,
+                    "$packageName.SERVICE",
+                    null,
+                )
+            }
+            data.closeReceiverRegistered = true
+        }
+
+        private fun onStartConnect(profile: ProxyEntity?): Job? {
+            this as Context
+            val data = data
+            if (profile == null) { // gracefully shutdown: https://stackoverflow.com/q/47337857/2245107
+                data.notification = createNotification("")
+                stopRunner(false, getString(R.string.profile_empty))
+                return null
+            }
+
+            val proxy = ProxyInstance(profile, this)
+            data.proxy = proxy
+            BootReceiver.enabled = DataStore.persistAcrossReboot
+
+            return runOnMainDispatcher {
                 try {
                     data.notification = createNotification(ServiceNotification.genTitle(profile))
 
@@ -438,7 +567,6 @@ class BaseService {
                     data.connectingJob = null
                 }
             }
-            return Service.START_NOT_STICKY
         }
     }
 }
