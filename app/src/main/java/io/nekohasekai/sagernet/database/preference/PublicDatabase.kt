@@ -5,8 +5,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.SagerNet
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import io.nekohasekai.sagernet.database.DbExecutors
 
 @Database(entities = [KeyValuePair::class], version = 1)
 abstract class PublicDatabase : RoomDatabase() {
@@ -17,7 +16,7 @@ abstract class PublicDatabase : RoomDatabase() {
                 .setJournalMode(JournalMode.TRUNCATE)
                 .allowMainThreadQueries()
                 .enableMultiInstanceInvalidation()
-                .setQueryExecutor { GlobalScope.launch { it.run() } }
+                .setQueryExecutor(DbExecutors.query)
                 .build()
         }
 
