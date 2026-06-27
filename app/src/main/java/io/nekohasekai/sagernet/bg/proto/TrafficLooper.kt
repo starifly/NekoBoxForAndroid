@@ -11,6 +11,7 @@ import io.nekohasekai.sagernet.fmt.TAG_PROXY
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 
 class TrafficLooper(
     val data: BaseService.Data,
@@ -21,8 +22,17 @@ class TrafficLooper(
     private val idMap = mutableMapOf<Long, TrafficUpdater.TrafficLooperData>() // id to 1 data
     private val tagMap = mutableMapOf<String, TrafficUpdater.TrafficLooperData>() // tag to 1 data
 
+    // Selector switches arrive from the JNI selector callback (NativeInterface) on a separate
+    // coroutine. Funnel them through this channel so idMap/tagMap are only ever touched on the
+    // single loop coroutine (no concurrent HashMap mutation -> no CME / corrupt accounting).
+    // CONFLATED: only the latest selected id matters; superseded switches are safe to drop.
+    private val selectChannel = Channel<Long>(Channel.CONFLATED)
+
     suspend fun stop() {
-        job?.cancel()
+        // cancelAndJoin (not cancel): wait for the loop coroutine to actually finish before the
+        // final flush, so persist() reads idMap/tagMap only after the loop stops mutating them.
+        job?.cancelAndJoin()
+        selectChannel.close()
         // finally traffic post
         persist()
     }
@@ -67,7 +77,13 @@ class TrafficLooper(
     var selectorNowId = -114514L
     var selectorNowFakeTag = ""
 
+    // Non-blocking entry for the JNI selector callback (NativeInterface). Posts the request;
+    // it is applied on the loop coroutine via applySelect(). Never touches the maps directly.
     fun selectMain(id: Long) {
+        selectChannel.trySend(id)
+    }
+
+    private fun applySelect(id: Long) {
         Logs.d("select traffic count $TAG_PROXY to $id, old id is $selectorNowId")
         val oldData = idMap[selectorNowId]
         val newData = idMap[id] ?: return
@@ -138,7 +154,7 @@ class TrafficLooper(
                     }
                 }
                 if (proxy.config.selectorGroupId >= 0L) {
-                    selectMain(proxy.config.mainEntId)
+                    applySelect(proxy.config.mainEntId)
                 }
                 //
                 trafficUpdater = TrafficUpdater(
@@ -146,6 +162,13 @@ class TrafficLooper(
                     items = idMap.values.toList(),
                 )
                 proxy.box.setV2rayStats(tags.joinToString("\n"))
+            }
+
+            // Apply any selector switches posted from the JNI callback, on THIS coroutine, so
+            // idMap/tagMap mutation stays single-confined to the loop.
+            while (true) {
+                val sel = selectChannel.tryReceive().getOrNull() ?: break
+                applySelect(sel)
             }
 
             trafficUpdater.updateAll()
