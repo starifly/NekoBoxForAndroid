@@ -119,6 +119,7 @@ class GroupSettingsActivity(
         frontProxyPreference.apply {
             setEntries(R.array.front_proxy_entry)
             setEntryValues(R.array.front_proxy_value)
+            value = DataStore.frontProxyTmp.toString()
             setOnPreferenceChangeListener { _, newValue ->
                 if (newValue.toString() == OutboundPreference.VALUE_SELECT_PROFILE) {
                     selectProfileForAddFront.launch(
@@ -140,6 +141,7 @@ class GroupSettingsActivity(
         landingProxyPreference.apply {
             setEntries(R.array.front_proxy_entry)
             setEntryValues(R.array.front_proxy_value)
+            value = DataStore.landingProxyTmp.toString()
             setOnPreferenceChangeListener { _, newValue ->
                 if (newValue.toString() == OutboundPreference.VALUE_SELECT_PROFILE) {
                     selectProfileForAddLanding.launch(
