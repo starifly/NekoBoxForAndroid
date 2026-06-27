@@ -82,6 +82,9 @@
     <string name="cag_dns">DNS 설정</string>
     <string name="remote_dns">원격 DNS</string>
     <string name="direct_dns">직접 DNS</string>
+    <string name="server_dns">사용자 지정 서버 DNS</string>
+    <string name="server_dns_subscription_sum">이 구독의 서버 도메인 해석에만 사용하는 선택 DNS입니다. 비워 두면 기본 동작을 사용합니다. https://, tls://, quic:// 또는 host[:port] 형식을 지원합니다.</string>
+    <string name="server_dns_invalid">사용자 지정 서버 DNS가 올바르지 않습니다. https://, tls://, quic:// 또는 host[:port]를 사용하거나 비워 두세요.</string>
     <string name="enable_dns_routing">DNS 라우팅 활성화</string>
     <string name="dns_routing_message">바이패스 경로의 도메인을 직접 DNS로 확인합니다. DNS 유출 가능성에 주의하세요</string>
     <string name="enable_fakedns">FakeDNS 활성화</string>

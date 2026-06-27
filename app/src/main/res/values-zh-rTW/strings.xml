@@ -187,6 +187,9 @@
     <string name="enable_dns_routing">啟用 DNS 路由</string>
     <string name="direct_dns">直連 DNS</string>
     <string name="remote_dns">遠端 DNS</string>
+    <string name="server_dns">自訂伺服器 DNS</string>
+    <string name="server_dns_subscription_sum">僅用於解析此訂閱中的伺服器網域名稱。留空時使用預設行為。支援 https://、tls://、quic:// 或 host[:port]。</string>
+    <string name="server_dns_invalid">自訂伺服器 DNS 無效。請使用 https://、tls://、quic:// 或 host[:port]，或留空。</string>
     <string name="connection_test_available_http">成功：HTTP 握手花費 %d 毫秒</string>
     <string name="allow_insecure_sum">停用憑證檢查。當啟用時，此設定檔將和純文字同等安全</string>
     <string name="allow_insecure">允許不安全的連線</string>

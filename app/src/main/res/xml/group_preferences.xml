@@ -51,6 +51,13 @@
             app:title="@string/group_subscription_link"
             app:useSimpleSummaryProvider="true" />
 
+        <EditTextPreference
+            app:icon="@drawable/ic_action_dns"
+            app:key="subscriptionServerDns"
+            app:summary="@string/server_dns_subscription_sum"
+            app:title="@string/server_dns"
+            app:useSimpleSummaryProvider="true" />
+
         <SwitchPreference
             app:icon="@drawable/ic_baseline_manage_search_24"
             app:key="subscriptionForceResolve"

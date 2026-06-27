@@ -6,6 +6,7 @@ import io.nekohasekai.sagernet.bg.VpnService
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_CONFIG
+import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.fmt.ConfigBuildResult.IndexEntity
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
@@ -64,6 +65,23 @@ class ConfigBuildResult(
     val selectorGroupId: Long,
 ) {
     data class IndexEntity(var chain: LinkedHashMap<Int, ProxyEntity>)
+}
+
+private fun sanitizeDnsEntry(value: String): String {
+    return value.filterNot { it.isISOControl() }.trim()
+}
+
+private fun serverHostOf(bean: AbstractBean): String? {
+    val fallback = bean.serverAddress?.takeIf { it.isNotBlank() }
+    if (bean is ConfigBean) {
+        return try {
+            val map = gson.fromJson(bean.config, mutableMapOf<String, Any>().javaClass)
+            map["server"]?.toString()?.takeIf { it.isNotBlank() } ?: fallback
+        } catch (_: Exception) {
+            fallback
+        }
+    }
+    return fallback
 }
 
 fun buildConfig(
@@ -139,6 +157,11 @@ fun buildConfig(
     val userDNSRuleList = mutableListOf<DNSRule_DefaultOptions>()
     val domainListDNSDirectForce = mutableListOf<String>()
     val bypassDNSBeans = hashSetOf<AbstractBean>()
+    val perGroupResolver = HashMap<Long, String>()
+    val perGroupServerHosts = HashMap<Long, MutableSet<String>>()
+    val hostResolvers = HashMap<String, MutableSet<String>>()
+    val nonCustomFinalHosts = hashSetOf<String>()
+    val groupCache = HashMap<Long, ProxyGroup?>()
     val isVPN = DataStore.serviceMode == Key.MODE_VPN
     val bind = if (!forTest && DataStore.allowAccess) "0.0.0.0" else LOCALHOST
     val remoteDns = DataStore.remoteDns.split("\n")
@@ -319,6 +342,41 @@ fun buildConfig(
                     needGlobal = true
                     tagOut = "g-" + proxyEntity.id
                     bypassDNSBeans += proxyEntity.requireBean()
+
+                    if (!forTest) {
+                        val ownerGid = entity.groupId
+                        val ownerGroup = groupCache.getOrPut(ownerGid) {
+                            SagerDatabase.groupDao.getById(ownerGid)
+                        }
+                        val resolver = ownerGroup
+                            ?.takeIf { it.type == GroupType.SUBSCRIPTION }
+                            ?.subscription?.serverDnsResolver
+                            ?.let { sanitizeDnsEntry(it) }
+                            ?.takeIf { it.isNotBlank() }
+
+                        if (resolver != null) {
+                            profileList.forEach { hop ->
+                                val host = serverHostOf(hop.requireBean())
+                                if (host != null && !host.isIpAddress()) {
+                                    if (hop.groupId == ownerGid) {
+                                        perGroupResolver[ownerGid] = resolver
+                                        perGroupServerHosts.getOrPut(ownerGid) { mutableSetOf() }
+                                            .add(host)
+                                        hostResolvers.getOrPut(host) { mutableSetOf() }.add(resolver)
+                                    } else {
+                                        nonCustomFinalHosts.add(host)
+                                    }
+                                }
+                            }
+                        } else {
+                            profileList.forEach { hop ->
+                                val host = serverHostOf(hop.requireBean())
+                                if (host != null && !host.isIpAddress()) {
+                                    nonCustomFinalHosts.add(host)
+                                }
+                            }
+                        }
+                    }
                 }
 
                 if (index == 0) {
@@ -783,6 +841,10 @@ fun buildConfig(
             outbounds.add(fragmentOutbound)
         }
 
+        fun isExclusiveCustomHost(host: String): Boolean {
+            return hostResolvers[host]?.size == 1 && !nonCustomFinalHosts.contains(host)
+        }
+
         // Bypass Lookup for the first profile
         bypassDNSBeans.forEach {
             var serverAddr = it.serverAddress
@@ -796,7 +858,9 @@ fun buildConfig(
             }
 
             if (!serverAddr.isIpAddress()) {
-                domainListDNSDirectForce.add("full:${serverAddr}")
+                if (!isExclusiveCustomHost(serverAddr)) {
+                    domainListDNSDirectForce.add("full:${serverAddr}")
+                }
             }
         }
 
@@ -905,6 +969,27 @@ fun buildConfig(
                 dns.rules.add(0, DNSRule_DefaultOptions().apply {
                     makeSingBoxRule(domainListDNSDirectForce.toHashSet().toList())
                     server = "dns-direct"
+                })
+            }
+            perGroupResolver.forEach { (gid, resolver) ->
+                val hosts = perGroupServerHosts[gid]
+                    ?.filter { it.isNotBlank() && isExclusiveCustomHost(it) }
+                    ?.map { "full:$it" }
+                if (hosts.isNullOrEmpty()) return@forEach
+
+                val serverTag = "dns-sub-$gid"
+                dns.servers.add(DNSServerOptions().apply {
+                    address = resolver
+                    tag = serverTag
+                    detour = TAG_DIRECT
+                    if (!resolver.isIpAddress()) {
+                        address_resolver = "dns-direct"
+                    }
+                    strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy("server"))
+                })
+                dns.rules.add(0, DNSRule_DefaultOptions().apply {
+                    makeSingBoxRule(hosts)
+                    server = serverTag
                 })
             }
         }

@@ -359,6 +359,9 @@
     <string name="clear_profiles_message">您确定要清空该分组吗\?</string>
     <string name="remote_dns">远程 DNS</string>
     <string name="direct_dns">直连 DNS</string>
+    <string name="server_dns">自定义服务器 DNS</string>
+    <string name="server_dns_subscription_sum">仅用于解析此订阅中的服务器域名。留空时使用默认行为。支持 https://、tls://、quic:// 或 host[:port]。</string>
+    <string name="server_dns_invalid">自定义服务器 DNS 无效。请使用 https://、tls://、quic:// 或 host[:port]，或留空。</string>
     <string name="enable_dns_routing">启用 DNS 路由</string>
     <string name="dns_routing_message">使用直连 DNS 解析绕过路由中的 domains. 注意潜在的 DNS 泄漏</string>
     <string name="enable_fakedns">启用 FakeDNS</string>

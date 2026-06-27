@@ -86,6 +86,9 @@
     <string name="cag_dns">تنظیمات DNs</string>
     <string name="remote_dns">DNS ریموت</string>
     <string name="direct_dns">DNS مستقیم</string>
+    <string name="server_dns">DNS سرور سفارشی</string>
+    <string name="server_dns_subscription_sum">DNS اختیاری که فقط برای حل دامنه‌های سرور در این اشتراک استفاده می‌شود. اگر خالی باشد از رفتار پیش‌فرض استفاده می‌شود. https://، tls://، quic:// یا host[:port] پشتیبانی می‌شود.</string>
+    <string name="server_dns_invalid">DNS سرور سفارشی نامعتبر است. از https://، tls://، quic:// یا host[:port] استفاده کنید، یا آن را خالی بگذارید.</string>
     <string name="enable_dns_routing">فعال‌کردن مسیریابی DNS</string>
     <string name="dns_routing_message">بررسی دامنه‌ها در دورزدن مسیرها با DNS مستقیم. احتمال افشای نشانی DNS وجود دارد.</string>
     <string name="enable_fakedns">فعال کردن FakeDNS</string>

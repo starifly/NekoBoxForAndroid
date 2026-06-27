@@ -126,6 +126,9 @@
 <string name="direct_boot_aware">Разрешить переключение на экране блокировки</string>
 <string name="direct_boot_aware_summary">Выбранная вами информация профиля будет менее защищена</string>
 <string name="direct_dns">Прямой DNS</string>
+<string name="server_dns">Пользовательский DNS сервера</string>
+<string name="server_dns_subscription_sum">Необязательный DNS, используемый только для разрешения серверных доменов в этой подписке. Оставьте пустым, чтобы использовать поведение по умолчанию. Поддерживаются https://, tls://, quic:// или host[:port].</string>
+<string name="server_dns_invalid">Некорректный пользовательский DNS сервера. Используйте https://, tls://, quic:// или host[:port], либо оставьте поле пустым.</string>
 <string name="disable">Отключить</string>
 <string name="dns_hosts">Перезапись домена</string>
 <string name="dns_routing_message">Разрешить домены в обходных маршрутах с помощью Direct DNS. Помните о потенциальных утечках DNS</string>

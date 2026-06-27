@@ -78,6 +78,9 @@
     <string name="enable_dns_routing">DNSルーティングを有効化</string>
     <string name="direct_dns">ダイレクトDNS</string>
     <string name="remote_dns">リモートDNS</string>
+    <string name="server_dns">カスタムサーバー DNS</string>
+    <string name="server_dns_subscription_sum">このサブスクリプション内のサーバードメイン解決にのみ使用する任意の DNS です。空欄の場合は既定の動作を使用します。https://、tls://、quic:// または host[:port] を受け付けます。</string>
+    <string name="server_dns_invalid">カスタムサーバー DNS が無効です。https://、tls://、quic:// または host[:port] を使用するか、空欄のままにしてください。</string>
     <string name="connection_test_error_status_code">エラーコード: #%d</string>
     <string name="connection_test_fail">インターネットは利用できません</string>
     <string name="connection_test_error">失敗: %s</string>
