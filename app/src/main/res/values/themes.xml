@@ -170,6 +170,10 @@
         <item name="cardBackgroundColor">?attr/cardElevatedSurfaceColor</item>
     </style>
 
+    <style name="Widget.SagerNet.CardView.Tinted" parent="Widget.SagerNet.CardView">
+        <item name="cardBackgroundColor">?attr/cardElevatedSurfaceColor</item>
+    </style>
+
     <style name="ShapeAppearanceOverlay.SagerNet.Dialog" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">@dimen/dialog_corner_radius</item>

@@ -303,7 +303,7 @@
     <color name="preference_simple_menu_background">#FAFAFA</color>
 
     <!-- 卡片默认细边框：约 12% 黑（低对比分隔线），夜间见 values-night/colors.xml -->
-    <color name="card_stroke">#1F000000</color>
+    <color name="card_stroke">#29000000</color>
 
     <!-- 立体卡片色调提升表面色（浅色，白底 + 各 primary 8% 染色），夜间见 values-night/colors.xml -->
     <color name="card_elevated_pink">#FDEDF3</color>

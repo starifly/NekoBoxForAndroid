@@ -3,7 +3,7 @@
     <color name="fab_color_progress">@color/material_light_white</color>
     <color name="preference_simple_menu_background">#303030</color>
     <!-- 卡片默认细边框：约 12% 白 -->
-    <color name="card_stroke">#1FFFFFFF</color>
+    <color name="card_stroke">#29FFFFFF</color>
 
     <!-- 路由规则类型颜色（夜间，稍浅） -->
     <color name="color_route_block">#EF5350</color>   <!-- 屏蔽：浅红 -->
