@@ -41,6 +41,8 @@
 <string name="app_version">Версия</string>
 <string name="append_http_proxy">Добавить HTTP-прокси к VPN</string>
 <string name="append_http_proxy_sum">HTTP-прокси будет использоваться напрямую из (браузера / некоторых поддерживаемых приложений), без использования виртуального сетевого интерфейса (Android 10+)</string>
+<string name="http_proxy_bypass">Список обхода HTTP-прокси</string>
+<string name="http_proxy_bypass_dialog_message">По одному в строке. Строки, начинающиеся с #, считаются комментариями. Пример: *zhihu.com</string>
 <string name="append_http_proxy_security_title">Уведомление о безопасности</string>
 <string name="append_http_proxy_security_message">При включении другие приложения на этом устройстве смогут напрямую использовать локальный прокси-порт.\n\nРекомендация: Включайте эту функцию только если доверяете всем установленным приложениям.</string>
 <string name="enable_anyway">Всё равно включить</string>
