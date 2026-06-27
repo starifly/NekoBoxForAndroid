@@ -3,6 +3,8 @@ package moe.matsuri.nb4a.utils
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Base64
+import io.nekohasekai.sagernet.ktx.ImportTooLargeException
+import io.nekohasekai.sagernet.ktx.MAX_IMPORT_BYTES
 import libcore.StringBox
 import java.io.ByteArrayOutputStream
 import java.net.URLDecoder
@@ -96,7 +98,7 @@ object Util {
         return output.copyOfRange(0, compressedDataLength)
     }
 
-    fun zlibDecompress(input: ByteArray): ByteArray {
+    fun zlibDecompress(input: ByteArray, limit: Long = MAX_IMPORT_BYTES): ByteArray {
         val inflater = Inflater()
         val outputStream = ByteArrayOutputStream()
 
@@ -105,14 +107,28 @@ object Util {
 
             inflater.setInput(input)
 
-            var count = -1
-            while (count != 0) {
-                count = inflater.inflate(buffer)
-                outputStream.write(buffer, 0, count)
+            try {
+                var total = 0L
+                var count = -1
+                while (count != 0) {
+                    count = inflater.inflate(buffer)
+                    total += count
+                    // Bound the INFLATED (output) size: a tiny crafted input can otherwise
+                    // inflate to gigabytes (decompression bomb) and OOM the process before any
+                    // user confirmation. Mirrors the import cap in BoundedRead.
+                    if (total > limit) throw ImportTooLargeException(limit)
+                    outputStream.write(buffer, 0, count)
+                }
+                // inflate() also returns 0 when it needs more input (truncated/corrupt stream),
+                // not only when finished; reject partial output instead of accepting it.
+                if (!inflater.finished()) {
+                    throw java.util.zip.DataFormatException("truncated or corrupt zlib stream")
+                }
+                outputStream.toByteArray()
+            } finally {
+                // Always release the native inflater, even on a malformed-input exception.
+                inflater.end()
             }
-
-            inflater.end()
-            outputStream.toByteArray()
         }
     }
 
