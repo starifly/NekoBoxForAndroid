@@ -23,6 +23,8 @@ jobs:
         uses: actions/checkout@v5
       - name: Guard - AGENTS.md must stay untracked
         run: bash ./scripts/check-agents-untracked.sh
+      - name: Guard - no backed-up SharedPreferences
+        run: bash ./scripts/check-no-shared-prefs.sh
   test:
     name: Unit Tests
     runs-on: namespace-profile-nekoyay
