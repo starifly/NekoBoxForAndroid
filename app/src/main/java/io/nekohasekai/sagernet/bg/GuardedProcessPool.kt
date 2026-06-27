@@ -11,6 +11,7 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.utils.Commandline
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.trySendBlocking
 import libcore.Libcore
 import java.io.File
 import java.io.IOException
@@ -54,8 +55,19 @@ class GuardedProcessPool(private val onFatal: suspend (IOException) -> Unit) : C
                     }
                     thread(name = "stdout-$cmdName") {
                         streamLogger(process.inputStream) { Libcore.nekoLogPrintln("[$cmdName] $it") }
-                        // this thread also acts as a daemon thread for waitFor
-                        runBlocking { exitChannel.send(process.waitFor()) }
+                    }
+                    // Dedicated waiter thread (lifecycle independent of the pool's Job) so the
+                    // NonCancellable teardown below can still drain the exit code even after the
+                    // pool is cancelled. Use trySendBlocking instead of runBlocking { send } to
+                    // avoid spinning up a coroutine dispatcher on this raw thread.
+                    val proc = process
+                    thread(name = "waitFor-$cmdName") {
+                        val code = proc.waitFor()
+                        // If the channel is already closed/failed, log rather than silently drop
+                        // (the NonCancellable teardown below also bounds its receive()).
+                        if (exitChannel.trySendBlocking(code).isFailure) {
+                            Logs.w("$cmdName: could not deliver exit code $code (channel closed)")
+                        }
                     }
                     val startTime = SystemClock.elapsedRealtime()
                     val exitCode = exitChannel.receive()
@@ -75,7 +87,9 @@ class GuardedProcessPool(private val onFatal: suspend (IOException) -> Unit) : C
                 }
             } catch (e: IOException) {
                 Logs.w("error occurred. stop guard: ${Commandline.toString(cmd)}")
-                GlobalScope.launch(Dispatchers.Main) { onFatal(e) }
+                // Structured (cancelled with the pool) so a torn-down pool can't fire onFatal
+                // and stop a freshly-restarted instance.
+                this@GuardedProcessPool.launch(Dispatchers.Main.immediate) { onFatal(e) }
             } finally {
                 if (running) {
                     withContext(NonCancellable) { // clean-up cannot be cancelled
@@ -94,7 +108,8 @@ class GuardedProcessPool(private val onFatal: suspend (IOException) -> Unit) : C
                             if (withTimeoutOrNull(1000) { exitChannel.receive() } != null) return@withContext
                             process.destroyForcibly() // Force to kill the process if it's still alive
                         }
-                        exitChannel.receive()
+                        // Bounded so a missed exit-code send (closed channel) can't hang teardown.
+                        withTimeoutOrNull(1000) { exitChannel.receive() }
                     } // otherwise process already exited, nothing to be done
                 }
             }
