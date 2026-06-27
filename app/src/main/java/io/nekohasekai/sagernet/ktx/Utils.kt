@@ -127,6 +127,13 @@ fun broadcastReceiver(callback: (Context, Intent) -> Unit): BroadcastReceiver = 
     override fun onReceive(context: Context, intent: Intent) = callback(context, intent)
 }
 
+/** Like [broadcastReceiver], but the callback also receives the receiver so it can use goAsync(). */
+fun broadcastReceiverWithSelf(
+    callback: (receiver: BroadcastReceiver, context: Context, intent: Intent) -> Unit,
+): BroadcastReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) = callback(this, context, intent)
+}
+
 fun Context.listenForPackageChanges(onetime: Boolean = true, callback: () -> Unit) = object : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         callback()

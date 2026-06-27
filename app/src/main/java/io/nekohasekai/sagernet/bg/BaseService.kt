@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.bg
 
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -51,9 +52,9 @@ class BaseService {
         var proxy: ProxyInstance? = null
         var notification: ServiceNotification? = null
 
-        val receiver = broadcastReceiver { ctx, intent ->
+        val receiver = broadcastReceiverWithSelf { self, ctx, intent ->
             when (intent.action) {
-                Intent.ACTION_SHUTDOWN -> service.persistStats()
+                Intent.ACTION_SHUTDOWN -> service.persistStats(self)
                 Action.RELOAD -> service.reload()
                 // Action.SWITCH_WAKE_LOCK -> runOnDefaultDispatcher { service.switchWakeLock() }
                 PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED -> {
@@ -278,15 +279,29 @@ class BaseService {
             }
         }
 
-        fun persistStats() {
+        fun persistStats(receiver: BroadcastReceiver) {
             // Flush the final per-profile cumulative rx/tx so a hard ACTION_SHUTDOWN doesn't
             // drop the last session's bytes (normal teardown already persists via
             // TrafficLooper.stop()). Per-profile cumulative traffic reuses the existing
             // ProxyEntity.tx/rx columns - no new table / migration (see Plan 024 findings).
-            // Run synchronously: ACTION_SHUTDOWN may kill the process immediately, so a
-            // fire-and-forget dispatch could be dropped before the write lands. Bound it with
-            // a timeout so a slow DB/IPC at shutdown can't ANR the broadcast receiver.
-            runCatching { runBlocking { withTimeout(5_000) { data.proxy?.looper?.persist() } } }
+            //
+            // Use goAsync() instead of blocking onReceive (the main thread) with runBlocking:
+            // the system keeps the process alive until pending.finish(), so the flush still
+            // lands on a hard shutdown without parking the main thread (~5s) near the ANR limit.
+            // Snapshot the looper on the receiver thread so the async block can't race a
+            // concurrent teardown that nulls data.proxy.
+            val looper = data.proxy?.looper ?: return
+            val pending = receiver.goAsync()
+            GlobalScope.launch(Dispatchers.IO) {
+                try {
+                    withTimeoutOrNull(5_000) { looper.persist() }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                } finally {
+                    pending.finish()
+                }
+            }
         }
 
         // networks
