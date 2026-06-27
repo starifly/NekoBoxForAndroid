@@ -431,7 +431,8 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                         Logs.e("WebDAV restore - GET error: $errorBody")
                         throw Exception("Download failed (${response.code}): ${response.message}")
                     }
-                    response.body?.bytes() ?: throw Exception("Empty backup file")
+                    response.body?.byteStream()?.use { it.readBytesBounded() }
+                        ?: throw Exception("Empty backup file")
                 }
 
                 Logs.d("WebDAV restore - Successfully downloaded backup file, size: ${content.size}")
@@ -442,7 +443,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     ZipInputStream(content.inputStream()).use { zis ->
                         zis.nextEntry?.let { entry ->
                             if (entry.name.endsWith(".json")) {
-                                zis.readBytes().toString(Charsets.UTF_8)
+                                zis.readBytesBounded().toString(Charsets.UTF_8)
                             } else {
                                 throw Exception("Invalid backup file format")
                             }
@@ -640,14 +641,14 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     ZipInputStream(BufferedInputStream(input)).use { zis ->
                         zis.nextEntry?.let { entry ->
                             if (entry.name.endsWith(".json")) {
-                                zis.readBytes().toString(Charsets.UTF_8)
+                                zis.readBytesBounded().toString(Charsets.UTF_8)
                             } else {
                                 throw Exception("Invalid backup file format")
                             }
                         } ?: throw Exception("Invalid backup file format")
                     }
                 } else {
-                    input.readBytes().toString(Charsets.UTF_8)
+                    input.readBytesBounded().toString(Charsets.UTF_8)
                 }
             }
 

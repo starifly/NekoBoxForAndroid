@@ -53,8 +53,7 @@ object RawUpdater : GroupUpdater() {
         var proxies: List<AbstractBean>
         if (link.startsWith("content://")) {
             val contentText = app.contentResolver.openInputStream(link.toUri())
-                ?.bufferedReader()
-                ?.readText()
+                ?.use { it.readTextBounded() }
 
             proxies = contentText?.let { parseRaw(contentText) }
                 ?: error(app.getString(R.string.no_proxies_found_in_subscription))
