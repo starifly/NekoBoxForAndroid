@@ -17,6 +17,7 @@ import io.nekohasekai.sagernet.databinding.LayoutLogcatBinding
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.widget.ListListener
 import libcore.Libcore
+import moe.matsuri.nb4a.utils.AnsiLog
 import moe.matsuri.nb4a.utils.SendLog
 
 class LogcatFragment :
@@ -44,38 +45,30 @@ class LogcatFragment :
         reloadSession()
     }
 
-    private fun getColorForLine(line: String): ForegroundColorSpan {
-        var color = ForegroundColorSpan(Color.GRAY)
-        when {
-            line.contains("INFO[") || line.contains(" [Info]") -> {
-                color = ForegroundColorSpan((0xFF86C166).toInt())
-            }
-
-            line.contains("ERROR[") || line.contains(" [Error]") -> {
-                color = ForegroundColorSpan(Color.RED)
-            }
-
-            line.contains("WARN[") || line.contains(" [Warning]") -> {
-                color = ForegroundColorSpan(Color.RED)
-            }
-        }
-        return color
-    }
-
     private fun reloadSession() {
-        val span = SpannableString(
-            String(SendLog.getNekoLog(50 * 1024)),
-        )
-        var offset = 0
-        for (line in span.lines()) {
-            val color = getColorForLine(line)
+        // sing-box bakes ANSI color codes into each log line, so parse them into
+        // foreground spans (instead of rendering the raw escape codes as text) and
+        // keep the colors the core emits (cyan INFO, yellow WARN, red ERROR, the
+        // per-connection-id color, ...).
+        val rendered = AnsiLog.render(String(SendLog.getNekoLog(50 * 1024)))
+        val span = SpannableString(rendered.text)
+        // Dim default for lines the core emits without an ANSI color (e.g. plain
+        // go-log lines), matching the previous viewer's gray fallback.
+        if (rendered.text.isNotEmpty()) {
             span.setSpan(
-                color,
-                offset,
-                offset + line.length,
+                ForegroundColorSpan(Color.GRAY),
+                0,
+                rendered.text.length,
                 SPAN_EXCLUSIVE_EXCLUSIVE,
             )
-            offset += line.length + 1
+        }
+        for (run in rendered.spans) {
+            span.setSpan(
+                ForegroundColorSpan(run.color),
+                run.start,
+                run.end,
+                SPAN_EXCLUSIVE_EXCLUSIVE,
+            )
         }
         binding.textview.text = span
         binding.textview.clearFocus()
