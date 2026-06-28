@@ -323,6 +323,8 @@
     <string name="connection_test_timeout_error">超時</string>
     <string name="append_http_proxy">將 HTTP 代理附加到 VPN</string>
     <string name="append_http_proxy_sum">HTTP 代理將直接從瀏覽器/一些支援的應用程式使用，而不會經過虛擬網絡介面卡裝置 (Android 10+)</string>
+    <string name="http_proxy_bypass">HTTP proxy bypass list</string>
+    <string name="http_proxy_bypass_dialog_message">One per line. Lines starting with # are comments. Example: *zhihu.com</string>
     <string name="append_http_proxy_security_title">Security Notice</string>
     <string name="append_http_proxy_security_message">When enabled, other apps on this device can directly use the local proxy port.\n\nRecommendation: Only enable this if you trust all installed apps.</string>
     <string name="enable_anyway">Enable Anyway</string>
@@ -367,6 +369,9 @@
     <string name="subscription_update">訂閱更新</string>
     <string name="subscription_update_message">正在更新 %s …</string>
     <string name="group_filter">過濾器</string>
+    <string name="server_dns">Custom Server DNS</string>
+    <string name="server_dns_subscription_sum">Optional DNS used only to resolve server domains in this subscription. Leave empty to use the default behavior. Accepts https://, tls://, quic:// or host[:port].</string>
+    <string name="server_dns_invalid">Invalid custom server DNS. Use https://, tls://, quic:// or host[:port], or leave empty.</string>
     <string name="subscription_used">%s 已使用</string>
     <string name="subscription_traffic">%s 已使用 / %s 剩餘</string>
     <string name="subscription_expire">到期：%s</string>
