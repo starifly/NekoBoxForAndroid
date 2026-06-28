@@ -47,10 +47,12 @@ jobs:
 
       - name: libcore status
         run: |
-          { find buildScript libcore -type f -print0; \
-            printf '%s\0' buildScript/lib/core/get_source_env.sh; } \
-            | sort -z | xargs -0 cat | sha1sum | awk '{print $1}' > libcore_status
-          git ls-files libcore | sort | xargs cat | sha1sum | awk '{print $1}' >> libcore_status
+          # git ls-files -s emits <mode> <objecthash> <stage> <path> for every tracked
+          # entry (content- and path-aware) without touching the filesystem, so it is
+          # deterministic and safe even for dangling symlinks (e.g. buildScript/nkmr).
+          git ls-files -s -- buildScript libcore \
+            | sha256sum \
+            | awk '{print $1}' > libcore_status
       - name: libcore cache
         id: libcore-cache
         uses: actions/cache@v4

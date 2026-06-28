@@ -1,17 +1,20 @@
 package io.nekohasekai.sagernet.bg
 
+import android.Manifest.permission.POST_NOTIFICATIONS
 import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
 import android.os.Build
 import android.text.format.Formatter
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
@@ -19,6 +22,7 @@ import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
@@ -236,7 +240,21 @@ class ServiceNotification(
     }
 
     private suspend fun update() = useBuilder {
-        NotificationManagerCompat.from(service as Service).notify(notificationId, it.build())
+        val serviceContext = service as Service
+        val notificationManager = NotificationManagerCompat.from(serviceContext)
+        if (!notificationManager.areNotificationsEnabled()) return@useBuilder
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(serviceContext, POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return@useBuilder
+        }
+        try {
+            notificationManager.notify(notificationId, it.build())
+        } catch (e: SecurityException) {
+            Logs.w("service notification update skipped", e)
+        }
     }
 
     fun destroy() {

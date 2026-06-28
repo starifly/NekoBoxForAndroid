@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.ui
 
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.system.Os
 import android.text.format.DateFormat
 import android.view.Menu
 import android.view.MenuItem
@@ -25,6 +26,9 @@ import java.io.File
 import java.io.FileWriter
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
+
+private const val MAX_HTTP_JSON_BYTES = 10L * 1024 * 1024
+private const val MAX_RULE_ASSET_BYTES = 256L * 1024 * 1024
 
 /**
  * Reduce an untrusted file name (e.g. a content provider's DISPLAY_NAME) to a safe basename
@@ -298,6 +302,14 @@ class AssetsActivity : ThemedActivity() {
         }
     }
 
+    private fun replaceAssetFile(tempFile: File, targetFile: File) {
+        try {
+            Os.rename(tempFile.absolutePath, targetFile.absolutePath)
+        } catch (e: Exception) {
+            error("Unable to save the route asset: ${e.readableMessage}")
+        }
+    }
+
     private val rulesProviders = listOf(
         RuleAssetsProvider(
             "SagerNet/sing-geoip",
@@ -337,7 +349,7 @@ class AssetsActivity : ThemedActivity() {
                 setURL("https://api.github.com/repos/$repo/releases/latest")
             }.execute()
 
-            val release = JSONObject(Util.getStringBox(response.contentString))
+            val release = JSONObject(Util.getStringBox(response.getContentStringLimited(MAX_HTTP_JSON_BYTES)))
             val tagName = release.optString("tag_name")
 
             if (tagName == localVersion) {
@@ -348,9 +360,13 @@ class AssetsActivity : ThemedActivity() {
             }
 
             val releaseAssets = release.getJSONArray("assets").filterIsInstance<JSONObject>()
-            val assetToDownload = releaseAssets.find { it.getStr("name") == fileName }
-                ?: error("File $fileName not found in release ${release["url"]}")
+            val assetToDownload = releaseAssets.find {
+                val assetName = it.getStr("name")
+                assetName == fileName || assetName == "$fileName.xz"
+            } ?: error("File $fileName not found in release ${release["url"]}")
+            val downloadName = assetToDownload.getStr("name") ?: error("Release asset is missing a name")
             val browserDownloadUrl = assetToDownload.getStr("browser_download_url")
+                ?: error("Release asset $downloadName is missing a download URL")
 
             response = client.newRequest().apply {
                 setURL(browserDownloadUrl)
@@ -359,16 +375,27 @@ class AssetsActivity : ThemedActivity() {
             val cacheFile = File(file.parentFile, fileName + ".tmp")
             cacheFile.parentFile?.mkdirs()
 
-            response.writeTo(cacheFile.canonicalPath)
+            try {
+                response.writeToLimited(cacheFile.canonicalPath, MAX_RULE_ASSET_BYTES)
 
-            if (fileName.endsWith(".xz")) {
-                Libcore.unxz(cacheFile.absolutePath, file.absolutePath)
-                cacheFile.delete()
-            } else {
-                cacheFile.renameTo(file)
+                if (downloadName.endsWith(".xz")) {
+                    val unpackedFile = File(file.parentFile, file.nameWithoutExtension + ".unxz.tmp")
+                    try {
+                        // Libcore.unxz enforces the same 256 MB cap (defaultUnxzFileLimit)
+                        // and fails before writing if exceeded, so no extra size check here.
+                        Libcore.unxz(cacheFile.absolutePath, unpackedFile.absolutePath)
+                        replaceAssetFile(unpackedFile, file)
+                    } finally {
+                        if (unpackedFile.exists()) unpackedFile.delete()
+                    }
+                } else {
+                    replaceAssetFile(cacheFile, file)
+                }
+
+                versionFile.writeText(tagName)
+            } finally {
+                if (cacheFile.exists()) cacheFile.delete()
             }
-
-            versionFile.writeText(tagName)
 
             adapter.reloadAssets()
 
@@ -404,11 +431,15 @@ class AssetsActivity : ThemedActivity() {
             }.execute()
             val cacheFile = File(file.parentFile, fileName + ".tmp")
             cacheFile.parentFile?.mkdirs()
-            response.writeTo(cacheFile.canonicalPath)
-            cacheFile.renameTo(file)
+            try {
+                response.writeToLimited(cacheFile.canonicalPath, MAX_RULE_ASSET_BYTES)
+                replaceAssetFile(cacheFile, file)
 
-            val currentDate = java.text.SimpleDateFormat("yyyyMMdd").format(java.util.Date())
-            versionFile.writeText(currentDate)
+                val currentDate = java.text.SimpleDateFormat("yyyyMMdd", Locale.US).format(Date())
+                versionFile.writeText(currentDate)
+            } finally {
+                if (cacheFile.exists()) cacheFile.delete()
+            }
 
             adapter.reloadAssets()
             onMainDispatcher {

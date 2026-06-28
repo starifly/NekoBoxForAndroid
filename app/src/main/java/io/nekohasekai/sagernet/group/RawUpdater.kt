@@ -75,7 +75,7 @@ object RawUpdater : GroupUpdater() {
                 setURL(subscription.link)
                 setUserAgent(subscription.customUserAgent.takeIf { it.isNotBlank() } ?: USER_AGENT)
             }.execute()
-            proxies = parseRaw(Util.getStringBox(response.contentString))
+            proxies = parseRaw(Util.getStringBox(response.getContentStringLimited(10L * 1024 * 1024)))
                 ?: error(app.getString(R.string.no_proxies_found))
 
             subscription.subscriptionUserinfo =
@@ -234,25 +234,33 @@ object RawUpdater : GroupUpdater() {
             userOrder++
         }
 
-        SagerDatabase.proxyDao.insert(toInsert)
+        var updatedCount = 0
+        var deletedCount = 0
+        SagerDatabase.instance.runInTransaction {
+            if (toInsert.isNotEmpty()) {
+                SagerDatabase.proxyDao.insert(toInsert)
+            }
+            if (toUpdate.isNotEmpty()) {
+                updatedCount = SagerDatabase.proxyDao.updateProxy(toUpdate)
+            }
+            if (toDelete.isNotEmpty()) {
+                deletedCount = SagerDatabase.proxyDao.deleteProxy(toDelete)
+            }
+
+            val existCount = SagerDatabase.proxyDao.countByGroup(proxyGroup.id).toInt()
+            if (existCount != proxies.size) {
+                val message = "Exist profiles: $existCount, new profiles: ${proxies.size}"
+                Logs.e(message)
+                error(message)
+            }
+
+            subscription.lastUpdated = (System.currentTimeMillis() / 1000).toInt()
+            SagerDatabase.groupDao.updateGroup(proxyGroup)
+        }
+
         Logs.d("Inserted profiles: ${toInsert.size}")
-
-        SagerDatabase.proxyDao.updateProxy(toUpdate).also {
-            Logs.d("Updated profiles: $it")
-        }
-
-        SagerDatabase.proxyDao.deleteProxy(toDelete).also {
-            Logs.d("Deleted profiles: $it")
-        }
-
-        val existCount = SagerDatabase.proxyDao.countByGroup(proxyGroup.id).toInt()
-
-        if (existCount != proxies.size) {
-            Logs.e("Exist profiles: $existCount, new profiles: ${proxies.size}")
-        }
-
-        subscription.lastUpdated = (System.currentTimeMillis() / 1000).toInt()
-        SagerDatabase.groupDao.updateGroup(proxyGroup)
+        Logs.d("Updated profiles: $updatedCount")
+        Logs.d("Deleted profiles: $deletedCount")
         finishUpdate(proxyGroup)
 
         userInterface?.onUpdateSuccess(

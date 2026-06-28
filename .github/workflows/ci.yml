@@ -1,11 +1,6 @@
 name: CI
 on:
-  push:
-    tags-ignore:
-      - 'v*'
-    branches:
-      - '*'
-  pull_request:
+  workflow_dispatch:
 env:
   MIERU_VERSION: v3.34.0
   HYSTERIA_VERSION: v2.9.2

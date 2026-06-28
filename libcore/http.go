@@ -17,6 +17,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -30,6 +31,17 @@ import (
 )
 
 var errFailConnectSocks5 = errors.New("fail connect socks5")
+
+const (
+	defaultHTTPTimeout     = 120 * time.Second
+	defaultHTTPDialTimeout = 30 * time.Second
+	// defaultHTTPRequestTimeout bounds the whole request including body reads,
+	// so GetContentLimited/WriteToLimited cannot block forever on a stalled body.
+	// It is generous enough for large rule-asset downloads over slow links.
+	defaultHTTPRequestTimeout = 10 * time.Minute
+	defaultHTTPStringLimit    = 10 * 1024 * 1024
+	defaultHTTPFileLimit      = 256 * 1024 * 1024
+)
 
 type HTTPClient interface {
 	RestrictedTLS()
@@ -57,8 +69,11 @@ type HTTPRequest interface {
 type HTTPResponse interface {
 	GetHeader(string) *StringBox
 	GetContent() ([]byte, error)
+	GetContentLimited(limit int64) ([]byte, error)
 	GetContentString() (*StringBox, error)
+	GetContentStringLimited(limit int64) (*StringBox, error)
 	WriteTo(path string) error
+	WriteToLimited(path string, limit int64) error
 }
 
 var (
@@ -77,9 +92,15 @@ type httpClient struct {
 
 func NewHttpClient() HTTPClient {
 	client := new(httpClient)
+	dialer := &net.Dialer{Timeout: defaultHTTPDialTimeout}
 	client.h1h2Client.Transport = &client.h1h2Transport
+	client.h1h2Transport.DialContext = dialer.DialContext
 	client.h1h2Transport.TLSClientConfig = &client.tls
+	client.h1h2Transport.TLSHandshakeTimeout = defaultHTTPTimeout
+	client.h1h2Transport.ResponseHeaderTimeout = defaultHTTPTimeout
 	client.h1h2Transport.DisableKeepAlives = true
+	// Bound the full request (including body read) so callers cannot hang forever.
+	client.h1h2Client.Timeout = defaultHTTPRequestTimeout
 	return client
 }
 
@@ -115,7 +136,7 @@ func (c *httpClient) PinnedSHA256(sumHex string) {
 }
 
 func (c *httpClient) TrySocks5(port int32, username string, password string) {
-	dialer := new(net.Dialer)
+	dialer := &net.Dialer{Timeout: defaultHTTPDialTimeout}
 	c.h1h2Transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
 		for {
 			socksConn, err := dialer.DialContext(ctx, "tcp", "127.0.0.1:"+strconv.Itoa(int(port)))
@@ -244,6 +265,7 @@ func (r *httpRequest) doH3Direct() (HTTPResponse, error) {
 		func() (response *http.Response, err error) {
 			request := r.request.Clone(context.Background())
 			echClient := &http.Client{
+				Timeout: defaultHTTPRequestTimeout,
 				Transport: &http.Transport{
 					DialTLSContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 						var d net.Dialer
@@ -267,6 +289,7 @@ func (r *httpRequest) doH3Direct() (HTTPResponse, error) {
 		func() (response *http.Response, err error) {
 			request := r.request.Clone(context.Background())
 			h3Client := &http.Client{
+				Timeout: defaultHTTPRequestTimeout,
 				Transport: &http3.Transport{
 					TLSClientConfig: r.tls.Clone(),
 					QUICConfig: &quic.Config{
@@ -345,9 +368,10 @@ func (r *httpRequest) doH3Direct() (HTTPResponse, error) {
 type httpResponse struct {
 	*http.Response
 
-	getContentOnce sync.Once
-	content        []byte
-	contentError   error
+	contentMu    sync.Mutex
+	contentRead  bool
+	content      []byte
+	contentError error
 }
 
 func (h *httpResponse) errorString() string {
@@ -366,15 +390,33 @@ func (h *httpResponse) GetHeader(key string) *StringBox {
 }
 
 func (h *httpResponse) GetContent() ([]byte, error) {
-	h.getContentOnce.Do(func() {
-		defer h.Body.Close()
-		h.content, h.contentError = io.ReadAll(h.Body)
-	})
+	return h.GetContentLimited(defaultHTTPStringLimit)
+}
+
+func (h *httpResponse) GetContentLimited(limit int64) ([]byte, error) {
+	h.contentMu.Lock()
+	defer h.contentMu.Unlock()
+	if h.contentRead {
+		if h.contentError != nil {
+			return nil, h.contentError
+		}
+		if int64(len(h.content)) > limit {
+			return nil, fmt.Errorf("HTTP response body exceeds %d bytes", limit)
+		}
+		return h.content, nil
+	}
+	defer h.Body.Close()
+	h.contentRead = true
+	h.content, h.contentError = readAllLimited(h.Body, limit)
 	return h.content, h.contentError
 }
 
 func (h *httpResponse) GetContentString() (*StringBox, error) {
-	content, err := h.getContentString()
+	return h.GetContentStringLimited(defaultHTTPStringLimit)
+}
+
+func (h *httpResponse) GetContentStringLimited(limit int64) (*StringBox, error) {
+	content, err := h.getContentStringLimited(limit)
 	if err != nil {
 		return nil, err
 	}
@@ -382,7 +424,11 @@ func (h *httpResponse) GetContentString() (*StringBox, error) {
 }
 
 func (h *httpResponse) getContentString() (string, error) {
-	content, err := h.GetContent()
+	return h.getContentStringLimited(defaultHTTPStringLimit)
+}
+
+func (h *httpResponse) getContentStringLimited(limit int64) (string, error) {
+	content, err := h.GetContentLimited(limit)
 	if err != nil {
 		return "", err
 	}
@@ -390,12 +436,61 @@ func (h *httpResponse) getContentString() (string, error) {
 }
 
 func (h *httpResponse) WriteTo(path string) error {
+	return h.WriteToLimited(path, defaultHTTPFileLimit)
+}
+
+func (h *httpResponse) WriteToLimited(path string, limit int64) (err error) {
 	defer h.Body.Close()
-	file, err := os.Create(path)
+	dir, base := filepath.Split(path)
+	if dir == "" {
+		dir = "."
+	}
+	file, err := os.CreateTemp(dir, base+".*.tmp")
 	if err != nil {
 		return err
 	}
-	defer file.Close()
-	_, err = io.Copy(file, h.Body)
+	tmpPath := file.Name()
+	defer func() {
+		if err != nil {
+			_ = os.Remove(tmpPath)
+		}
+	}()
+	defer func() {
+		if closeErr := file.Close(); err == nil {
+			err = closeErr
+		}
+		if err == nil {
+			err = os.Rename(tmpPath, path)
+		}
+	}()
+	_, err = copyLimited(file, h.Body, limit)
 	return err
+}
+
+func readAllLimited(reader io.Reader, limit int64) ([]byte, error) {
+	if limit < 0 {
+		return nil, fmt.Errorf("invalid HTTP response limit %d", limit)
+	}
+	content, err := io.ReadAll(io.LimitReader(reader, limit+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(content)) > limit {
+		return nil, fmt.Errorf("HTTP response body exceeds %d bytes", limit)
+	}
+	return content, nil
+}
+
+func copyLimited(dst io.Writer, src io.Reader, limit int64) (int64, error) {
+	if limit < 0 {
+		return 0, fmt.Errorf("invalid HTTP response limit %d", limit)
+	}
+	written, err := io.Copy(dst, io.LimitReader(src, limit+1))
+	if err != nil {
+		return written, err
+	}
+	if written > limit {
+		return written, fmt.Errorf("stream exceeds %d bytes", limit)
+	}
+	return written, nil
 }

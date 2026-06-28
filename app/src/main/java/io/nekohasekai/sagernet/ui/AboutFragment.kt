@@ -191,7 +191,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                         setURL("https://api.github.com/repos/hawkff/NekoBoxForAndroid/releases/latest")
                     }
                 }.execute()
-                val release = JSONObject(Util.getStringBox(response.contentString))
+                val release = JSONObject(Util.getStringBox(response.getContentStringLimited(10L * 1024 * 1024)))
                 val releaseName = release.getString("name")
                 val releaseUrl = release.getString("html_url")
                 var haveUpdate = releaseName.isNotBlank()

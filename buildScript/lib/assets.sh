@@ -1,28 +1,51 @@
 #!/bin/bash
 
 set -e
+set -o pipefail
 
-DIR=app/src/main/assets/sing-box
-rm -rf $DIR
-mkdir -p $DIR
-cd $DIR
+GEOIP_VERSION="${GEOIP_VERSION:-20260612}"
+GEOIP_SHA256="${GEOIP_SHA256:-71484cf35bb48453e26bcc3373a0988a2536588f8e3ca96cda59ff742af6c392}"
+GEOSITE_VERSION="${GEOSITE_VERSION:-20260625041655}"
+GEOSITE_SHA256="${GEOSITE_SHA256:-7e4220f1700bcb63204b11c9a5a07d1c315d1262c3e0049f23d548b0b7b0343a}"
 
-get_latest_release() {
-  curl --silent "https://api.github.com/repos/$1/releases/latest" | # Get latest release from GitHub api
-    grep '"tag_name":' |                                            # Get tag line
-    sed -E 's/.*"([^"]+)".*/\1/'                                    # Pluck JSON value
+sha256_tool() {
+  if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | awk '{print $1}'
+  else shasum -a 256 "$1" | awk '{print $1}'; fi
 }
 
+download_verified() {
+  local url="$1" output="$2" expected="$3" tmp actual
+  tmp="${output}.download"
+  rm -f "$tmp"
+  curl -fL --retry 3 --retry-delay 2 --max-time 300 "$url" -o "$tmp"
+  actual="$(sha256_tool "$tmp")"
+  if [ "$expected" != "$actual" ]; then
+    rm -f "$tmp"
+    echo "Error: checksum mismatch for $output (expected $expected, got $actual)" >&2
+    exit 1
+  fi
+  mv "$tmp" "$output"
+}
+
+DIR=app/src/main/assets/sing-box
+rm -rf "$DIR"
+mkdir -p "$DIR"
+cd "$DIR"
+
 ####
-VERSION_GEOIP=`get_latest_release "SagerNet/sing-geoip"`
-echo VERSION_GEOIP=$VERSION_GEOIP
-echo -n $VERSION_GEOIP > geoip.version.txt
-curl -fLSsO https://github.com/SagerNet/sing-geoip/releases/download/$VERSION_GEOIP/geoip.db
+echo VERSION_GEOIP=$GEOIP_VERSION
+echo -n "$GEOIP_VERSION" > geoip.version.txt
+download_verified \
+  "https://github.com/SagerNet/sing-geoip/releases/download/$GEOIP_VERSION/geoip.db" \
+  geoip.db \
+  "$GEOIP_SHA256"
 xz -9 geoip.db
 
 ####
-VERSION_GEOSITE=`get_latest_release "SagerNet/sing-geosite"`
-echo VERSION_GEOSITE=$VERSION_GEOSITE
-echo -n $VERSION_GEOSITE > geosite.version.txt
-curl -fLSsO https://github.com/SagerNet/sing-geosite/releases/download/$VERSION_GEOSITE/geosite.db
+echo VERSION_GEOSITE=$GEOSITE_VERSION
+echo -n "$GEOSITE_VERSION" > geosite.version.txt
+download_verified \
+  "https://github.com/SagerNet/sing-geosite/releases/download/$GEOSITE_VERSION/geosite.db" \
+  geosite.db \
+  "$GEOSITE_SHA256"
 xz -9 geosite.db

@@ -1,0 +1,148 @@
+name: Build APK
+on:
+  push:
+    branches:
+      - '**'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  GO_VERSION: '1.26.4'
+  NDK_VERSION: '25.0.8775105'
+  MIERU_VERSION: v3.34.0
+  HYSTERIA_VERSION: v2.9.2
+  MDVPN_REF: android-vpnservice-protect-hook
+  MDVPN_COMMIT: d481d72d4b86783a87d536c214d2c68cc4e9320e
+  NAIVE_VERSION: v149.0.7827.114-1
+jobs:
+  build-apk:
+    name: Build OSS Debug APK
+    runs-on: depot-ubuntu-24.04-8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK platform + NDK
+        run: sdkmanager --install "platforms;android-35" "build-tools;35.0.0" "ndk;${NDK_VERSION}"
+
+      - name: local.properties
+        run: |
+          echo "sdk.dir=${ANDROID_HOME}" > local.properties
+          echo "ndk.dir=${ANDROID_HOME}/ndk/${NDK_VERSION}" >> local.properties
+
+      - name: libcore status
+        run: |
+          # git ls-files -s emits <mode> <objecthash> <stage> <path> for every tracked
+          # entry (content- and path-aware) without touching the filesystem, so it is
+          # deterministic and safe even for dangling symlinks (e.g. buildScript/nkmr).
+          git ls-files -s -- buildScript libcore \
+            | sha256sum \
+            | awk '{print $1}' > libcore_status
+
+      - name: libcore cache
+        id: libcore-cache
+        uses: actions/cache@v4
+        with:
+          path: app/libs/libcore.aar
+          key: depot-libcore-${{ env.GO_VERSION }}-${{ env.NDK_VERSION }}-${{ hashFiles('libcore_status') }}
+
+      - name: sidecars status
+        run: |
+          git ls-files -s -- \
+            buildScript/lib/mieru.sh \
+            buildScript/lib/hysteria2.sh \
+            buildScript/lib/masterdnsvpn.sh \
+            buildScript/lib/naive.sh \
+            buildScript/init/env.sh \
+            buildScript/init/env_ndk.sh \
+            | sha256sum \
+            | awk '{print $1}' > sidecars_status
+
+      - name: sidecars cache
+        id: sidecars-cache
+        uses: actions/cache@v4
+        with:
+          path: app/executableSo
+          key: depot-sidecars-${{ env.GO_VERSION }}-${{ env.NDK_VERSION }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-${{ env.MDVPN_COMMIT }}-${{ env.NAIVE_VERSION }}-${{ hashFiles('sidecars_status') }}
+
+      - name: Install Go
+        if: steps.libcore-cache.outputs.cache-hit != 'true' || steps.sidecars-cache.outputs.cache-hit != 'true'
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Build libcore (Go + gomobile)
+        if: steps.libcore-cache.outputs.cache-hit != 'true'
+        run: ./run lib core
+
+      - name: Build sidecars
+        if: steps.sidecars-cache.outputs.cache-hit != 'true'
+        run: |
+          ./run lib mieru
+          ./run lib hysteria2
+          ./run lib masterdnsvpn
+          ./run lib naive
+
+      - name: Verify sidecar artifacts
+        run: |
+          for abi in arm64-v8a armeabi-v7a x86 x86_64; do
+            for so in libmieru.so libhysteria2.so libmasterdnsvpn.so libnaive.so; do
+              if [ ! -f "app/executableSo/$abi/$so" ]; then
+                echo "Error: missing app/executableSo/$abi/$so" >&2
+                exit 1
+              fi
+            done
+          done
+
+      - name: Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle
+          key: depot-gradle-oss-${{ hashFiles('**/*.gradle.kts') }}
+
+      - name: Build APK
+        env:
+          BUILD_PLUGIN: none
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
+          ALIAS_NAME: ${{ secrets.ALIAS_NAME }}
+          ALIAS_PASS: ${{ secrets.ALIAS_PASS }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KEYSTORE_B64}" ]; then
+            echo "Error: signing keystore is not configured" >&2
+            exit 1
+          fi
+          if [ -z "${KEYSTORE_PASS}" ] || [ -z "${ALIAS_NAME}" ] || [ -z "${ALIAS_PASS}" ]; then
+            echo "Error: signing configuration is incomplete" >&2
+            exit 1
+          fi
+          ./run init action gradle
+          echo "${KEYSTORE_B64}" | base64 -d > release.keystore
+          ./gradlew app:assembleOssDebug
+          python3 - <<'PY' > apk_file
+          from pathlib import Path
+          matches = sorted(Path('app/build/outputs/renamed_apks').rglob('*arm64-v8a*.apk'))
+          if not matches:
+              raise SystemExit('Error: no arm64-v8a APK found under app/build/outputs/renamed_apks')
+          print(matches[0])
+          PY
+          APK_FILE=$(cat apk_file)
+          echo "APK_FILE=$APK_FILE" >> "$GITHUB_ENV"
+          echo "Built APK: $APK_FILE"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: NekoBox-debug-arm64-v8a-apk
+          path: ${{ env.APK_FILE }}
+          if-no-files-found: error

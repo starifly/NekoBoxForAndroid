@@ -13,6 +13,13 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
  * would transmit both the credentials and the secret-bearing backup in cleartext,
  * so only TLS (`https://`) endpoints are accepted.
  */
+internal fun redactedWebDavUrlForLog(url: HttpUrl): String {
+    val defaultPort = HttpUrl.defaultPort(url.scheme)
+    val host = if (url.host.contains(':')) "[${url.host}]" else url.host
+    val port = if (url.port != defaultPort) ":${url.port}" else ""
+    return "${url.scheme}://$host$port/<redacted-path>"
+}
+
 object WebDAVSecurity {
 
     /**

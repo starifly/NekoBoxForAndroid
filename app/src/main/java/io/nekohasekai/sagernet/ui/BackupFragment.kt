@@ -43,6 +43,11 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
+internal fun backupFileName(now: Date = Date()): String {
+    val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(now)
+    return "nekobox_backup_$timestamp.json"
+}
+
 class BackupFragment : NamedFragment(R.layout.layout_backup) {
 
     private lateinit var binding: LayoutBackupBinding
@@ -111,7 +116,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 onMainDispatcher {
                     startFilesForResult(
                         exportSettings,
-                        "nekobox_backup_${Date().toLocaleString()}.json",
+                        backupFileName(),
                     )
                 }
             }
@@ -127,7 +132,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 val shareDir = File(app.cacheDir, "share").apply { mkdirs() }
                 val cacheFile = File(
                     shareDir,
-                    "nekobox_backup_${Date().toLocaleString()}.json",
+                    backupFileName(),
                 )
                 cacheFile.writeBytes(backupData)
                 onMainDispatcher {
@@ -221,8 +226,8 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     .addPathSegment(fileName)
                     .build()
 
-                Logs.d("WebDAV backup - Directory URL: $dirUrl")
-                Logs.d("WebDAV backup - File URL: $fileUrl")
+                Logs.d("WebDAV backup - Directory URL: ${redactedWebDavUrlForLog(dirUrl)}")
+                Logs.d("WebDAV backup - File URL: ${redactedWebDavUrlForLog(fileUrl)}")
 
                 // first check whether the directory exists
                 val propfindRequest = Request.Builder()
@@ -247,8 +252,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                         401 -> throw Exception("Authentication failed")
                         else -> {
                             if (!response.isSuccessful) {
-                                val errorBody = response.body?.string()
-                                Logs.e("WebDAV backup - PROPFIND error: $errorBody")
+                                Logs.e("WebDAV backup - PROPFIND failed: ${response.code} ${response.message}")
                                 throw Exception("Failed to check directory (${response.code}): ${response.message}")
                             }
                         }
@@ -272,8 +276,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
 
                     client.newCall(mkcolRequest).execute().use { response ->
                         if (!response.isSuccessful) {
-                            val errorBody = response.body?.string()
-                            Logs.e("WebDAV backup - MKCOL error: $errorBody")
+                            Logs.e("WebDAV backup - MKCOL failed: ${response.code} ${response.message}")
                             throw Exception("Failed to create directory (${response.code}): ${response.message}")
                         }
                     }
@@ -296,9 +299,8 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
 
                 client.newCall(putRequest).execute().use { response ->
                     if (!response.isSuccessful) {
-                        val errorBody = response.body?.string()
-                        Logs.e("WebDAV backup - PUT error: $errorBody")
-                        throw Exception("Upload failed (${response.code}): ${response.message}\n$errorBody")
+                        Logs.e("WebDAV backup - PUT failed: ${response.code} ${response.message}")
+                        throw Exception("Upload failed (${response.code}): ${response.message}")
                     }
                     Logs.d("WebDAV backup - Upload successful")
                 }
@@ -351,7 +353,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     }
                 }.build()
 
-                Logs.d("WebDAV restore - Directory URL: $dirUrl")
+                Logs.d("WebDAV restore - Directory URL: ${redactedWebDavUrlForLog(dirUrl)}")
 
                 // first list the directory contents to find the latest backup file
                 val propfindRequest = Request.Builder()
@@ -369,14 +371,14 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
 
                 // get the latest backup file name
                 val latestBackup = client.newCall(propfindRequest).execute().use { response ->
-                    if (!response.isSuccessful && response.code != 207) {
-                        val errorBody = response.body?.string()
-                        Logs.e("WebDAV restore - PROPFIND error: $errorBody")
-                        throw Exception("Failed to list directory: ${response.message}")
+                    if (response.code != 207) {
+                        Logs.e("WebDAV restore - PROPFIND failed: ${response.code} ${response.message}")
+                        throw Exception("Failed to list directory (${response.code}): ${response.message}")
                     }
 
-                    val responseBody = response.body?.string() ?: throw Exception("Empty response")
-                    Logs.d("WebDAV restore - Directory listing: $responseBody")
+                    val responseBody = response.body?.byteStream()
+                        ?.use { it.readBytesBounded().toString(Charsets.UTF_8) }
+                        ?: throw Exception("Empty response")
 
                     val patterns = listOf(
                         """<D:href>[^<]*?nekobox_backup_[^<]*?\d{8}_\d{6}\.(json|zip)</D:href>""".toRegex(),
@@ -390,7 +392,6 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                         val matches = pattern.findAll(responseBody)
                         matches.forEach { match ->
                             val href = match.value
-                            Logs.d("WebDAV restore - Found backup file with pattern ${pattern.pattern}: $href")
                             val fileName = """nekobox_backup_[^<]*?\d{8}_\d{6}\.(json|zip)""".toRegex()
                                 .find(href)?.value
                             if (fileName != null) {
@@ -400,7 +401,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                         if (backupFiles.isNotEmpty()) break
                     }
 
-                    Logs.d("WebDAV restore - Found ${backupFiles.size} backup files: ${backupFiles.joinToString()}")
+                    Logs.d("WebDAV restore - Found ${backupFiles.size} candidate backup files")
 
                     backupFiles.maxByOrNull { fileName ->
                         """(\d{8}_\d{6})""".toRegex().find(fileName)?.value ?: ""
@@ -411,7 +412,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                 val fileUrl = dirUrl.newBuilder()
                     .addPathSegment(latestBackup)
                     .build()
-                Logs.d("WebDAV restore - File URL: $fileUrl")
+                Logs.d("WebDAV restore - File URL: ${redactedWebDavUrlForLog(fileUrl)}")
 
                 val getRequest = Request.Builder()
                     .url(fileUrl)
@@ -427,8 +428,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
 
                 val content = client.newCall(getRequest).execute().use { response ->
                     if (!response.isSuccessful) {
-                        val errorBody = response.body?.string()
-                        Logs.e("WebDAV restore - GET error: $errorBody")
+                        Logs.e("WebDAV restore - GET failed: ${response.code} ${response.message}")
                         throw Exception("Download failed (${response.code}): ${response.message}")
                     }
                     response.body?.byteStream()?.use { it.readBytesBounded() }
@@ -545,45 +545,16 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
             DataStore.configurationStore.awaitWrites()
         }
         val out = JSONObject().apply {
-            put("version", 1)
+            put("version", BackupFormatV2.VERSION)
             if (profile) {
-                put(
-                    "profiles",
-                    JSONArray().apply {
-                        SagerDatabase.proxyDao.getAll().forEach {
-                            put(it.toBase64Str())
-                        }
-                    },
-                )
-
-                put(
-                    "groups",
-                    JSONArray().apply {
-                        SagerDatabase.groupDao.allGroups().forEach {
-                            put(it.toBase64Str())
-                        }
-                    },
-                )
+                put("profiles", BackupFormatV2.encodeProfiles(SagerDatabase.proxyDao.getAll()))
+                put("groups", BackupFormatV2.encodeGroups(SagerDatabase.groupDao.allGroups()))
             }
             if (rule) {
-                put(
-                    "rules",
-                    JSONArray().apply {
-                        SagerDatabase.rulesDao.allRules().forEach {
-                            put(it.toBase64Str())
-                        }
-                    },
-                )
+                put("rules", BackupFormatV2.encodeRules(SagerDatabase.rulesDao.allRules()))
             }
             if (setting) {
-                put(
-                    "settings",
-                    JSONArray().apply {
-                        PublicDatabase.kvPairDao.all().forEach {
-                            put(it.toBase64Str())
-                        }
-                    },
-                )
+                put("settings", BackupFormatV2.encodeSettings(PublicDatabase.kvPairDao.all()))
             }
         }
 
@@ -716,24 +687,41 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
         //
         // profiles and groups are one logical section (a config backup always contains both);
         // they are decoded and committed together so neither is left without the other.
+        val version = content.optInt("version", 1)
+        if (version != 1 && version != BackupFormatV2.VERSION) {
+            error("Unsupported backup version: $version")
+        }
+
         val importConfigs = profile && content.has("profiles")
         val profiles = if (importConfigs) {
-            decodeArray(content.getJSONArray("profiles")) { ProxyEntity.CREATOR.createFromParcel(it) }
+            when (version) {
+                BackupFormatV2.VERSION -> BackupFormatV2.decodeProfiles(content.getJSONArray("profiles"))
+                else -> decodeArray(content.getJSONArray("profiles")) { ProxyEntity.CREATOR.createFromParcel(it) }
+            }
         } else {
             null
         }
         val groups = if (importConfigs) {
-            decodeArray(content.getJSONArray("groups")) { ProxyGroup.CREATOR.createFromParcel(it) }
+            when (version) {
+                BackupFormatV2.VERSION -> BackupFormatV2.decodeGroups(content.getJSONArray("groups"))
+                else -> decodeArray(content.getJSONArray("groups")) { ProxyGroup.CREATOR.createFromParcel(it) }
+            }
         } else {
             null
         }
         val rules = if (rule && content.has("rules")) {
-            decodeArray(content.getJSONArray("rules")) { ParcelizeBridge.createRule(it) }
+            when (version) {
+                BackupFormatV2.VERSION -> BackupFormatV2.decodeRules(content.getJSONArray("rules"))
+                else -> decodeArray(content.getJSONArray("rules")) { ParcelizeBridge.createRule(it) }
+            }
         } else {
             null
         }
         val settings = if (setting && content.has("settings")) {
-            decodeArray(content.getJSONArray("settings")) { KeyValuePair.CREATOR.createFromParcel(it) }
+            when (version) {
+                BackupFormatV2.VERSION -> BackupFormatV2.decodeSettings(content.getJSONArray("settings"))
+                else -> decodeArray(content.getJSONArray("settings")) { KeyValuePair.CREATOR.createFromParcel(it) }
+            }
         } else {
             null
         }
@@ -773,9 +761,9 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
      * throws (aborting the whole import) before the caller commits any reset+insert.
      *
      * NOTE: Parcel.unmarshall on imported bytes is a known deserialization hazard and an
-     * unstable persistence format (see Plan 014). This retains backward compatibility with
-     * existing backups; the validate-then-commit ordering above removes the partial-wipe
-     * risk. Migrating the encoding off Parcel is tracked as follow-up work.
+     * unstable persistence format. This legacy path is retained only for version 1 backups;
+     * new exports use the explicit Parcel-free version 2 schema. The validate-then-commit
+     * ordering above removes the partial-wipe risk for legacy imports.
      */
     private fun <T> decodeArray(array: JSONArray, create: (Parcel) -> T): List<T> {
         val out = ArrayList<T>(array.length())

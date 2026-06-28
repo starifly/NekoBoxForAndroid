@@ -34,6 +34,7 @@ import io.nekohasekai.sagernet.*
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
+import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.databinding.LayoutGroupItemBinding
@@ -90,6 +91,8 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
 
     val proxyEntity by lazy { SagerDatabase.proxyDao.getById(DataStore.editingId) }
     protected var isSubscription by Delegates.notNull<Boolean>()
+    private var canMoveToOtherBasicGroup = false
+    private var moveTargetGroups: List<ProxyGroup> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -118,19 +121,27 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
             runOnDefaultDispatcher {
                 if (editingId == 0L) {
                     DataStore.editingGroup = DataStore.selectedGroupForImport()
+                    canMoveToOtherBasicGroup = false
+                    moveTargetGroups = emptyList()
                     createEntity().applyDefaultValues().init()
                 } else {
-                    if (proxyEntity == null) {
+                    val entity = proxyEntity
+                    if (entity == null) {
                         onMainDispatcher {
                             finish()
                         }
                         return@runOnDefaultDispatcher
                     }
-                    DataStore.editingGroup = proxyEntity!!.groupId
-                    (proxyEntity!!.requireBean() as T).init()
+                    DataStore.editingGroup = entity.groupId
+                    val groups = SagerDatabase.groupDao.allGroups()
+                    moveTargetGroups = groups.filter { it.type == GroupType.BASIC && it.id != entity.groupId }
+                    canMoveToOtherBasicGroup = groups.firstOrNull { it.id == entity.groupId }?.type ==
+                        GroupType.BASIC && moveTargetGroups.isNotEmpty()
+                    (entity.requireBean() as T).init()
                 }
 
                 onMainDispatcher {
+                    invalidateOptionsMenu()
                     supportFragmentManager.beginTransaction()
                         .replace(R.id.settings, MyPreferenceFragmentCompat())
                         .commit()
@@ -162,13 +173,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.profile_config_menu, menu)
         menu.findItem(R.id.action_move)?.apply {
-            if (DataStore.editingId != 0L && // not new profile
-                SagerDatabase.groupDao.getById(DataStore.editingGroup)?.type == GroupType.BASIC && // not in subscription group
-                SagerDatabase.groupDao.allGroups()
-                    .filter { it.type == GroupType.BASIC }.size > 1 // have other basic group
-            ) {
-                isVisible = true
-            }
+            isVisible = DataStore.editingId != 0L && canMoveToOtherBasicGroup
         }
         menu.findItem(R.id.action_create_shortcut)?.apply {
             if (Build.VERSION.SDK_INT >= 26 && DataStore.editingId != 0L) {
@@ -342,13 +347,13 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
 
             R.id.action_move -> {
                 val activity = requireActivity() as ProfileSettingsActivity<*>
-                val view = LinearLayout(context).apply {
-                    val ent = activity.proxyEntity!!
-                    orientation = LinearLayout.VERTICAL
+                val ent = activity.proxyEntity!!
+                val groups = activity.moveTargetGroups
+                if (groups.isNotEmpty()) {
+                    val view = LinearLayout(context).apply {
+                        orientation = LinearLayout.VERTICAL
 
-                    SagerDatabase.groupDao.allGroups()
-                        .filter { it.type == GroupType.BASIC && it.id != ent.groupId }
-                        .forEach { group ->
+                        groups.forEach { group ->
                             LayoutGroupItemBinding.inflate(layoutInflater, this, true).apply {
                                 edit.isVisible = false
                                 options.isVisible = false
@@ -370,11 +375,12 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                                 }
                             }
                         }
+                    }
+                    val scrollView = ScrollView(context).apply {
+                        addView(view)
+                    }
+                    MaterialAlertDialogBuilder(activity).setView(scrollView).show()
                 }
-                val scrollView = ScrollView(context).apply {
-                    addView(view)
-                }
-                MaterialAlertDialogBuilder(activity).setView(scrollView).show()
                 true
             }
 
