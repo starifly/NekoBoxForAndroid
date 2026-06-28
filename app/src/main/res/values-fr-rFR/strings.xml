@@ -331,6 +331,8 @@
     <string name="connection_test_timeout_error">Délai d\'attente</string>
     <string name="append_http_proxy">Ajouter le proxy HTTP au VPN</string>
     <string name="append_http_proxy_sum">Le proxy HTTP sera utilisé directement depuis (le navigateur / certaines applications prises en charge), sans passer par l\'interface réseau virtuelle (Android 10+)</string>
+    <string name="http_proxy_bypass">HTTP proxy bypass list</string>
+    <string name="http_proxy_bypass_dialog_message">One per line. Lines starting with # are comments. Example: *zhihu.com</string>
     <string name="append_http_proxy_security_title">Security Notice</string>
     <string name="append_http_proxy_security_message">When enabled, other apps on this device can directly use the local proxy port.\n\nRecommendation: Only enable this if you trust all installed apps.</string>
     <string name="enable_anyway">Enable Anyway</string>
@@ -378,6 +380,9 @@
     <string name="subscription_update">Mise à jour de l\'abonnement</string>
     <string name="subscription_update_message">Mise à jour de %s …</string>
     <string name="group_filter">Filtre</string>
+    <string name="server_dns">Custom Server DNS</string>
+    <string name="server_dns_subscription_sum">Optional DNS used only to resolve server domains in this subscription. Leave empty to use the default behavior. Accepts https://, tls://, quic:// or host[:port].</string>
+    <string name="server_dns_invalid">Invalid custom server DNS. Use https://, tls://, quic:// or host[:port], or leave empty.</string>
     <string name="subscription_used">%s Utilisé</string>
     <string name="subscription_traffic">%s Utilisé / %s Restant</string>
     <string name="subscription_expire">Expiration : %s</string>
