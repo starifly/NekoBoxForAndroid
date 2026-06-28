@@ -320,6 +320,8 @@
     <string name="connection_test_timeout_error">시간 초과</string>
     <string name="append_http_proxy">VPN에 HTTP 프록시 추가</string>
     <string name="append_http_proxy_sum">HTTP 프록시는 (브라우저/일부 지원 앱)에서 직접 사용되며, 가상 NIC 장치(Android 10+)를 거치지 않습니다.</string>
+    <string name="http_proxy_bypass">HTTP proxy bypass list</string>
+    <string name="http_proxy_bypass_dialog_message">One per line. Lines starting with # are comments. Example: *zhihu.com</string>
     <string name="append_http_proxy_security_title">Security Notice</string>
     <string name="append_http_proxy_security_message">When enabled, other apps on this device can directly use the local proxy port.\n\nRecommendation: Only enable this if you trust all installed apps.</string>
     <string name="enable_anyway">Enable Anyway</string>
@@ -364,6 +366,9 @@
     <string name="subscription_update">구독 업데이트</string>
     <string name="subscription_update_message">%s 업데이트 중…</string>
     <string name="group_filter">필터</string>
+    <string name="server_dns">Custom Server DNS</string>
+    <string name="server_dns_subscription_sum">Optional DNS used only to resolve server domains in this subscription. Leave empty to use the default behavior. Accepts https://, tls://, quic:// or host[:port].</string>
+    <string name="server_dns_invalid">Invalid custom server DNS. Use https://, tls://, quic:// or host[:port], or leave empty.</string>
     <string name="subscription_used">%s 사용됨</string>
     <string name="subscription_traffic">%s 사용됨 / %s 남음</string>
     <string name="subscription_expire">만료: %s</string>
