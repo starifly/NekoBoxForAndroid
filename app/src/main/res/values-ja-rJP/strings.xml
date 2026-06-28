@@ -320,6 +320,8 @@
     <string name="connection_test_timeout_error">タイムアウト</string>
     <string name="append_http_proxy">HTTPプロキシをVPNに追加</string>
     <string name="append_http_proxy_sum">HTTPプロキシは、仮想NICデバイスを経由せずに（ブラウザ/一部の対応アプリから）直接使用されます（Android 10以上）</string>
+    <string name="http_proxy_bypass">HTTP proxy bypass list</string>
+    <string name="http_proxy_bypass_dialog_message">One per line. Lines starting with # are comments. Example: *zhihu.com</string>
     <string name="append_http_proxy_security_title">Security Notice</string>
     <string name="append_http_proxy_security_message">When enabled, other apps on this device can directly use the local proxy port.\n\nRecommendation: Only enable this if you trust all installed apps.</string>
     <string name="enable_anyway">Enable Anyway</string>
@@ -367,6 +369,9 @@
     <string name="subscription_update">サブスクリプション更新</string>
     <string name="subscription_update_message">更新中 %s …</string>
     <string name="group_filter">フィルター</string>
+    <string name="server_dns">Custom Server DNS</string>
+    <string name="server_dns_subscription_sum">Optional DNS used only to resolve server domains in this subscription. Leave empty to use the default behavior. Accepts https://, tls://, quic:// or host[:port].</string>
+    <string name="server_dns_invalid">Invalid custom server DNS. Use https://, tls://, quic:// or host[:port], or leave empty.</string>
     <string name="subscription_used">%s 使用済み</string>
     <string name="subscription_traffic">%s 使用済み / %s 残り</string>
     <string name="subscription_expire">有効期限: %s</string>
