@@ -252,6 +252,14 @@
             app:key="appendHttpProxy"
             app:summary="@string/append_http_proxy_sum"
             app:title="@string/append_http_proxy" />
+        <EditTextPreference
+            app:defaultValue=""
+            app:dependency="appendHttpProxy"
+            app:dialogMessage="@string/http_proxy_bypass_dialog_message"
+            app:icon="@drawable/ic_baseline_domain_24"
+            app:key="httpProxyBypass"
+            app:title="@string/http_proxy_bypass"
+            app:useSimpleSummaryProvider="true" />
         <SwitchPreference
             app:defaultValue="true"
             app:key="strictRoute"

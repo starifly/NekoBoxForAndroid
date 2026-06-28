@@ -66,6 +66,7 @@ class GroupSettingsActivity(
         DataStore.subscriptionAutoUpdateDelay = subscription.autoUpdateDelay
         DataStore.subscriptionFilterMode = subscription.filterMode
         DataStore.subscriptionFilterRegex = subscription.filterRegex
+        DataStore.subscriptionServerDns = subscription.serverDnsResolver ?: ""
     }
 
     fun ProxyGroup.serialize() {
@@ -99,6 +100,7 @@ class GroupSettingsActivity(
                 autoUpdateDelay = DataStore.subscriptionAutoUpdateDelay
                 filterMode = DataStore.subscriptionFilterMode
                 filterRegex = DataStore.subscriptionFilterRegex
+                serverDnsResolver = DataStore.subscriptionServerDns
             }
         }
     }
@@ -119,6 +121,7 @@ class GroupSettingsActivity(
         frontProxyPreference.apply {
             setEntries(R.array.front_proxy_entry)
             setEntryValues(R.array.front_proxy_value)
+            value = DataStore.frontProxyTmp.toString()
             setOnPreferenceChangeListener { _, newValue ->
                 if (newValue.toString() == OutboundPreference.VALUE_SELECT_PROFILE) {
                     selectProfileForAddFront.launch(
@@ -140,6 +143,7 @@ class GroupSettingsActivity(
         landingProxyPreference.apply {
             setEntries(R.array.front_proxy_entry)
             setEntryValues(R.array.front_proxy_value)
+            value = DataStore.landingProxyTmp.toString()
             setOnPreferenceChangeListener { _, newValue ->
                 if (newValue.toString() == OutboundPreference.VALUE_SELECT_PROFILE) {
                     selectProfileForAddLanding.launch(
@@ -204,6 +208,27 @@ class GroupSettingsActivity(
         subscriptionFilterMode.setOnPreferenceChangeListener { _, newValue ->
             updateFilterMode((newValue as String).toInt())
             true
+        }
+
+        val subscriptionServerDns =
+            findPreference<EditTextPreference>(Key.SUBSCRIPTION_SERVER_DNS)!!
+        subscriptionServerDns.setOnPreferenceChangeListener { pref, newValue ->
+            val value = (newValue as String).trim()
+            if (isValidServerDns(value)) {
+                if (value != newValue) {
+                    (pref as EditTextPreference).text = value
+                    false
+                } else {
+                    true
+                }
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    R.string.server_dns_invalid,
+                    Toast.LENGTH_LONG,
+                ).show()
+                false
+            }
         }
     }
 
@@ -444,4 +469,22 @@ class GroupSettingsActivity(
         }
     }
 
+}
+
+private fun isValidServerDns(raw: String): Boolean {
+    val value = raw.trim()
+    if (value.isEmpty()) return true
+    if (value.any { it.isISOControl() || it.isWhitespace() }) return false
+
+    if (value.contains("://")) {
+        val scheme = value.substringBefore("://").lowercase()
+        if (scheme !in setOf("https", "tls", "quic")) return false
+        val rest = value.substringAfter("://")
+        val host = rest.substringBefore("/").substringBefore("?")
+        val bare = host.substringBeforeLast(":").trim('[', ']')
+        return bare.isNotEmpty()
+    }
+
+    val host = value.substringBeforeLast(":").trim('[', ']')
+    return host.isNotEmpty()
 }

@@ -289,7 +289,7 @@
     <string name="no">否</string>
     <string name="apply">套用</string>
     <string name="need_reload">重新載入代理服務以套用變更</string>
-    <string name="license">授權</string>
+    <string name="license">授權條款</string>
     <string name="route_warn">在新增自訂規則之前，請確定您已閱讀文檔，否則可能無法連線到網際網路。</string>
     <string name="lines">%d 行</string>
     <string name="night_mode">夜間模式</string>

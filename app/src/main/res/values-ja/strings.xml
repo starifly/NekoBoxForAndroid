@@ -78,6 +78,9 @@
     <string name="enable_dns_routing">DNSルーティングを有効化</string>
     <string name="direct_dns">ダイレクトDNS</string>
     <string name="remote_dns">リモートDNS</string>
+    <string name="server_dns">カスタムサーバー DNS</string>
+    <string name="server_dns_subscription_sum">このサブスクリプション内のサーバードメイン解決にのみ使用する任意の DNS です。空欄の場合は既定の動作を使用します。https://、tls://、quic:// または host[:port] を受け付けます。</string>
+    <string name="server_dns_invalid">カスタムサーバー DNS が無効です。https://、tls://、quic:// または host[:port] を使用するか、空欄のままにしてください。</string>
     <string name="connection_test_error_status_code">エラーコード: #%d</string>
     <string name="connection_test_fail">インターネットは利用できません</string>
     <string name="connection_test_error">失敗: %s</string>
@@ -303,6 +306,8 @@
     <string name="connection_test_timeout_error">タイムアウト</string>
     <string name="append_http_proxy">VPN に HTTP プロキシを追加</string>
     <string name="append_http_proxy_sum">HTTP プロキシは仮想 NIC デバイスを経由せず、(ブラウザ/一部の対応アプリ) から直接使用されます (Android 10+)</string>
+    <string name="http_proxy_bypass">HTTP プロキシのバイパスリスト</string>
+    <string name="http_proxy_bypass_dialog_message">1 行に 1 つ。# で始まる行はコメントです。例: *zhihu.com</string>
     <string name="append_http_proxy_security_title">セキュリティに関する通知</string>
     <string name="append_http_proxy_security_message">有効にすると、このデバイス上の他のアプリがローカルプロキシポートを直接使用できるようになります。\n\n推奨：インストールされているすべてのアプリを信頼している場合にのみ有効にしてください。</string>
     <string name="enable_anyway">それでも有効にする</string>

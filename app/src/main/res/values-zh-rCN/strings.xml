@@ -323,11 +323,11 @@
     <string name="connection_test_refused">连接被拒绝</string>
     <string name="connection_test_unreachable">不可达</string>
     <string name="connection_test_timeout_error">超时</string>
-    <string name="append_http_proxy">附加HTTP代理到VPN</string>
-    <string name="append_http_proxy_sum">HTTP代理将直接从（浏览器/一些支持的应用）使用，而无需经过虚拟网卡设备（Android 10+）</string>
+    <string name="append_http_proxy">附加 HTTP 代理到VPN</string>
+    <string name="append_http_proxy_sum">HTTP 代理将直接从（浏览器/一些支持的应用）使用，而无需经过虚拟网卡设备（Android 10+）</string>
     <string name="append_http_proxy_security_title">Security Notice</string>
     <string name="append_http_proxy_security_message">When enabled, other apps on this device can directly use the local proxy port.\n\nRecommendation: Only enable this if you trust all installed apps.</string>
-    <string name="enable_anyway">Enable Anyway</string>
+    <string name="enable_anyway">仍要启用</string>
     <string name="strict_route">严格路由</string>
     <string name="protocol_settings">协议设置</string>
     <string name="trojan_provider">Trojan提供者</string>

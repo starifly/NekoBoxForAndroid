@@ -2405,6 +2405,8 @@ public class SingBoxOptions {
 
         public Integer server_port;
 
+        public List<String> bypass_domain;
+
         // End of public ServerOptions ;
 
     }

@@ -93,7 +93,7 @@ class ServiceButton @JvmOverloads constructor(
         if (!canceled) progress.hide()
     }
 
-    private fun hideProgress() {
+    fun hideProgress() {
         delayedAnimation?.cancel()
         progress.hide()
     }
