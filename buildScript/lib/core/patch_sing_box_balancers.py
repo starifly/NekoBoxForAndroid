@@ -32,7 +32,7 @@ def ensure_managed_urltest_priority_support(urltest: pathlib.Path):
 \tif outbound == nil || !exists {
 \t\treturn nil, false
 \t}
-\thistory := g.history.LoadURLTestHistory(RealTag(outbound))
+\thistory := nested.group.history.LoadURLTestHistory(RealTag(outbound))
 \treturn history, history != nil
 }
 
@@ -53,6 +53,10 @@ def ensure_managed_urltest_priority_support(urltest: pathlib.Path):
     text = text.replace(
         "\t\t\t\thistory := g.history.LoadURLTestHistory(RealTag(detour))\n\t\t\t\tif history != nil {",
         "\t\t\t\tif history, exists := managedURLTestHistory(g, detour, N.NetworkTCP); exists {",
+    )
+    text = text.replace(
+        "\thistory := g.history.LoadURLTestHistory(RealTag(outbound))\n\treturn history, history != nil\n}\n\nfunc (g *URLTestGroup) Select",
+        "\thistory := nested.group.history.LoadURLTestHistory(RealTag(outbound))\n\treturn history, history != nil\n}\n\nfunc (g *URLTestGroup) Select",
     )
     urltest.write_text(text)
 
