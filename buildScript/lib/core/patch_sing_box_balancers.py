@@ -10,10 +10,51 @@ def patch_file(path: pathlib.Path, old: str, new: str):
     if old not in text:
         if "func (g *URLTestGroup) Select" in old and "func firstAvailableIndex" in text:
             return
+        if "func (g *URLTestGroup) urlTest" in old and "shouldCheckPrioritySequential" in text:
+            return
+        if "\trealTag := RealTag(detour)" in old and "nested.managedByParent" in text:
+            return
         if "DeleteURLTestHistory(outbound.Tag())" in old and "s.checkAfterFailure()" in text:
             return
         raise RuntimeError(f"anchor not found in {path}")
     path.write_text(text.replace(old, new, 1))
+
+
+def ensure_managed_urltest_priority_support(urltest: pathlib.Path):
+    text = urltest.read_text()
+    helper = '''func managedURLTestHistory(g *URLTestGroup, detour adapter.Outbound, network string) (*adapter.URLTestHistory, bool) {
+\tnested, isNested := detour.(*URLTest)
+\tif !isNested || !nested.managedByParent {
+\t\thistory := g.history.LoadURLTestHistory(RealTag(detour))
+\t\treturn history, history != nil
+\t}
+\toutbound, exists := nested.group.Select(network)
+\tif outbound == nil || !exists {
+\t\treturn nil, false
+\t}
+\thistory := g.history.LoadURLTestHistory(RealTag(outbound))
+\treturn history, history != nil
+}
+
+'''
+    if "func managedURLTestHistory" not in text:
+        patched = text.replace(
+            "func (g *URLTestGroup) Select(network string) (adapter.Outbound, bool) {",
+            helper + "func (g *URLTestGroup) Select(network string) (adapter.Outbound, bool) {",
+            1,
+        )
+        if patched == text:
+            raise RuntimeError(f"anchor not found in {urltest}")
+        text = patched
+    text = text.replace(
+        "\t\t\tavailable = append(available, g.history.LoadURLTestHistory(RealTag(detour)) != nil)",
+        "\t\t\t_, exists := managedURLTestHistory(g, detour, network)\n\t\t\tavailable = append(available, exists)",
+    )
+    text = text.replace(
+        "\t\t\t\thistory := g.history.LoadURLTestHistory(RealTag(detour))\n\t\t\t\tif history != nil {",
+        "\t\t\t\tif history, exists := managedURLTestHistory(g, detour, N.NetworkTCP); exists {",
+    )
+    urltest.write_text(text)
 
 
 def main():
@@ -307,6 +348,20 @@ func (s *URLTest) DialContext(ctx context.Context, network string, destination M
 \treturn 0, false
 }
 
+func managedURLTestHistory(g *URLTestGroup, detour adapter.Outbound, network string) (*adapter.URLTestHistory, bool) {
+\tnested, isNested := detour.(*URLTest)
+\tif !isNested || !nested.managedByParent {
+\t\thistory := g.history.LoadURLTestHistory(RealTag(detour))
+\t\treturn history, history != nil
+\t}
+\toutbound, exists := nested.group.Select(network)
+\tif outbound == nil || !exists {
+\t\treturn nil, false
+\t}
+\thistory := g.history.LoadURLTestHistory(RealTag(outbound))
+\treturn history, history != nil
+}
+
 func (g *URLTestGroup) Select(network string) (adapter.Outbound, bool) {
 \tif g.strategy == "priority" {
 \t\tvar candidates []adapter.Outbound
@@ -316,7 +371,8 @@ func (g *URLTestGroup) Select(network string) (adapter.Outbound, bool) {
 \t\t\t\tcontinue
 \t\t\t}
 \t\t\tcandidates = append(candidates, detour)
-\t\t\tavailable = append(available, g.history.LoadURLTestHistory(RealTag(detour)) != nil)
+\t\t\t_, exists := managedURLTestHistory(g, detour, network)
+\t\t\tavailable = append(available, exists)
 \t\t}
 \t\tif index, exists := firstAvailableIndex(available); exists {
 \t\t\treturn candidates[index], true
@@ -346,8 +402,7 @@ func (g *URLTestGroup) Select(network string) (adapter.Outbound, bool) {
 \t\t\ttag := detour.Tag()
 \t\t\tif nested, isNested := detour.(*URLTest); isNested && nested.managedByParent {
 \t\t\t\t_, _ = nested.group.urlTest(ctx, force)
-\t\t\t\thistory := g.history.LoadURLTestHistory(RealTag(detour))
-\t\t\t\tif history != nil {
+\t\t\t\tif history, exists := managedURLTestHistory(g, detour, N.NetworkTCP); exists {
 \t\t\t\t\tresult[tag] = history.Delay
 \t\t\t\t\tbreak
 \t\t\t\t}
@@ -408,8 +463,7 @@ func (g *URLTestGroup) urlTest(ctx context.Context, force bool) (map[string]uint
 \t\t\tchecked[tag] = true
 \t\t\tb.Go(tag, func() (any, error) {
 \t\t\t\t_, _ = nested.group.urlTest(ctx, true)
-\t\t\t\thistory := g.history.LoadURLTestHistory(RealTag(detour))
-\t\t\t\tif history != nil {
+\t\t\t\tif history, exists := managedURLTestHistory(g, detour, N.NetworkTCP); exists {
 \t\t\t\t\tresultAccess.Lock()
 \t\t\t\t\tresult[tag] = history.Delay
 \t\t\t\t\tresultAccess.Unlock()
@@ -421,6 +475,7 @@ func (g *URLTestGroup) urlTest(ctx context.Context, force bool) (map[string]uint
 \t\trealTag := RealTag(detour)
 ''',
     )
+    ensure_managed_urltest_priority_support(urltest)
     patch_file(
         urltest,
         '''\t\t\ttestCtx, cancel := context.WithTimeout(g.ctx, C.TCPTimeout)
