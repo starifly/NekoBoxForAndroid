@@ -55,8 +55,8 @@ class CommandlineTest {
             control alive session=3409404d-0e96-4353-9768-5e1aa74ec336 rtt=228ms
             Ping STUN from udp4 relay 81.200.148.114:58392 related 192.168.171.101:36762 to udp4 host 81.200.148.114:10000
             IPv6 candidate [fe80::1%wlan0]:5353 to [2001:db8::1]:10000
-            Bare IPv6 candidate 2001:db8::2 and 2001:db8:0:0:0:0:0:1
-            <iq from="88528237-09bb-4635-b01a-9e9d3549957b@meet.example.org/resource" to="brief-5935@conference.meet.example.org/user" />
+            Bare IPv6 candidate 2001:db8::2 and 2001:db8:0:0:0:0:0:1 and cafe:babe::dead:beef
+            <iq xmlns="jabber:client" from="88528237-09bb-4635-b01a-9e9d3549957b@meet.example.org/resource" to="brief-5935@conference.meet.example.org/user" />
             <presence to="brief-5935@conference.meet.example.org/user" room="brief-5935@conference.meet.example.org" />
         """.trimIndent()
 
@@ -83,7 +83,9 @@ class CommandlineTest {
         assertTrue(redacted.contains("control alive session=<redacted>"))
         assertTrue(redacted.contains("Ping STUN from udp4 relay <endpoint> related <endpoint> to udp4 host <endpoint>"))
         assertTrue(redacted.contains("IPv6 candidate <endpoint> to <endpoint>"))
-        assertTrue(redacted.contains("Bare IPv6 candidate <ip> and <ip>"))
-        assertTrue(redacted.contains("<iq from=\"<redacted>\" to=\"<redacted>\" />"))
+        assertTrue(redacted.contains("Bare IPv6 candidate <ip> and <ip> and <ip>"))
+        assertFalse(redacted.contains("jabber<ip>lient"))
+        assertTrue(redacted.contains("xmlns=\"jabber:client\""))
+        assertTrue(redacted.contains("from=\"<redacted>\" to=\"<redacted>\""))
     }
 }

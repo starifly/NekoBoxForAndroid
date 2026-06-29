@@ -37,7 +37,7 @@ if [ -z "$ANDROID_NDK_HOME" ]; then
 fi
 
 OLCRTC_REPO="${OLCRTC_REPO:-https://github.com/hawkff/olcrtc.git}"
-OLCRTC_COMMIT="${OLCRTC_COMMIT:-ca5828cfc512114c733a73b5c9cbf9ae06266d9a}"
+OLCRTC_COMMIT="${OLCRTC_COMMIT:-3e970ab8ed176a3bcc2ef0ba1d89d0b15775da23}"
 
 if ! command -v go >/dev/null 2>&1; then
   echo "Error: go not found on PATH (olcRTC needs Go 1.26+)." >&2
