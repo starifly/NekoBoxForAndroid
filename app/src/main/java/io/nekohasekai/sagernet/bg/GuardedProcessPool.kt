@@ -51,10 +51,14 @@ class GuardedProcessPool(private val onFatal: suspend (IOException) -> Unit) : C
             try {
                 while (true) {
                     thread(name = "stderr-$cmdName") {
-                        streamLogger(process.errorStream) { Libcore.nekoLogPrintln("[$cmdName] $it") }
+                        streamLogger(process.errorStream) {
+                            Libcore.nekoLogPrintln("[$cmdName] ${Commandline.redactProcessOutput(it)}")
+                        }
                     }
                     thread(name = "stdout-$cmdName") {
-                        streamLogger(process.inputStream) { Libcore.nekoLogPrintln("[$cmdName] $it") }
+                        streamLogger(process.inputStream) {
+                            Libcore.nekoLogPrintln("[$cmdName] ${Commandline.redactProcessOutput(it)}")
+                        }
                     }
                     // Dedicated waiter thread (lifecycle independent of the pool's Job) so the
                     // NonCancellable teardown below can still drain the exit code even after the
@@ -80,13 +84,13 @@ class GuardedProcessPool(private val onFatal: suspend (IOException) -> Unit) : C
                         exitCode == 128 + OsConstants.SIGKILL -> Logs.w("$cmdName was killed")
                         else -> Logs.w(IOException("$cmdName unexpectedly exits with code $exitCode"))
                     }
-                    Logs.i("restart process: ${Commandline.toString(cmd)} (last exit code: $exitCode)")
+                    Logs.i("restart process: ${Commandline.toRedactedString(cmd)} (last exit code: $exitCode)")
                     start()
                     running = true
                     onRestartCallback?.invoke()
                 }
             } catch (e: IOException) {
-                Logs.w("error occurred. stop guard: ${Commandline.toString(cmd)}")
+                Logs.w("error occurred. stop guard: ${Commandline.toRedactedString(cmd)}")
                 // Structured (cancelled with the pool) so a torn-down pool can't fire onFatal
                 // and stop a freshly-restarted instance.
                 this@GuardedProcessPool.launch(Dispatchers.Main.immediate) { onFatal(e) }
@@ -125,7 +129,7 @@ class GuardedProcessPool(private val onFatal: suspend (IOException) -> Unit) : C
         env: MutableMap<String, String> = mutableMapOf(),
         onRestartCallback: (suspend () -> Unit)? = null,
     ) {
-        Logs.i("start process: ${Commandline.toString(cmd)}")
+        Logs.i("start process: ${Commandline.toRedactedString(cmd)}")
         Guard(cmd, env).apply {
             start() // if start fails, IOException will be thrown directly
             launch { looper(onRestartCallback) }

@@ -6,6 +6,7 @@ import io.nekohasekai.sagernet.bg.ServiceNotification
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.utils.Commandline
 import kotlinx.coroutines.runBlocking
 import moe.matsuri.nb4a.utils.JavaUtil
 
@@ -24,8 +25,10 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
         super.buildConfig()
         lastSelectorGroupId = super.config.selectorGroupId
         //
-        if (notTmp) Logs.d(config.config)
-        if (notTmp && BuildConfig.DEBUG) Logs.d(JavaUtil.gson.toJson(config.trafficMap))
+        if (notTmp) Logs.d(Commandline.redactProcessOutput(config.config))
+        if (notTmp && BuildConfig.DEBUG) {
+            Logs.d(Commandline.redactProcessOutput(JavaUtil.gson.toJson(config.trafficMap)))
+        }
     }
 
     // only use this in temporary instance
@@ -38,7 +41,15 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
         super.init()
         pluginConfigs.forEach { (_, plugin) ->
             val (_, content) = plugin
-            Logs.d(content)
+            Logs.d(redactPluginConfigForLog(content))
+        }
+    }
+
+    private fun redactPluginConfigForLog(content: String): String {
+        return if ('\u0000' in content) {
+            Commandline.toRedactedString(content.split('\u0000'))
+        } else {
+            Commandline.redactProcessOutput(content)
         }
     }
 

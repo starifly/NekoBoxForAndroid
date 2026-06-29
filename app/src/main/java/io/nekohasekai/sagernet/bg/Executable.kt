@@ -18,6 +18,7 @@ object Executable {
         "libmieru.so",
         "libhysteria2.so",
         "libmasterdnsvpn.so",
+        "libolcrtc.so",
     )
 
     fun killAll(alsoKillBg: Boolean = false) {

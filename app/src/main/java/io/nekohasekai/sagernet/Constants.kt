@@ -165,6 +165,16 @@ object Key {
     const val MDV_LOG_LEVEL = "mdvLogLevel"
     const val MDV_ADVANCED_JSON = "mdvAdvancedJson"
 
+    // olcRTC
+    const val OLCRTC_CARRIER = "olcrtcCarrier"
+    const val OLCRTC_ROOM_ID = "olcrtcRoomId"
+    const val OLCRTC_CLIENT_ID = "olcrtcClientId"
+    const val OLCRTC_KEY_HEX = "olcrtcKeyHex"
+    const val OLCRTC_TRANSPORT = "olcrtcTransport"
+    const val OLCRTC_VP8_FPS = "olcrtcVp8Fps"
+    const val OLCRTC_VP8_BATCH = "olcrtcVp8Batch"
+    const val OLCRTC_DNS_SERVER = "olcrtcDnsServer"
+
     const val SERVER_PRIVATE_KEY = "serverPrivateKey"
     const val SERVER_INSECURE_CONCURRENCY = "serverInsecureConcurrency"
 

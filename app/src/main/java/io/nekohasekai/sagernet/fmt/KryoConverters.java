@@ -20,6 +20,7 @@ import moe.matsuri.nb4a.proxy.anytls.AnyTLSBean;
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean;
 import io.nekohasekai.sagernet.fmt.snell.SnellBean;
 import io.nekohasekai.sagernet.fmt.masterdnsvpn.MasterDnsVpnBean;
+import io.nekohasekai.sagernet.fmt.olcrtc.OlcrtcBean;
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean;
 import io.nekohasekai.sagernet.fmt.ssh.SSHBean;
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean;
@@ -205,6 +206,12 @@ public class KryoConverters {
     public static MasterDnsVpnBean masterDnsVpnDeserialize(byte[] bytes) {
         if (JavaUtil.isEmpty(bytes)) return null;
         return deserialize(new MasterDnsVpnBean(), bytes);
+    }
+
+    @TypeConverter
+    public static OlcrtcBean olcrtcDeserialize(byte[] bytes) {
+        if (JavaUtil.isEmpty(bytes)) return null;
+        return deserialize(new OlcrtcBean(), bytes);
     }
 
     @TypeConverter

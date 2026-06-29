@@ -99,6 +99,7 @@ import io.nekohasekai.sagernet.ui.profile.JuicitySettingsActivity
 import io.nekohasekai.sagernet.ui.profile.MasterDnsVpnSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.MieruSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.NaiveSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.OlcrtcSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.SSHSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ShadowsocksRSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ShadowsocksSettingsActivity
@@ -524,6 +525,10 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             R.id.action_new_masterdnsvpn -> {
                 startActivity(Intent(requireActivity(), MasterDnsVpnSettingsActivity::class.java))
+            }
+
+            R.id.action_new_olcrtc -> {
+                startActivity(Intent(requireActivity(), OlcrtcSettingsActivity::class.java))
             }
 
             R.id.action_new_wg -> {

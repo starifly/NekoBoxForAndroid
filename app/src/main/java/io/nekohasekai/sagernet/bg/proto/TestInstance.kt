@@ -8,6 +8,7 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.tryResume
 import io.nekohasekai.sagernet.ktx.tryResumeWithException
+import io.nekohasekai.sagernet.utils.Commandline
 import libcore.Libcore
 import moe.matsuri.nb4a.net.LocalResolverImpl
 import kotlin.coroutines.suspendCoroutine
@@ -49,7 +50,7 @@ class TestInstance(profile: ProxyEntity, val link: String, private val timeout: 
 
     override suspend fun loadConfig() {
         // don't call destroyAllJsi here
-        if (BuildConfig.DEBUG) Logs.d(config.config)
+        if (BuildConfig.DEBUG) Logs.d(Commandline.redactProcessOutput(config.config))
         box = Libcore.newSingBoxInstance(config.config, LocalResolverImpl)
     }
 }

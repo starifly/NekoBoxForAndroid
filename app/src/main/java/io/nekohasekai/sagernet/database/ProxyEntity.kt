@@ -20,6 +20,7 @@ import io.nekohasekai.sagernet.fmt.mieru.buildMieruConfig
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.fmt.naive.buildNaiveConfig
 import io.nekohasekai.sagernet.fmt.naive.toUri
+import io.nekohasekai.sagernet.fmt.olcrtc.OlcrtcBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.*
 import io.nekohasekai.sagernet.fmt.shadowsocksr.ShadowsocksRBean
 import io.nekohasekai.sagernet.fmt.shadowsocksr.toUri
@@ -49,6 +50,7 @@ import moe.matsuri.nb4a.proxy.neko.*
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity
 import io.nekohasekai.sagernet.fmt.masterdnsvpn.toUri as toMasterDnsVpnUri
+import io.nekohasekai.sagernet.fmt.olcrtc.toUri as toOlcrtcUri
 
 @Entity(
     tableName = "proxy_entities",
@@ -87,6 +89,7 @@ data class ProxyEntity(
     var snellBean: SnellBean? = null,
     var masterDnsVpnBean: MasterDnsVpnBean? = null,
     var awgBean: AmneziaWGBean? = null,
+    var olcrtcBean: OlcrtcBean? = null,
 ) : Serializable() {
 
     companion object {
@@ -115,6 +118,7 @@ data class ProxyEntity(
         // feature/masterdnsvpn-sidecar branch (PR #18); do not reuse it here so
         // persisted type IDs stay stable when both branches merge.
         const val TYPE_AWG = 26
+        const val TYPE_OLCRTC = 27
 
         const val TYPE_CONFIG = 998
         const val TYPE_NEKO = 999
@@ -205,6 +209,7 @@ data class ProxyEntity(
             TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
             TYPE_SNELL -> snellBean = KryoConverters.snellDeserialize(byteArray)
             TYPE_MASTERDNSVPN -> masterDnsVpnBean = KryoConverters.masterDnsVpnDeserialize(byteArray)
+            TYPE_OLCRTC -> olcrtcBean = KryoConverters.olcrtcDeserialize(byteArray)
             TYPE_AWG -> awgBean = KryoConverters.amneziaWGDeserialize(byteArray)
         }
     }
@@ -231,6 +236,7 @@ data class ProxyEntity(
         TYPE_CONFIG -> configBean!!.displayType()
         TYPE_SNELL -> "Snell"
         TYPE_MASTERDNSVPN -> "MasterDnsVPN"
+        TYPE_OLCRTC -> "olcRTC"
         TYPE_AWG -> "AmneziaWG"
         else -> "Undefined type $type"
     }
@@ -261,6 +267,7 @@ data class ProxyEntity(
             TYPE_CONFIG -> configBean
             TYPE_SNELL -> snellBean
             TYPE_MASTERDNSVPN -> masterDnsVpnBean
+            TYPE_OLCRTC -> olcrtcBean
             TYPE_AWG -> awgBean
             else -> error("Undefined type $type")
         } ?: error("Null ${displayType()} profile")
@@ -301,6 +308,7 @@ data class ProxyEntity(
             is AnyTLSBean -> toUri()
             is SnellBean -> toUri()
             is MasterDnsVpnBean -> toMasterDnsVpnUri()
+            is OlcrtcBean -> toOlcrtcUri()
             is NekoBean -> ""
             else -> toUniversalLink()
         }
@@ -353,6 +361,7 @@ data class ProxyEntity(
             TYPE_MIERU -> true
             TYPE_NAIVE -> true
             TYPE_MASTERDNSVPN -> true
+            TYPE_OLCRTC -> true
             TYPE_HYSTERIA -> !hysteriaBean!!.canUseSingBox()
             TYPE_NEKO -> true
             else -> false
@@ -460,6 +469,7 @@ data class ProxyEntity(
         nekoBean = null
         snellBean = null
         masterDnsVpnBean = null
+        olcrtcBean = null
 
         when (bean) {
             is SOCKSBean -> {
@@ -557,6 +567,11 @@ data class ProxyEntity(
                 masterDnsVpnBean = bean
             }
 
+            is OlcrtcBean -> {
+                type = TYPE_OLCRTC
+                olcrtcBean = bean
+            }
+
             is ChainBean -> {
                 type = TYPE_CHAIN
                 chainBean = bean
@@ -602,6 +617,7 @@ data class ProxyEntity(
                 TYPE_CONFIG -> ConfigSettingActivity::class.java
                 TYPE_SNELL -> SnellSettingsActivity::class.java
                 TYPE_MASTERDNSVPN -> MasterDnsVpnSettingsActivity::class.java
+                TYPE_OLCRTC -> OlcrtcSettingsActivity::class.java
                 else -> throw IllegalArgumentException()
             },
         ).apply {

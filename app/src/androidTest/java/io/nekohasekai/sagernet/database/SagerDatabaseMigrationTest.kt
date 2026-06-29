@@ -73,4 +73,39 @@ class SagerDatabaseMigrationTest {
             }
         }
     }
+
+    @Test
+    fun migrate9To10_preservesExistingRows() {
+        // Create the DB at version 9 and insert a representative proxy entity.
+        helper.createDatabase(TEST_DB, 9).use { db ->
+            val values = ContentValues().apply {
+                put("id", 1L)
+                put("groupId", 1L)
+                put("type", 0)
+                put("userOrder", 0L)
+                put("tx", 0L)
+                put("rx", 0L)
+                put("status", 0)
+                put("ping", 0)
+                put("uuid", "test-uuid-9to10")
+            }
+            db.insert("proxy_entities", android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE, values)
+        }
+
+        // Run the auto-migration to version 10 (validateDroppedTables = true catches recreation).
+        helper.runMigrationsAndValidate(TEST_DB, 10, true).use { db ->
+            db.query("SELECT id, uuid FROM proxy_entities").use { cursor ->
+                assertEquals("row count after 9->10 migration", 1, cursor.count)
+                assertTrue(cursor.moveToFirst())
+                assertEquals(1L, cursor.getLong(cursor.getColumnIndexOrThrow("id")))
+                assertEquals("test-uuid-9to10", cursor.getString(cursor.getColumnIndexOrThrow("uuid")))
+            }
+
+            // The column added in v10 must now exist and be writable as NULL.
+            db.query("SELECT olcrtcBean FROM proxy_entities WHERE id = 1").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertTrue("olcrtcBean is nullable", cursor.isNull(0))
+            }
+        }
+    }
 }

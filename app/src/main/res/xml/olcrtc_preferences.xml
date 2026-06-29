@@ -1,0 +1,62 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <EditTextPreference
+        app:icon="@drawable/ic_social_emoji_symbols"
+        app:key="profileName"
+        app:title="@string/profile_name"
+        app:useSimpleSummaryProvider="true" />
+
+    <PreferenceCategory app:title="@string/proxy_cat">
+
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+            app:defaultValue="jitsi"
+            app:entries="@array/olcrtc_carrier"
+            app:entryValues="@array/olcrtc_carrier"
+            app:icon="@drawable/ic_hardware_router"
+            app:key="olcrtcCarrier"
+            app:title="@string/olcrtc_carrier"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_maps_directions"
+            app:key="olcrtcRoomId"
+            app:title="@string/olcrtc_room_id"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_person_24"
+            app:key="olcrtcClientId"
+            app:title="@string/olcrtc_client_id"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:dialogLayout="@layout/layout_password_dialog"
+            app:icon="@drawable/ic_settings_password"
+            app:key="olcrtcKeyHex"
+            app:title="@string/olcrtc_key_hex" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/olcrtc_transport_cat">
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+            app:defaultValue="vp8channel"
+            app:entries="@array/olcrtc_transport"
+            app:entryValues="@array/olcrtc_transport"
+            app:icon="@drawable/ic_baseline_running_with_errors_24"
+            app:key="olcrtcTransport"
+            app:title="@string/olcrtc_transport"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_running_with_errors_24"
+            app:key="olcrtcVp8Fps"
+            app:title="@string/olcrtc_vp8_fps"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_running_with_errors_24"
+            app:key="olcrtcVp8Batch"
+            app:title="@string/olcrtc_vp8_batch"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_action_dns"
+            app:key="olcrtcDnsServer"
+            app:title="@string/olcrtc_dns_server"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

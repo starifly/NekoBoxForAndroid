@@ -18,6 +18,8 @@ import io.nekohasekai.sagernet.fmt.mieru.MieruBean
 import io.nekohasekai.sagernet.fmt.mieru.buildMieruConfig
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.fmt.naive.buildNaiveConfig
+import io.nekohasekai.sagernet.fmt.olcrtc.OlcrtcBean
+import io.nekohasekai.sagernet.fmt.olcrtc.buildOlcrtcArgs
 import io.nekohasekai.sagernet.fmt.trojan_go.TrojanGoBean
 import io.nekohasekai.sagernet.fmt.trojan_go.buildTrojanGoConfig
 import io.nekohasekai.sagernet.ktx.*
@@ -104,6 +106,26 @@ abstract class BoxInstance(
                             port,
                             File(app.noBackupFilesDir, "protect_path").absolutePath,
                         )
+                    }
+
+                    is OlcrtcBean -> {
+                        initPlugin("olcrtc-plugin")
+                        // The olcRTC client sidecar takes CLI flags (no config file). Loopback
+                        // SOCKS creds keep other apps off the 127.0.0.1 egress port; fail closed
+                        // rather than start an unauthenticated listener if they are missing.
+                        val creds = config.localProxyCredentials[port]
+                            ?: error("olcRTC: missing loopback SOCKS credentials for port $port")
+                        val readyTimeoutMs = maxOf(60_000L, DataStore.connectionTestTimeout.toLong())
+                        val args = bean.buildOlcrtcArgs(
+                            port,
+                            File(app.noBackupFilesDir, "protect_path").absolutePath,
+                            creds.first,
+                            creds.second,
+                            DataStore.logLevel >= 3,
+                            "9.9.9.9:53",
+                            readyTimeoutMs,
+                        )
+                        pluginConfigs[port] = profile.type to args.joinToString("\u0000")
                     }
                 }
             }
@@ -259,6 +281,20 @@ abstract class BoxInstance(
 
                         processes.start(commands, env)
                     }
+
+                    bean is OlcrtcBean -> {
+                        // olcRTC client sidecar (libolcrtc.so). Args were NUL-joined in
+                        // buildConfig; split them back into argv. Sockets are protected via
+                        // the protect_path unix socket passed in the args.
+                        val args = config.split("\u0000")
+                        val commands = mutableListOf(initPlugin("olcrtc-plugin").path)
+                        commands.addAll(args)
+                        // Disable Go async preemption, matching the MasterDnsVPN sidecar: the
+                        // signal-based preemption can fault during the first protected dial
+                        // in the VpnService process context.
+                        val env = mutableMapOf("GODEBUG" to "asyncpreemptoff=1")
+                        processes.start(commands, env)
+                    }
                 }
             }
         }
@@ -289,8 +325,20 @@ abstract class BoxInstance(
         val hasMasterDnsVpn = config.externalIndex.any { idx ->
             idx.chain.values.any { it.requireBean() is MasterDnsVpnBean }
         }
-        val readinessTimeoutMs = if (hasMasterDnsVpn) {
-            maxOf(60_000L, DataStore.connectionTestTimeout.toLong())
+        // olcRTC, like MasterDnsVPN, binds its SOCKS listener only after the WebRTC carrier
+        // connects (room join + ICE), which can take tens of seconds; give it the long window.
+        val hasOlcrtc = config.externalIndex.any { idx ->
+            idx.chain.values.any { it.requireBean() is OlcrtcBean }
+        }
+        val readinessTimeoutMs = if (hasMasterDnsVpn || hasOlcrtc) {
+            if (strict) {
+                // URL test: no retry window, so don't force the full live-path floor and
+                // hang ~60s on a sidecar that never binds. Still give the carrier room to
+                // join (tens of seconds), bounded by the configured test timeout.
+                maxOf(15_000L, DataStore.connectionTestTimeout.toLong())
+            } else {
+                maxOf(60_000L, DataStore.connectionTestTimeout.toLong())
+            }
         } else if (strict) {
             // URL test: a healthy sidecar binds well under a second. Cap the readiness
             // wait so a slow/unbound sidecar can't make the total perceived test time
@@ -341,7 +389,7 @@ abstract class BoxInstance(
                 // For a URL test (strict), there is no retry window, so a listener that never
                 // binds is reported as a clear error instead of a flaky "connection refused".
                 val message = "sidecar listener not ready on port(s): ${pending.joinToString()}"
-                if (hasMasterDnsVpn || strict) {
+                if (hasMasterDnsVpn || hasOlcrtc || strict) {
                     throw IOException(message)
                 } else {
                     Logs.w("$message; continuing (sing-box will retry the connection)")

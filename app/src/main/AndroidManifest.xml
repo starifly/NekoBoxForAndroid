@@ -135,6 +135,7 @@
                 <data android:scheme="naive+quic" />
                 <data android:scheme="hysteria" />
                 <data android:scheme="masterdns" />
+                <data android:scheme="olcrtc" />
 
             </intent-filter>
 
@@ -199,6 +200,9 @@
             android:configChanges="uiMode" />
         <activity
             android:name="io.nekohasekai.sagernet.ui.profile.MasterDnsVpnSettingsActivity"
+            android:configChanges="uiMode" />
+        <activity
+            android:name="io.nekohasekai.sagernet.ui.profile.OlcrtcSettingsActivity"
             android:configChanges="uiMode" />
         <activity
             android:name="io.nekohasekai.sagernet.ui.profile.ChainSettingsActivity"

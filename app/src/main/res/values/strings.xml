@@ -476,6 +476,16 @@
     <string name="mdv_local_dns_port">Local DNS Port</string>
     <string name="mdv_log_level">Log Level</string>
     <string name="mdv_advanced_json">Advanced JSON Override</string>
+    <string name="action_olcrtc">olcRTC</string>
+    <string name="olcrtc_carrier">Carrier</string>
+    <string name="olcrtc_room_id">Room ID / URL</string>
+    <string name="olcrtc_client_id">Client ID</string>
+    <string name="olcrtc_key_hex">Encryption Key (64 hex)</string>
+    <string name="olcrtc_transport_cat">Transport</string>
+    <string name="olcrtc_transport">Transport</string>
+    <string name="olcrtc_vp8_fps">VP8 FPS</string>
+    <string name="olcrtc_vp8_batch">VP8 Batch Size</string>
+    <string name="olcrtc_dns_server">DNS Resolver</string>
     <string name="hysteria_auth_type">Authentication Type</string>
     <string name="hysteria_auth_payload">Authentication Payload</string>
     <string name="hysteria_upload_mbps">Max Upload Speed (in Mbps)</string>

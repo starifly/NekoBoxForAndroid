@@ -75,6 +75,7 @@ object PluginManager {
             "hysteria2-plugin" -> soIfExist("libhysteria2.so")
             "mieru-plugin" -> soIfExist("libmieru.so")
             "masterdnsvpn-plugin" -> soIfExist("libmasterdnsvpn.so")
+            "olcrtc-plugin" -> soIfExist("libolcrtc.so")
             "naive-plugin" -> soIfExist("libnaive.so")
             else -> null
         }

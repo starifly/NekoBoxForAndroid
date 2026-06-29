@@ -28,6 +28,9 @@ jniLibs/
 /libcore/.build/
 /libcore/version_gen.go
 /.masterdnsvpn-build/
+/.olcrtc-build/
+/.olcrtc-gomobile/
+/.olcrtc-wrapper/
 
 # Local config / generated app artifacts
 local.properties

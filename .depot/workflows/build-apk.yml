@@ -14,6 +14,7 @@ env:
   MDVPN_REF: android-vpnservice-protect-hook
   MDVPN_COMMIT: d481d72d4b86783a87d536c214d2c68cc4e9320e
   NAIVE_VERSION: v149.0.7827.114-1
+  OLCRTC_COMMIT: 3e970ab8ed176a3bcc2ef0ba1d89d0b15775da23
 jobs:
   build-apk:
     name: Build OSS Debug APK
@@ -62,6 +63,9 @@ jobs:
             buildScript/lib/hysteria2.sh \
             buildScript/lib/masterdnsvpn.sh \
             buildScript/lib/naive.sh \
+            buildScript/lib/olcrtc.sh \
+            buildScript/lib/olcrtc-src/main.go \
+            buildScript/lib/olcrtc-src/go.mod \
             buildScript/init/env.sh \
             buildScript/init/env_ndk.sh \
             | sha256sum \
@@ -72,7 +76,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: app/executableSo
-          key: depot-sidecars-${{ env.GO_VERSION }}-${{ env.NDK_VERSION }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-${{ env.MDVPN_COMMIT }}-${{ env.NAIVE_VERSION }}-${{ hashFiles('sidecars_status') }}
+          key: depot-sidecars-${{ env.GO_VERSION }}-${{ env.NDK_VERSION }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-${{ env.MDVPN_COMMIT }}-${{ env.NAIVE_VERSION }}-${{ env.OLCRTC_COMMIT }}-${{ hashFiles('sidecars_status') }}
 
       - name: Install Go
         if: steps.libcore-cache.outputs.cache-hit != 'true' || steps.sidecars-cache.outputs.cache-hit != 'true'
@@ -84,6 +88,7 @@ jobs:
         if: steps.libcore-cache.outputs.cache-hit != 'true'
         run: ./run lib core
 
+
       - name: Build sidecars
         if: steps.sidecars-cache.outputs.cache-hit != 'true'
         run: |
@@ -91,11 +96,12 @@ jobs:
           ./run lib hysteria2
           ./run lib masterdnsvpn
           ./run lib naive
+          ./run lib olcrtc
 
       - name: Verify sidecar artifacts
         run: |
           for abi in arm64-v8a armeabi-v7a x86 x86_64; do
-            for so in libmieru.so libhysteria2.so libmasterdnsvpn.so libnaive.so; do
+            for so in libmieru.so libhysteria2.so libmasterdnsvpn.so libnaive.so libolcrtc.so; do
               if [ ! -f "app/executableSo/$abi/$so" ]; then
                 echo "Error: missing app/executableSo/$abi/$so" >&2
                 exit 1

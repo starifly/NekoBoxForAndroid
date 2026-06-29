@@ -328,6 +328,15 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var mdvLogLevel by profileCacheStore.string(Key.MDV_LOG_LEVEL) { "INFO" }
     var mdvAdvancedJson by profileCacheStore.string(Key.MDV_ADVANCED_JSON)
 
+    var olcrtcCarrier by profileCacheStore.string(Key.OLCRTC_CARRIER) { "jitsi" }
+    var olcrtcRoomId by profileCacheStore.string(Key.OLCRTC_ROOM_ID)
+    var olcrtcClientId by profileCacheStore.string(Key.OLCRTC_CLIENT_ID)
+    var olcrtcKeyHex by profileCacheStore.string(Key.OLCRTC_KEY_HEX)
+    var olcrtcTransport by profileCacheStore.string(Key.OLCRTC_TRANSPORT) { "vp8channel" }
+    var olcrtcVp8Fps by profileCacheStore.stringToInt(Key.OLCRTC_VP8_FPS) { 30 }
+    var olcrtcVp8Batch by profileCacheStore.stringToInt(Key.OLCRTC_VP8_BATCH) { 8 }
+    var olcrtcDnsServer by profileCacheStore.string(Key.OLCRTC_DNS_SERVER) { "" }
+
     var protocolVersion by profileCacheStore.stringToInt(Key.PROTOCOL_VERSION) { 2 } // default is SOCKS5
 
     var serverProtocolInt by profileCacheStore.stringToInt(Key.SERVER_PROTOCOL)

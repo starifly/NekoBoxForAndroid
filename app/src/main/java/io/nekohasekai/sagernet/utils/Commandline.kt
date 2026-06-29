@@ -26,6 +26,48 @@ import java.util.*
  */
 object Commandline {
 
+    private val SENSITIVE_VALUE_FLAGS = setOf(
+        "-client-id",
+        "--client-id",
+        "-key",
+        "--key",
+        "-password",
+        "--password",
+        "-pass",
+        "--pass",
+        "-room",
+        "--room",
+        "-socks-pass",
+        "--socks-pass",
+        "-socks-user",
+        "--socks-user",
+    )
+
+    private val SENSITIVE_OUTPUT_PATTERNS = listOf(
+        Regex(
+            "(?i)(\\\"" +
+                "(?:clientId|key|keyHex|password|roomId|serverPassword|serverUsername|" +
+                "socksPass|socksUser|username)" +
+                "\\\"\\s*:\\s*\\\")[^\\\"]*(\\\")",
+        ) to "\$1<redacted>\$2",
+        Regex("(?i)(\\broom=['\"])[^'\"]+(['\"])") to "\$1<redacted>\$2",
+        Regex(
+            "(?i)((?:from|to)=['\"])[^'\"]+@" +
+                "(?:conference|muc)\\.[^'\"]+(['\"])",
+        ) to "\$1<redacted>\$2",
+        Regex("(?i)\\bolcrtc://\\S+") to "<redacted>",
+        Regex("(?i)(colibri-ws=)\\S+") to "\$1<redacted>",
+        Regex(
+            "(?i)((?:room(?:\\s+(?:url|id))?|roomID|roomId)" +
+                "[^'\\\"\\n]*['\\\"])[^'\\\"\\s<>]+(['\\\"])",
+        ) to "\$1<redacted>\$2",
+        Regex("(?i)\\b[0-9a-f]{64}\\b") to "<redacted>",
+        Regex("(?i)(jitsi: joining MUC )\\S+( as )") to "\$1<redacted>\$2",
+        Regex("(?i)(jitsi: MUC joined )\\S+(; waiting for peer)") to "\$1<redacted>\$2",
+        Regex("(?i)(jitsi: (?:rejoin|reconnected|full reconnect) )\\S+") to "\$1<redacted>",
+        Regex("(?i)(session )\\S+( ((?:re)?opened \\(device=))[^)]+(\\))") to "\$1<redacted>\$2<redacted>\$4",
+    )
+
     /**
      * Quote the parts of the given array in way that makes them
      * usable as command line arguments.
@@ -51,6 +93,41 @@ object Commandline {
             }
         }
         return result.toString()
+    }
+
+    fun toRedactedString(args: Iterable<String>?): String = toString(redact(args))
+
+    fun toRedactedString(args: Array<String>) = toRedactedString(args.asIterable())
+
+    fun redactProcessOutput(line: String): String {
+        var redacted = line
+        for ((pattern, replacement) in SENSITIVE_OUTPUT_PATTERNS) {
+            redacted = pattern.replace(redacted, replacement)
+        }
+        return redacted
+    }
+
+    private fun redact(args: Iterable<String>?): List<String>? {
+        args ?: return null
+        val redacted = ArrayList<String>()
+        var redactNext = false
+        for (arg in args) {
+            val eq = arg.indexOf('=')
+            val flag = if (eq > 0) arg.substring(0, eq) else arg
+            when {
+                redactNext -> {
+                    redacted.add("<redacted>")
+                    redactNext = false
+                }
+                flag in SENSITIVE_VALUE_FLAGS && eq > 0 -> redacted.add("$flag=<redacted>")
+                flag in SENSITIVE_VALUE_FLAGS -> {
+                    redacted.add(arg)
+                    redactNext = true
+                }
+                else -> redacted.add(arg)
+            }
+        }
+        return redacted
     }
 
     /**

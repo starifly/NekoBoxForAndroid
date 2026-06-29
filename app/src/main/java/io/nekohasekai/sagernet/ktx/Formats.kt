@@ -9,6 +9,7 @@ import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria2
 import io.nekohasekai.sagernet.fmt.juicity.parseJuicity
 import io.nekohasekai.sagernet.fmt.masterdnsvpn.parseMasterDnsVpn
 import io.nekohasekai.sagernet.fmt.naive.parseNaive
+import io.nekohasekai.sagernet.fmt.olcrtc.parseOlcrtc
 import io.nekohasekai.sagernet.fmt.parseUniversal
 import io.nekohasekai.sagernet.fmt.shadowsocks.parseShadowsocks
 import io.nekohasekai.sagernet.fmt.shadowsocksr.parseShadowsocksR
@@ -252,6 +253,13 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
             Logs.d("Try parse MasterDnsVPN link: $this")
             runCatching {
                 entities.add(parseMasterDnsVpn(this))
+            }.onFailure {
+                Logs.w(it)
+            }
+        } else if (startsWith("olcrtc://")) {
+            Logs.d("Try parse olcRTC link")
+            runCatching {
+                entities.add(parseOlcrtc(this))
             }.onFailure {
                 Logs.w(it)
             }

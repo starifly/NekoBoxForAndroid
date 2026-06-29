@@ -762,4 +762,14 @@
         <item>udp</item>
     </string-array>
 
+    <string-array name="olcrtc_carrier">
+        <item>jitsi</item>
+        <item>telemost</item>
+        <item>wbstream</item>
+    </string-array>
+    <string-array name="olcrtc_transport">
+        <item>vp8channel</item>
+        <item>datachannel</item>
+    </string-array>
+
 </resources>

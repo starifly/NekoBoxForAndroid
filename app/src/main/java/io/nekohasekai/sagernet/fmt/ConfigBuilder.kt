@@ -19,6 +19,8 @@ import io.nekohasekai.sagernet.fmt.internal.ChainBean
 import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
 import io.nekohasekai.sagernet.fmt.juicity.buildSingBoxOutboundJuicityBean
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
+import io.nekohasekai.sagernet.fmt.olcrtc.OlcrtcBean
+import io.nekohasekai.sagernet.fmt.olcrtc.carrierHost
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.buildSingBoxOutboundShadowsocksBean
 import io.nekohasekai.sagernet.fmt.shadowsocksr.ShadowsocksRBean
@@ -497,6 +499,15 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
                 if (proxyEntity.needExternal()) { // externel outbound
                     val localPort = mkPort()
                     externalChainMap[localPort] = proxyEntity
+                    // olcRTC resolves its carrier host itself; on a fakeip VPN the system
+                    // resolver would hand it a tun-only fake IP and its (protected) socket
+                    // would loop back through the tun. Force the carrier signaling host to
+                    // resolve via dns-direct (real IP) so the protected socket goes direct.
+                    if (bean is OlcrtcBean) {
+                        bean.carrierHost()?.takeIf { !it.isIpAddress() }?.let {
+                            domainListDNSDirectForce.add("full:$it")
+                        }
+                    }
                     currentOutbound = Outbound_SocksOptions().apply {
                         type = "socks"
                         server = LOCALHOST
@@ -508,7 +519,7 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
                         // Skip for export: the exported naive config (ProxyEntity.
                         // buildNaiveConfig without creds) would otherwise mismatch and
                         // produce a broken standalone config.
-                        if (bean is NaiveBean && !forExport) {
+                        if ((bean is NaiveBean || bean is OlcrtcBean) && !forExport) {
                             val user = "neko"
                             val pass = UUID.randomUUID().toString().replace("-", "")
                             localProxyCredentials[localPort] = user to pass
