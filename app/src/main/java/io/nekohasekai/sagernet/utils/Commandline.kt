@@ -55,6 +55,7 @@ object Commandline {
             "(?i)((?:from|to)=['\"])[^'\"]+@" +
                 "(?:conference|muc)\\.[^'\"]+(['\"])",
         ) to "\$1<redacted>\$2",
+        Regex("(?i)((?:from|to)=['\"])[^'\"]+@[^'\"]+(['\"])") to "\$1<redacted>\$2",
         Regex("(?i)\\bolcrtc://\\S+") to "<redacted>",
         Regex("(?i)(colibri-ws=)\\S+") to "\$1<redacted>",
         Regex(
@@ -62,6 +63,16 @@ object Commandline {
                 "[^'\\\"\\n]*['\\\"])[^'\\\"\\s<>]+(['\\\"])",
         ) to "\$1<redacted>\$2",
         Regex("(?i)\\b[0-9a-f]{64}\\b") to "<redacted>",
+        Regex("(?i)(\\bsession=)[0-9a-f]{8}-[0-9a-f-]{27,}") to "\$1<redacted>",
+        Regex("(?i)\\[[^\\]\\s]+]:\\d{1,5}") to "<endpoint>",
+        Regex(
+            "(?i)(?<![0-9a-f:])(?:[0-9a-f]{1,4}:){4,}[0-9a-f]{1,4}" +
+                "(?:%[A-Za-z0-9_.-]+)?(?![0-9a-f:])|" +
+                "(?<![0-9a-f:])(?:[0-9a-f]{1,4}:){0,7}:[0-9a-f:]{1,}" +
+                "(?:%[A-Za-z0-9_.-]+)?(?![0-9a-f:])",
+        ) to "<ip>",
+        Regex("\\b(?:\\d{1,3}\\.){3}\\d{1,3}:\\d{1,5}\\b") to "<endpoint>",
+        Regex("\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b") to "<ip>",
         Regex("(?i)(jitsi: joining MUC )\\S+( as )") to "\$1<redacted>\$2",
         Regex("(?i)(jitsi: MUC joined )\\S+(; waiting for peer)") to "\$1<redacted>\$2",
         Regex("(?i)(jitsi: (?:rejoin|reconnected|full reconnect) )\\S+") to "\$1<redacted>",

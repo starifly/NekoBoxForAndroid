@@ -52,6 +52,11 @@ class CommandlineTest {
             jitsi: full reconnect meet.example.org/brief-5935
             session abc123 opened (device=device-3924)
             session def456 reopened (device=device-3924)
+            control alive session=3409404d-0e96-4353-9768-5e1aa74ec336 rtt=228ms
+            Ping STUN from udp4 relay 81.200.148.114:58392 related 192.168.171.101:36762 to udp4 host 81.200.148.114:10000
+            IPv6 candidate [fe80::1%wlan0]:5353 to [2001:db8::1]:10000
+            Bare IPv6 candidate 2001:db8::2 and 2001:db8:0:0:0:0:0:1
+            <iq from="88528237-09bb-4635-b01a-9e9d3549957b@meet.example.org/resource" to="brief-5935@conference.meet.example.org/user" />
             <presence to="brief-5935@conference.meet.example.org/user" room="brief-5935@conference.meet.example.org" />
         """.trimIndent()
 
@@ -62,6 +67,12 @@ class CommandlineTest {
         assertFalse(redacted.contains(key))
         assertFalse(redacted.contains("secret"))
         assertFalse(redacted.contains("olcrtc://"))
+        assertFalse(redacted.contains("3409404d"))
+        assertFalse(redacted.contains("81.200.148.114"))
+        assertFalse(redacted.contains("192.168.171.101"))
+        assertFalse(redacted.contains("88528237"))
+        assertFalse(redacted.contains("fe80::1"))
+        assertFalse(redacted.contains("2001:db8"))
         assertTrue(redacted.contains("invalid room URL \"<redacted>\""))
         assertTrue(redacted.contains("invalid room id \"<redacted>\""))
         assertTrue(redacted.contains("colibri-ws=<redacted>"))
@@ -69,5 +80,10 @@ class CommandlineTest {
         assertTrue(redacted.contains("jitsi: full reconnect <redacted>"))
         assertTrue(redacted.contains("session <redacted> opened (device=<redacted>)"))
         assertTrue(redacted.contains("session <redacted> reopened (device=<redacted>)"))
+        assertTrue(redacted.contains("control alive session=<redacted>"))
+        assertTrue(redacted.contains("Ping STUN from udp4 relay <endpoint> related <endpoint> to udp4 host <endpoint>"))
+        assertTrue(redacted.contains("IPv6 candidate <endpoint> to <endpoint>"))
+        assertTrue(redacted.contains("Bare IPv6 candidate <ip> and <ip>"))
+        assertTrue(redacted.contains("<iq from=\"<redacted>\" to=\"<redacted>\" />"))
     }
 }
