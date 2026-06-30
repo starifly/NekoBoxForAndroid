@@ -15,15 +15,13 @@
 #
 # A tiny wrapper main (buildScript/lib/olcrtc-src) imports olcRTC's `mobile` package at
 # a pinned commit, wires socket protection to libcore's protect_path unix socket, and
-# parses CLI flags. We clone the pinned fork commit (hawkff/olcrtc, which adds the
-# Android protected-net hook) and point the wrapper module at it via a replace
-# directive so the build is fully reproducible and offline-stable.
+# parses CLI flags. We clone the pinned upstream commit and point the wrapper module at
+# it via a replace directive so the build is fully reproducible and offline-stable.
 #
-# OLCRTC_REPO/OLCRTC_COMMIT default to the fork commit that carries the protected
-# pion net (internal/protect/pionnet.go + the jitsi SetNet hook). Overriding them to
-# an upstream commit that predates that change builds and runs, but the media path is
-# no longer kept off the tun: pin a commit that includes the hook until it lands in
-# openlibrecommunity/olcrtc.
+# OLCRTC_REPO/OLCRTC_COMMIT default to an upstream commit that carries the protected
+# pion net (internal/protect/pionnet.go + the jitsi SetNet hook), merged upstream in
+# openlibrecommunity/olcrtc#111. Pin to a commit at or after that merge so the media
+# path stays off the tun.
 #
 # Usage: ./run lib olcrtc
 set -e
@@ -36,8 +34,8 @@ if [ -z "$ANDROID_NDK_HOME" ]; then
   exit 1
 fi
 
-OLCRTC_REPO="${OLCRTC_REPO:-https://github.com/hawkff/olcrtc.git}"
-OLCRTC_COMMIT="${OLCRTC_COMMIT:-3e970ab8ed176a3bcc2ef0ba1d89d0b15775da23}"
+OLCRTC_REPO="${OLCRTC_REPO:-https://github.com/openlibrecommunity/olcrtc.git}"
+OLCRTC_COMMIT="${OLCRTC_COMMIT:-58df8899c1a12cab22282448d2e7fc25e175822b}"
 
 if ! command -v go >/dev/null 2>&1; then
   echo "Error: go not found on PATH (olcRTC needs Go 1.26+)." >&2
