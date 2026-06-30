@@ -16,7 +16,6 @@ object Executable {
         "libtuic.so",
         "libhysteria.so",
         "libmieru.so",
-        "libhysteria2.so",
         "libmasterdnsvpn.so",
         "libolcrtc.so",
     )

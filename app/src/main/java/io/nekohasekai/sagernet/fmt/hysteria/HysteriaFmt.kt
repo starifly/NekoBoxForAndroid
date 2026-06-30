@@ -375,10 +375,12 @@ fun getFirstPort(portStr: String): Int {
 }
 
 fun HysteriaBean.canUseSingBox(): Boolean {
-    if (protocol != HysteriaBean.PROTOCOL_UDP) return false
-    // Gecko obfs is now supported natively by this fork's sing-box core (via the
-    // hawkff/sing-quic gecko backport), so it no longer needs the sidecar.
-    return true
+    // Hysteria2 always uses the native sing-box outbound; the faketcp / wechat-video
+    // transports are a Hysteria1-only concept, and gecko obfs is handled natively by
+    // this fork's core (via the hawkff/sing-quic gecko backport).
+    if (protocolVersion == 2) return true
+    // Hysteria1 falls back to the external plugin for the non-UDP transports.
+    return protocol == HysteriaBean.PROTOCOL_UDP
 }
 
 fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.SingBoxOption {
@@ -440,9 +442,9 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.SingBox
                         HysteriaBean.OBFS_GECKO -> {
                             type = "gecko"
                             password = bean.obfuscation
-                            // Clamp + order to match the sidecar builder's bounds
-                            // (1..2048, min <= max); an inverted/out-of-range pair
-                            // would otherwise be rejected by the core at connect time.
+                            // Clamp and order the bounds (1..2048, min <= max);
+                            // an inverted or out-of-range pair would otherwise be
+                            // rejected by the core at connect time.
                             val min = bean.geckoMinPacketSize?.takeIf { it > 0 }?.coerceIn(1, 2048)
                             val max = bean.geckoMaxPacketSize?.takeIf { it > 0 }?.coerceIn(min ?: 1, 2048)
                             if (min != null) min_packet_size = min
@@ -490,102 +492,4 @@ fun hopPortsToSingboxList(s: String): List<String> {
             null
         }
     }
-}
-
-/**
- * Builds a config for the bundled official apernet/hysteria client binary (sidecar).
- *
- * NOTE: Hysteria2 (including Gecko obfs) now runs natively in the sing-box core, so this
- * sidecar path is no longer used for Gecko. This builder is retained for the bundled
- * hysteria2 binary infrastructure and potential fallback use.
- *
- * Emitted as JSON (hysteria uses viper, which detects format by the .json extension).
- * The client's upstream QUIC sockets are protected from the VPN via
- * quic.sockopts.fdControlUnixSocket, pointing at libcore's protect_server socket
- * ("protect_path" in the process working dir). It exposes a loopback-only SOCKS5 listener
- * that the generated sing-box "socks" outbound dials (no auth, matching the other sidecars).
- *
- * @param port local SOCKS5 port for the sidecar to listen on (== sing-box outbound port).
- * @param protectPath absolute path to libcore's protect unix socket.
- */
-fun HysteriaBean.buildHysteria2SidecarConfig(port: Int, protectPath: String): String {
-    if (protocolVersion != 2) {
-        throw Exception("error version: $protocolVersion")
-    }
-    var realSni = sni
-    if (realSni.isBlank() && !serverAddress.isIpAddress()) {
-        realSni = serverAddress
-    }
-    return JSONObject().apply {
-        put("server", "$serverAddress:$serverPorts")
-        if (authPayload.isNotBlank()) put("auth", authPayload)
-        put(
-            "tls",
-            JSONObject().apply {
-                if (realSni.isNotBlank()) put("sni", realSni)
-                put("insecure", allowInsecure || DataStore.globalAllowInsecure)
-                if (caText.isNotBlank()) put("ca", caText)
-            },
-        )
-        if (hysteria2ObfsType == HysteriaBean.OBFS_GECKO && obfuscation.isNotBlank()) {
-            // Clamp to hysteria's accepted bounds: 1 <= min <= max <= 2048.
-            val min = geckoMinPacketSize.coerceIn(1, 2048)
-            val max = geckoMaxPacketSize.coerceIn(min, 2048)
-            put(
-                "obfs",
-                JSONObject().apply {
-                    put("type", "gecko")
-                    put(
-                        "gecko",
-                        JSONObject().apply {
-                            put("password", obfuscation)
-                            put("minPacketSize", min)
-                            put("maxPacketSize", max)
-                        },
-                    )
-                },
-            )
-        } else if (hysteria2ObfsType == HysteriaBean.OBFS_SALAMANDER && obfuscation.isNotBlank()) {
-            put(
-                "obfs",
-                JSONObject().apply {
-                    put("type", "salamander")
-                    put(
-                        "salamander",
-                        JSONObject().apply {
-                            put("password", obfuscation)
-                        },
-                    )
-                },
-            )
-        }
-        if (uploadMbps > 0 || downloadMbps > 0) {
-            put(
-                "bandwidth",
-                JSONObject().apply {
-                    if (uploadMbps > 0) put("up", "$uploadMbps mbps")
-                    if (downloadMbps > 0) put("down", "$downloadMbps mbps")
-                },
-            )
-        }
-        put(
-            "quic",
-            JSONObject().apply {
-                put(
-                    "sockopts",
-                    JSONObject().apply {
-                        put("fdControlUnixSocket", protectPath)
-                    },
-                )
-            },
-        )
-        put(
-            "socks5",
-            JSONObject().apply {
-                put("listen", "$LOCALHOST:$port")
-                put("disableUDP", false)
-            },
-        )
-        put("lazy", true)
-    }.toStringPretty()
 }

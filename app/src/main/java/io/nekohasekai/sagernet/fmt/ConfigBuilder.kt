@@ -628,7 +628,9 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
                     var needExternal = true
                     if (index == profileList.lastIndex) {
                         val pluginId = when (bean) {
-                            is HysteriaBean -> if (bean.protocolVersion == 1) "hysteria-plugin" else "hysteria2-plugin"
+                            // Only Hysteria v1 takes the external plugin path; v2 is
+                            // handled natively, so it never reaches needExternal().
+                            is HysteriaBean -> "hysteria-plugin"
                             else -> ""
                         }
                         if (Plugins.isUsingMatsuriExe(pluginId)) {

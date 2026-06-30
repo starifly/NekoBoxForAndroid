@@ -116,4 +116,4 @@ replace github.com/dyhkwong/sing-juicity => github.com/exclavenetwork/sing-juici
 
 // replace berty.tech/go-libtor => github.com/berty/go-libtor v0.0.0-20220627102132-9189eb6e3982
 
-replace github.com/sagernet/sing-quic => github.com/hawkff/sing-quic v0.6.2-0.20260623171805-c5b53db7a343
+replace github.com/sagernet/sing-quic => github.com/hawkff/sing-quic v0.6.2-0.20260630192917-42e8810bc4b8

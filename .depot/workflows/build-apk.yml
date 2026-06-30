@@ -10,7 +10,6 @@ env:
   GO_VERSION: '1.26.4'
   NDK_VERSION: '25.0.8775105'
   MIERU_VERSION: v3.34.0
-  HYSTERIA_VERSION: v2.9.2
   MDVPN_REF: android-vpnservice-protect-hook
   MDVPN_COMMIT: d481d72d4b86783a87d536c214d2c68cc4e9320e
   NAIVE_VERSION: v149.0.7827.114-1
@@ -61,7 +60,6 @@ jobs:
         run: |
           git ls-files -s -- \
             buildScript/lib/mieru.sh \
-            buildScript/lib/hysteria2.sh \
             buildScript/lib/masterdnsvpn.sh \
             buildScript/lib/naive.sh \
             buildScript/lib/olcrtc.sh \
@@ -77,7 +75,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: app/executableSo
-          key: depot-sidecars-${{ env.GO_VERSION }}-${{ env.NDK_VERSION }}-${{ env.MIERU_VERSION }}-${{ env.HYSTERIA_VERSION }}-${{ env.MDVPN_COMMIT }}-${{ env.NAIVE_VERSION }}-${{ env.OLCRTC_COMMIT }}-${{ hashFiles('sidecars_status') }}
+          key: depot-sidecars-${{ env.GO_VERSION }}-${{ env.NDK_VERSION }}-${{ env.MIERU_VERSION }}-${{ env.MDVPN_COMMIT }}-${{ env.NAIVE_VERSION }}-${{ env.OLCRTC_COMMIT }}-${{ hashFiles('sidecars_status') }}
 
       - name: Install Go
         if: steps.libcore-cache.outputs.cache-hit != 'true' || steps.sidecars-cache.outputs.cache-hit != 'true'
@@ -94,7 +92,6 @@ jobs:
         if: steps.sidecars-cache.outputs.cache-hit != 'true'
         run: |
           ./run lib mieru
-          ./run lib hysteria2
           ./run lib masterdnsvpn
           ./run lib naive
           ./run lib olcrtc
@@ -102,7 +99,7 @@ jobs:
       - name: Verify sidecar artifacts
         run: |
           for abi in arm64-v8a armeabi-v7a x86 x86_64; do
-            for so in libmieru.so libhysteria2.so libmasterdnsvpn.so libnaive.so libolcrtc.so; do
+            for so in libmieru.so libmasterdnsvpn.so libnaive.so libolcrtc.so; do
               if [ ! -f "app/executableSo/$abi/$so" ]; then
                 echo "Error: missing app/executableSo/$abi/$so" >&2
                 exit 1
