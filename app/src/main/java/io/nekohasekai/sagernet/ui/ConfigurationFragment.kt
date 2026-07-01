@@ -16,7 +16,9 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -127,6 +129,7 @@ import java.util.zip.ZipInputStream
 import kotlin.collections.set
 import androidx.appcompat.app.AlertDialog
 import io.nekohasekai.sagernet.database.SubscriptionBean
+import kotlin.math.abs
 
 class ConfigurationFragment @JvmOverloads constructor(
     val select: Boolean = false, val selectedItem: ProxyEntity? = null, val titleRes: Int = 0
@@ -1172,7 +1175,8 @@ class ConfigurationFragment @JvmOverloads constructor(
 
         lateinit var layoutManager: RecyclerView.LayoutManager
         private lateinit var itemTouchHelper: ItemTouchHelper
-        
+        private var isItemDragging = false
+
         private fun setupItemTouchHelper() {
             if (select) return
             
@@ -1237,6 +1241,11 @@ class ConfigurationFragment @JvmOverloads constructor(
                 ) {
                     super.clearView(recyclerView, viewHolder)
                     adapter?.commitMove()
+                }
+
+                override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
+                    super.onSelectedChanged(viewHolder, actionState)
+                    isItemDragging = actionState == ItemTouchHelper.ACTION_STATE_DRAG
                 }
             })
             itemTouchHelper.attachToRecyclerView(configurationListView)
@@ -1379,6 +1388,26 @@ class ConfigurationFragment @JvmOverloads constructor(
                 setupItemTouchHelper()
             }
 
+            setupBottomBarScrollGesture()
+        }
+
+        private fun setupBottomBarScrollGesture() {
+            val mainActivity = activity as? MainActivity ?: return
+            val touchSlop = ViewConfiguration.get(requireContext()).scaledTouchSlop
+            var lastRawY = 0f
+            configurationListView.setOnTouchListener { _, event ->
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> lastRawY = event.rawY
+                    MotionEvent.ACTION_MOVE -> {
+                        val dy = event.rawY - lastRawY
+                        if (!isItemDragging && abs(dy) >= touchSlop) {
+                            mainActivity.driveBottomBar(fingerUp = dy < 0)
+                            lastRawY = event.rawY
+                        }
+                    }
+                }
+                false
+            }
         }
 
         override fun onDestroy() {
