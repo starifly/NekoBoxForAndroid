@@ -296,6 +296,7 @@
     <string name="append_http_proxy_sum">HTTP 代理將直接被支援的瀏覽器/應用程式使用，而無需經過虛擬網路卡（Android 10+）</string>
     <string name="http_proxy_bypass">HTTP 代理繞過列表</string>
     <string name="http_proxy_bypass_dialog_message">一行一個，# 開頭代表註解。範例：*zhihu.com</string>
+    <string name="dns_hosts_dialog_message">一行一個，# 開頭代表註解。範例：\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="append_http_proxy_security_title">安全提示</string>
     <string name="append_http_proxy_security_message">開啟後，本機其他應用程式可以直接使用本機代理連接埠。\n\n建議：僅在你信任所有已安裝應用程式時開啟。</string>
     <string name="enable_anyway">仍然開啟</string>

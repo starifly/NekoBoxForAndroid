@@ -133,6 +133,7 @@
 <string name="server_dns_invalid">Некорректный пользовательский DNS сервера. Используйте https://, tls://, quic:// или host[:port], либо оставьте поле пустым.</string>
 <string name="disable">Отключить</string>
 <string name="dns_hosts">Перезапись домена</string>
+<string name="dns_hosts_dialog_message">По одному в строке. Строки, начинающиеся с #, считаются комментариями. Пример:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
 <string name="dns_routing_message">Разрешить домены в обходных маршрутах с помощью Direct DNS. Помните о потенциальных утечках DNS</string>
 <string name="document">Документы</string>
 <string name="domain_strategy">Правило разрешения доменов</string>

@@ -99,6 +99,7 @@
     <string name="fakedns_message">May cause other applications need to be restarted to reconnect to
         the network after proxy stopped</string>
     <string name="dns_hosts">Domain rewrite</string>
+    <string name="dns_hosts_dialog_message">One per line. Lines starting with # are comments. Example:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="port_local_dns">Local DNS Port</string>
     <string name="require_transproxy">Enable Transproxy Inbound</string>
     <string name="transproxy_mode">Transproxy Mode</string>

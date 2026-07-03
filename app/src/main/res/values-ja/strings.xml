@@ -73,6 +73,7 @@
     <string name="connection_test_url">テスト用リンクを接続</string>
     <string name="port_local_dns">ローカルDNSポート</string>
     <string name="dns_hosts">ドメインの書き換え</string>
+    <string name="dns_hosts_dialog_message">1 行に 1 つ。# で始まる行はコメントです。例:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="fakedns_message">プロキシが停止した後、ネットワークに再接続するために他のアプリケーションを再起動する必要がある場合があります。</string>
     <string name="enable_fakedns">FakeDNSを有効化</string>
     <string name="enable_dns_routing">DNSルーティングを有効化</string>

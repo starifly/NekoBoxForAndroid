@@ -369,6 +369,7 @@
     <string name="enable_fakedns">启用 FakeDNS</string>
     <string name="fakedns_message">可能导致其他应用程序在代理停止后需要重新启动以重新连接到网络</string>
     <string name="dns_hosts">域名重写</string>
+    <string name="dns_hosts_dialog_message">一行一个，# 开头代表注释。示例：\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="apps">应用</string>
     <string name="select_apps">选择应用</string>
     <string name="apps_message">%d 个应用</string>

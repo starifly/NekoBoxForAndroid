@@ -53,6 +53,7 @@ const val TAG_DIRECT = "direct"
 const val TAG_BYPASS = "bypass"
 const val TAG_BLOCK = "block"
 const val TAG_FRAGMENT = "fragment"
+const val TAG_DNS_HOSTS = "dns-hosts"
 
 const val LOCALHOST = "127.0.0.1"
 
@@ -69,6 +70,21 @@ class ConfigBuildResult(
 
 private fun sanitizeDnsEntry(value: String): String {
     return value.filterNot { it.isISOControl() }.trim()
+}
+
+private fun parseDnsHosts(value: String): Map<String, List<String>> {
+    val hosts = linkedMapOf<String, MutableList<String>>()
+    value.lineSequence().forEach { line ->
+        val trimmed = line.trim()
+        if (trimmed.isEmpty() || trimmed.startsWith("#")) return@forEach
+        val tokens = trimmed.split("\\s+".toRegex())
+        if (tokens.size < 2) return@forEach
+        val domain = tokens.first()
+        val addresses = tokens.drop(1).filter { it.isIpAddress() }
+        if (addresses.isEmpty()) return@forEach
+        hosts.getOrPut(domain) { mutableListOf() }.addAll(addresses)
+    }
+    return hosts.mapValues { (_, addresses) -> addresses.distinct() }
 }
 
 private fun serverHostOf(bean: AbstractBean): String? {
@@ -168,6 +184,7 @@ fun buildConfig(
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
     val directDNS = DataStore.directDns.split("\n")
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
+    val dnsHosts by lazy { parseDnsHosts(DataStore.dnsHosts) }
     val enableDnsRouting = DataStore.enableDnsRouting
     val useFakeDns = DataStore.enableFakeDns && !forTest
     val needSniff = DataStore.trafficSniffing > 0
@@ -906,6 +923,13 @@ fun buildConfig(
                 strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
             })
         }
+        if (dnsHosts.isNotEmpty()) {
+            dns.servers.add(DNSServerOptions().apply {
+                tag = TAG_DNS_HOSTS
+                _hack_config_map["type"] = "hosts"
+                _hack_config_map["predefined"] = dnsHosts
+            })
+        }
 
         dns.final_ = if (forTest) "dns-direct" else "dns-remote"
 
@@ -957,6 +981,12 @@ fun buildConfig(
                     server = "dns-fake"
                     disable_cache = true
                     query_type = listOf("A", "AAAA")
+                })
+            }
+            if (dnsHosts.isNotEmpty()) {
+                dns.rules.add(0, DNSRule_DefaultOptions().apply {
+                    server = TAG_DNS_HOSTS
+                    _hack_config_map["ip_accept_any"] = true
                 })
             }
             // avoid loopback
