@@ -16,9 +16,12 @@
 // therefore install a process-global protected transport + resolver BEFORE
 // starting olcRTC: the resolver dials the configured DNS (e.g. 9.9.9.9:53) over
 // a protected socket (avoiding the VPN fake-IP resolver), and every dialed fd is
-// protected via protect_path so it bypasses the tun. (WebRTC/pion media sockets
-// do not flow through http.DefaultTransport; protecting those needs an olcRTC
-// SettingEngine.SetNet hook and is out of scope for this wrapper.)
+// protected via protect_path so it bypasses the tun. The WebRTC/pion media sockets
+// do NOT flow through http.DefaultTransport, so they are protected separately: the
+// pinned olcRTC engine installs a ProtectedNet via SettingEngine.SetNet whenever a
+// protector is set (upstream internal/protect/pionnet.go + the jitsi SetNet hook,
+// openlibrecommunity/olcrtc#111), so the mobile.SetProtector call below also keeps
+// the media path off the tun.
 package main
 
 import (
