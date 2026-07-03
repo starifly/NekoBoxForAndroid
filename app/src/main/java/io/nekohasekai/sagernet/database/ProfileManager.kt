@@ -16,6 +16,9 @@ object ProfileManager {
     interface Listener {
         suspend fun onAdd(profile: ProxyEntity)
         suspend fun onUpdated(data: TrafficData)
+        suspend fun onUpdated(data: List<TrafficData>) {
+            data.forEach { onUpdated(it) }
+        }
         suspend fun onUpdated(profile: ProxyEntity, noTraffic: Boolean)
         suspend fun onRemoved(groupId: Long, profileId: Long)
     }
@@ -96,6 +99,16 @@ object ProfileManager {
         }
     }
 
+    /**
+     * Batch-persist profiles WITHOUT firing per-profile onUpdated listener rounds.
+     * For callers that follow up with GroupManager.postReload(groupId), which
+     * re-renders the whole group anyway (e.g. connection-test finalization).
+     */
+    suspend fun updateProfileQuietly(profiles: List<ProxyEntity>) {
+        if (profiles.isEmpty()) return
+        SagerDatabase.proxyDao.updateProxy(profiles)
+    }
+
     suspend fun updateTraffic(profileId: Long, rx: Long, tx: Long) {
         SagerDatabase.proxyDao.updateTraffic(profileId, rx, tx)
     }
@@ -153,6 +166,10 @@ object ProfileManager {
     }
 
     suspend fun postUpdate(data: TrafficData) {
+        iterator { onUpdated(data) }
+    }
+
+    suspend fun postUpdate(data: List<TrafficData>) {
         iterator { onUpdated(data) }
     }
 

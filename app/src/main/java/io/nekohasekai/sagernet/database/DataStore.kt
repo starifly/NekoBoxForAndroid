@@ -184,6 +184,16 @@ object DataStore : OnPreferenceDataStoreChangeListener {
             return s
         }
 
+    val clashApiSecret: String
+        @Synchronized get() {
+            var s = configurationStore.getString(Key.CLASH_API_SECRET)
+            if (s.isNullOrEmpty()) {
+                s = java.util.UUID.randomUUID().toString().replace("-", "")
+                configurationStore.putString(Key.CLASH_API_SECRET, s)
+            }
+            return s
+        }
+
     var mixedPort: Int
         get() = getLocalPort(Key.MIXED_PORT, 2080)
         set(value) = saveLocalPort(Key.MIXED_PORT, value)

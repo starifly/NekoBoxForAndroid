@@ -48,6 +48,7 @@ object Key {
 
     const val MIXED_PORT = "mixedPort"
     const val MIXED_SECRET = "mixedSecret" // storage key for the generated inbound secret
+    const val CLASH_API_SECRET = "clashApiSecret" // per-install secret for the local Clash API
     const val MIXED_USERNAME = "neko" // username presented to the authed mixed inbound
     const val ALLOW_ACCESS = "allowAccess"
     const val REQUIRE_PROXY_IN_VPN = "requireProxyInVPN" // keep local mixed inbound open in VPN mode

@@ -430,6 +430,12 @@ class MainActivity :
         }
     }
 
+    override fun cbTrafficUpdateList(data: List<TrafficData>) {
+        runOnDefaultDispatcher {
+            ProfileManager.postUpdate(data)
+        }
+    }
+
     override fun cbSelectorUpdate(id: Long) {
         val old = DataStore.selectedProxy
         DataStore.selectedProxy = id

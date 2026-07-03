@@ -19,6 +19,9 @@ fi
 
 # Mieru release tag to build from source.
 MIERU_VERSION="${MIERU_VERSION:-v3.34.0}"
+# Immutable commit that MIERU_VERSION points to (pinned for reproducible builds;
+# update together with MIERU_VERSION on any bump).
+MIERU_COMMIT="${MIERU_COMMIT:-1532c85cc8ca08dff469326f35a3f027697c6950}"
 
 DEPS="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin"
 # macOS NDK host dirs are darwin-x86_64 / darwin-arm64; fall back if linux is absent.
@@ -40,7 +43,7 @@ OUT="$(pwd)/app/executableSo"
 # checkout is missing or its git operations fail (e.g. corrupted by a prior build).
 need_clone=1
 if [ -d "$WORK/.git" ]; then
-  if git -C "$WORK" fetch --depth 1 origin "refs/tags/$MIERU_VERSION" \
+  if git -C "$WORK" fetch --depth 1 origin "$MIERU_COMMIT" \
      && git -C "$WORK" checkout -q FETCH_HEAD; then
     need_clone=0
   else
@@ -49,7 +52,10 @@ if [ -d "$WORK/.git" ]; then
 fi
 if [ "$need_clone" -eq 1 ]; then
   rm -rf "$WORK"
-  git clone --depth 1 --branch "$MIERU_VERSION" https://github.com/enfein/mieru.git "$WORK"
+  git init -q "$WORK"
+  git -C "$WORK" remote add origin https://github.com/enfein/mieru.git
+  git -C "$WORK" fetch --depth 1 origin "$MIERU_COMMIT"
+  git -C "$WORK" checkout -q FETCH_HEAD
 fi
 
 pushd "$WORK" >/dev/null

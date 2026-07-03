@@ -63,9 +63,7 @@ class TrafficLooper(
             }
         }
         data.binder.broadcast { b ->
-            for (t in traffic) {
-                b.cbTrafficUpdate(t.value)
-            }
+            b.cbTrafficUpdateList(ArrayList(traffic.values))
         }
         Logs.d("finally traffic post done")
     }
@@ -206,11 +204,11 @@ class TrafficLooper(
                     if (data.binder.callbackIdMap[b] == SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND) {
                         b.cbSpeedUpdate(speed)
                         if (profileTrafficStatistics) {
+                            val batch = ArrayList<TrafficData>(idMap.size)
                             idMap.forEach { (id, item) ->
-                                b.cbTrafficUpdate(
-                                    TrafficData(id = id, rx = item.rx, tx = item.tx), // display
-                                )
+                                batch.add(TrafficData(id = id, rx = item.rx, tx = item.tx)) // display
                             }
+                            b.cbTrafficUpdateList(batch)
                         }
                     }
                 }

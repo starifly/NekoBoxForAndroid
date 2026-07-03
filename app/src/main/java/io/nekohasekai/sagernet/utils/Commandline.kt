@@ -46,7 +46,7 @@ object Commandline {
     private val SENSITIVE_OUTPUT_PATTERNS = listOf(
         Regex(
             "(?i)(\\\"" +
-                "(?:clientId|key|keyHex|password|roomId|serverPassword|serverUsername|" +
+                "(?:clientId|key|keyHex|password|roomId|secret|serverPassword|serverUsername|" +
                 "socksPass|socksUser|username)" +
                 "\\\"\\s*:\\s*\\\")[^\\\"]*(\\\")",
         ) to "\$1<redacted>\$2",

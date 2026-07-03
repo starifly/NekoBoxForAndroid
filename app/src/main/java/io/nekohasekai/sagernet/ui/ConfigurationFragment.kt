@@ -971,12 +971,10 @@ class ConfigurationFragment @JvmOverloads constructor(
             runOnDefaultDispatcher {
                 mainJob.cancel()
                 testJobs.forEach { it.cancel() }
-                test.results.forEach {
-                    try {
-                        ProfileManager.updateProfile(it)
-                    } catch (e: Exception) {
-                        Logs.w(e)
-                    }
+                try {
+                    ProfileManager.updateProfileQuietly(test.results.toList())
+                } catch (e: Exception) {
+                    Logs.w(e)
                 }
                 GroupManager.postReload(DataStore.currentGroupId())
                 DataStore.runningTest = false
@@ -1055,12 +1053,10 @@ class ConfigurationFragment @JvmOverloads constructor(
             runOnDefaultDispatcher {
                 mainJob.cancel()
                 testJobs.forEach { it.cancel() }
-                test.results.forEach {
-                    try {
-                        ProfileManager.updateProfile(it)
-                    } catch (e: Exception) {
-                        Logs.w(e)
-                    }
+                try {
+                    ProfileManager.updateProfileQuietly(test.results.toList())
+                } catch (e: Exception) {
+                    Logs.w(e)
                 }
                 GroupManager.postReload(DataStore.currentGroupId())
                 DataStore.runningTest = false
@@ -1713,6 +1709,27 @@ class ConfigurationFragment @JvmOverloads constructor(
                             onMainDispatcher {
                                 holder.bind(holder.entity, data)
                             }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Logs.w(e)
+                }
+            }
+
+            override suspend fun onUpdated(data: List<TrafficData>) {
+                try {
+                    val positions = HashMap<Long, Int>(configurationIdList.size)
+                    configurationIdList.forEachIndexed { index, id -> positions[id] = index }
+                    val updates = ArrayList<Pair<ConfigurationHolder, TrafficData>>()
+                    for (item in data) {
+                        val index = positions[item.id] ?: continue
+                        val holder = layoutManager.findViewByPosition(index)
+                            ?.let { configurationListView.getChildViewHolder(it) } as ConfigurationHolder?
+                        if (holder != null) updates.add(holder to item)
+                    }
+                    if (updates.isNotEmpty()) {
+                        onMainDispatcher {
+                            for ((holder, item) in updates) holder.bind(holder.entity, item)
                         }
                     }
                 } catch (e: Exception) {

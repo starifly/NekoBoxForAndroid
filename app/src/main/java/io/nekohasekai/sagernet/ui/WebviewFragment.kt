@@ -8,6 +8,7 @@ import android.view.View
 import android.webkit.*
 import android.widget.EditText
 import androidx.appcompat.widget.Toolbar
+import androidx.core.net.toUri
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
@@ -63,7 +64,29 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
                 super.onPageFinished(view, url)
             }
         }
-        mWebView.loadUrl(DataStore.yacdURL)
+        mWebView.loadUrl(dashboardUrl())
+    }
+
+    private fun dashboardUrl(): String {
+        val base = DataStore.yacdURL
+        val uri = try {
+            base.toUri()
+        } catch (e: Exception) {
+            return base
+        }
+        // Only inject the token into the local controller's own UI; never append it
+        // to a user-configured remote dashboard URL. Match host + port exactly (a
+        // prefix check would also match e.g. 127.0.0.1:90909).
+        if (!(uri.scheme == "http" && uri.host == "127.0.0.1" && uri.port == 9090)) return base
+        if (uri.getQueryParameter("secret") != null) return base
+        // Build the query via Uri so the params land in the query component, not
+        // inside a #fragment (appending a raw "?..." after a fragment hides them).
+        return uri.buildUpon()
+            .appendQueryParameter("hostname", "127.0.0.1")
+            .appendQueryParameter("port", "9090")
+            .appendQueryParameter("secret", DataStore.clashApiSecret)
+            .build()
+            .toString()
     }
 
     @SuppressLint("CheckResult")
@@ -78,7 +101,7 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
                     .setView(view)
                     .setPositiveButton(android.R.string.ok) { _, _ ->
                         DataStore.yacdURL = view.text.toString()
-                        mWebView.loadUrl(DataStore.yacdURL)
+                        mWebView.loadUrl(dashboardUrl())
                     }
                     .setNegativeButton(android.R.string.cancel, null)
                     .show()

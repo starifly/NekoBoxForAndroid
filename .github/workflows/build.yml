@@ -19,7 +19,7 @@ jobs:
     runs-on: namespace-profile-nekoyay
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - name: Golang Status
         run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
       - name: Libcore Status
@@ -33,7 +33,7 @@ jobs:
           key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
       - name: Install Golang
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: '1.26.4'
       - name: Native Build
@@ -77,7 +77,7 @@ jobs:
           rm -rf "$tmp"
           exit "$fail"
       - name: Upload LibCore
-        uses: namespace-actions/upload-artifact@v1
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1
         with:
           name: libcore-aar-build
           path: app/libs/libcore.aar
@@ -88,7 +88,7 @@ jobs:
     runs-on: namespace-profile-nekoyay
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - name: Sidecars Status
         run: cat buildScript/lib/mieru.sh buildScript/lib/masterdnsvpn.sh buildScript/lib/naive.sh buildScript/init/env.sh buildScript/init/env_ndk.sh | sha1sum > sidecars_status
       - name: Sidecars Cache
@@ -100,7 +100,7 @@ jobs:
           key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.MDVPN_COMMIT }}-${{ env.NAIVE_VERSION }}-sidecars
       - name: Install Golang
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: '1.26.4'
       - name: Mieru Build
@@ -113,7 +113,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./run lib naive
       - name: Upload Sidecars
-        uses: namespace-actions/upload-artifact@v1
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1
         with:
           name: sidecars-so-build
           path: app/executableSo
@@ -127,14 +127,14 @@ jobs:
       - sidecars
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - name: Download LibCore
-        uses: namespace-actions/download-artifact@v1
+        uses: namespace-actions/download-artifact@5c070f7d7ebdc47682b04aa736c76e46ff5f6e1e # v1
         with:
           name: libcore-aar-build
           path: app/libs
       - name: Download Sidecars
-        uses: namespace-actions/download-artifact@v1
+        uses: namespace-actions/download-artifact@5c070f7d7ebdc47682b04aa736c76e46ff5f6e1e # v1
         with:
           name: sidecars-so-build
           path: app/executableSo
@@ -174,7 +174,7 @@ jobs:
           APK=$(dirname "$APK")
           echo "APK=$APK" >> $GITHUB_ENV
       - name: Upload Artifacts
-        uses: namespace-actions/upload-artifact@v1
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1
         with:
           name: NekoBoxs
           path: ${{ env.APK }}

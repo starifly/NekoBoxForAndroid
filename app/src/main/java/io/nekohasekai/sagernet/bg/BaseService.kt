@@ -25,6 +25,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import libcore.Libcore
 import moe.matsuri.nb4a.Protocols
+import moe.matsuri.nb4a.proxy.config.ConfigBean
 import moe.matsuri.nb4a.utils.Util
 import java.net.UnknownHostException
 import java.util.concurrent.ConcurrentHashMap
@@ -277,14 +278,20 @@ class BaseService {
         }
 
         fun canReloadSelector(): Boolean {
-            if ((data.proxy?.config?.selectorGroupId ?: -1L) < 0) return false
+            val running = data.proxy?.lastSelectorGroupId ?: -1L
+            if (running < 0L) return false
             val ent = SagerDatabase.proxyDao.getById(DataStore.selectedProxy) ?: return false
-            val tmpBox = ProxyInstance(ent)
-            tmpBox.buildConfigTmp()
-            if (tmpBox.lastSelectorGroupId == data.proxy?.lastSelectorGroupId) {
-                return true
+            // Mirrors ConfigBuilder.buildConfig()'s selectorGroupId derivation
+            // (TYPE_CONFIG/type==0 early exit; else group.isSelector -> group.id).
+            // Keep in sync with ConfigBuilder.kt:106-119,179,1194.
+            if (ent.type == ProxyEntity.TYPE_CONFIG &&
+                (ent.requireBean() as? ConfigBean)?.type == 0
+            ) {
+                return false
             }
-            return false
+            val group = SagerDatabase.groupDao.getById(ent.groupId) ?: return false
+            val newSelectorGroupId = if (group.isSelector) group.id else -1L
+            return newSelectorGroupId == running
         }
 
         suspend fun startProcesses() {

@@ -240,6 +240,8 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
                     clash_api = ClashAPIOptions().apply {
                         external_controller = "127.0.0.1:9090"
                         external_ui = "../files/yacd"
+                        // Exported/shared configs must not carry the per-install token.
+                        if (!forExport) secret = DataStore.clashApiSecret
                     }
                 }
             }

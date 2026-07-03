@@ -40,18 +40,21 @@ object PluginManager {
     }
 
     private fun initNative(pluginId: String): InitResult? {
-        val info = Plugins.getPlugin(pluginId) ?: return null
-
-        // internal so
-        if (info.applicationInfo == null) {
-            try {
-                initNativeInternal(pluginId)?.let { return InitResult(it, info) }
-            } catch (t: Throwable) {
-                Logs.w("initNativeInternal failed", t)
+        // A bundled sidecar always wins over an externally-installed provider:
+        // external providers are matched by authority prefix with no signature
+        // check, so they must not be able to shadow binaries we ship.
+        try {
+            initNativeInternal(pluginId)?.let { path ->
+                return InitResult(
+                    path,
+                    ProviderInfo().apply { authority = Plugins.AUTHORITIES_PREFIX_NEKO_EXE },
+                )
             }
-            return null
+        } catch (t: Throwable) {
+            Logs.w("initNativeInternal failed", t)
         }
 
+        val info = Plugins.getPluginExternal(pluginId) ?: return null
         try {
             initNativeFaster(info)?.let { return InitResult(it, info) }
         } catch (t: Throwable) {
