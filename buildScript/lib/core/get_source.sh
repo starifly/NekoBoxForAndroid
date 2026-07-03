@@ -22,9 +22,13 @@ popd
 ####
 
 if [ ! -d "libneko" ]; then
-  git clone --no-checkout https://github.com/starifly/libneko.git
+  git clone --no-checkout https://github.com/hawkff/libneko.git
 fi
 pushd libneko
+# Ensure we point at the hawkff mirror (a cached checkout may predate the switch
+# to the project org) and that the pinned commit is present before checkout.
+git remote set-url origin https://github.com/hawkff/libneko.git
+git fetch origin --tags --force
 git checkout "$COMMIT_LIBNEKO"
 popd
 

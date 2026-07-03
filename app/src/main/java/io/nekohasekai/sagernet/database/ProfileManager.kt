@@ -113,6 +113,11 @@ object ProfileManager {
         SagerDatabase.proxyDao.updateTraffic(profileId, rx, tx)
     }
 
+    // Add a per-session DELTA (never absolute) into the profile's lifetime columns (schema v12).
+    suspend fun addLifetimeTraffic(profileId: Long, rxDelta: Long, txDelta: Long) {
+        SagerDatabase.proxyDao.addLifetimeTraffic(profileId, rxDelta, txDelta)
+    }
+
     suspend fun deleteProfile2(groupId: Long, profileId: Long) {
         if (SagerDatabase.proxyDao.deleteById(profileId) == 0) return
         if (DataStore.selectedProxy == profileId) {

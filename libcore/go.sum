@@ -62,6 +62,8 @@ github.com/hashicorp/yamux v0.1.2 h1:XtB8kyFOyHXYVFnwT5C3+Bdo8gArse7j2AQ0DA0Uey8
 github.com/hashicorp/yamux v0.1.2/go.mod h1:C+zze2n6e/7wshOZep2A70/aQU6QBRWJO/G6FT1wIns=
 github.com/hawkff/sing-quic v0.6.2-0.20260630192917-42e8810bc4b8 h1:YVsZwkSlT57AY8ZzH0WtgGFfxZaXGIc4GbYzqn44fSQ=
 github.com/hawkff/sing-quic v0.6.2-0.20260630192917-42e8810bc4b8/go.mod h1:VamegfVFhpqGXuEjynLxK0O3vQ7mj32+ZMJvmCZDu68=
+github.com/hawkff/sing-vmess v0.2.8-mod.1 h1:AhUG4UT3gEhQg5iNrZ35gkT7W71Dl+rFlO6Le/g5HqQ=
+github.com/hawkff/sing-vmess v0.2.8-mod.1/go.mod h1:P11scgTxMxVVQ8dlM27yNm3Cro40mD0+gHbnqrNGDuY=
 github.com/insomniacslk/dhcp v0.0.0-20260220084031-5adc3eb26f91 h1:u9i04mGE3iliBh0EFuWaKsmcwrLacqGmq1G3XoaM7gY=
 github.com/insomniacslk/dhcp v0.0.0-20260220084031-5adc3eb26f91/go.mod h1:qfvBmyDNp+/liLEYWRvqny/PEz9hGe2Dz833eXILSmo=
 github.com/klauspost/compress v1.18.0 h1:c/Cqfb0r+Yi+JtIEq73FWXVkRonBlf0CRNYc8Zttxdo=
@@ -145,8 +147,6 @@ github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 h1:6uUiZcDRnZSAegryaUG
 github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854/go.mod h1:LtfoSK3+NG57tvnVEHgcuBW9ujgE8enPSgzgwStwCAA=
 github.com/sirupsen/logrus v1.9.3 h1:dueUQJ1C2q9oE3F7wvmSGAaVtTmUizReu6fjN8uqzbQ=
 github.com/sirupsen/logrus v1.9.3/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
-github.com/starifly/sing-vmess v0.2.8-mod.1 h1:FnSQ8t2psjiCuAQ7I2VDHGdiQBguOKEi/DTn8GooDYE=
-github.com/starifly/sing-vmess v0.2.8-mod.1/go.mod h1:P11scgTxMxVVQ8dlM27yNm3Cro40mD0+gHbnqrNGDuY=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=

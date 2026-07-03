@@ -113,6 +113,16 @@ class SagerNet :
 
         if (BuildConfig.DEBUG) {
             System.setProperty(DEBUG_PROPERTY_NAME, DEBUG_PROPERTY_VALUE_ON)
+            // Plan 027 Stage 1: surface main-thread disk I/O (incl. synchronous SagerDatabase
+            // access) so remaining main-thread DAO sites can be found and moved off-thread.
+            // penaltyLog only (never penaltyDeath) - this is observation, not enforcement.
+            StrictMode.setThreadPolicy(
+                StrictMode.ThreadPolicy.Builder()
+                    .detectDiskReads()
+                    .detectDiskWrites()
+                    .penaltyLog()
+                    .build(),
+            )
             StrictMode.setVmPolicy(
                 StrictMode.VmPolicy.Builder()
                     .detectLeakedSqlLiteObjects()

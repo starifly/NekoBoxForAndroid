@@ -95,11 +95,18 @@ fun Project.setupCommon() {
                     isShrinkResources = false
                     isMinifyEnabled = false
                 }
+                // Plan 027 Stage 3: release keeps the current main-thread-DB allowance until
+                // debug has run StrictMode-clean for a full cycle; then this flips to false and
+                // the allowMainThreadQueries() call is deleted.
+                buildConfigField("boolean", "ALLOW_MAIN_THREAD_DB", "true")
             }
             getByName("debug") {
                 applicationIdSuffix = "debug"
                 isDebuggable = true
                 isJniDebuggable = true
+                // Debug ships with the allowance OFF so StrictMode + a main-thread DAO access
+                // surfaces as a crash-free IllegalStateException the operator can catch on device.
+                buildConfigField("boolean", "ALLOW_MAIN_THREAD_DB", "false")
             }
         }
     }

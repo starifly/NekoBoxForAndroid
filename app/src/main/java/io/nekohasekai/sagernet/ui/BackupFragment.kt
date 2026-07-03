@@ -25,7 +25,6 @@ import io.nekohasekai.sagernet.databinding.LayoutBackupBinding
 import io.nekohasekai.sagernet.databinding.LayoutImportBinding
 import io.nekohasekai.sagernet.databinding.LayoutProgressBinding
 import io.nekohasekai.sagernet.ktx.*
-import io.nekohasekai.sagernet.ktx.snackbar
 import moe.matsuri.nb4a.utils.Util
 import okhttp3.Credentials
 import okhttp3.MediaType.Companion.toMediaType

@@ -5,7 +5,6 @@ package io.nekohasekai.sagernet.ktx
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
-import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -17,31 +16,21 @@ import android.system.Os
 import android.system.OsConstants
 import android.util.TypedValue
 import android.view.View
-import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.preference.Preference
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
-import com.jakewharton.processphoenix.ProcessPhoenix
 import io.nekohasekai.sagernet.BuildConfig
-import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
-import io.nekohasekai.sagernet.aidl.ISagerNetService
-import io.nekohasekai.sagernet.bg.BaseService
-import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.ui.MainActivity
-import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import moe.matsuri.nb4a.utils.NGUtil
@@ -243,88 +232,6 @@ fun View.crossFadeFrom(other: View) {
             other.visibility = View.GONE
         }
     }).duration = shortAnimTime
-}
-
-fun Fragment.snackbar(textId: Int) = (requireActivity() as MainActivity).snackbar(textId)
-fun Fragment.snackbar(text: CharSequence) = (requireActivity() as MainActivity).snackbar(text)
-
-fun ThemedActivity.startFilesForResult(launcher: ActivityResultLauncher<String>, input: String) {
-    try {
-        return launcher.launch(input)
-    } catch (_: ActivityNotFoundException) {
-    } catch (_: SecurityException) {
-    }
-    snackbar(getString(R.string.file_manager_missing)).show()
-}
-
-fun Fragment.startFilesForResult(launcher: ActivityResultLauncher<String>, input: String) {
-    try {
-        return launcher.launch(input)
-    } catch (_: ActivityNotFoundException) {
-    } catch (_: SecurityException) {
-    }
-    (requireActivity() as ThemedActivity).snackbar(getString(R.string.file_manager_missing)).show()
-}
-
-fun Fragment.needReload() {
-    if (DataStore.serviceState.started) {
-        snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {
-            // Drain the cached settings store's async write-through commits before telling :bg to
-            // reload, so the service re-reads the just-changed setting from a durable DB rather
-            // than a stale row.
-            runOnDefaultDispatcher {
-                try {
-                    DataStore.configurationStore.awaitWrites()
-                    SagerNet.reloadService()
-                } catch (e: Exception) {
-                    Logs.w(e)
-                    // The coroutine can outlive the fragment; only touch fragment APIs while attached.
-                    onMainDispatcher {
-                        if (isAdded) snackbar(getString(R.string.service_failed)).show()
-                    }
-                }
-            }
-        }.show()
-    }
-}
-
-fun Fragment.needRestart() {
-    snackbar(R.string.need_restart).setAction(R.string.apply) {
-        triggerFullRestart(requireContext())
-    }.show()
-}
-
-fun triggerFullRestart(ctx: Context) {
-    runOnDefaultDispatcher {
-        // Drain async preference write-through before tearing down + rebirthing, so same-gesture
-        // restart-required settings (e.g. logLevel/logBufSize, read by SagerNet.onCreate in both
-        // processes) are durable before the process restarts. Best-effort: a drain failure must
-        // not block the user-requested restart.
-        try {
-            DataStore.configurationStore.awaitWrites()
-        } catch (e: Exception) {
-            Logs.w(e)
-        }
-        SagerNet.stopService()
-        delay(500)
-        SagerConnection.restartingApp = true
-        val connection = SagerConnection(SagerConnection.CONNECTION_ID_RESTART_BG)
-        connection.connect(
-            ctx,
-            RestartCallback {
-                ProcessPhoenix.triggerRebirth(ctx, Intent(ctx, MainActivity::class.java))
-            },
-        )
-    }
-}
-
-private class RestartCallback(val callback: () -> Unit) : SagerConnection.Callback {
-    override fun stateChanged(state: BaseService.State, profileName: String?, msg: String?) {
-    }
-
-    override fun onServiceConnected(service: ISagerNetService) {
-        callback()
-    }
 }
 
 fun Context.getColour(@ColorRes colorRes: Int): Int {

@@ -42,6 +42,7 @@ import io.nekohasekai.sagernet.fmt.KryoConverters
 import io.nekohasekai.sagernet.fmt.PluginEntry
 import io.nekohasekai.sagernet.group.GroupInterfaceAdapter
 import io.nekohasekai.sagernet.group.GroupUpdater
+import io.nekohasekai.sagernet.ktx.FabContainer
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.alert
 import io.nekohasekai.sagernet.ktx.isPreview
@@ -56,10 +57,16 @@ class MainActivity :
     ThemedActivity(),
     SagerConnection.Callback,
     OnPreferenceDataStoreChangeListener,
+    FabContainer,
     NavigationView.OnNavigationItemSelectedListener {
 
     lateinit var binding: LayoutMainBinding
     lateinit var navigation: NavigationView
+
+    // FabContainer: lets ktx layout managers drive the FAB without importing ui (cycle break).
+    override val fabView get() = binding.fab
+    override fun showFab() = binding.fab.show()
+    override fun hideFab() = binding.fab.hide()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

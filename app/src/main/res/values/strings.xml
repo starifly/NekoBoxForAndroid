@@ -94,6 +94,7 @@
     <string name="allow_insecure_sum">Disable certificate checking. When enabled, this configuration
         is as secure as plaintext</string>
     <string name="traffic" translatable="false">%1$s↑ %2$s↓</string>
+    <string name="lifetime_traffic">All-time: %1$s↑ %2$s↓</string>
     <string name="speed_detail">Proxy： %1$s↑ %2$s↓\nDirect： %3$s↑ %4$s↓</string>
     <string name="speed">%s/s</string>
     <string name="connection_test_testing">Testing…</string>

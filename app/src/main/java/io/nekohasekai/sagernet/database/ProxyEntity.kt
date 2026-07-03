@@ -62,6 +62,14 @@ data class ProxyEntity(
     var userOrder: Long = 0L,
     var tx: Long = 0L,
     var rx: Long = 0L,
+    // Lifetime (all-time) totals, accumulated across sessions. Additive columns (schema v12);
+    // tx/rx above stay the live/session value the UI already shows. Not part of the Kryo
+    // serializeToBuffer wire format (backup/export stats are out of scope), so the on-disk
+    // blob format is unchanged. A DB default of 0 is required for the additive AutoMigration.
+    @ColumnInfo(defaultValue = "0")
+    var lifetimeRx: Long = 0L,
+    @ColumnInfo(defaultValue = "0")
+    var lifetimeTx: Long = 0L,
     var status: Int = 0,
     var ping: Int = 0,
     var uuid: String = "",
@@ -188,87 +196,20 @@ data class ProxyEntity(
     }
 
     fun putByteArray(byteArray: ByteArray) {
-        when (type) {
-            TYPE_SOCKS -> socksBean = KryoConverters.socksDeserialize(byteArray)
-            TYPE_HTTP -> httpBean = KryoConverters.httpDeserialize(byteArray)
-            TYPE_SS -> ssBean = KryoConverters.shadowsocksDeserialize(byteArray)
-            TYPE_SSR -> ssrBean = KryoConverters.shadowsocksrDeserialize(byteArray)
-            TYPE_VMESS -> vmessBean = KryoConverters.vmessDeserialize(byteArray)
-            TYPE_TROJAN -> trojanBean = KryoConverters.trojanDeserialize(byteArray)
-            TYPE_TROJAN_GO -> trojanGoBean = KryoConverters.trojanGoDeserialize(byteArray)
-            TYPE_MIERU -> mieruBean = KryoConverters.mieruDeserialize(byteArray)
-            TYPE_NAIVE -> naiveBean = KryoConverters.naiveDeserialize(byteArray)
-            TYPE_HYSTERIA -> hysteriaBean = KryoConverters.hysteriaDeserialize(byteArray)
-            TYPE_SSH -> sshBean = KryoConverters.sshDeserialize(byteArray)
-            TYPE_WG -> wgBean = KryoConverters.wireguardDeserialize(byteArray)
-            TYPE_TUIC -> tuicBean = KryoConverters.tuicDeserialize(byteArray)
-            TYPE_JUICITY -> juicityBean = KryoConverters.juicityDeserialize(byteArray)
-            TYPE_SHADOWTLS -> shadowTLSBean = KryoConverters.shadowTLSDeserialize(byteArray)
-            TYPE_ANYTLS -> anyTLSBean = KryoConverters.anyTLSDeserialize(byteArray)
-            TYPE_CHAIN -> chainBean = KryoConverters.chainDeserialize(byteArray)
-            TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
-            TYPE_SNELL -> snellBean = KryoConverters.snellDeserialize(byteArray)
-            TYPE_MASTERDNSVPN -> masterDnsVpnBean = KryoConverters.masterDnsVpnDeserialize(byteArray)
-            TYPE_OLCRTC -> olcrtcBean = KryoConverters.olcrtcDeserialize(byteArray)
-            TYPE_AWG -> awgBean = KryoConverters.amneziaWGDeserialize(byteArray)
-        }
+        // Registry routes each persisted type id to the same KryoConverters.*Deserialize the
+        // historical when(type) ladder used and stores it in the matching typed field. An
+        // unknown/dead id is a no-op, matching the old ladder's absent else-branch.
+        ProtocolRegistry.forType(type)?.let { it.setBean(this, it.deserialize(byteArray)) }
     }
 
-    fun displayType(): String = when (type) {
-        TYPE_SOCKS -> socksBean!!.protocolName()
-        TYPE_HTTP -> if (httpBean!!.isTLS()) "HTTPS" else "HTTP"
-        TYPE_SS -> "Shadowsocks"
-        TYPE_SSR -> "ShadowsocksR"
-        TYPE_VMESS -> if (vmessBean!!.isVLESS) "VLESS" else "VMess"
-        TYPE_TROJAN -> "Trojan"
-        TYPE_TROJAN_GO -> "Trojan-Go"
-        TYPE_MIERU -> "Mieru"
-        TYPE_NAIVE -> "Naïve"
-        TYPE_HYSTERIA -> "Hysteria" + hysteriaBean!!.protocolVersion
-        TYPE_SSH -> "SSH"
-        TYPE_WG -> "WireGuard"
-        TYPE_TUIC -> "TUIC"
-        TYPE_JUICITY -> "Juicity"
-        TYPE_SHADOWTLS -> "ShadowTLS"
-        TYPE_ANYTLS -> "AnyTLS"
-        TYPE_CHAIN -> chainName
-        TYPE_CONFIG -> configBean!!.displayType()
-        TYPE_SNELL -> "Snell"
-        TYPE_MASTERDNSVPN -> "MasterDnsVPN"
-        TYPE_OLCRTC -> "olcRTC"
-        TYPE_AWG -> "AmneziaWG"
-        else -> "Undefined type $type"
-    }
+    fun displayType(): String = ProtocolRegistry.forType(type)?.displayType?.invoke(this) ?: "Undefined type $type"
 
     fun displayName() = requireBean().displayName()
     fun displayAddress() = requireBean().displayAddress()
 
     fun requireBean(): AbstractBean {
-        return when (type) {
-            TYPE_SOCKS -> socksBean
-            TYPE_HTTP -> httpBean
-            TYPE_SS -> ssBean
-            TYPE_SSR -> ssrBean
-            TYPE_VMESS -> vmessBean
-            TYPE_TROJAN -> trojanBean
-            TYPE_TROJAN_GO -> trojanGoBean
-            TYPE_MIERU -> mieruBean
-            TYPE_NAIVE -> naiveBean
-            TYPE_HYSTERIA -> hysteriaBean
-            TYPE_SSH -> sshBean
-            TYPE_WG -> wgBean
-            TYPE_TUIC -> tuicBean
-            TYPE_JUICITY -> juicityBean
-            TYPE_SHADOWTLS -> shadowTLSBean
-            TYPE_ANYTLS -> anyTLSBean
-            TYPE_CHAIN -> chainBean
-            TYPE_CONFIG -> configBean
-            TYPE_SNELL -> snellBean
-            TYPE_MASTERDNSVPN -> masterDnsVpnBean
-            TYPE_OLCRTC -> olcrtcBean
-            TYPE_AWG -> awgBean
-            else -> error("Undefined type $type")
-        } ?: error("Null ${displayType()} profile")
+        val descriptor = ProtocolRegistry.forType(type) ?: error("Undefined type $type")
+        return descriptor.getBean(this) ?: error("Null ${displayType()} profile")
     }
 
     fun haveLink(): Boolean {
@@ -352,15 +293,7 @@ data class ProxyEntity(
     }
 
     fun needExternal(): Boolean {
-        return when (type) {
-            TYPE_TROJAN_GO -> true
-            TYPE_MIERU -> true
-            TYPE_NAIVE -> true
-            TYPE_MASTERDNSVPN -> true
-            TYPE_OLCRTC -> true
-            TYPE_HYSTERIA -> !hysteriaBean!!.canUseSingBox()
-            else -> false
-        }
+        return ProtocolRegistry.forType(type)?.needExternal?.invoke(this) ?: false
     }
 
     fun singMux(): MultiplexOptions? {
@@ -442,142 +375,14 @@ data class ProxyEntity(
     }
 
     fun putBean(bean: AbstractBean): ProxyEntity {
-        socksBean = null
-        httpBean = null
-        ssBean = null
-        ssrBean = null
-        vmessBean = null
-        trojanBean = null
-        trojanGoBean = null
-        mieruBean = null
-        naiveBean = null
-        hysteriaBean = null
-        sshBean = null
-        wgBean = null
-        awgBean = null
-        tuicBean = null
-        juicityBean = null
-        shadowTLSBean = null
-        anyTLSBean = null
-        chainBean = null
-        configBean = null
-        snellBean = null
-        masterDnsVpnBean = null
-        olcrtcBean = null
-
-        when (bean) {
-            is SOCKSBean -> {
-                type = TYPE_SOCKS
-                socksBean = bean
-            }
-
-            is HttpBean -> {
-                type = TYPE_HTTP
-                httpBean = bean
-            }
-
-            is ShadowsocksBean -> {
-                type = TYPE_SS
-                ssBean = bean
-            }
-
-            is ShadowsocksRBean -> {
-                type = TYPE_SSR
-                ssrBean = bean
-            }
-
-            is VMessBean -> {
-                type = TYPE_VMESS
-                vmessBean = bean
-            }
-
-            is TrojanBean -> {
-                type = TYPE_TROJAN
-                trojanBean = bean
-            }
-
-            is TrojanGoBean -> {
-                type = TYPE_TROJAN_GO
-                trojanGoBean = bean
-            }
-
-            is MieruBean -> {
-                type = TYPE_MIERU
-                mieruBean = bean
-            }
-
-            is NaiveBean -> {
-                type = TYPE_NAIVE
-                naiveBean = bean
-            }
-
-            is HysteriaBean -> {
-                type = TYPE_HYSTERIA
-                hysteriaBean = bean
-            }
-
-            is SSHBean -> {
-                type = TYPE_SSH
-                sshBean = bean
-            }
-
-            is WireGuardBean -> {
-                type = TYPE_WG
-                wgBean = bean
-            }
-
-            is AmneziaWGBean -> {
-                type = TYPE_AWG
-                awgBean = bean
-            }
-
-            is TuicBean -> {
-                type = TYPE_TUIC
-                tuicBean = bean
-            }
-
-            is JuicityBean -> {
-                type = TYPE_JUICITY
-                juicityBean = bean
-            }
-
-            is ShadowTLSBean -> {
-                type = TYPE_SHADOWTLS
-                shadowTLSBean = bean
-            }
-
-            is AnyTLSBean -> {
-                type = TYPE_ANYTLS
-                anyTLSBean = bean
-            }
-
-            is SnellBean -> {
-                type = TYPE_SNELL
-                snellBean = bean
-            }
-
-            is MasterDnsVpnBean -> {
-                type = TYPE_MASTERDNSVPN
-                masterDnsVpnBean = bean
-            }
-
-            is OlcrtcBean -> {
-                type = TYPE_OLCRTC
-                olcrtcBean = bean
-            }
-
-            is ChainBean -> {
-                type = TYPE_CHAIN
-                chainBean = bean
-            }
-
-            is ConfigBean -> {
-                type = TYPE_CONFIG
-                configBean = bean
-            }
-
-            else -> error("Undefined type $type")
-        }
+        // Registry clears every typed field then assigns the one matching this bean's class and
+        // sets the corresponding type id - identical result to the historical null-out block +
+        // when(bean) ladder, but declared once per protocol. An unregistered bean class errors,
+        // matching the old else-branch.
+        ProtocolRegistry.clearAllBeans(this)
+        val descriptor = ProtocolRegistry.forBean(bean) ?: error("Unregistered bean class ${bean.javaClass.simpleName}")
+        type = descriptor.type
+        descriptor.setBean(this, bean)
         return this
     }
 
@@ -662,6 +467,13 @@ data class ProxyEntity(
 
         @Query("UPDATE proxy_entities SET rx = :rx, tx = :tx WHERE id = :proxyId")
         fun updateTraffic(proxyId: Long, rx: Long, tx: Long): Int
+
+        // Additive lifetime accumulation (schema v12). Callers pass the per-session DELTA since
+        // the last flush (never absolute totals) so re-entrant persist() cannot double-count.
+        @Query(
+            "UPDATE proxy_entities SET lifetimeRx = lifetimeRx + :rxDelta, lifetimeTx = lifetimeTx + :txDelta WHERE id = :proxyId",
+        )
+        fun addLifetimeTraffic(proxyId: Long, rxDelta: Long, txDelta: Long): Int
 
         @Insert
         fun addProxy(proxy: ProxyEntity): Long

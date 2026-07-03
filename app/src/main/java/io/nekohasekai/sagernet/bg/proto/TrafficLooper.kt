@@ -12,6 +12,8 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class TrafficLooper(
     val data: BaseService.Data,
@@ -27,6 +29,11 @@ class TrafficLooper(
     // single loop coroutine (no concurrent HashMap mutation -> no CME / corrupt accounting).
     // CONFLATED: only the latest selected id matters; superseded switches are safe to drop.
     private val selectChannel = Channel<Long>(Channel.CONFLATED)
+
+    // Serializes the lifetime read-modify-write so the loop coroutine (persist) and the
+    // selector-switch coroutine (GlobalScope via runOnDefaultDispatcher) cannot interleave the
+    // check-and-advance of lifetimeFlushed* and double-count a delta.
+    private val lifetimeMutex = Mutex()
 
     suspend fun stop() {
         // cancelAndJoin (not cancel): wait for the loop coroutine to actually finish before the
@@ -55,6 +62,7 @@ class TrafficLooper(
                 ent.rx = item.rx
                 ent.tx = item.tx
                 ProfileManager.updateTraffic(ent.id, ent.rx, ent.tx)
+                flushLifetimeDelta(ent.id, item)
                 traffic[ent.id] = TrafficData(
                     id = ent.id,
                     rx = ent.rx,
@@ -66,6 +74,26 @@ class TrafficLooper(
             b.cbTrafficUpdateList(ArrayList(traffic.values))
         }
         Logs.d("finally traffic post done")
+    }
+
+    /**
+     * Add this session's not-yet-persisted delta into the profile's lifetime columns, advancing
+     * the flushed marker only AFTER the DB write completes so a failed/incomplete write does not
+     * silently drop bytes. suspend so the caller awaits the write on its own coroutine.
+     * Idempotent: a second call before more traffic flows adds nothing, so re-entrant persist()
+     * / a selector switch never double-counts. Gated by profileTrafficStatistics like its callers.
+     */
+    private suspend fun flushLifetimeDelta(id: Long, item: TrafficUpdater.TrafficLooperData) {
+        lifetimeMutex.withLock {
+            val rxDelta = (item.rx - item.rxBase) - item.lifetimeFlushedRx
+            val txDelta = (item.tx - item.txBase) - item.lifetimeFlushedTx
+            val rxAdd = if (rxDelta > 0) rxDelta else 0
+            val txAdd = if (txDelta > 0) txDelta else 0
+            if (rxAdd == 0L && txAdd == 0L) return
+            ProfileManager.addLifetimeTraffic(id, rxAdd, txAdd)
+            item.lifetimeFlushedRx += rxAdd
+            item.lifetimeFlushedTx += txAdd
+        }
     }
 
     fun start() {
@@ -90,11 +118,13 @@ class TrafficLooper(
             ignore = true
             // post traffic when switch
             if (DataStore.profileTrafficStatistics) {
+                val switchedFrom = this
                 data.proxy?.config?.trafficMap?.get(tag)?.firstOrNull()?.let {
                     it.rx = rx
                     it.tx = tx
                     runOnDefaultDispatcher {
                         ProfileManager.updateTraffic(it.id, it.rx, it.tx)
+                        flushLifetimeDelta(it.id, switchedFrom)
                     }
                 }
             }

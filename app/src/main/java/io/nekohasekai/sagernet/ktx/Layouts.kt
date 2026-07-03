@@ -5,7 +5,6 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.ui.MainActivity
 
 class FixedLinearLayoutManager(val recyclerView: RecyclerView) :
     LinearLayoutManager(recyclerView.context, RecyclerView.VERTICAL, false) {
@@ -26,7 +25,7 @@ class FixedLinearLayoutManager(val recyclerView: RecyclerView) :
         // SagerNet Style
         val scrollRange = super.scrollVerticallyBy(dx, recycler, state)
         if (listenerDisabled) return scrollRange
-        val activity = recyclerView.context as? MainActivity
+        val activity = recyclerView.context as? FabContainer
         if (activity == null) {
             listenerDisabled = true
             return scrollRange
@@ -40,7 +39,7 @@ class FixedLinearLayoutManager(val recyclerView: RecyclerView) :
                         ?: return scrollRange
                     ).itemView
             val itemLocation = Rect().also { view.getGlobalVisibleRect(it) }
-            val fabLocation = Rect().also { activity.binding.fab.getGlobalVisibleRect(it) }
+            val fabLocation = Rect().also { activity.fabView.getGlobalVisibleRect(it) }
             if (!itemLocation.contains(fabLocation.left, fabLocation.top) && !itemLocation.contains(
                     fabLocation.right,
                     fabLocation.bottom,
@@ -48,9 +47,7 @@ class FixedLinearLayoutManager(val recyclerView: RecyclerView) :
             ) {
                 return scrollRange
             }
-            activity.binding.fab.apply {
-                if (isShown) hide()
-            }
+            if (activity.fabView.isShown) activity.hideFab()
         } else {
             /*val screen = Rect().also { activity.window.decorView.getGlobalVisibleRect(it) }
             val location = Rect().also { activity.stats.getGlobalVisibleRect(it) }
@@ -64,9 +61,7 @@ class FixedLinearLayoutManager(val recyclerView: RecyclerView) :
                 return scrollRange
             }*/
 
-            activity.binding.fab.apply {
-                if (!isShown) show()
-            }
+            if (!activity.fabView.isShown) activity.showFab()
         }
         return scrollRange
     }
@@ -95,7 +90,7 @@ class FixedGridLayoutManager(val recyclerView: RecyclerView, spanCount: Int) :
         // SagerNet Style
         val scrollRange = super.scrollVerticallyBy(dx, recycler, state)
         if (listenerDisabled) return scrollRange
-        val activity = recyclerView.context as? MainActivity
+        val activity = recyclerView.context as? FabContainer
         if (activity == null) {
             listenerDisabled = true
             return scrollRange
@@ -109,7 +104,7 @@ class FixedGridLayoutManager(val recyclerView: RecyclerView, spanCount: Int) :
                         ?: return scrollRange
                     ).itemView
             val itemLocation = Rect().also { view.getGlobalVisibleRect(it) }
-            val fabLocation = Rect().also { activity.binding.fab.getGlobalVisibleRect(it) }
+            val fabLocation = Rect().also { activity.fabView.getGlobalVisibleRect(it) }
             if (!itemLocation.contains(fabLocation.left, fabLocation.top) && !itemLocation.contains(
                     fabLocation.right,
                     fabLocation.bottom,
@@ -117,13 +112,9 @@ class FixedGridLayoutManager(val recyclerView: RecyclerView, spanCount: Int) :
             ) {
                 return scrollRange
             }
-            activity.binding.fab.apply {
-                if (isShown) hide()
-            }
+            if (activity.fabView.isShown) activity.hideFab()
         } else {
-            activity.binding.fab.apply {
-                if (!isShown) show()
-            }
+            if (!activity.fabView.isShown) activity.showFab()
         }
         return scrollRange
     }

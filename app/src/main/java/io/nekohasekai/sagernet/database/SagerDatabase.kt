@@ -8,6 +8,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.AutoMigrationSpec
 import androidx.sqlite.db.SupportSQLiteDatabase
+import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.fmt.KryoConverters
@@ -15,7 +16,7 @@ import io.nekohasekai.sagernet.fmt.gson.GsonConverters
 
 @Database(
     entities = [ProxyGroup::class, ProxyEntity::class, RuleEntity::class],
-    version = 11,
+    version = 12,
     autoMigrations = [
         AutoMigration(from = 3, to = 4),
         AutoMigration(from = 4, to = 5),
@@ -25,6 +26,9 @@ import io.nekohasekai.sagernet.fmt.gson.GsonConverters
         AutoMigration(from = 8, to = 9),
         AutoMigration(from = 9, to = 10),
         AutoMigration(from = 10, to = 11, spec = SagerDatabase.RemoveNekoColumn::class),
+        // v12: additive lifetimeRx/lifetimeTx columns on proxy_entities (default 0). Pure column
+        // adds are auto-migratable without a spec; never destructive.
+        AutoMigration(from = 11, to = 12),
     ],
 )
 @TypeConverters(value = [KryoConverters::class, GsonConverters::class])
@@ -44,7 +48,9 @@ abstract class SagerDatabase : RoomDatabase() {
             SagerNet.application.getDatabasePath(Key.DB_PROFILE).parentFile?.mkdirs()
             Room.databaseBuilder(SagerNet.application, SagerDatabase::class.java, Key.DB_PROFILE)
                 .setJournalMode(JournalMode.TRUNCATE)
-                .allowMainThreadQueries()
+                // Plan 027 Stage 3: the main-thread-DB allowance is behind a build flag so it can
+                // be removed once the app runs StrictMode-clean (debug already ships with it off).
+                .apply { if (BuildConfig.ALLOW_MAIN_THREAD_DB) allowMainThreadQueries() }
                 .enableMultiInstanceInvalidation()
                 .setQueryExecutor(DbExecutors.query)
                 .build()

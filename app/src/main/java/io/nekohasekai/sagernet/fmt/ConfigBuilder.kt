@@ -102,6 +102,61 @@ class ConfigBuildResult(
     data class IndexEntity(var chain: LinkedHashMap<Int, ProxyEntity>)
 }
 
+// Extracted from buildConfig as pure, capture-free helpers (Plan 028 seams).
+// Behavior-preserving moves: same inputs -> same outputs.
+
+private fun resolveChainInternal(entity: ProxyEntity): MutableList<ProxyEntity> {
+    val bean = entity.requireBean()
+    if (bean is ChainBean) {
+        val beans = SagerDatabase.proxyDao.getEntities(bean.proxies)
+        val beansMap = beans.associateBy { it.id }
+        val beanList = ArrayList<ProxyEntity>()
+        for (proxyId in bean.proxies) {
+            val item = beansMap[proxyId] ?: continue
+            beanList.addAll(resolveChainInternal(item))
+        }
+        return beanList.asReversed()
+    }
+    return mutableListOf(entity)
+}
+
+private fun resolveChain(entity: ProxyEntity): MutableList<ProxyEntity> {
+    val thisGroup = SagerDatabase.groupDao.getById(entity.groupId)
+    val frontProxy = thisGroup?.frontProxy?.let { SagerDatabase.proxyDao.getById(it) }
+    val landingProxy = thisGroup?.landingProxy?.let { SagerDatabase.proxyDao.getById(it) }
+    val list = resolveChainInternal(entity)
+    if (frontProxy != null) {
+        list.add(frontProxy)
+    }
+    if (landingProxy != null) {
+        list.add(0, landingProxy)
+    }
+    return list
+}
+
+private fun genDomainStrategy(noAsIs: Boolean, ipv6Mode: Int): String {
+    return when {
+        !noAsIs -> ""
+        ipv6Mode == IPv6Mode.DISABLE -> "ipv4_only"
+        ipv6Mode == IPv6Mode.PREFER -> "prefer_ipv6"
+        ipv6Mode == IPv6Mode.ONLY -> "ipv6_only"
+        else -> "prefer_ipv4"
+    }
+}
+
+private fun autoDnsDomainStrategy(s: String, ipv6Mode: Int): String? {
+    if (s.isNotEmpty()) {
+        return s
+    }
+    return when (ipv6Mode) {
+        IPv6Mode.DISABLE -> "ipv4_only"
+        IPv6Mode.ENABLE -> "prefer_ipv4"
+        IPv6Mode.PREFER -> "prefer_ipv6"
+        IPv6Mode.ONLY -> "ipv6_only"
+        else -> null
+    }
+}
+
 fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean = false): ConfigBuildResult {
     if (proxy.type == TYPE_CONFIG) {
         val bean = proxy.requireBean() as ConfigBean
@@ -126,20 +181,7 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
     val readableNames = mutableSetOf(TAG_DIRECT, TAG_BYPASS, TAG_BLOCK, TAG_FRAGMENT, TAG_MIXED, TAG_PROXY)
     val group = SagerDatabase.groupDao.getById(proxy.groupId)
 
-    fun ProxyEntity.resolveChainInternal(): MutableList<ProxyEntity> {
-        val bean = requireBean()
-        if (bean is ChainBean) {
-            val beans = SagerDatabase.proxyDao.getEntities(bean.proxies)
-            val beansMap = beans.associateBy { it.id }
-            val beanList = ArrayList<ProxyEntity>()
-            for (proxyId in bean.proxies) {
-                val item = beansMap[proxyId] ?: continue
-                beanList.addAll(item.resolveChainInternal())
-            }
-            return beanList.asReversed()
-        }
-        return mutableListOf(this)
-    }
+    fun ProxyEntity.resolveChainInternal(): MutableList<ProxyEntity> = resolveChainInternal(this)
 
     fun readableTag(name_: String): String {
         var name = name_
@@ -151,19 +193,7 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
         return name
     }
 
-    fun ProxyEntity.resolveChain(): MutableList<ProxyEntity> {
-        val thisGroup = SagerDatabase.groupDao.getById(groupId)
-        val frontProxy = thisGroup?.frontProxy?.let { SagerDatabase.proxyDao.getById(it) }
-        val landingProxy = thisGroup?.landingProxy?.let { SagerDatabase.proxyDao.getById(it) }
-        val list = resolveChainInternal()
-        if (frontProxy != null) {
-            list.add(frontProxy)
-        }
-        if (landingProxy != null) {
-            list.add(0, landingProxy)
-        }
-        return list
-    }
+    fun ProxyEntity.resolveChain(): MutableList<ProxyEntity> = resolveChain(this)
 
     val extraRules = if (forTest) listOf() else SagerDatabase.rulesDao.enabledRules()
     val extraProxies =
@@ -215,15 +245,7 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
     val externalIndexMap = ArrayList<IndexEntity>()
     val ipv6Mode = if (forTest) IPv6Mode.ENABLE else DataStore.ipv6Mode
 
-    fun genDomainStrategy(noAsIs: Boolean): String {
-        return when {
-            !noAsIs -> ""
-            ipv6Mode == IPv6Mode.DISABLE -> "ipv4_only"
-            ipv6Mode == IPv6Mode.PREFER -> "prefer_ipv6"
-            ipv6Mode == IPv6Mode.ONLY -> "ipv6_only"
-            else -> "prefer_ipv4"
-        }
-    }
+    fun genDomainStrategy(noAsIs: Boolean): String = genDomainStrategy(noAsIs, ipv6Mode)
 
     return MyOptions().apply {
         if (!forTest) {
@@ -264,18 +286,7 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
             independent_cache = true
         }
 
-        fun autoDnsDomainStrategy(s: String): String? {
-            if (s.isNotEmpty()) {
-                return s
-            }
-            return when (ipv6Mode) {
-                IPv6Mode.DISABLE -> "ipv4_only"
-                IPv6Mode.ENABLE -> "prefer_ipv4"
-                IPv6Mode.PREFER -> "prefer_ipv6"
-                IPv6Mode.ONLY -> "ipv6_only"
-                else -> null
-            }
-        }
+        fun autoDnsDomainStrategy(s: String): String? = autoDnsDomainStrategy(s, ipv6Mode)
 
         inbounds = mutableListOf()
 

@@ -101,7 +101,7 @@ replace github.com/matsuridayo/libneko => ../../libneko
 
 replace github.com/sagernet/sing-box => ../../sing-box
 
-replace github.com/sagernet/sing-vmess => github.com/starifly/sing-vmess v0.2.8-mod.1
+replace github.com/sagernet/sing-vmess => github.com/hawkff/sing-vmess v0.2.8-mod.1
 
 // sing-juicity was renamed dyhkwong -> exclavenetwork at v0.1.x; the import path
 // in libcore stays dyhkwong. v0.1.4 targets quic-go v0.59 / sing v0.8 / sing-quic v0.6.1.
