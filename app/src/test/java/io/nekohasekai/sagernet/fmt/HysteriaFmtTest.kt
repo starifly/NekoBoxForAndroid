@@ -11,11 +11,11 @@ import org.robolectric.annotation.Config
 
 /**
  * Tests for the Hysteria 2 JSON config import (Plan 022). Uses Robolectric because org.json
- * is an Android-framework class (stubbed on the bare JVM). Pinned to a Robolectric-supported
- * SDK level (the project's compileSdk 36 may not be bundled in Robolectric yet).
+ * is an Android-framework class (stubbed on the bare JVM). Pinned to the app's targetSdk,
+ * which Robolectric 4.16 bundles (4.16 supports SDK 36 / Baklava).
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [33], application = android.app.Application::class)
+@Config(sdk = [35], application = android.app.Application::class)
 class HysteriaFmtTest {
 
     @Test

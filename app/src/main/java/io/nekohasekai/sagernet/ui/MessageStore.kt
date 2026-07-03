@@ -40,4 +40,4 @@ object MessageStore {
     fun showMessage(activity: Activity, @StringRes resId: Int, vararg formatArgs: Any) {
         showMessage(activity.getString(resId, *formatArgs))
     }
-} 
+}

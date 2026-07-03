@@ -2,7 +2,6 @@ package moe.matsuri.nb4a
 
 import android.content.Context
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_NEKO
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.getColorAttr
@@ -42,10 +41,7 @@ object Protocols {
     // Display
 
     fun Context.getProtocolColor(type: Int): Int {
-        return when (type) {
-            TYPE_NEKO -> getColorAttr(android.R.attr.textColorPrimary)
-            else -> getColorAttr(R.attr.protocolColor)
-        }
+        return getColorAttr(R.attr.protocolColor)
     }
 
     // Test

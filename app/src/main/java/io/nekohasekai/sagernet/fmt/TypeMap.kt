@@ -23,7 +23,6 @@ object TypeMap : HashMap<String, Int>() {
         this["snell"] = ProxyEntity.TYPE_SNELL
         this["masterdnsvpn"] = ProxyEntity.TYPE_MASTERDNSVPN
         this["olcrtc"] = ProxyEntity.TYPE_OLCRTC
-        this["neko"] = ProxyEntity.TYPE_NEKO
         this["config"] = ProxyEntity.TYPE_CONFIG
     }
 

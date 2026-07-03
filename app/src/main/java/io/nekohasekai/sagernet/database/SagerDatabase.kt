@@ -2,9 +2,12 @@ package io.nekohasekai.sagernet.database
 
 import androidx.room.AutoMigration
 import androidx.room.Database
+import androidx.room.DeleteColumn
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.AutoMigrationSpec
+import androidx.sqlite.db.SupportSQLiteDatabase
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.fmt.KryoConverters
@@ -12,7 +15,7 @@ import io.nekohasekai.sagernet.fmt.gson.GsonConverters
 
 @Database(
     entities = [ProxyGroup::class, ProxyEntity::class, RuleEntity::class],
-    version = 10,
+    version = 11,
     autoMigrations = [
         AutoMigration(from = 3, to = 4),
         AutoMigration(from = 4, to = 5),
@@ -21,10 +24,20 @@ import io.nekohasekai.sagernet.fmt.gson.GsonConverters
         AutoMigration(from = 7, to = 8),
         AutoMigration(from = 8, to = 9),
         AutoMigration(from = 9, to = 10),
+        AutoMigration(from = 10, to = 11, spec = SagerDatabase.RemoveNekoColumn::class),
     ],
 )
 @TypeConverters(value = [KryoConverters::class, GsonConverters::class])
 abstract class SagerDatabase : RoomDatabase() {
+
+    @DeleteColumn(tableName = "proxy_entities", columnName = "nekoBean")
+    class RemoveNekoColumn : AutoMigrationSpec {
+        override fun onPostMigrate(db: SupportSQLiteDatabase) {
+            // Legacy neko-plugin rows are non-functional placeholders; without the
+            // bean column they could no longer even render. Purge them.
+            db.execSQL("DELETE FROM proxy_entities WHERE type = 999")
+        }
+    }
 
     companion object {
         val instance by lazy {

@@ -46,7 +46,6 @@ import moe.matsuri.nb4a.proxy.anytls.AnyTLSSettingsActivity
 import moe.matsuri.nb4a.proxy.anytls.toUri
 import moe.matsuri.nb4a.proxy.config.ConfigBean
 import moe.matsuri.nb4a.proxy.config.ConfigSettingActivity
-import moe.matsuri.nb4a.proxy.neko.*
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity
 import io.nekohasekai.sagernet.fmt.masterdnsvpn.toUri as toMasterDnsVpnUri
@@ -84,7 +83,6 @@ data class ProxyEntity(
     var shadowTLSBean: ShadowTLSBean? = null,
     var anyTLSBean: AnyTLSBean? = null,
     var chainBean: ChainBean? = null,
-    var nekoBean: NekoBean? = null,
     var configBean: ConfigBean? = null,
     var snellBean: SnellBean? = null,
     var masterDnsVpnBean: MasterDnsVpnBean? = null,
@@ -121,6 +119,9 @@ data class ProxyEntity(
         const val TYPE_OLCRTC = 27
 
         const val TYPE_CONFIG = 998
+
+        // 999 was the Matsuri "Neko Plugin" protocol (removed). Reserved: do not
+        // reuse the id; rows with this type are purged by the v11 migration.
         const val TYPE_NEKO = 999
 
         const val TYPE_CHAIN = 8
@@ -205,7 +206,6 @@ data class ProxyEntity(
             TYPE_SHADOWTLS -> shadowTLSBean = KryoConverters.shadowTLSDeserialize(byteArray)
             TYPE_ANYTLS -> anyTLSBean = KryoConverters.anyTLSDeserialize(byteArray)
             TYPE_CHAIN -> chainBean = KryoConverters.chainDeserialize(byteArray)
-            TYPE_NEKO -> nekoBean = KryoConverters.nekoDeserialize(byteArray)
             TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
             TYPE_SNELL -> snellBean = KryoConverters.snellDeserialize(byteArray)
             TYPE_MASTERDNSVPN -> masterDnsVpnBean = KryoConverters.masterDnsVpnDeserialize(byteArray)
@@ -232,7 +232,6 @@ data class ProxyEntity(
         TYPE_SHADOWTLS -> "ShadowTLS"
         TYPE_ANYTLS -> "AnyTLS"
         TYPE_CHAIN -> chainName
-        TYPE_NEKO -> nekoBean!!.displayType()
         TYPE_CONFIG -> configBean!!.displayType()
         TYPE_SNELL -> "Snell"
         TYPE_MASTERDNSVPN -> "MasterDnsVPN"
@@ -263,7 +262,6 @@ data class ProxyEntity(
             TYPE_SHADOWTLS -> shadowTLSBean
             TYPE_ANYTLS -> anyTLSBean
             TYPE_CHAIN -> chainBean
-            TYPE_NEKO -> nekoBean
             TYPE_CONFIG -> configBean
             TYPE_SNELL -> snellBean
             TYPE_MASTERDNSVPN -> masterDnsVpnBean
@@ -286,7 +284,6 @@ data class ProxyEntity(
             is WireGuardBean -> false
             is AmneziaWGBean -> false
             is ShadowTLSBean -> false
-            is NekoBean -> false
             is ConfigBean -> false
             else -> true
         }
@@ -309,7 +306,6 @@ data class ProxyEntity(
             is SnellBean -> toUri()
             is MasterDnsVpnBean -> toMasterDnsVpnUri()
             is OlcrtcBean -> toOlcrtcUri()
-            is NekoBean -> ""
             else -> toUniversalLink()
         }
     }
@@ -363,7 +359,6 @@ data class ProxyEntity(
             TYPE_MASTERDNSVPN -> true
             TYPE_OLCRTC -> true
             TYPE_HYSTERIA -> !hysteriaBean!!.canUseSingBox()
-            TYPE_NEKO -> true
             else -> false
         }
     }
@@ -466,7 +461,6 @@ data class ProxyEntity(
         anyTLSBean = null
         chainBean = null
         configBean = null
-        nekoBean = null
         snellBean = null
         masterDnsVpnBean = null
         olcrtcBean = null
@@ -575,11 +569,6 @@ data class ProxyEntity(
             is ChainBean -> {
                 type = TYPE_CHAIN
                 chainBean = bean
-            }
-
-            is NekoBean -> {
-                type = TYPE_NEKO
-                nekoBean = bean
             }
 
             is ConfigBean -> {

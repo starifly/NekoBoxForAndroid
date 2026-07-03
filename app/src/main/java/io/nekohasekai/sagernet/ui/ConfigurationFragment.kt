@@ -1831,10 +1831,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
                 }
 
-                if (proxyEntity.nekoBean != null) {
-                    popup.menu.removeItem(R.id.action_group_configuration)
-                }
-
                 popup.setOnMenuItemClickListener(this)
                 popup.show()
             }
@@ -2076,12 +2072,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                     editButton.isGone = select
                     removeButton.isGone = select
                     doubleColumnMenuButton.isGone = true
-                }
-
-                proxyEntity.nekoBean?.apply {
-                    if (!isDoubleColumn) {
-                        shareLayout.isGone = true
-                    }
                 }
 
                 runOnDefaultDispatcher {
