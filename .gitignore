@@ -63,3 +63,4 @@ app/src/main/java/io/nekohasekai/sagernet/ktx/AgentDebugLog.kt
 
 # Local on-device DB/config backups (profiles + credentials — never commit)
 device-backups/
+.worklog/

@@ -5,8 +5,8 @@ import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.ServiceNotification
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.utils.Commandline
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.runBlocking
 import moe.matsuri.nb4a.utils.JavaUtil
 
@@ -60,10 +60,12 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     override fun launch() {
         box.setAsMain()
         super.launch() // start box
-        runOnDefaultDispatcher {
-            looper = service?.let { TrafficLooper(it.data, this) }
-            looper?.start()
-        }
+        // Assign the looper synchronously so close() always observes it (no
+        // launch/close race). GlobalScope matches the previous scope semantics:
+        // runOnDefaultDispatcher was GlobalScope.launch(Dispatchers.Default), and
+        // TrafficLooper.start() launches its own loop on this scope.
+        looper = service?.let { TrafficLooper(it.data, GlobalScope) }
+        looper?.start()
     }
 
     override fun close() {

@@ -163,17 +163,18 @@ object RawUpdater : GroupUpdater() {
         Logs.d("Unique profiles: ${nameMap.size}")
 
         val toDelete = ArrayList<ProxyEntity>()
-        val toReplace = exists.mapNotNull { entity ->
+        val toReplace = HashMap<String, ProxyEntity>()
+        for (entity in exists) {
             val name = entity.displayName()
-            if (nameMap.contains(name)) {
-                name to entity
+            if (nameMap.contains(name) && !toReplace.containsKey(name)) {
+                // first existing row claiming this name -> replace target
+                toReplace[name] = entity
             } else {
-                let {
-                    toDelete.add(entity)
-                    null
-                }
+                // name not in the new set, OR a duplicate of an already-claimed
+                // name -> delete so the post-transaction count matches proxies.size
+                toDelete.add(entity)
             }
-        }.toMap()
+        }
 
         Logs.d("toDelete profiles: ${toDelete.size}")
         Logs.d("toReplace profiles: ${toReplace.size}")

@@ -140,7 +140,7 @@ class BaseService {
                 Runtime.getRuntime().exit(0)
                 return
             }
-            if (!callbackIdMap.contains(cb)) {
+            if (!callbackIdMap.containsKey(cb)) {
                 callbacks.register(cb)
             }
             callbackIdMap[cb] = id
@@ -308,7 +308,7 @@ class BaseService {
                 wakeLock = null
             }
             runOnDefaultDispatcher {
-                DefaultNetworkListener.stop(this)
+                DefaultNetworkListener.stop(this@Interface)
             }
         }
 

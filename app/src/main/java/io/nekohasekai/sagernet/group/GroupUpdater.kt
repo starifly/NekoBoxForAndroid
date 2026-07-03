@@ -134,7 +134,10 @@ abstract class GroupUpdater {
 
         suspend fun executeUpdate(proxyGroup: ProxyGroup, byUser: Boolean): Boolean {
             return coroutineScope {
-                if (!updating.add(proxyGroup.id)) cancel()
+                if (!updating.add(proxyGroup.id)) {
+                    // already updating this group in another run; skip quietly
+                    return@coroutineScope false
+                }
                 GroupManager.postReload(proxyGroup.id)
 
                 val subscription = proxyGroup.subscription!!
@@ -152,7 +155,6 @@ abstract class GroupUpdater {
                         )
                     ) {
                         finishUpdate(proxyGroup)
-                        cancel()
                         return@coroutineScope true
                     }
                 }
@@ -160,6 +162,9 @@ abstract class GroupUpdater {
                 try {
                     RawUpdater.doUpdate(proxyGroup, subscription, userInterface, byUser)
                     true
+                } catch (e: CancellationException) {
+                    finishUpdate(proxyGroup)
+                    throw e
                 } catch (e: Throwable) {
                     Logs.w(e)
                     userInterface?.onUpdateFailure(proxyGroup, e.readableMessage)
