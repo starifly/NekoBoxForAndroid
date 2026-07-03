@@ -134,8 +134,15 @@
                 <data android:scheme="naive+https" />
                 <data android:scheme="naive+quic" />
                 <data android:scheme="hysteria" />
+                <data android:scheme="hysteria2" />
+                <data android:scheme="hy2" />
+                <data android:scheme="vless" />
+                <data android:scheme="anytls" />
+                <data android:scheme="snell" />
                 <data android:scheme="masterdns" />
                 <data android:scheme="olcrtc" />
+                <data android:scheme="tuic" />
+                <data android:scheme="juicity" />
 
             </intent-filter>
 

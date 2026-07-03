@@ -6,6 +6,7 @@ import io.nekohasekai.sagernet.bg.ServiceNotification
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.utils.Commandline
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.runBlocking
 import moe.matsuri.nb4a.utils.JavaUtil
@@ -70,7 +71,10 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
 
     override fun close() {
         super.close()
-        runBlocking {
+        // Teardown is called on the main thread; the final traffic flush in looper.stop() does
+        // synchronous DAO writes, so run the blocking body on a background dispatcher to keep it
+        // off the UI thread (Plan 027 — main-thread-DB allowance removed).
+        runBlocking(Dispatchers.Default) {
             looper?.stop()
             looper = null
         }

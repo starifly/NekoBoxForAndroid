@@ -230,7 +230,11 @@ class BaseService {
                         profileId > 0L && SagerDatabase.proxyDao.getById(profileId) != null ->
                             DataStore.selectedProxy = profileId
                     }
-                    onMainDispatcher { reloadInner(reloadStopGeneration) }
+                    // Compute the in-place selector decision here (off the main thread) so
+                    // reloadInner() does no DAO reads on the UI thread (Plan 027). null tag =>
+                    // no fast-path (fall through to the state machine).
+                    val selectorTag = resolveSelectorReloadTag()
+                    onMainDispatcher { reloadInner(reloadStopGeneration, selectorTag) }
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
@@ -245,7 +249,7 @@ class BaseService {
             }
         }
 
-        private fun reloadInner(reloadStopGeneration: Long) {
+        private fun reloadInner(reloadStopGeneration: Long, selectorTag: String?) {
             // A stop raced the async refresh: drop this stale reload so it can't restart a service
             // the user stopped. (A Connecting->Connected transition does NOT bump stopGeneration,
             // so an in-flight legitimate reload still applies.)
@@ -258,16 +262,13 @@ class BaseService {
             // Only take the in-place selector fast-path when fully Connected: during Connecting
             // data.proxy is set but proxy.init() may not have built config/box yet, and during
             // Stopping the box is being torn down — touching them would throw or act on a dead
-            // instance. In those states fall through to the state machine below.
-            if (s == State.Connected && canReloadSelector()) {
-                val ent = SagerDatabase.proxyDao.getById(DataStore.selectedProxy)
-                val tag = data.proxy!!.config.profileTagMap[ent?.id] ?: ""
-                if (tag.isNotBlank() && ent != null) {
-                    // select from GUI
-                    data.proxy!!.box.selectOutbound(tag)
-                    // or select from webui
-                    // => selector_OnProxySelected
-                }
+            // instance. In those states fall through to the state machine below. selectorTag was
+            // resolved off the main thread by the caller (null => no fast-path).
+            if (s == State.Connected && selectorTag != null && selectorTag.isNotBlank()) {
+                // select from GUI
+                data.proxy!!.box.selectOutbound(selectorTag)
+                // or select from webui
+                // => selector_OnProxySelected
                 return
             }
             when {
@@ -275,6 +276,18 @@ class BaseService {
                 s.canStop -> stopRunner(true)
                 else -> Logs.w("Illegal state $s when invoking use")
             }
+        }
+
+        // Off-main-thread resolver for reloadInner's in-place selector fast-path. Returns the
+        // outbound tag to select, or null if the selector fast-path does not apply. Does all the
+        // DAO reads (proxy/group) so reloadInner touches no DB on the UI thread.
+        fun resolveSelectorReloadTag(): String? {
+            if (data.state != State.Connected) return null
+            if (!canReloadSelector()) return null
+            val ent = SagerDatabase.proxyDao.getById(DataStore.selectedProxy) ?: return null
+            val proxy = data.proxy ?: return null
+            val tag = proxy.config.profileTagMap[ent.id] ?: ""
+            return tag.ifBlank { null }
         }
 
         fun canReloadSelector(): Boolean {
@@ -535,11 +548,16 @@ class BaseService {
 
             return runOnMainDispatcher {
                 try {
-                    data.notification = createNotification(ServiceNotification.genTitle(profile))
+                    // Reuse the title computed during ProxyInstance construction (off the main
+                    // thread); calling genTitle() here would do a groupDao read on the main thread.
+                    data.notification = createNotification(proxy.displayProfileName)
 
                     Executable.killAll() // clean up old processes
                     preInit()
-                    proxy.init()
+                    // buildConfig() (via proxy.init()) does synchronous group/profile DAO reads;
+                    // run it off the main thread so it works with the main-thread-DB allowance
+                    // removed (Plan 027). init() is suspend and does not touch the UI.
+                    onDefaultDispatcher { proxy.init() }
                     DataStore.currentProfile = profile.id
 
                     proxy.processes = GuardedProcessPool {
