@@ -128,6 +128,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         mixedPort.setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
         httpProxyBypass.setOnBindEditTextListener(EditTextPreferenceModifiers.Hosts)
         dnsHosts.setOnBindEditTextListener(EditTextPreferenceModifiers.Hosts)
+        httpProxyBypass.summaryProvider = ListSummaryProvider(maxLines = 1)
+        dnsHosts.summaryProvider = ListSummaryProvider(maxLines = 1)
 
         val metedNetwork = findPreference<Preference>(Key.METERED_NETWORK)!!
         if (Build.VERSION.SDK_INT < 28) {
@@ -289,7 +291,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             e.printStackTrace()
         }
     }
-    
+
     private fun clearDirFiles(dir: File, skipFiles: Set<String> = emptySet()): Boolean {
         if (dir.isDirectory) {
             val children = dir.list() ?: return true
@@ -320,6 +322,27 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             return true
         }
         return false
+    }
+
+    class ListSummaryProvider(
+        private val maxLines: Int,
+    ) : Preference.SummaryProvider<EditTextPreference> {
+
+        override fun provideSummary(preference: EditTextPreference): CharSequence {
+            val lines = preference.text.orEmpty()
+                .lineSequence()
+                .filter { it.isNotBlank() }
+                .toList()
+            if (lines.isEmpty()) {
+                return preference.context.getString(androidx.preference.R.string.not_set)
+            }
+            return if (lines.size > maxLines) {
+                lines.take(maxLines).joinToString("\n", postfix = "\n...")
+            } else {
+                lines.joinToString("\n")
+            }
+        }
+
     }
 
 }
