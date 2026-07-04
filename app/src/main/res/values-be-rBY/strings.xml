@@ -90,6 +90,7 @@
     <string name="enable_fakedns">Уключыць FakeDNS</string>
     <string name="fakedns_message">Гэта можа выклікаць неабходнасць перазапуску іншых праграм для паўторнага падключэння да сеткі пасля спынення проксі</string>
     <string name="dns_hosts">Перазапіс даменаў</string>
+    <string name="dns_hosts_dialog_message">One per line. Lines starting with # are comments. Example:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="port_local_dns">Лакальны порт DNS</string>
     <string name="require_transproxy">Уключыць уваходны Transproxy</string>
     <string name="transproxy_mode">Рэжым Transproxy</string>
