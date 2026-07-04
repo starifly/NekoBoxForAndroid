@@ -94,6 +94,7 @@
     <string name="enable_fakedns">Activer FakeDNS</string>
     <string name="fakedns_message">Peut nécessiter le redémarrage d\'autres applications pour se reconnecter au réseau après l\'arrêt du proxy</string>
     <string name="dns_hosts">Réécriture de domaine</string>
+    <string name="dns_hosts_dialog_message">One per line. Lines starting with # are comments. Example:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="port_local_dns">Port DNS local</string>
     <string name="require_transproxy">Activer l\'entrée Transproxy</string>
     <string name="transproxy_mode">Mode Transproxy</string>
