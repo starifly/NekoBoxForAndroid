@@ -20,10 +20,9 @@
 #
 # OLCRTC_REPO/OLCRTC_COMMIT default to the hawkff fork at a commit that carries the
 # protected pion net (internal/protect/pionnet.go + the jitsi SetNet hook, merged
-# upstream in openlibrecommunity/olcrtc#111) PLUS the ICE-server sanitization fix
-# (drops malformed TURN/STUN URLs that lack a port so pion's NewPeerConnection does
-# not fail with "invalid port" on deployments such as meet.ffmuc.net). Pinning at/after
-# both keeps the media path off the tun and lets the data channel construct.
+# upstream in openlibrecommunity/olcrtc#111) plus Jitsi ICE-service URL normalization.
+# Pinning at/after both keeps the media path off the tun and prevents malformed
+# service-discovery entries from failing peer-connection setup.
 #
 # Usage: ./run lib olcrtc
 set -e
@@ -37,7 +36,7 @@ if [ -z "$ANDROID_NDK_HOME" ]; then
 fi
 
 OLCRTC_REPO="${OLCRTC_REPO:-https://github.com/hawkff/olcrtc.git}"
-OLCRTC_COMMIT="${OLCRTC_COMMIT:-962b93948088c2fb65df38cc1c46782c09ba5d97}"
+OLCRTC_COMMIT="${OLCRTC_COMMIT:-08a25f26da88feddc9903513039fc71f3d0449dd}"
 
 if ! command -v go >/dev/null 2>&1; then
   echo "Error: go not found on PATH (olcRTC needs Go 1.26+)." >&2
