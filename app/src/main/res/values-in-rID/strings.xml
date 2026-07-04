@@ -92,6 +92,7 @@
     <string name="fakedns_message">Dapat menyebabkan aplikasi lain perlu dimulai ulang untuk terhubung kembali ke
         jaringan setelah proxy berhenti</string>
     <string name="dns_hosts">Tulis ulang domain</string>
+    <string name="dns_hosts_dialog_message">One per line. Lines starting with # are comments. Example:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="port_local_dns">Port DNS Lokal</string>
     <string name="require_transproxy">Aktifkan Transproxy Inbound</string>
     <string name="transproxy_mode">Mode Transproxy</string>
