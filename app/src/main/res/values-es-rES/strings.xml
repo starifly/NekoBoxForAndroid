@@ -92,6 +92,7 @@
     <string name="fakedns_message">Puede causar que otras aplicaciones necesiten reiniciarse para reconectarse a
         la red después de detener el proxy</string>
     <string name="dns_hosts">Reescritura de dominio</string>
+    <string name="dns_hosts_dialog_message">One per line. Lines starting with # are comments. Example:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="port_local_dns">Puerto DNS local</string>
     <string name="require_transproxy">Habilitar entrada de transproxy</string>
     <string name="transproxy_mode">Modo de transproxy</string>
