@@ -69,7 +69,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginVertical="8dp"
                     android:orientation="vertical">
 
                     <!-- 本地备份部分的按钮 -->
@@ -78,6 +79,7 @@
                         style="@style/Widget.SagerNet.Button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:cornerRadius="24dp"
                         android:text="@string/share"
                         android:textColor="?whiteOrTextPrimary" />
 
@@ -86,6 +88,7 @@
                         style="@style/Widget.SagerNet.Button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:cornerRadius="24dp"
                         android:text="@string/action_export_file"
                         android:textColor="?whiteOrTextPrimary" />
 
@@ -94,6 +97,7 @@
                         style="@style/Widget.SagerNet.Button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:cornerRadius="24dp"
                         android:text="@string/action_import_file"
                         android:textColor="?whiteOrTextPrimary" />
 
@@ -131,7 +135,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginVertical="8dp"
                     android:orientation="vertical">
 
                     <!-- WebDAV 备份部分的按钮 -->
@@ -140,6 +145,7 @@
                         style="@style/Widget.SagerNet.Button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:cornerRadius="24dp"
                         android:text="@string/webdav_settings"
                         android:textColor="?whiteOrTextPrimary" />
 
@@ -148,6 +154,7 @@
                         style="@style/Widget.SagerNet.Button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:cornerRadius="24dp"
                         android:text="@string/backup_to_webdav"
                         android:textColor="?whiteOrTextPrimary" />
 
@@ -156,6 +163,7 @@
                         style="@style/Widget.SagerNet.Button"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:cornerRadius="24dp"
                         android:text="@string/restore_from_webdav"
                         android:textColor="?whiteOrTextPrimary" />
 

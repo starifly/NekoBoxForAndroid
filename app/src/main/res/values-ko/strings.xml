@@ -90,6 +90,7 @@
     <string name="enable_fakedns">FakeDNS 활성화</string>
     <string name="fakedns_message">프록시 중지 후 네트워크에 다시 연결하기 위해 다른 앱을 재시작해야 할 수 있습니다</string>
     <string name="dns_hosts">도메인 재작성</string>
+    <string name="dns_hosts_dialog_message">한 줄에 하나씩 입력합니다. #으로 시작하면 주석입니다. 예:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="port_local_dns">로컬 DNS 포트</string>
     <string name="require_transproxy">Transproxy 인바운드 활성화</string>
     <string name="transproxy_mode">Transproxy 모드</string>

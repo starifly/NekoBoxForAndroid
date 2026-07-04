@@ -406,6 +406,10 @@ class MainActivity : ThemedActivity(),
         }
     }
 
+    fun driveBottomBar(fingerUp: Boolean) {
+        binding.stats.onFingerScroll(fingerUp)
+    }
+
     fun displayFragmentWithId(@IdRes id: Int): Boolean {
         when (id) {
             R.id.nav_configuration -> {

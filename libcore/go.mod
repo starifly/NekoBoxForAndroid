@@ -10,7 +10,7 @@ require (
 	github.com/matsuridayo/libneko v1.0.0 // replaced
 	github.com/miekg/dns v1.1.67
 	github.com/oschwald/maxminddb-golang v1.13.1
-	github.com/reF1nd/sing-snell v0.0.6 // indirect
+	github.com/reF1nd/sing-snell v0.0.8 // indirect
 	github.com/sagernet/quic-go v0.52.0-sing-box-mod.3
 	github.com/sagernet/sing v0.7.18
 	github.com/sagernet/sing-box v1.0.0 // replaced

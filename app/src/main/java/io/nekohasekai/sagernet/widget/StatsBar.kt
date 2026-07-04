@@ -120,6 +120,11 @@ class StatsBar @JvmOverloads constructor(
         return allowShow && currentState == BaseService.State.Connected
     }
 
+    fun onFingerScroll(fingerUp: Boolean) {
+        if (!shouldShow()) return
+        if (fingerUp) performHide() else performShow()
+    }
+
     fun syncMainControls(
         showControls: Boolean,
         state: BaseService.State,

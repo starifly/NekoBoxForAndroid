@@ -76,6 +76,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val allowAccess = findPreference<Preference>(Key.ALLOW_ACCESS)!!
         val appendHttpProxy = findPreference<SwitchPreference>(Key.APPEND_HTTP_PROXY)!!
         val httpProxyBypass = findPreference<EditTextPreference>(Key.HTTP_PROXY_BYPASS)!!
+        val dnsHosts = findPreference<EditTextPreference>(Key.DNS_HOSTS)!!
         val strictRoute = findPreference<SwitchPreference>(Key.STRICT_ROUTE)!!
 
         val showDirectSpeed = findPreference<SwitchPreference>(Key.SHOW_DIRECT_SPEED)!!
@@ -126,6 +127,9 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
         mixedPort.setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
         httpProxyBypass.setOnBindEditTextListener(EditTextPreferenceModifiers.Hosts)
+        dnsHosts.setOnBindEditTextListener(EditTextPreferenceModifiers.Hosts)
+        httpProxyBypass.summaryProvider = ListSummaryProvider(maxLines = 1)
+        dnsHosts.summaryProvider = ListSummaryProvider(maxLines = 1)
 
         val metedNetwork = findPreference<Preference>(Key.METERED_NETWORK)!!
         if (Build.VERSION.SDK_INT < 28) {
@@ -195,6 +199,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             }
         }
         httpProxyBypass.onPreferenceChangeListener = reloadListener
+        dnsHosts.onPreferenceChangeListener = reloadListener
         strictRoute.onPreferenceChangeListener = reloadListener
         showDirectSpeed.onPreferenceChangeListener = reloadListener
         trafficSniffing.onPreferenceChangeListener = reloadListener
@@ -286,7 +291,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             e.printStackTrace()
         }
     }
-    
+
     private fun clearDirFiles(dir: File, skipFiles: Set<String> = emptySet()): Boolean {
         if (dir.isDirectory) {
             val children = dir.list() ?: return true
@@ -317,6 +322,27 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             return true
         }
         return false
+    }
+
+    class ListSummaryProvider(
+        private val maxLines: Int,
+    ) : Preference.SummaryProvider<EditTextPreference> {
+
+        override fun provideSummary(preference: EditTextPreference): CharSequence {
+            val lines = preference.text.orEmpty()
+                .lineSequence()
+                .filter { it.isNotBlank() }
+                .toList()
+            if (lines.isEmpty()) {
+                return preference.context.getString(androidx.preference.R.string.not_set)
+            }
+            return if (lines.size > maxLines) {
+                lines.take(maxLines).joinToString("\n", postfix = "\n...")
+            } else {
+                lines.joinToString("\n")
+            }
+        }
+
     }
 
 }

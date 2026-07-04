@@ -94,6 +94,7 @@
     <string name="enable_fakedns">فعال کردن FakeDNS</string>
     <string name="fakedns_message">ممکن است نیاز باشد که برنامه‌های دیگر را برای اتصال مجدد، دوباره راه‌اندازی کنید.</string>
     <string name="dns_hosts">بازنویسی دامنه</string>
+    <string name="dns_hosts_dialog_message">در هر خط یک مورد. خطوطی که با # شروع می‌شوند نظر هستند. مثال:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="port_local_dns">پورت DNS محلی</string>
     <string name="require_transproxy">فعال کردن Transproxy ورودی</string>
     <string name="transproxy_mode">حالت Transproxy</string>
