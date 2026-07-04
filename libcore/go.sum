@@ -84,8 +84,8 @@ github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRI
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/quic-go/qpack v0.5.1 h1:giqksBPnT/HDtZ6VhtFKgoLOWmlyo9Ei6u9PqzIMbhI=
 github.com/quic-go/qpack v0.5.1/go.mod h1:+PC4XFrEskIVkcLzpEkbLqq1uCoxPhQuvK5rH1ZgaEg=
-github.com/reF1nd/sing-snell v0.0.6 h1:76Y5zdXshNcKxcYoNxgxOpeYD01xLyBoi6k2dRyWSLU=
-github.com/reF1nd/sing-snell v0.0.6/go.mod h1:9GeHBibP7RGZFoj4lgen8Tp5MbfOezw8nYeL6GHS/XA=
+github.com/reF1nd/sing-snell v0.0.8 h1:Lh2xYzwxobvfFMNLdRDoacuzXgZiNOcRzKI5efNSyC4=
+github.com/reF1nd/sing-snell v0.0.8/go.mod h1:9GeHBibP7RGZFoj4lgen8Tp5MbfOezw8nYeL6GHS/XA=
 github.com/sagernet/bbolt v0.0.0-20231014093535-ea5cb2fe9f0a h1:+NkI2670SQpQWvkkD2QgdTuzQG263YZ+2emfpeyGqW0=
 github.com/sagernet/bbolt v0.0.0-20231014093535-ea5cb2fe9f0a/go.mod h1:63s7jpZqcDAIpj8oI/1v4Izok+npJOHACFCU6+huCkM=
 github.com/sagernet/cors v1.2.1 h1:Cv5Z8y9YSD6Gm+qSpNrL3LO4lD3eQVvbFYJSG7JCMHQ=
