@@ -379,6 +379,18 @@ class GroupFragment :
                         .setNegativeButton(android.R.string.cancel, null)
                         .show()
                 }
+
+                R.id.action_delete_group -> {
+                    MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
+                        .setMessage(R.string.delete_group_prompt)
+                        .setPositiveButton(R.string.yes) { _, _ ->
+                            runOnDefaultDispatcher {
+                                GroupManager.deleteGroup(proxyGroup.id)
+                            }
+                        }
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show()
+                }
             }
 
             return true
@@ -413,6 +425,9 @@ class GroupFragment :
 
                 if (proxyGroup.type != GroupType.SUBSCRIPTION) {
                     popup.menu.removeItem(R.id.action_share_subscription)
+                }
+                if (proxyGroup.ungrouped || proxyGroup.id in GroupUpdater.updating) {
+                    popup.menu.removeItem(R.id.action_delete_group)
                 }
                 popup.setOnMenuItemClickListener(this)
                 popup.show()
