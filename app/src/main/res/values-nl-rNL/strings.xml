@@ -90,6 +90,7 @@
     <string name="enable_fakedns">FakeDNS inschakelen</string>
     <string name="fakedns_message">Kan ertoe leiden dat andere toepassingen opnieuw moeten worden gestart om opnieuw verbinding te maken met het netwerk nadat de proxy is gestopt</string>
     <string name="dns_hosts">Domein herschrijven</string>
+    <string name="dns_hosts_dialog_message">One per line. Lines starting with # are comments. Example:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="port_local_dns">Lokale DNS-poort</string>
     <string name="require_transproxy">Transproxy-inbound inschakelen</string>
     <string name="transproxy_mode">Transproxy-modus</string>
