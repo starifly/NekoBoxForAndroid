@@ -9,6 +9,7 @@ __MACOSX/
 .vscode/
 .cursor/
 .agents/
+.pi-subagents/
 AGENTS.md
 
 # Gradle / Kotlin build state
@@ -31,6 +32,7 @@ jniLibs/
 /.olcrtc-build/
 /.olcrtc-gomobile/
 /.olcrtc-wrapper/
+/buildScript/lib/olcrtc-src/go.sum
 
 # Local config / generated app artifacts
 local.properties
