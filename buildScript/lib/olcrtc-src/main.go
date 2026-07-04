@@ -26,12 +26,16 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"flag"
 	"log"
 	"net"
 	"net/http"
+	"net/http/httptrace"
+	"net/netip"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -71,7 +75,7 @@ func main() {
 	// network use, so the j library's http.DefaultClient websocket dials resolve
 	// off the VPN fake-IP resolver and route their sockets around the tun.
 	if *protectPath != "" {
-		installProtectedDefaults(prot, *dnsServer)
+		installProtectedDefaults(prot, *dnsServer, *debug)
 		mobile.SetProtector(prot)
 	}
 	if *dnsServer != "" {
@@ -101,12 +105,52 @@ func main() {
 // instead of Android's VPN fake-IP resolver, and (2) every TCP socket dialed by
 // the default HTTP client (the j library's websocket handshakes) is protected via
 // protect_path before connect. Must run before any goroutine creates a client.
-func installProtectedDefaults(prot *protector, dnsServer string) {
-	control := func(_, _ string, c syscall.RawConn) error {
+//
+// The protected signaling sockets are also MSS-clamped (TCP_MAXSEG) so an oversized
+// inbound TLS certificate flight cannot be silently dropped on a reduced-MTU routed
+// path, and the transport carries explicit handshake/response timeouts so any stall
+// surfaces as a typed error in seconds rather than blocking until the readiness
+// deadline. Under debug, each request's connection stages are traced.
+//
+// IPv4-only: the signaling dials are forced to tcp4, which also limits lookups to A
+// records. On a routed/VPN path the underlying physical interface is commonly
+// v4-only; a carrier host that also publishes an AAAA (e.g. framatalk.org) would
+// otherwise have its protected socket dial the unreachable v6 address and hang
+// silently until the readiness deadline instead of connecting over v4. DNS queries
+// themselves are forced to udp4/tcp4 too, unless dnsServer is a v6 literal.
+func installProtectedDefaults(prot *protector, dnsServer string, debug bool) {
+	control := func(network, _ string, c syscall.RawConn) error {
 		var perr error
 		if err := c.Control(func(fd uintptr) {
 			if !prot.Protect(int(fd)) {
 				perr = unix.EPERM
+				return
+			}
+			// Cap the advertised MSS on the protected signaling sockets. On a routed
+			// path the effective MTU is often below 1500 with ICMP frag-needed
+			// filtered, so path-MTU discovery never converges; a large inbound flight
+			// (a TLS certificate, an HTTP body, or Jicofo's conference reply) arrives
+			// in full-size segments, one is dropped, and TCP head-of-line blocking
+			// stalls the whole stream until the readiness deadline. A conservative MSS
+			// (advertised in our SYN, so it bounds the segments the peer sends US) keeps
+			// those inbound segments small enough to pass. Must be set pre-connect,
+			// which Control guarantees.
+			if strings.HasPrefix(network, "tcp") {
+				if serr := unix.SetsockoptInt(int(fd), unix.IPPROTO_TCP, unix.TCP_MAXSEG, 1000); serr != nil && debug {
+					log.Printf("trace: set TCP_MAXSEG failed: %v", serr)
+				}
+				// Also clamp the receive buffer BEFORE connect. The TCP window scale is
+				// negotiated in the SYN from SO_RCVBUF, so a small buffer shrinks the
+				// advertised receive window and forces the peer to send its response in
+				// several small flights instead of one large burst. If a middlebox on the
+				// routed path mishandles window scaling or polices large bursts (the
+				// signature here: small inbound stanzas pass, large ones stall even with the
+				// MSS clamp proven on the wire), a small window lets the body trickle in.
+				// Must be set pre-connect. 32 KiB is large enough for signaling throughput
+				// yet small enough to cap any single flight.
+				if serr := unix.SetsockoptInt(int(fd), unix.SOL_SOCKET, unix.SO_RCVBUF, 32*1024); serr != nil && debug {
+					log.Printf("trace: set SO_RCVBUF failed: %v", serr)
+				}
 			}
 		}); err != nil {
 			return err
@@ -114,12 +158,37 @@ func installProtectedDefaults(prot *protector, dnsServer string) {
 		return perr
 	}
 
+	// forceIPv4Network rewrites tcp/tcp6 -> tcp4 and udp/udp6 -> udp4 so a
+	// published AAAA never causes a silent hang on a v4-only physical path.
+	forceIPv4Network := func(network string) string {
+		switch network {
+		case "tcp", "tcp6":
+			return "tcp4"
+		case "udp", "udp6":
+			return "udp4"
+		}
+		return network
+	}
+
 	if dnsServer != "" {
 		// Resolver that dials the configured DNS directly over a protected socket.
 		// dnsServer must be an IP:port literal (e.g. 9.9.9.9:53) to avoid recursion.
+		// Only rewrite the query transport when the server is v4: forcing udp4/tcp4
+		// toward a v6 literal (e.g. [2620:fe::fe]:53) would fail every lookup.
+		// netip.ParseAddr (unlike net.ParseIP) also handles zone-scoped literals
+		// such as fe80::1%wlan0.
+		dnsV4 := true
+		if host, _, err := net.SplitHostPort(dnsServer); err == nil {
+			if a, aerr := netip.ParseAddr(host); aerr == nil && !a.Is4() && !a.Is4In6() {
+				dnsV4 = false
+			}
+		}
 		net.DefaultResolver = &net.Resolver{
 			PreferGo: true,
 			Dial: func(ctx context.Context, network, _ string) (net.Conn, error) {
+				if dnsV4 {
+					network = forceIPv4Network(network)
+				}
 				d := net.Dialer{Timeout: 10 * time.Second, Control: control}
 				return d.DialContext(ctx, network, dnsServer)
 			},
@@ -132,14 +201,115 @@ func installProtectedDefaults(prot *protector, dnsServer string) {
 		Control:   control,
 		Resolver:  net.DefaultResolver,
 	}
-	http.DefaultTransport = &http.Transport{
-		Proxy:                 http.ProxyFromEnvironment,
-		DialContext:           dialer.DialContext,
-		ForceAttemptHTTP2:     true,
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return dialer.DialContext(ctx, forceIPv4Network(network), addr)
+		},
+		// Disable HTTP/2 for signaling. The WebSocket upgrade the XMPP client performs
+		// cannot ride an h2 connection; when a carrier negotiates h2 via ALPN (observed
+		// on framatalk.org) the upgrade request stalls with no response until the
+		// header timeout, and only a subsequent h1 attempt succeeds. Pinning h1 avoids
+		// the wasted round and connects on the first try.
+		ForceAttemptHTTP2:     false,
+		TLSNextProto:          map[string]func(string, *tls.Conn) http.RoundTripper{},
 		MaxIdleConns:          10,
 		IdleConnTimeout:       30 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
+		ResponseHeaderTimeout: 15 * time.Second,
 		ExpectContinueTimeout: time.Second,
+	}
+	if debug {
+		// Stage-trace the signaling dials so a stall (DNS / TCP connect / TLS
+		// handshake / header write / first response byte) is pinpointed instead of
+		// showing up as 60s of silence. Only under -debug (logs request URLs).
+		http.DefaultTransport = traceTransport{next: transport}
+	} else {
+		http.DefaultTransport = transport
+	}
+}
+
+// traceTransport wraps an http.RoundTripper and logs the connection stages of each
+// request via net/http/httptrace, so a stall is attributable to a specific stage
+// (DNS / TCP connect / TLS handshake / header write / first response byte) rather
+// than showing up as silence until the readiness deadline. Debug-only.
+type traceTransport struct{ next http.RoundTripper }
+
+func (t traceTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	trace := &httptrace.ClientTrace{
+		GetConn: func(hp string) { log.Printf("trace: get-conn %s", hp) },
+		GotConn: func(gci httptrace.GotConnInfo) {
+			log.Printf("trace: got-conn reused=%v %s", gci.Reused, gci.Conn.RemoteAddr())
+			logAdvMSS(gci.Conn)
+		},
+		DNSStart:          func(i httptrace.DNSStartInfo) { log.Printf("trace: dns-start %s", i.Host) },
+		DNSDone:           func(i httptrace.DNSDoneInfo) { log.Printf("trace: dns-done %v err=%v", i.Addrs, i.Err) },
+		ConnectStart:      func(nw, addr string) { log.Printf("trace: connect-start %s %s", nw, addr) },
+		ConnectDone:       func(nw, addr string, err error) { log.Printf("trace: connect-done %s %s err=%v", nw, addr, err) },
+		TLSHandshakeStart: func() { log.Printf("trace: tls-start") },
+		TLSHandshakeDone: func(cs tls.ConnectionState, err error) {
+			log.Printf("trace: tls-done proto=%q err=%v", cs.NegotiatedProtocol, err)
+		},
+		WroteHeaders:         func() { log.Printf("trace: wrote-headers") },
+		GotFirstResponseByte: func() { log.Printf("trace: first-byte") },
+	}
+	req = req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
+	log.Printf("trace: round-trip %s %s", req.Method, req.URL)
+	return t.next.RoundTrip(req)
+}
+
+// logAdvMSS reports the connection's advertised/receive MSS from TCP_INFO so the trace
+// shows whether the TCP_MAXSEG clamp actually took effect on the SYN (advmss ~= clamp)
+// rather than the default (~1460). GotConn hands us a *tls.Conn, which does NOT expose
+// SyscallConn directly; it exposes NetConn() to reach the underlying *net.TCPConn whose
+// SyscallConn does. Unwrap the TLS layer first (Go >= 1.18), otherwise the assertion
+// fails silently and no advmss is ever logged.
+//
+// It also starts a short background poll of TCP_INFO on the same fd. During a large-
+// inbound stall this shows whether ANYTHING is arriving (bytes_received / segs_in) or
+// the flight dies upstream entirely, and whether out-of-order arrivals climb (a hole at
+// the front of the stream = size-selective drop). This is the only on-device proxy for
+// an inbound packet capture, since the protected socket bypasses the tun and an
+// unrooted app cannot pcap the physical path.
+func logAdvMSS(conn net.Conn) {
+	if nc, ok := conn.(interface{ NetConn() net.Conn }); ok {
+		conn = nc.NetConn()
+	}
+	type syscallConn interface {
+		SyscallConn() (syscall.RawConn, error)
+	}
+	sc, ok := conn.(syscallConn)
+	if !ok {
+		log.Printf("trace: tcp-info no syscall.Conn (%T)", conn)
+		return
+	}
+	raw, err := sc.SyscallConn()
+	if err != nil {
+		return
+	}
+	_ = raw.Control(func(fd uintptr) {
+		if ti, terr := unix.GetsockoptTCPInfo(int(fd), unix.IPPROTO_TCP, unix.TCP_INFO); terr == nil {
+			log.Printf("trace: tcp-info advmss=%d rcv_mss=%d snd_mss=%d", ti.Advmss, ti.Rcv_mss, ti.Snd_mss)
+		}
+	})
+	go pollTCPInfo(raw)
+}
+
+// pollTCPInfo samples inbound TCP_INFO counters every 500ms for a window that spans a
+// typical large-inbound stall (~16s, the config.js / Jicofo reply timeout). Frozen
+// bytes_received + segs_in => the whole flight dies upstream (server/return-path, no
+// client fix). Rising segs_in with frozen bytes_received and climbing rcv_ooopack =>
+// the head (large) segment is dropped selectively while later segments arrive out of
+// order => a permanent hole at the front of the stream. Debug-only.
+func pollTCPInfo(raw syscall.RawConn) {
+	for i := 0; i < 32; i++ {
+		_ = raw.Control(func(fd uintptr) {
+			if ti, terr := unix.GetsockoptTCPInfo(int(fd), unix.IPPROTO_TCP, unix.TCP_INFO); terr == nil {
+				log.Printf("trace: tcp-info-poll t=%dms bytes_recv=%d segs_in=%d ooo=%d rcv_wnd=%d rtt=%dus",
+					i*500, ti.Bytes_received, ti.Segs_in, ti.Rcv_ooopack, ti.Rcv_wnd, ti.Rtt)
+			}
+		})
+		time.Sleep(500 * time.Millisecond)
 	}
 }
 
