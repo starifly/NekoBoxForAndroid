@@ -92,6 +92,7 @@
     <string name="fakedns_message">可能導致其他應用程式需要重新啟動，以便在代理停止後
         重新連接到網絡</string>
     <string name="dns_hosts">域名重寫</string>
+    <string name="dns_hosts_dialog_message">One per line. Lines starting with # are comments. Example:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="port_local_dns">本地 DNS 連接埠</string>
     <string name="require_transproxy">啟用透明代理入站</string>
     <string name="transproxy_mode">透明代理模式</string>
