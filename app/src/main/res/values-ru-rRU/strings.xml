@@ -92,6 +92,7 @@
     <string name="fakedns_message">Может потребоваться перезапуск других приложений для переподключения к
         сети после остановки прокси</string>
     <string name="dns_hosts">Перезапись доменов</string>
+    <string name="dns_hosts_dialog_message">One per line. Lines starting with # are comments. Example:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="port_local_dns">Локальный порт DNS</string>
     <string name="require_transproxy">Включить входящий Transproxy</string>
     <string name="transproxy_mode">Режим Transproxy</string>
