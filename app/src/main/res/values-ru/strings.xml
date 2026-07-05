@@ -128,6 +128,7 @@
 <string name="direct_dns">Прямой DNS</string>
 <string name="disable">Отключить</string>
 <string name="dns_hosts">Перезапись домена</string>
+<string name="dns_hosts_dialog_message">По одному в строке. Строки, начинающиеся с #, считаются комментариями. Пример:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
 <string name="dns_routing_message">Разрешить домены в обходных маршрутах с помощью Direct DNS. Помните о потенциальных утечках DNS</string>
 <string name="document">Документы</string>
 <string name="domain_strategy">Правило разрешения доменов</string>
@@ -239,6 +240,12 @@
 <string name="landing_proxy">Обратный прокси</string>
 <string name="license">Лицензия</string>
 <string name="lines">%d строк</string>
+<plurals name="dns_hosts_lines">
+    <item quantity="one">%d строка</item>
+    <item quantity="few">%d строки</item>
+    <item quantity="many">%d строк</item>
+    <item quantity="other">%d строки</item>
+</plurals>
 <string name="log_level">Тип журнала</string>
 <string name="log_level_help">Удерживайте для настройки размера буфера.</string>
 <string name="logcat">Экспорт отладочной информации</string>

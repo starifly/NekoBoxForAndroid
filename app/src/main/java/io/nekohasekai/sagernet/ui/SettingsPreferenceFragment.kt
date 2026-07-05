@@ -46,9 +46,13 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
     }
 
-    private fun dnsReloadListener(preference: EditTextPreference, newValue: Any?): Boolean {
+    private fun dnsReloadListener(
+        preference: EditTextPreference,
+        newValue: Any?,
+        preprocess: (String) -> String = { it },
+    ): Boolean {
         val rawValue = newValue as? String ?: return reloadListener.onPreferenceChange(preference, newValue)
-        val sanitizedValue = sanitizeDnsPreferenceValue(rawValue)
+        val sanitizedValue = sanitizeDnsPreferenceValue(preprocess(rawValue))
         if (sanitizedValue != rawValue) {
             preference.text = sanitizedValue
             needReload()
@@ -124,6 +128,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val allowAccess = findPreference<Preference>(Key.ALLOW_ACCESS)!!
         val appendHttpProxy = findPreference<SwitchPreference>(Key.APPEND_HTTP_PROXY)!!
         val httpProxyBypass = findPreference<EditTextPreference>(Key.HTTP_PROXY_BYPASS)!!
+        val dnsHosts = findPreference<EditTextPreference>(Key.DNS_HOSTS)!!
         val strictRoute = findPreference<SwitchPreference>(Key.STRICT_ROUTE)!!
 
         val showDirectSpeed = findPreference<SwitchPreference>(Key.SHOW_DIRECT_SPEED)!!
@@ -265,6 +270,34 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         concurrentDial.onPreferenceChangeListener = reloadListener
 
         enableFakeDns.onPreferenceChangeListener = reloadListener
+        dnsHosts.setOnBindEditTextListener { editText ->
+            editText.inputType = EditorInfo.TYPE_CLASS_TEXT or
+                EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE or
+                EditorInfo.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            editText.minLines = 4
+            editText.maxLines = 12
+            editText.setHorizontallyScrolling(false)
+        }
+        // Concise summary: the hosts list can be long and multiline, so show a line
+        // count instead of dumping the raw value into the preference row. Comment
+        // lines are excluded so the number reflects entries, not text lines.
+        dnsHosts.summaryProvider = Preference.SummaryProvider<EditTextPreference> { preference ->
+            val count = preference.text.orEmpty()
+                .lineSequence()
+                .map { it.trim() }
+                .count { it.isNotEmpty() && !it.startsWith("#") }
+            if (count == 0) {
+                preference.context.getString(R.string.not_set)
+            } else {
+                preference.context.resources.getQuantityString(R.plurals.dns_hosts_lines, count, count)
+            }
+        }
+        dnsHosts.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+            // Tabs are valid separators in pasted hosts entries; convert them to
+            // spaces first so the control-character sanitization does not merge
+            // the domain and address tokens together.
+            dnsReloadListener(dnsHosts, newValue) { it.replace('\t', ' ') }
+        }
         remoteDns.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
             dnsReloadListener(remoteDns, newValue)
         }

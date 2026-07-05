@@ -113,6 +113,7 @@
     <string name="fakedns_message">May cause other applications need to be restarted to reconnect to
         the network after proxy stopped</string>
     <string name="dns_hosts">Domain rewrite</string>
+    <string name="dns_hosts_dialog_message">One per line. Lines starting with # are comments. Example:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="port_local_dns">Local DNS Port</string>
     <string name="require_transproxy">Enable Transproxy Inbound</string>
     <string name="transproxy_mode">Transproxy Mode</string>
@@ -345,6 +346,11 @@
     <string name="route_warn">Make sure you have read the documentation before adding custom rules,
         otherwise you may not be able to connect to the Internet.</string>
     <string name="lines">%d Lines</string>
+    <plurals name="dns_hosts_lines">
+        <item quantity="one">%d line</item>
+        <item quantity="other">%d lines</item>
+    </plurals>
+    <string name="not_set">Not set</string>
     <string name="night_mode">Night Mode</string>
     <string name="language">Language</string>
     <string name="follow_system">Follow System</string>

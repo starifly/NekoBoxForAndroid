@@ -183,6 +183,7 @@
     <string name="transproxy_mode">透明代理模式</string>
     <string name="require_transproxy">啟用透明代理傳入伺服器</string>
     <string name="dns_hosts">網域重寫</string>
+    <string name="dns_hosts_dialog_message">一行一個，# 開頭代表註解。範例：\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="dns_routing_message">使用在路由中被略過的直連 DNS 解析網域。請注意潛在的 DNS 洩漏</string>
     <string name="enable_dns_routing">啟用 DNS 路由</string>
     <string name="direct_dns">直連 DNS</string>
@@ -264,6 +265,10 @@
     <string name="need_reload">重新載入代理服務以套用修改</string>
     <string name="route_warn">請在新增客製化規則前閱讀文件，否則您可能會無法連線至網際網路。</string>
     <string name="lines">%d 行</string>
+    <plurals name="dns_hosts_lines">
+        <item quantity="other">%d 行</item>
+    </plurals>
+    <string name="not_set">未設定</string>
     <string name="night_mode">夜間模式</string>
     <string name="follow_system">跟隨系統</string>
     <string name="enable">啟用</string>

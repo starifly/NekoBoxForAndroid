@@ -39,6 +39,7 @@ import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxOutboundWireguardBean
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mkPort
+import io.nekohasekai.sagernet.ktx.unwrapIPV6Host
 import io.nekohasekai.sagernet.utils.PackageCache
 import moe.matsuri.nb4a.*
 import moe.matsuri.nb4a.SingBoxOptions.*
@@ -52,10 +53,91 @@ import moe.matsuri.nb4a.utils.JavaUtil.gson
 import moe.matsuri.nb4a.utils.Util
 import moe.matsuri.nb4a.utils.listByLineOrComma
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import java.net.IDN
 import java.util.UUID
 
 private fun sanitizeDnsEntry(value: String): String {
     return value.filterNot { it.isISOControl() }.trim()
+}
+
+// Validate a hosts address token strictly enough for sing-box's netip-based
+// parser: the app-wide isIpAddress() regex is looser (it allows IPv4 leading
+// zeros and malformed IPv6 forms) and one bad value would fail the whole config
+// load. Embedded-IPv4 IPv6 forms (::ffff:1.2.3.4) are not supported; write the
+// plain IPv4 address instead. Returns the address, or null when not usable.
+private fun parseHostsAddress(token: String): String? {
+    val value = token.unwrapIPV6Host()
+    if (!value.isIpAddress()) return null
+    if (value.contains(':')) {
+        // Pure-hex IPv6 (the regex rejects embedded IPv4 forms). Reject the empty
+        // groups Go's netip parser refuses but the app regex tolerates: more than
+        // one "::" (a ":::" run counts twice via overlap), a bare leading or
+        // trailing ":", and more than 7 explicit groups alongside "::" (without
+        // "::" the regex already enforces exactly 8).
+        if (value.indexOf("::") != value.lastIndexOf("::")) return null
+        if (value.startsWith(":") && !value.startsWith("::")) return null
+        if (value.endsWith(":") && !value.endsWith("::")) return null
+        if (value.contains("::") && value.split(':').count { it.isNotEmpty() } > 7) return null
+    } else {
+        // IPv4: reject leading zeros, which Go's netip parser refuses.
+        if (value.split('.').any { it.length > 1 && it.startsWith('0') }) return null
+    }
+    return value
+}
+
+private fun parseHostsDomain(token: String): String? {
+    var domain = sanitizeDnsEntry(token).removeSuffix(".")
+    if (domain.isEmpty()) return null
+    // Internationalized domains: convert to punycode, which is what arrives in
+    // actual DNS queries and what sing-box matches against.
+    if (domain.any { it.code >= 0x80 }) {
+        domain = try {
+            IDN.toASCII(domain)
+        } catch (_: IllegalArgumentException) {
+            return null
+        }
+    }
+    domain = domain.lowercase()
+    if (domain.isEmpty() || domain.isIpAddress() || domain.length > 253) return null
+    val labels = domain.split('.')
+    if (labels.any { it.isEmpty() || it.length > 63 }) return null
+    // Underscore is permitted: it is common in DNS names (service labels) even
+    // though it is invalid in strict hostnames.
+    if (labels.any { label ->
+            label.startsWith('-') ||
+                label.endsWith('-') ||
+                label.any { !(it in 'a'..'z' || it in '0'..'9' || it == '-' || it == '_') }
+        }
+    ) {
+        return null
+    }
+    return domain
+}
+
+// Token separator for hosts entries: ASCII whitespace plus NBSP, which pasted web
+// content often contains and which neither Java's \s (ASCII-only) nor the
+// ISO-control sanitization covers.
+private val hostsSeparator = "[\\s\u00A0]+".toRegex()
+
+// Parse the user DNS hosts rewrite list: one "domain ip [ip ...]" entry per line,
+// separated by any whitespace. Blank lines, comments (#) and malformed lines are
+// ignored instead of failing the config build. Non-IP tokens after the domain are
+// dropped, and IPv6 addresses may be written with or without brackets.
+internal fun parseDnsHosts(value: String): Map<String, List<String>> {
+    val hosts = linkedMapOf<String, MutableList<String>>()
+    value.lineSequence().forEach { line ->
+        val tokens = line.split(hostsSeparator)
+            .map { sanitizeDnsEntry(it) }
+            .filter { it.isNotEmpty() }
+        if (tokens.size < 2 || tokens.first().startsWith("#")) return@forEach
+        val domain = parseHostsDomain(tokens.first()) ?: return@forEach
+        val addresses = tokens.drop(1)
+            .takeWhile { !it.startsWith("#") }
+            .mapNotNull { parseHostsAddress(it) }
+        if (addresses.isEmpty()) return@forEach
+        hosts.getOrPut(domain) { mutableListOf() }.addAll(addresses)
+    }
+    return hosts.mapValues { (_, addresses) -> addresses.distinct() }
 }
 
 // Extract the server hostname for a bean, mirroring the bypassDNSBeans logic
@@ -82,6 +164,7 @@ const val TAG_DIRECT = "direct"
 const val TAG_BYPASS = "bypass"
 const val TAG_BLOCK = "block"
 const val TAG_FRAGMENT = "fragment"
+const val TAG_DNS_HOSTS = "dns-hosts"
 
 const val LOCALHOST = "127.0.0.1"
 
@@ -239,6 +322,7 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
         .mapNotNull { dns -> sanitizeDnsEntry(dns).takeIf { it.isNotBlank() && !it.startsWith("#") } }
     val directDNS = DataStore.directDns.split("\n")
         .mapNotNull { dns -> sanitizeDnsEntry(dns).takeIf { it.isNotBlank() && !it.startsWith("#") } }
+    val dnsHosts = if (forTest) emptyMap() else parseDnsHosts(DataStore.dnsHosts)
     val enableDnsRouting = DataStore.enableDnsRouting
     val useFakeDns = DataStore.enableFakeDns && !forTest
     val needSniff = DataStore.trafficSniffing > 0
@@ -1137,6 +1221,36 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
                         server = "dns-fake"
                         disable_cache = true
                         query_type = listOf("A", "AAAA")
+                    },
+                )
+            }
+            // User DNS hosts rewrite: a hosts-type server answering A/AAAA from the
+            // predefined domain -> IP map. Scope the rule to configured domains only;
+            // otherwise sing-box's hosts transport may also consult implicit hosts-file
+            // data. Do not use ip_accept_any here: if the user maps only A records,
+            // an AAAA query should produce no answer instead of falling through to
+            // FakeDNS or remote DNS and bypassing the rewrite.
+            // Scoping to A/AAAA keeps other record types (TXT, MX, HTTPS/SVCB) on
+            // their normal resolution path, mirroring hosts-file semantics; SVCB
+            // answers may therefore still carry upstream address hints.
+            // Inserted below the loopback/force-bypass/per-subscription rules added
+            // after it, so proxy bootstrap resolution is never hijacked by user
+            // entries, and above the user DNS routing rules, so the rewrite wins
+            // for its configured domains.
+            if (dnsHosts.isNotEmpty()) {
+                dns.servers.add(
+                    DNSServerOptions().apply {
+                        tag = TAG_DNS_HOSTS
+                        _hack_config_map["type"] = "hosts"
+                        _hack_config_map["predefined"] = dnsHosts
+                    },
+                )
+                dns.rules.add(
+                    0,
+                    DNSRule_DefaultOptions().apply {
+                        makeSingBoxRule(dnsHosts.keys.map { "full:$it" })
+                        query_type = listOf("A", "AAAA")
+                        server = TAG_DNS_HOSTS
                     },
                 )
             }
