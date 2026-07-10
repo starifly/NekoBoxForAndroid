@@ -10,6 +10,7 @@ object Key {
     const val PERSIST_ACROSS_REBOOT = "isAutoConnect"
 
     const val CLEAR_CACHE = "clearCache"
+    const val PLUGIN_SIGNER_APPROVALS = "pluginSignerApprovals"
 
     const val APP_EXPERT = "isExpert"
     const val APP_THEME = "appTheme"

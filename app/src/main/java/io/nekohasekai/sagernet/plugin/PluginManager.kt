@@ -40,9 +40,8 @@ object PluginManager {
     }
 
     private fun initNative(pluginId: String): InitResult? {
-        // A bundled sidecar always wins over an externally-installed provider:
-        // external providers are matched by authority prefix with no signature
-        // check, so they must not be able to shadow binaries we ship.
+        // A bundled sidecar always wins over an externally-installed provider. External
+        // providers are signer-checked below, but they must not shadow binaries we ship.
         try {
             initNativeInternal(pluginId)?.let { path ->
                 return InitResult(

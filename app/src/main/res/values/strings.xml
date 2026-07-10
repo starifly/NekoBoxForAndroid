@@ -334,6 +334,15 @@
     <string name="plugin_unknown">Unknown plugin %s</string>
     <string name="plugin_untrusted">Warning: This plugin does not seem to come from a known trusted
         source.</string>
+    <string name="plugin_signer_unreadable">unreadable</string>
+    <string name="plugin_signer_rejected">Blocked plugin package %1$s with signer %2$s. Connect again to review it.</string>
+    <string name="plugin_approval_title">Approve plugin package?</string>
+    <string name="plugin_approval_message">Package: %1$s\n\nSHA-256 certificate fingerprint(s):\n%2$s\n\nThe installed plugin’s executable code can run through the app’s plugin interface. Approve only if you trust this package.</string>
+    <string name="plugin_approval_action">Approve</string>
+    <string name="plugin_approval_success">Plugin package approved. Connect again to use it.</string>
+    <string name="plugin_approval_failed">The plugin package could not be approved.</string>
+    <string name="plugin_approval_conflict_title">Plugin package conflict</string>
+    <string name="plugin_approval_conflict_message">More than one untrusted package provides this plugin: %s\n\nRemove the conflict before approving a package.</string>
     <string name="plugin_auto_connect_unlock_only">This plugin might not work with Auto Connect</string>
     <string name="proxy_cat">Server Settings</string>
     <string name="ss_cat">Shadowsocks Settings</string>

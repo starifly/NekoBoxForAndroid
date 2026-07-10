@@ -4,6 +4,8 @@ import androidx.preference.PreferenceDataStore
 import io.nekohasekai.sagernet.database.preference.KeyValuePair
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.database.preference.RoomPreferenceDataStore
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -158,6 +160,86 @@ class CachedPreferenceDataStoreTest {
         // a subsequent refresh must not resurrect the cleared row
         store.refreshBlocking()
         assertNull(store.getString("k", null))
+    }
+
+    @Test
+    fun durableStringSetMerge_commitsBeforeSnapshotVisibility() {
+        val dao = FakeDao().apply {
+            put(KeyValuePair("approvals").put(setOf("first")))
+        }
+        val store = newStore(dao)
+        store.prime()
+
+        val merged = runBlocking {
+            store.addToStringSetDurable("approvals", setOf("second"))
+        }
+
+        assertEquals(setOf("first", "second"), merged)
+        assertEquals(setOf("first", "second"), dao.get("approvals")?.stringSet)
+        assertEquals(setOf("first", "second"), store.getStringSet("approvals", null))
+    }
+
+    @Test
+    fun durableStringSetMerge_failureLeavesSnapshotAndDbUnchanged() {
+        val old = KeyValuePair("approvals").put(setOf("first"))
+        val failingDao = object : KeyValuePair.Dao {
+            override fun all(): List<KeyValuePair> = listOf(old.deepCopy())
+            override fun get(key: String): KeyValuePair? = old.takeIf { it.key == key }?.deepCopy()
+            override fun put(value: KeyValuePair): Long = throw IllegalStateException("disk full")
+            override fun delete(key: String): Int = 0
+            override fun reset(): Int = 0
+            override fun insert(list: List<KeyValuePair>) {}
+        }
+        val store = RoomPreferenceDataStore(
+            failingDao,
+            cached = true,
+            database = null,
+            diskExecutor = directExecutor,
+        )
+        store.prime()
+
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking { store.addToStringSetDurable("approvals", setOf("second")) }
+        }
+        assertEquals(setOf("first"), failingDao["approvals"]?.stringSet)
+        assertEquals(setOf("first"), store.getStringSet("approvals", null))
+    }
+
+    @Test
+    fun durableStringSetMerge_concurrentCallsDoNotLoseUpdates() {
+        val dao = FakeDao()
+        val store = newStore(dao)
+        store.prime()
+
+        runBlocking {
+            listOf(
+                async { store.addToStringSetDurable("approvals", setOf("first")) },
+                async { store.addToStringSetDurable("approvals", setOf("second")) },
+            ).awaitAll()
+        }
+
+        assertEquals(setOf("first", "second"), dao.get("approvals")?.stringSet)
+        assertEquals(setOf("first", "second"), store.getStringSet("approvals", null))
+    }
+
+    @Test
+    fun durableReplacement_clearsOmittedRowsAndSwapsCommittedSnapshot() {
+        val dao = FakeDao().apply {
+            put(KeyValuePair("approval").put(setOf("local")))
+            put(KeyValuePair("ordinary").put("old"))
+        }
+        val store = newStore(dao)
+        store.prime()
+
+        runBlocking {
+            store.addToStringSetDurable("approval", setOf("new"))
+            store.replaceAllDurable(listOf(KeyValuePair("ordinary").put("restored")))
+        }
+
+        assertNull(dao.get("approval"))
+        assertNull(store.getStringSet("approval", null))
+        assertEquals("restored", dao.get("ordinary")?.string)
+        assertEquals("restored", store.getString("ordinary", null))
     }
 
     @Test

@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.ui
 
 import io.nekohasekai.sagernet.GroupType
+import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.RuleEntity
@@ -8,6 +9,7 @@ import io.nekohasekai.sagernet.database.SubscriptionBean
 import io.nekohasekai.sagernet.database.preference.KeyValuePair
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
+import org.json.JSONArray
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -190,5 +192,42 @@ class BackupFormatV2Test {
         assertEquals("set-key", decoded[1].key)
         assertEquals(KeyValuePair.TYPE_STRING_SET, decoded[1].valueType)
         assertEquals(setOf("one", "two"), decoded[1].stringSet)
+    }
+
+    @Test
+    fun settingsExport_omitsPluginSignerApprovals() {
+        val settings = listOf(
+            KeyValuePair("ordinary").put("value"),
+            KeyValuePair(Key.PLUGIN_SIGNER_APPROVALS).put(setOf("untrusted-import")),
+        )
+
+        val encoded = BackupFormatV2.encodeSettings(settings)
+        assertEquals(
+            listOf("ordinary"),
+            (0 until encoded.length()).map { encoded.getJSONObject(it).getString("key") },
+        )
+        val decoded = BackupFormatV2.decodeSettings(encoded)
+
+        assertEquals(listOf("ordinary"), decoded.map { it.key })
+    }
+
+    @Test
+    fun settingsImport_stripsPluginSignerApprovalsFromV1AndV2Material() {
+        val imported = listOf(
+            KeyValuePair("ordinary").put("value"),
+            KeyValuePair(Key.PLUGIN_SIGNER_APPROVALS).put(setOf("untrusted-import")),
+        )
+
+        assertEquals(
+            listOf("ordinary"),
+            BackupFormatV2.sanitizeSettings(imported).map { it.key },
+        )
+        val craftedV2 = JSONArray().apply {
+            imported.forEach { put(BackupFormatV2.encodeSetting(it)) }
+        }
+        assertEquals(
+            listOf("ordinary"),
+            BackupFormatV2.decodeSettings(craftedV2).map { it.key },
+        )
     }
 }

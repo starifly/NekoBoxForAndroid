@@ -270,6 +270,142 @@ open class RoomPreferenceDataStore(
         }
     }
 
+    /**
+     * Merge [additions] into a string-set row without exposing speculative trust state.
+     *
+     * Unlike the normal cached setters, this operation reads the durable row and commits the
+     * merged value before swapping the process snapshot. Submissions share the ordered disk
+     * executor, so concurrent merges cannot overwrite each other. A failed commit leaves the
+     * snapshot unchanged and is rethrown to the caller.
+     */
+    suspend fun addToStringSetDurable(key: String, additions: Set<String>): Set<String> {
+        val additionsCopy = HashSet(additions)
+        if (!cached) {
+            val merged = withContext(Dispatchers.IO) {
+                synchronized(writeLock) {
+                    HashSet(kvPairDao[key]?.stringSet.orEmpty()).apply {
+                        addAll(additionsCopy)
+                        kvPairDao.put(KeyValuePair(key).put(this))
+                    }
+                }
+            }
+            fireChangeListener(key)
+            return HashSet(merged)
+        }
+
+        ensureLoadedSuspend()
+        val latch = CountDownLatch(1)
+        val result = arrayOfNulls<Set<String>>(1)
+        val error = arrayOfNulls<Throwable>(1)
+        synchronized(writeLock) {
+            val resetGenAtSchedule = resetGeneration.get()
+            diskExecutor.execute {
+                try {
+                    if (resetGeneration.get() != resetGenAtSchedule) {
+                        throw IOException("preference reset interrupted durable merge")
+                    }
+                    val merged = HashSet(kvPairDao[key]?.stringSet.orEmpty()).apply {
+                        addAll(additionsCopy)
+                    }
+                    kvPairDao.put(KeyValuePair(key).put(merged))
+                    synchronized(writeLock) {
+                        if (resetGeneration.get() == resetGenAtSchedule) {
+                            val next = HashMap(snapshot)
+                            next[key] = CachedValue.StrSet(HashSet(merged))
+                            snapshot = next
+                        }
+                    }
+                    result[0] = HashSet(merged)
+                } catch (t: Throwable) {
+                    error[0] = t
+                } finally {
+                    latch.countDown()
+                }
+            }
+        }
+        withContext(Dispatchers.IO) { latch.await() }
+        error[0]?.let { throw it }
+        val merged = result[0] ?: throw IOException("durable preference merge returned no result")
+        fireChangeListener(key)
+        return HashSet(merged)
+    }
+
+    /**
+     * Replace every preference row through the same ordering boundary as cached writes and
+     * durable string-set merges. The database transaction commits before the snapshot swap.
+     */
+    suspend fun replaceAllDurable(values: List<KeyValuePair>) {
+        val copies = values.map { value ->
+            KeyValuePair(value.key).also {
+                it.valueType = value.valueType
+                it.value = value.value.copyOf()
+            }
+        }
+        if (!cached) {
+            withContext(Dispatchers.IO) {
+                synchronized(writeLock) { replaceRows(copies) }
+            }
+            return
+        }
+
+        ensureLoadedSuspend()
+        val latch = CountDownLatch(1)
+        val error = arrayOfNulls<Throwable>(1)
+        synchronized(writeLock) {
+            val replacementGeneration = generation.incrementAndGet()
+            val resetGenAtSchedule = resetGeneration.incrementAndGet()
+            diskExecutor.execute {
+                try {
+                    if (resetGeneration.get() != resetGenAtSchedule) {
+                        throw IOException("preference reset interrupted durable replacement")
+                    }
+                    replaceRows(copies)
+                    val replacement = HashMap<String, CachedValue>(copies.size)
+                    for (value in copies) {
+                        value.toCached()?.let { replacement[value.key] = it }
+                    }
+                    synchronized(writeLock) {
+                        if (resetGeneration.get() == resetGenAtSchedule) {
+                            synchronized(pendingLock) {
+                                val iterator = pendingWrites.iterator()
+                                while (iterator.hasNext()) {
+                                    val (key, pending) = iterator.next()
+                                    if (pending.gen <= replacementGeneration) {
+                                        iterator.remove()
+                                    } else if (pending.value == null) {
+                                        replacement.remove(key)
+                                    } else {
+                                        replacement[key] = pending.value
+                                    }
+                                }
+                            }
+                            snapshot = replacement
+                        }
+                    }
+                } catch (t: Throwable) {
+                    error[0] = t
+                } finally {
+                    latch.countDown()
+                }
+            }
+        }
+        withContext(Dispatchers.IO) { latch.await() }
+        error[0]?.let { throw it }
+    }
+
+    private fun replaceRows(values: List<KeyValuePair>) {
+        val replace = {
+            kvPairDao.reset()
+            kvPairDao.insert(values)
+        }
+        val roomDatabase = database
+        if (roomDatabase == null) {
+            replace()
+        } else {
+            roomDatabase.runInTransaction { replace() }
+        }
+    }
+
     private suspend fun ensureLoadedSuspend() {
         if (primed) return
         withContext(Dispatchers.IO) { prime() }

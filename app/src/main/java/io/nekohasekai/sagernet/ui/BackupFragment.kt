@@ -717,10 +717,14 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
             null
         }
         val settings = if (setting && content.has("settings")) {
-            when (version) {
-                BackupFormatV2.VERSION -> BackupFormatV2.decodeSettings(content.getJSONArray("settings"))
-                else -> decodeArray(content.getJSONArray("settings")) { KeyValuePair.CREATOR.createFromParcel(it) }
-            }
+            BackupFormatV2.sanitizeSettings(
+                when (version) {
+                    BackupFormatV2.VERSION -> BackupFormatV2.decodeSettings(content.getJSONArray("settings"))
+                    else -> decodeArray(content.getJSONArray("settings")) {
+                        KeyValuePair.CREATOR.createFromParcel(it)
+                    }
+                },
+            )
         } else {
             null
         }
@@ -743,14 +747,10 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
             }
         }
         settings?.let {
-            // Drain pending async write-through commits before the destructive reset()+insert(),
-            // so a not-yet-committed pre-import write can't land after the import and overwrite a
-            // restored setting. (The app process restarts right after import, re-priming the cache.)
+            // Drain earlier write-through work, then replace settings through the store's ordered
+            // durable path. This keeps approval merges and restore on one serialization boundary.
             DataStore.configurationStore.awaitWrites()
-            PublicDatabase.instance.runInTransaction {
-                PublicDatabase.kvPairDao.reset()
-                PublicDatabase.kvPairDao.insert(it)
-            }
+            DataStore.configurationStore.replaceAllDurable(it)
         }
     }
 

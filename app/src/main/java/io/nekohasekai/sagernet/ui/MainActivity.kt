@@ -51,7 +51,11 @@ import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.parseProxies
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
+import io.nekohasekai.sagernet.plugin.PluginTrust
+import moe.matsuri.nb4a.plugin.Plugins
 import moe.matsuri.nb4a.utils.Util
+import java.util.Locale
 
 class MainActivity :
     ThemedActivity(),
@@ -292,8 +296,27 @@ class MainActivity :
             return
         }
 
-        // official exe
+        runOnDefaultDispatcher {
+            val rejected = try {
+                Plugins.inspectRejectedPlugins(pluginName)
+            } catch (e: Exception) {
+                Logs.w(e)
+                emptyList()
+            }
+            onMainDispatcher {
+                if (isFinishing || isDestroyed) return@onMainDispatcher
+                when {
+                    rejected.size > 1 -> showPluginApprovalConflict(rejected)
+                    rejected.singleOrNull()?.currentFingerprints?.isNotEmpty() == true -> {
+                        showPluginApprovalDialog(pluginName, rejected.single())
+                    }
+                    else -> showMissingPluginDialog(profileName, pluginEntity)
+                }
+            }
+        }
+    }
 
+    private fun showMissingPluginDialog(profileName: String, pluginEntity: PluginEntry) {
         MaterialAlertDialogBuilder(this).setTitle(R.string.missing_plugin)
             .setMessage(
                 getString(
@@ -306,6 +329,81 @@ class MainActivity :
                 showDownloadDialog(pluginEntity)
             }
             .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showPluginApprovalDialog(pluginName: String, rejection: PluginTrust.RejectedPlugin) {
+        val currentFingerprints = rejection.currentFingerprints ?: return
+        val fingerprintText = currentFingerprints.sorted().joinToString("\n") {
+            it.chunked(2).joinToString(":").uppercase(Locale.ROOT)
+        }
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.plugin_approval_title)
+            .setMessage(
+                getString(
+                    R.string.plugin_approval_message,
+                    rejection.packageName,
+                    fingerprintText,
+                ),
+            )
+            .setPositiveButton(R.string.plugin_approval_action) { _, _ ->
+                approvePluginSigner(pluginName, rejection)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun approvePluginSigner(pluginName: String, displayed: PluginTrust.RejectedPlugin) {
+        runOnDefaultDispatcher {
+            val approved = try {
+                val current = Plugins.inspectRejectedPlugins(pluginName).singleOrNull()
+                if (current == null || current != displayed) {
+                    false
+                } else {
+                    val fingerprints = current.currentFingerprints
+                    val identity = if (fingerprints.isNullOrEmpty()) {
+                        null
+                    } else {
+                        PluginTrust.approvalIdentity(current.packageName, fingerprints)
+                    }
+                    if (identity == null) {
+                        false
+                    } else {
+                        DataStore.approvePluginSigner(identity)
+                        true
+                    }
+                }
+            } catch (e: Exception) {
+                Logs.w(e)
+                false
+            }
+            showPluginApprovalResult(approved)
+        }
+    }
+
+    private fun showPluginApprovalResult(approved: Boolean) {
+        runOnMainDispatcher {
+            if (isFinishing || isDestroyed) return@runOnMainDispatcher
+            snackbar(
+                if (approved) {
+                    getString(R.string.plugin_approval_success)
+                } else {
+                    getString(R.string.plugin_approval_failed)
+                },
+            ).show()
+        }
+    }
+
+    private fun showPluginApprovalConflict(rejected: List<PluginTrust.RejectedPlugin>) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.plugin_approval_conflict_title)
+            .setMessage(
+                getString(
+                    R.string.plugin_approval_conflict_message,
+                    rejected.map { it.packageName }.distinct().sorted().joinToString("\n"),
+                ),
+            )
+            .setPositiveButton(android.R.string.ok, null)
             .show()
     }
 

@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui
 
+import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.RuleEntity
@@ -31,10 +32,12 @@ internal object BackupFormatV2 {
     fun decodeRules(array: JSONArray): List<RuleEntity> = array.mapObjects(::decodeRule)
 
     fun encodeSettings(settings: List<KeyValuePair>): JSONArray = JSONArray().apply {
-        settings.forEach { put(encodeSetting(it)) }
+        sanitizeSettings(settings).forEach { put(encodeSetting(it)) }
     }
 
-    fun decodeSettings(array: JSONArray): List<KeyValuePair> = array.mapObjects(::decodeSetting)
+    fun decodeSettings(array: JSONArray): List<KeyValuePair> = sanitizeSettings(array.mapObjects(::decodeSetting))
+
+    fun sanitizeSettings(settings: List<KeyValuePair>) = settings.filterNot { it.key == Key.PLUGIN_SIGNER_APPROVALS }
 
     fun encodeProfile(profile: ProxyEntity): JSONObject = JSONObject().apply {
         put("id", profile.id)

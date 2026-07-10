@@ -67,6 +67,12 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var runningTest = false
 
+    val pluginSignerApprovals: Set<String>
+        get() = configurationStore.getStringSet(Key.PLUGIN_SIGNER_APPROVALS).orEmpty()
+
+    suspend fun approvePluginSigner(identity: String) =
+        configurationStore.addToStringSetDurable(Key.PLUGIN_SIGNER_APPROVALS, setOf(identity))
+
     fun currentGroupId(): Long {
         val currentSelected = configurationStore.getLong(Key.PROFILE_GROUP, -1)
         if (currentSelected > 0L) return currentSelected
