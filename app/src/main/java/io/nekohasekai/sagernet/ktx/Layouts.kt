@@ -14,6 +14,10 @@ class FixedLinearLayoutManager(val recyclerView: RecyclerView) :
         }
     }
 
+    override fun supportsPredictiveItemAnimations(): Boolean {
+        return false
+    }
+
 }
 
 class FixedGridLayoutManager(val recyclerView: RecyclerView, spanCount: Int) :
@@ -29,5 +33,8 @@ class FixedGridLayoutManager(val recyclerView: RecyclerView, spanCount: Int) :
     override fun supportsPredictiveItemAnimations(): Boolean {
         return false
     }
+
+    fun rowIndexOf(position: Int): Int =
+        position / spanCount
 
 }

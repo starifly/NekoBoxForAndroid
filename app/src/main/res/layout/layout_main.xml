@@ -52,8 +52,7 @@
             android:nextFocusUp="@+id/fab"
             app:backgroundTint="?colorPrimary"
             app:contentInsetStart="0dp"
-            app:hideOnScroll="true"
-            app:layout_scrollFlags="enterAlways|scroll">
+            app:hideOnScroll="true">
 
             <LinearLayout
                 android:layout_width="match_parent"
