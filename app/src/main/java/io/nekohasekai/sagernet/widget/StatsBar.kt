@@ -39,10 +39,13 @@ class StatsBar @JvmOverloads constructor(
     private lateinit var statusText: TextView
     private lateinit var txText: TextView
     private lateinit var rxText: TextView
+    @Suppress("unused")
     private lateinit var behavior: YourBehavior
     private var currentState = BaseService.State.Idle
     private var pendingTransition: Transition? = Transition.HideImmediate
     private var transitionJob: Job? = null
+
+    var useExternalScrollDriver = false
 
     var allowShow = false
         set(value) {
@@ -55,37 +58,34 @@ class StatsBar @JvmOverloads constructor(
     }
 
     override fun getBehavior(): YourBehavior {
-        if (!this::behavior.isInitialized) behavior = YourBehavior { allowShow }
+        if (!this::behavior.isInitialized) behavior = YourBehavior()
         return behavior
     }
 
-    class YourBehavior(val getAllowShow: () -> Boolean) : Behavior() {
+    inner class YourBehavior : Behavior() {
 
-        override fun onNestedScroll(
-            coordinatorLayout: CoordinatorLayout, child: BottomAppBar, target: View,
-            dxConsumed: Int, dyConsumed: Int, dxUnconsumed: Int, dyUnconsumed: Int,
-            type: Int, consumed: IntArray,
-        ) {
-            super.onNestedScroll(
+        override fun onStartNestedScroll(
+            coordinatorLayout: CoordinatorLayout,
+            child: BottomAppBar,
+            directTarget: View,
+            target: View,
+            nestedScrollAxes: Int,
+            type: Int,
+        ): Boolean {
+            if (useExternalScrollDriver) return false
+            return super.onStartNestedScroll(
                 coordinatorLayout,
                 child,
+                directTarget,
                 target,
-                dxConsumed,
-                dyConsumed + dyUnconsumed,
-                dxUnconsumed,
-                0,
+                nestedScrollAxes,
                 type,
-                consumed
             )
         }
 
         override fun slideUp(child: BottomAppBar) {
-            if (!getAllowShow()) return
+            if (!allowShow) return
             super.slideUp(child)
-        }
-
-        override fun slideDown(child: BottomAppBar) {
-            super.slideDown(child)
         }
     }
 
@@ -120,9 +120,9 @@ class StatsBar @JvmOverloads constructor(
         return allowShow && currentState == BaseService.State.Connected
     }
 
-    fun onFingerScroll(fingerUp: Boolean) {
-        if (!shouldShow()) return
-        if (fingerUp) performHide() else performShow()
+    fun onListScrolled(dy: Int) {
+        if (!useExternalScrollDriver || !shouldShow() || dy == 0) return
+        if (dy > 0) performHide() else performShow()
     }
 
     fun syncMainControls(

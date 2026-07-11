@@ -385,6 +385,7 @@ class MainActivity : ThemedActivity(),
         animate: Boolean,
     ) {
         val showControls = fragment is ConfigurationFragment || DataStore.showBottomBar
+        binding.stats.useExternalScrollDriver = fragment is ConfigurationFragment
         binding.stats.syncMainControls(
             showControls,
             DataStore.serviceState,
@@ -406,8 +407,14 @@ class MainActivity : ThemedActivity(),
         }
     }
 
-    fun driveBottomBar(fingerUp: Boolean) {
-        binding.stats.onFingerScroll(fingerUp)
+    private fun refreshConfigurationProfileState() {
+        val fragment = currentMainFragment
+            ?: supportFragmentManager.findFragmentById(R.id.fragment_holder)
+        (fragment as? ConfigurationFragment)?.refreshProfileState()
+    }
+
+    fun driveBottomBar(scrollDy: Int) {
+        binding.stats.onListScrolled(scrollDy)
     }
 
     fun displayFragmentWithId(@IdRes id: Int): Boolean {
@@ -442,6 +449,7 @@ class MainActivity : ThemedActivity(),
         animateControls: Boolean = animate,
     ) {
         DataStore.serviceState = state
+        refreshConfigurationProfileState()
 
         binding.fab.changeState(state, DataStore.serviceState, animate)
         binding.stats.changeState(state)
@@ -500,6 +508,7 @@ class MainActivity : ThemedActivity(),
         val old = DataStore.selectedProxy
         DataStore.selectedProxy = id
         DataStore.currentProfile = id
+        refreshConfigurationProfileState()
         runOnDefaultDispatcher {
             ProfileManager.postUpdate(old, true)
             ProfileManager.postUpdate(id, true)
