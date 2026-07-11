@@ -92,7 +92,9 @@
     <string name="fakedns_message">Может потребоваться перезапуск других приложений для переподключения к
         сети после остановки прокси</string>
     <string name="dns_hosts">Перезапись доменов</string>
-    <string name="dns_hosts_dialog_message">One per line. Lines starting with # are comments. Example:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
+    <string name="dns_hosts_dialog_message">По одному на строку. Строки, начинающиеся с #, являются комментариями. Пример:
+example.com 1.1.1.1
+www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="port_local_dns">Локальный порт DNS</string>
     <string name="require_transproxy">Включить входящий Transproxy</string>
     <string name="transproxy_mode">Режим Transproxy</string>
@@ -329,11 +331,13 @@
     <string name="connection_test_timeout_error">Тайм-аут</string>
     <string name="append_http_proxy">Добавить HTTP-прокси в VPN</string>
     <string name="append_http_proxy_sum">HTTP-прокси будет использоваться напрямую из (браузера/ некоторых поддерживаемых приложений), минуя виртуальный сетевой адаптер (Android 10+)</string>
-    <string name="http_proxy_bypass">HTTP proxy bypass list</string>
-    <string name="http_proxy_bypass_dialog_message">One per line. Lines starting with # are comments. Example: *zhihu.com</string>
-    <string name="append_http_proxy_security_title">Security Notice</string>
-    <string name="append_http_proxy_security_message">When enabled, other apps on this device can directly use the local proxy port.\n\nRecommendation: Only enable this if you trust all installed apps.</string>
-    <string name="enable_anyway">Enable Anyway</string>
+    <string name="http_proxy_bypass">Список обхода HTTP прокси</string>
+    <string name="http_proxy_bypass_dialog_message">По одному на строку. Строки, начинающиеся с #, являются комментариями. Пример: *zhihu.com</string>
+    <string name="append_http_proxy_security_title">Предупреждение безопасности</string>
+    <string name="append_http_proxy_security_message">При включении другие приложения на этом устройстве могут напрямую использовать локальный прокси-порт.
+
+Рекомендация: Включайте только в том случае, если вы доверяете всем установленным приложениям.</string>
+    <string name="enable_anyway">Включить в любом случае</string>
     <string name="strict_route">Строгий маршрут</string>
     <string name="protocol_settings">Настройки протокола</string>
     <string name="trojan_provider">Поставщик Trojan</string>
@@ -377,9 +381,9 @@
     <string name="subscription_update">Обновление подписки</string>
     <string name="subscription_update_message">Обновление %s …</string>
     <string name="group_filter">Фильтр</string>
-    <string name="server_dns">Custom Server DNS</string>
-    <string name="server_dns_subscription_sum">Optional DNS used only to resolve server domains in this subscription. Leave empty to use the default behavior. Accepts https://, tls://, quic:// or host[:port].</string>
-    <string name="server_dns_invalid">Invalid custom server DNS. Use https://, tls://, quic:// or host[:port], or leave empty.</string>
+    <string name="server_dns">Пользовательский DNS сервера</string>
+    <string name="server_dns_subscription_sum">Необязательный DNS, используемый только для разрешения доменов сервера в этой подписке. Оставьте пустым для использования поведения по умолчанию. Принимает https://, tls://, quic:// или host[:port].</string>
+    <string name="server_dns_invalid">Недопустимый пользовательский DNS сервера. Используйте https://, tls://, quic:// или host[:port], или оставьте пустым.</string>
     <string name="subscription_used">%s Использовано</string>
     <string name="subscription_traffic">%s Использовано / %s Осталось</string>
     <string name="subscription_expire">Срок действия: %s</string>

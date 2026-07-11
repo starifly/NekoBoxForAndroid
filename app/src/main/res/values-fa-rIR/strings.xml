@@ -92,7 +92,7 @@
     <string name="fakedns_message">ممکن است باعث شود برنامه‌های دیگر برای اتصال مجدد به شبکه پس از توقف پروکسی نیاز به راه‌اندازی مجدد داشته باشند.
         </string>
     <string name="dns_hosts">بازنویسی دامنه</string>
-    <string name="dns_hosts_dialog_message">One per line. Lines starting with # are comments. Example:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
+    <string name="dns_hosts_dialog_message">هر خط یک مورد. خطوطی که با # شروع می‌شوند کامنت هستند. مثال:\\nexample.com 1.1.1.1\\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="port_local_dns">پورت DNS محلی</string>
     <string name="require_transproxy">فعال‌سازی ورودی Transproxy</string>
     <string name="transproxy_mode">حالت Transproxy</string>
@@ -326,11 +326,11 @@
     <string name="connection_test_timeout_error">زمان‌گیری</string>
     <string name="append_http_proxy">افزودن HTTP Proxy به VPN</string>
     <string name="append_http_proxy_sum">پروکسی HTTP مستقیماً از (مرورگر/ برخی برنامه‌های پشتیبانی‌شده) استفاده می‌شود، بدون عبور از دستگاه NIC مجازی (Android 10+)</string>
-    <string name="http_proxy_bypass">HTTP proxy bypass list</string>
-    <string name="http_proxy_bypass_dialog_message">One per line. Lines starting with # are comments. Example: *zhihu.com</string>
-    <string name="append_http_proxy_security_title">Security Notice</string>
-    <string name="append_http_proxy_security_message">When enabled, other apps on this device can directly use the local proxy port.\n\nRecommendation: Only enable this if you trust all installed apps.</string>
-    <string name="enable_anyway">Enable Anyway</string>
+    <string name="http_proxy_bypass">لیست استثنای پروکسی HTTP</string>
+    <string name="http_proxy_bypass_dialog_message">هر خط یک مورد. خطوطی که با # شروع می‌شوند کامنت هستند. مثال: *zhihu.com</string>
+    <string name="append_http_proxy_security_title">اعلان امنیتی</string>
+    <string name="append_http_proxy_security_message">هنگامی که فعال باشد، سایر برنامه‌های این دستگاه می‌توانند مستقیماً از پورت پروکسی محلی استفاده کنند.\\n\\nتوصیه: فقط در صورتی فعال کنید که به همه برنامه‌های نصب شده اعتماد دارید.</string>
+    <string name="enable_anyway">به هر حال فعال کنید</string>
     <string name="strict_route">مسیر دقیق</string>
     <string name="protocol_settings">تنظیمات پروتکل</string>
     <string name="trojan_provider">ارائه‌دهنده Trojan</string>
@@ -372,9 +372,9 @@
     <string name="subscription_update">به‌روزرسانی اشتراک</string>
     <string name="subscription_update_message">در حال به‌روزرسانی %s …</string>
     <string name="group_filter">فیلتر</string>
-    <string name="server_dns">Custom Server DNS</string>
-    <string name="server_dns_subscription_sum">Optional DNS used only to resolve server domains in this subscription. Leave empty to use the default behavior. Accepts https://, tls://, quic:// or host[:port].</string>
-    <string name="server_dns_invalid">Invalid custom server DNS. Use https://, tls://, quic:// or host[:port], or leave empty.</string>
+    <string name="server_dns">DNS سرور سفارشی</string>
+    <string name="server_dns_subscription_sum">DNS اختیاری که فقط برای حل دامنه‌های سرور در این اشتراک استفاده می‌شود. خالی بگذارید تا از رفتار پیش‌فرض استفاده شود. https://، tls://، quic:// یا host[:port] را می‌پذیرد.</string>
+    <string name="server_dns_invalid">DNS سرور سفارشی نامعتبر است. از https://، tls://، quic:// یا host[:port] استفاده کنید، یا خالی بگذارید.</string>
     <string name="subscription_used">%s استفاده شده</string>
     <string name="subscription_traffic">%s استفاده شده / %s باقی‌مانده</string>
     <string name="subscription_expire">انقضا: %s</string>

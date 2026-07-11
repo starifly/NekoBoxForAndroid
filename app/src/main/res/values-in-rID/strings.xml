@@ -92,7 +92,9 @@
     <string name="fakedns_message">Dapat menyebabkan aplikasi lain perlu dimulai ulang untuk terhubung kembali ke
         jaringan setelah proxy berhenti</string>
     <string name="dns_hosts">Tulis ulang domain</string>
-    <string name="dns_hosts_dialog_message">One per line. Lines starting with # are comments. Example:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
+    <string name="dns_hosts_dialog_message">Satu per baris. Baris yang diawali dengan # adalah komentar. Contoh:
+example.com 1.1.1.1
+www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="port_local_dns">Port DNS Lokal</string>
     <string name="require_transproxy">Aktifkan Transproxy Inbound</string>
     <string name="transproxy_mode">Mode Transproxy</string>
@@ -324,11 +326,13 @@
     <string name="connection_test_timeout_error">Timeout</string>
     <string name="append_http_proxy">Tambahkan HTTP Proxy ke VPN</string>
     <string name="append_http_proxy_sum">Proxy HTTP akan digunakan langsung dari (browser/ beberapa aplikasi yang didukung), tanpa melalui perangkat NIC virtual (Android 10+)</string>
-    <string name="http_proxy_bypass">HTTP proxy bypass list</string>
-    <string name="http_proxy_bypass_dialog_message">One per line. Lines starting with # are comments. Example: *zhihu.com</string>
-    <string name="append_http_proxy_security_title">Security Notice</string>
-    <string name="append_http_proxy_security_message">When enabled, other apps on this device can directly use the local proxy port.\n\nRecommendation: Only enable this if you trust all installed apps.</string>
-    <string name="enable_anyway">Enable Anyway</string>
+    <string name="http_proxy_bypass">Daftar pengecualian proxy HTTP</string>
+    <string name="http_proxy_bypass_dialog_message">Satu per baris. Baris yang diawali dengan # adalah komentar. Contoh: *zhihu.com</string>
+    <string name="append_http_proxy_security_title">Pemberitahuan Keamanan</string>
+    <string name="append_http_proxy_security_message">Jika diaktifkan, aplikasi lain di perangkat ini dapat langsung menggunakan port proxy lokal.
+
+Rekomendasi: Hanya aktifkan ini jika Anda mempercayai semua aplikasi yang terinstal.</string>
+    <string name="enable_anyway">Tetap Aktifkan</string>
     <string name="strict_route">Rute Ketat</string>
     <string name="protocol_settings">Pengaturan Protokol</string>
     <string name="trojan_provider">Penyedia Trojan</string>
@@ -373,9 +377,9 @@
     <string name="subscription_update">Pembaruan Langganan</string>
     <string name="subscription_update_message">Memperbarui %s …</string>
     <string name="group_filter">Filter</string>
-    <string name="server_dns">Custom Server DNS</string>
-    <string name="server_dns_subscription_sum">Optional DNS used only to resolve server domains in this subscription. Leave empty to use the default behavior. Accepts https://, tls://, quic:// or host[:port].</string>
-    <string name="server_dns_invalid">Invalid custom server DNS. Use https://, tls://, quic:// or host[:port], or leave empty.</string>
+    <string name="server_dns">DNS Server Kustom</string>
+    <string name="server_dns_subscription_sum">DNS opsional yang hanya digunakan untuk menyelesaikan domain server dalam langganan ini. Biarkan kosong untuk menggunakan perilaku default. Menerima https://, tls://, quic:// atau host[:port].</string>
+    <string name="server_dns_invalid">DNS server kustom tidak valid. Gunakan https://, tls://, quic:// atau host[:port], atau biarkan kosong.</string>
     <string name="subscription_used">%s Digunakan</string>
     <string name="subscription_traffic">%s Digunakan / %s Tersisa</string>
     <string name="subscription_expire">Kadaluarsa: %s</string>
