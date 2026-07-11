@@ -14,7 +14,7 @@ import org.junit.Test
  */
 class OlcrtcFmtTest {
 
-    private val key = "d823fa01cb3e0609b67322f7cf984c4ee2e4ce2e294936fc24ef38c9e59f4799"
+    private val key = "0".repeat(64)
 
     @Test
     fun parse_jitsi_datachannel_urlRoom() {
