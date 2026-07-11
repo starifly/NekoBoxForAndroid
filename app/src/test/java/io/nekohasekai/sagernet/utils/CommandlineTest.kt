@@ -7,9 +7,10 @@ import org.junit.Test
 
 class CommandlineTest {
 
+    private val key = "0".repeat(64)
+
     @Test
     fun toRedactedString_hidesSensitiveFlagValues() {
-        val key = "d823fa01cb3e0609b67322f7cf984c4ee2e4ce2e294936fc24ef38c9e59f4799"
         val rendered = Commandline.toRedactedString(
             listOf(
                 "/data/app/libolcrtc.so",
@@ -41,7 +42,6 @@ class CommandlineTest {
 
     @Test
     fun redactProcessOutput_hidesProfileFieldsAndRoomNames() {
-        val key = "d823fa01cb3e0609b67322f7cf984c4ee2e4ce2e294936fc24ef38c9e59f4799"
         val line = """
             {"roomId":"https://meet.example.org/brief-5935","clientId":"device-3924","keyHex":"$key","username":"neko","password":"secret"}
             imported olcrtc://jitsi?datachannel<cid=device-3924>@https://meet.example.org/brief-5935#$key
