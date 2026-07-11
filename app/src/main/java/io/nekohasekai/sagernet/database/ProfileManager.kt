@@ -125,6 +125,18 @@ object ProfileManager {
         }
     }
 
+    suspend fun deleteProfiles(profiles: List<ProxyEntity>) {
+        if (profiles.isEmpty()) return
+        val ids = profiles.map { it.id }
+        var deleted = 0
+        SagerDatabase.instance.runInTransaction {
+            ids.chunked(500).forEach { deleted += SagerDatabase.proxyDao.deleteByIds(it) }
+        }
+        if (deleted > 0 && DataStore.selectedProxy in ids) {
+            DataStore.selectedProxy = 0L
+        }
+    }
+
     suspend fun deleteProfile(groupId: Long, profileId: Long) {
         if (SagerDatabase.proxyDao.deleteById(profileId) == 0) return
         if (DataStore.selectedProxy == profileId) {

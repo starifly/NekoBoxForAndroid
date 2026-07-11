@@ -3,6 +3,9 @@ package moe.matsuri.nb4a.utils
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Base64
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import io.nekohasekai.sagernet.ktx.ImportTooLargeException
 import io.nekohasekai.sagernet.ktx.MAX_IMPORT_BYTES
 import libcore.StringBox
@@ -172,6 +175,42 @@ object Util {
         if (j.isBlank()) return
         val src = JavaUtil.gson.fromJson(j, dst.javaClass)
         mergeMap(dst, src)
+    }
+
+    fun mergeJsonElement(dst: JsonObject, json: String) {
+        if (json.isBlank()) return
+        mergeJsonObject(dst, JsonParser.parseString(json).asJsonObject)
+    }
+
+    private fun mergeJsonObject(dst: JsonObject, src: JsonObject) {
+        src.entrySet().forEach { (key, value) ->
+            val current = dst.get(key)
+            if (value.isJsonObject && current?.isJsonObject == true) {
+                mergeJsonObject(current.asJsonObject, value.asJsonObject)
+            } else if (value.isJsonArray && (key.startsWith("+") || key.endsWith("+"))) {
+                val destinationKey = if (key.startsWith("+")) {
+                    key.removePrefix("+")
+                } else {
+                    key.removeSuffix("+")
+                }
+                val currentArray = dst.get(destinationKey)?.takeIf { it.isJsonArray }?.asJsonArray
+                dst.add(
+                    destinationKey,
+                    if (key.startsWith("+")) {
+                        combineJsonArrays(value.asJsonArray, currentArray)
+                    } else {
+                        combineJsonArrays(currentArray, value.asJsonArray)
+                    },
+                )
+            } else {
+                dst.add(key, value.deepCopy())
+            }
+        }
+    }
+
+    private fun combineJsonArrays(first: JsonArray?, second: JsonArray?) = JsonArray().apply {
+        first?.forEach { add(it.deepCopy()) }
+        second?.forEach { add(it.deepCopy()) }
     }
 
     // Format Time

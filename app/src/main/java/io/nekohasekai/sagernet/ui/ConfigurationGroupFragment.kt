@@ -20,6 +20,7 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.view.size
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
@@ -44,6 +45,7 @@ import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.alert
 import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.getColour
+import io.nekohasekai.sagernet.ktx.onDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -52,12 +54,23 @@ import io.nekohasekai.sagernet.ktx.showAllowingStateLoss
 import io.nekohasekai.sagernet.ktx.tryToShow
 import io.nekohasekai.sagernet.widget.QRCodeDialog
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import me.zhanghai.android.fastscroll.FastScrollerBuilder
 import moe.matsuri.nb4a.Protocols
 import moe.matsuri.nb4a.Protocols.getProtocolColor
+import java.util.Objects
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.collections.set
+
+private data class ProfileListSubmission(
+    val ids: List<Long>,
+    val profiles: Map<Long, ProxyEntity>,
+    val stamps: Map<Long, Int>,
+    val scrollIndex: Int = -1,
+)
 
 class ConfigurationGroupFragment : Fragment() {
 
@@ -68,7 +81,7 @@ class ConfigurationGroupFragment : Fragment() {
         return LayoutProfileListBinding.inflate(inflater).root
     }
 
-    lateinit var undoManager: UndoSnackbarManager<ProxyEntity>
+    var undoManager: UndoSnackbarManager<ProxyEntity>? = null
     var adapter: ConfigurationAdapter? = null
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -118,7 +131,7 @@ class ConfigurationGroupFragment : Fragment() {
             }
 
             override fun getDragDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
-                return if (isEnabled) {
+                return if (isEnabled && adapter?.canDrag() == true) {
                     if (DataStore.groupLayoutMode == 1) {
                         ItemTouchHelper.UP or ItemTouchHelper.DOWN or ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
                     } else {
@@ -146,6 +159,11 @@ class ConfigurationGroupFragment : Fragment() {
 
                 adapter?.move(fromPosition, toPosition)
                 return true
+            }
+
+            override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
+                super.onSelectedChanged(viewHolder, actionState)
+                if (actionState == ItemTouchHelper.ACTION_STATE_DRAG) adapter?.beginDrag()
             }
 
             override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
@@ -282,6 +300,11 @@ class ConfigurationGroupFragment : Fragment() {
         configurationListView = LayoutProfileListBinding.bind(view).configurationList
         setupLayoutManager()
         configurationListView.layoutManager = layoutManager
+        adapter?.let {
+            ProfileManager.removeListener(it)
+            GroupManager.removeListener(it)
+            it.dispose()
+        }
         adapter = ConfigurationAdapter()
         ProfileManager.addListener(adapter!!)
         GroupManager.addListener(adapter!!)
@@ -322,6 +345,19 @@ class ConfigurationGroupFragment : Fragment() {
         }
     }
 
+    override fun onDestroyView() {
+        undoManager?.flush()
+        undoManager = null
+        adapter?.let {
+            ProfileManager.removeListener(it)
+            GroupManager.removeListener(it)
+            it.dispose()
+        }
+        adapter = null
+        if (::itemTouchHelper.isInitialized) itemTouchHelper.attachToRecyclerView(null)
+        super.onDestroyView()
+    }
+
     override fun onDestroy() {
         adapter?.let {
             ProfileManager.removeListener(it)
@@ -330,8 +366,7 @@ class ConfigurationGroupFragment : Fragment() {
 
         super.onDestroy()
 
-        if (!::undoManager.isInitialized) return
-        undoManager.flush()
+        undoManager?.flush()
     }
 
     inner class ConfigurationAdapter :
@@ -346,17 +381,197 @@ class ConfigurationGroupFragment : Fragment() {
 
         var configurationIdList: MutableList<Long> = mutableListOf()
         val configurationList = HashMap<Long, ProxyEntity>()
+        private val configurationStamps = HashMap<Long, Int>()
+        private val displayPositions = HashMap<Long, Int>()
+        private val masterIds = ArrayList<Long>()
+        private val masterProfiles = HashMap<Long, ProxyEntity>()
+        private val masterStamps = HashMap<Long, Int>()
+        private val hostView = configurationListView
+        private val reloadGeneration = AtomicLong()
+        private var displayGeneration = 0L
+        private var diffJob: Job? = null
+        private var filterQuery = ""
+        private var filterPending = false
+        private var masterUpdatePending = false
+        private var displayPending = false
+        private var dragInProgress = false
+        private var disposed = false
+        private val filterRunnable = Runnable {
+            if (!disposed) {
+                filterPending = false
+                submitMasterList()
+            }
+        }
+        private val masterUpdateRunnable = Runnable {
+            if (!disposed) {
+                masterUpdatePending = false
+                sortMasterProfiles()
+                submitMasterList()
+            }
+        }
 
-        private fun getItem(profileId: Long): ProxyEntity {
-            var profile = configurationList[profileId]
-            if (profile == null) {
-                profile = ProfileManager.getProfile(profileId)
-                if (profile != null) {
-                    configurationList[profileId] = profile
+        // Keep this aligned with ConfigurationHolder.bind. TrafficData updates both the entities
+        // and these cached stamps directly, without scheduling a list diff for every traffic tick.
+        private fun contentStamp(profile: ProxyEntity) = Objects.hash(
+            profile.displayName(),
+            profile.displayType(),
+            profile.displayAddress(),
+            profile.requireBean().name,
+            profile.ping,
+            profile.status,
+            profile.error,
+            profile.tx,
+            profile.rx,
+            profile.lifetimeTx,
+            profile.lifetimeRx,
+        )
+
+        private fun selectedStamp(profile: ProxyEntity, selectedId: Long) =
+            31 * contentStamp(profile) + (profile.id == selectedId).hashCode()
+
+        private fun matchesFilter(profile: ProxyEntity): Boolean {
+            if (filterQuery.isEmpty()) return true
+            val lower = filterQuery.lowercase()
+            return profile.displayName().lowercase().contains(lower) ||
+                profile.displayType().lowercase().contains(lower) ||
+                profile.displayAddress().lowercase().contains(lower)
+        }
+
+        private fun rebuildDisplayPositions() {
+            displayPositions.clear()
+            configurationIdList.forEachIndexed { index, id -> displayPositions[id] = index }
+        }
+
+        private fun applySubmission(submission: ProfileListSubmission) {
+            configurationIdList.clear()
+            configurationIdList.addAll(submission.ids)
+            configurationList.clear()
+            configurationList.putAll(submission.profiles)
+            configurationStamps.clear()
+            configurationStamps.putAll(submission.stamps)
+            rebuildDisplayPositions()
+        }
+
+        private fun submit(submission: ProfileListSubmission) {
+            if (disposed || dragInProgress) return
+            val generation = ++displayGeneration
+            displayPending = true
+            val oldIds = configurationIdList.toList()
+            val oldStamps = configurationStamps.toMap()
+            if (oldIds.isEmpty()) {
+                applySubmission(submission)
+                displayPending = false
+                notifyDataSetChanged()
+                scrollAfterSubmission(submission)
+                return
+            }
+            diffJob?.cancel()
+            diffJob = runOnDefaultDispatcher {
+                val diff = try {
+                    DiffUtil.calculateDiff(
+                        ProfileDiffCallback(oldIds, submission.ids, oldStamps, submission.stamps),
+                    )
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Logs.w(e)
+                    onMainDispatcher {
+                        if (disposed || dragInProgress || generation != displayGeneration) {
+                            return@onMainDispatcher
+                        }
+                        applySubmission(submission)
+                        displayPending = false
+                        // Exceptional fallback only: keep RecyclerView state consistent if DiffUtil
+                        // rejects an otherwise valid immutable snapshot.
+                        notifyDataSetChanged()
+                        scrollAfterSubmission(submission)
+                    }
+                    return@runOnDefaultDispatcher
+                }
+                onMainDispatcher {
+                    if (disposed || dragInProgress || generation != displayGeneration) return@onMainDispatcher
+                    applySubmission(submission)
+                    displayPending = false
+                    diff.dispatchUpdatesTo(this@ConfigurationAdapter)
+                    scrollAfterSubmission(submission)
                 }
             }
-            return profile!!
         }
+
+        private fun scrollAfterSubmission(submission: ProfileListSubmission) {
+            if (submission.scrollIndex >= 0) {
+                configurationListView.scrollTo(submission.scrollIndex, true)
+            }
+        }
+
+        private fun submitMasterList(scrollIndex: Int = -1) {
+            if (disposed || dragInProgress) return
+            val ids = masterIds.filter { id -> masterProfiles[id]?.let(::matchesFilter) == true }
+            submit(
+                ProfileListSubmission(
+                    ids = ids,
+                    profiles = masterProfiles.toMap(),
+                    stamps = masterStamps.toMap(),
+                    scrollIndex = scrollIndex.coerceAtMost(ids.lastIndex),
+                ),
+            )
+        }
+
+        private fun sortMasterProfiles() {
+            val sorted = when (proxyGroup.order) {
+                GroupOrder.BY_NAME -> masterProfiles.values.sortedBy { it.displayName() }
+                GroupOrder.BY_DELAY -> masterProfiles.values.sortedBy {
+                    if (it.status == 1) it.ping else 114514
+                }
+                else -> masterProfiles.values.sortedBy { it.userOrder }
+            }
+            masterIds.clear()
+            masterIds.addAll(sorted.map { it.id })
+        }
+
+        private fun scheduleMasterUpdate() {
+            ++displayGeneration
+            diffJob?.cancel()
+            displayPending = false
+            masterUpdatePending = true
+            hostView.removeCallbacks(masterUpdateRunnable)
+            hostView.postDelayed(masterUpdateRunnable, 50L)
+        }
+
+        fun canDrag() = !disposed &&
+            filterQuery.isEmpty() &&
+            !filterPending &&
+            !masterUpdatePending &&
+            !displayPending &&
+            configurationIdList == masterIds
+
+        fun beginDrag() {
+            if (!canDrag()) return
+            reloadGeneration.incrementAndGet()
+            hostView.removeCallbacks(filterRunnable)
+            hostView.removeCallbacks(masterUpdateRunnable)
+            filterPending = false
+            masterUpdatePending = false
+            displayPending = false
+            dragInProgress = true
+            ++displayGeneration
+            diffJob?.cancel()
+        }
+
+        fun dispose() {
+            disposed = true
+            dragInProgress = false
+            reloadGeneration.incrementAndGet()
+            ++displayGeneration
+            diffJob?.cancel()
+            filterPending = false
+            masterUpdatePending = false
+            displayPending = false
+            hostView.removeCallbacks(filterRunnable)
+            hostView.removeCallbacks(masterUpdateRunnable)
+        }
+
+        private fun getItem(profileId: Long): ProxyEntity = configurationList[profileId]!!
 
         private fun getItemAt(index: Int) = getItem(configurationIdList[index])
 
@@ -406,36 +621,35 @@ class ConfigurationGroupFragment : Fragment() {
         }
 
         private val updated = HashSet<ProxyEntity>()
+        private val pendingRemovalIds = HashSet<Long>()
 
         fun filter(name: String) {
+            if (disposed) return
+            filterQuery = name
+            hostView.removeCallbacks(filterRunnable)
+            ++displayGeneration
+            diffJob?.cancel()
+            displayPending = false
             if (name.isEmpty()) {
-                // Clearing the search box fires from onQueryTextChange on the UI thread;
-                // reloadProfiles() runs a full-group DB scan (getByGroup), so route it to a
-                // background dispatcher (its UI updates are already posted via
-                // configurationListView.post). Mirrors the onResume reload pattern.
-                runOnDefaultDispatcher { reloadProfiles() }
-                return
+                filterPending = false
+                submitMasterList()
+            } else {
+                filterPending = true
+                hostView.postDelayed(filterRunnable, 150L)
             }
-            configurationIdList.clear()
-            val lower = name.lowercase()
-            configurationIdList.addAll(
-                configurationList.filter {
-                    it.value.displayName().lowercase().contains(lower) ||
-                        it.value.displayType().lowercase().contains(lower) ||
-                        it.value.displayAddress().lowercase().contains(lower)
-                }.keys,
-            )
-            notifyDataSetChanged()
         }
 
         fun move(from: Int, to: Int) {
-            if (from == to) return
+            if (!dragInProgress || from == to) return
 
             if (DataStore.groupLayoutMode == 1) {
                 moveDualColumn(from, to)
             } else {
                 moveLinear(from, to)
             }
+            masterIds.clear()
+            masterIds.addAll(configurationIdList)
+            rebuildDisplayPositions()
         }
 
         private fun moveLinear(from: Int, to: Int) {
@@ -481,86 +695,146 @@ class ConfigurationGroupFragment : Fragment() {
             notifyItemMoved(from, to)
         }
 
-        fun commitMove() = runOnDefaultDispatcher {
-            updated.forEach { SagerDatabase.proxyDao.updateProxy(it) }
+        fun commitMove() {
+            val snapshot = updated.toList()
             updated.clear()
-        }
-
-        fun remove(pos: Int) {
-            if (pos < 0) return
-            configurationIdList.removeAt(pos)
-            notifyItemRemoved(pos)
-        }
-
-        override fun undo(actions: List<Pair<Int, ProxyEntity>>) {
-            for ((index, item) in actions) {
-                configurationListView.post {
-                    configurationList[item.id] = item
-                    configurationIdList.add(index, item.id)
-                    notifyItemInserted(index)
+            dragInProgress = false
+            if (snapshot.isEmpty()) {
+                submitMasterList()
+                return
+            }
+            displayPending = true
+            runOnDefaultDispatcher {
+                try {
+                    SagerDatabase.proxyDao.updateProxy(snapshot)
+                } catch (e: Exception) {
+                    Logs.w(e)
+                }
+                try {
+                    reloadProfiles()
+                } catch (e: Exception) {
+                    Logs.w(e)
+                    onMainDispatcher {
+                        if (!disposed) displayPending = false
+                    }
                 }
             }
         }
 
+        fun remove(pos: Int) {
+            if (pos !in configurationIdList.indices) return
+            reloadGeneration.incrementAndGet()
+            ++displayGeneration
+            diffJob?.cancel()
+            displayPending = false
+            val id = configurationIdList.removeAt(pos)
+            pendingRemovalIds.add(id)
+            configurationList.remove(id)
+            configurationStamps.remove(id)
+            masterIds.remove(id)
+            masterProfiles.remove(id)
+            masterStamps.remove(id)
+            rebuildDisplayPositions()
+            notifyItemRemoved(pos)
+        }
+
+        fun removeProfiles(profileIds: Collection<Long>) {
+            if (profileIds.isEmpty()) return
+            reloadGeneration.incrementAndGet()
+            val ids = profileIds.toHashSet()
+            masterIds.removeAll(ids)
+            ids.forEach {
+                masterProfiles.remove(it)
+                masterStamps.remove(it)
+            }
+            submitMasterList()
+        }
+
+        override fun undo(actions: List<Pair<Int, ProxyEntity>>) {
+            reloadGeneration.incrementAndGet()
+            val selectedId = selectedItem?.id ?: DataStore.selectedProxy
+            for ((_, item) in actions) {
+                pendingRemovalIds.remove(item.id)
+                masterProfiles[item.id] = item
+                masterStamps[item.id] = selectedStamp(item, selectedId)
+            }
+            sortMasterProfiles()
+            submitMasterList()
+        }
+
         override fun commit(actions: List<Pair<Int, ProxyEntity>>) {
             val profiles = actions.map { it.second }
+            val profileIds = profiles.map { it.id }
             runOnDefaultDispatcher {
-                for (entity in profiles) {
-                    ProfileManager.deleteProfile(entity.groupId, entity.id)
+                try {
+                    for (entity in profiles) {
+                        ProfileManager.deleteProfile(entity.groupId, entity.id)
+                    }
+                    onMainDispatcher { pendingRemovalIds.removeAll(profileIds) }
+                } catch (e: Exception) {
+                    Logs.w(e)
+                    onMainDispatcher { pendingRemovalIds.removeAll(profileIds) }
+                    reloadProfiles()
                 }
             }
         }
 
         override suspend fun onAdd(profile: ProxyEntity) {
             if (profile.groupId != proxyGroup.id) return
-
-            configurationListView.post {
-                if (::undoManager.isInitialized) {
-                    undoManager.flush()
-                }
-                val pos = itemCount
-                configurationList[profile.id] = profile
-                configurationIdList.add(profile.id)
-                notifyItemInserted(pos)
+            onMainDispatcher {
+                if (disposed) return@onMainDispatcher
+                reloadGeneration.incrementAndGet()
+                masterProfiles[profile.id] = profile
+                masterStamps[profile.id] = selectedStamp(
+                    profile,
+                    selectedItem?.id ?: DataStore.selectedProxy,
+                )
+                scheduleMasterUpdate()
             }
         }
 
         override suspend fun onUpdated(profile: ProxyEntity, noTraffic: Boolean) {
             if (profile.groupId != proxyGroup.id) return
-            val index = configurationIdList.indexOf(profile.id)
-            if (index < 0) return
-            configurationListView.post {
-                if (::undoManager.isInitialized) {
-                    undoManager.flush()
-                }
-                val oldProfile = configurationList[profile.id]
-                configurationList[profile.id] = profile
-                notifyItemChanged(index)
+            onMainDispatcher {
+                if (disposed || profile.id in pendingRemovalIds) return@onMainDispatcher
+                reloadGeneration.incrementAndGet()
+                val oldProfile = masterProfiles[profile.id] ?: configurationList[profile.id]
                 if (noTraffic && oldProfile != null) {
-                    runOnDefaultDispatcher {
-                        onUpdated(
-                            TrafficData(
-                                id = profile.id,
-                                rx = oldProfile.rx,
-                                tx = oldProfile.tx,
-                            ),
-                        )
-                    }
+                    profile.rx = oldProfile.rx
+                    profile.tx = oldProfile.tx
                 }
+                masterProfiles[profile.id] = profile
+                masterStamps[profile.id] = selectedStamp(
+                    profile,
+                    selectedItem?.id ?: DataStore.selectedProxy,
+                )
+                scheduleMasterUpdate()
+            }
+        }
+
+        private fun applyTraffic(data: TrafficData) {
+            val selectedId = selectedItem?.id ?: DataStore.selectedProxy
+            masterProfiles[data.id]?.let {
+                it.rx = data.rx
+                it.tx = data.tx
+                masterStamps[data.id] = selectedStamp(it, selectedId)
+            }
+            configurationList[data.id]?.let {
+                it.rx = data.rx
+                it.tx = data.tx
+                configurationStamps[data.id] = selectedStamp(it, selectedId)
             }
         }
 
         override suspend fun onUpdated(data: TrafficData) {
             try {
-                val index = configurationIdList.indexOf(data.id)
-                if (index != -1) {
+                onMainDispatcher {
+                    if (disposed) return@onMainDispatcher
+                    applyTraffic(data)
+                    val index = displayPositions[data.id] ?: return@onMainDispatcher
                     val holder = layoutManager.findViewByPosition(index)
                         ?.let { configurationListView.getChildViewHolder(it) } as ConfigurationHolder?
-                    if (holder != null) {
-                        onMainDispatcher {
-                            holder.bind(holder.entity, data)
-                        }
-                    }
+                    holder?.bind(holder.entity, data)
                 }
             } catch (e: Exception) {
                 Logs.w(e)
@@ -569,18 +843,14 @@ class ConfigurationGroupFragment : Fragment() {
 
         override suspend fun onUpdated(data: List<TrafficData>) {
             try {
-                val positions = HashMap<Long, Int>(configurationIdList.size)
-                configurationIdList.forEachIndexed { index, id -> positions[id] = index }
-                val updates = ArrayList<Pair<ConfigurationHolder, TrafficData>>()
-                for (item in data) {
-                    val index = positions[item.id] ?: continue
-                    val holder = layoutManager.findViewByPosition(index)
-                        ?.let { configurationListView.getChildViewHolder(it) } as ConfigurationHolder?
-                    if (holder != null) updates.add(holder to item)
-                }
-                if (updates.isNotEmpty()) {
-                    onMainDispatcher {
-                        for ((holder, item) in updates) holder.bind(holder.entity, item)
+                onMainDispatcher {
+                    if (disposed) return@onMainDispatcher
+                    for (item in data) {
+                        applyTraffic(item)
+                        val index = displayPositions[item.id] ?: continue
+                        val holder = layoutManager.findViewByPosition(index)
+                            ?.let { configurationListView.getChildViewHolder(it) } as ConfigurationHolder?
+                        holder?.bind(holder.entity, item)
                     }
                 }
             } catch (e: Exception) {
@@ -590,13 +860,14 @@ class ConfigurationGroupFragment : Fragment() {
 
         override suspend fun onRemoved(groupId: Long, profileId: Long) {
             if (groupId != proxyGroup.id) return
-            val index = configurationIdList.indexOf(profileId)
-            if (index < 0) return
-
-            configurationListView.post {
-                configurationIdList.removeAt(index)
-                configurationList.remove(profileId)
-                notifyItemRemoved(index)
+            onMainDispatcher {
+                if (disposed) return@onMainDispatcher
+                reloadGeneration.incrementAndGet()
+                pendingRemovalIds.remove(profileId)
+                masterIds.remove(profileId)
+                masterProfiles.remove(profileId)
+                masterStamps.remove(profileId)
+                submitMasterList()
             }
         }
 
@@ -605,50 +876,63 @@ class ConfigurationGroupFragment : Fragment() {
 
         override suspend fun groupUpdated(group: ProxyGroup) {
             if (group.id != proxyGroup.id) return
-            proxyGroup = group
+            onMainDispatcher { proxyGroup = group }
             reloadProfiles()
         }
 
         override suspend fun groupUpdated(groupId: Long) {
             if (groupId != proxyGroup.id) return
-            proxyGroup = SagerDatabase.groupDao.getById(groupId)!!
+            val group = SagerDatabase.groupDao.getById(groupId) ?: return
+            onMainDispatcher { proxyGroup = group }
             reloadProfiles()
         }
 
-        fun reloadProfiles() {
-            var newProfiles = SagerDatabase.proxyDao.getByGroup(proxyGroup.id)
-            when (proxyGroup.order) {
-                GroupOrder.BY_NAME -> {
-                    newProfiles = newProfiles.sortedBy { it.displayName() }
+        suspend fun reloadProfiles() {
+            val generation = reloadGeneration.incrementAndGet()
+            val groupId = proxyGroup.id
+            val order = proxyGroup.order
+            val (newProfiles, newProfileIds, baseStamps) = onDefaultDispatcher {
+                var profiles = SagerDatabase.proxyDao.getByGroup(groupId)
+                profiles = when (order) {
+                    GroupOrder.BY_NAME -> profiles.sortedBy { it.displayName() }
+                    GroupOrder.BY_DELAY -> profiles.sortedBy {
+                        if (it.status == 1) it.ping else 114514
+                    }
+                    else -> profiles
                 }
-
-                GroupOrder.BY_DELAY -> {
-                    newProfiles =
-                        newProfiles.sortedBy { if (it.status == 1) it.ping else 114514 }
-                }
+                Triple(
+                    profiles.associateBy { it.id },
+                    profiles.map { it.id },
+                    profiles.associate { it.id to contentStamp(it) },
+                )
             }
-
-            configurationList.clear()
-            configurationList.putAll(newProfiles.associateBy { it.id })
-            val newProfileIds = newProfiles.map { it.id }
-
-            var selectedProfileIndex = -1
-
-            if (selected) {
-                val selectedProxy = selectedItem?.id ?: DataStore.selectedProxy
-                selectedProfileIndex = newProfileIds.indexOf(selectedProxy)
-            }
-
-            configurationListView.post {
-                configurationIdList.clear()
-                configurationIdList.addAll(newProfileIds)
-                notifyDataSetChanged()
-
-                if (selectedProfileIndex != -1) {
-                    configurationListView.scrollTo(selectedProfileIndex, true)
-                } else if (newProfiles.isNotEmpty()) {
-                    configurationListView.scrollTo(0, true)
+            onMainDispatcher {
+                if (disposed || generation != reloadGeneration.get()) return@onMainDispatcher
+                hostView.removeCallbacks(masterUpdateRunnable)
+                masterUpdatePending = false
+                masterIds.clear()
+                masterIds.addAll(newProfileIds.filterNot(pendingRemovalIds::contains))
+                masterProfiles.clear()
+                masterIds.forEach { id ->
+                    newProfiles[id]?.let { masterProfiles[id] = it }
                 }
+                val selectedId = selectedItem?.id ?: DataStore.selectedProxy
+                masterStamps.clear()
+                masterIds.forEach { id ->
+                    baseStamps[id]?.let { stamp ->
+                        masterStamps[id] = 31 * stamp + (id == selectedId).hashCode()
+                    }
+                }
+                val displayedIds = masterIds.filter { id -> masterProfiles[id]?.let(::matchesFilter) == true }
+                val selectedIndex = if (selected) displayedIds.indexOf(selectedId) else -1
+                val scrollIndex = if (selectedIndex >= 0) {
+                    selectedIndex
+                } else if (displayedIds.isNotEmpty()) {
+                    0
+                } else {
+                    -1
+                }
+                submitMasterList(scrollIndex)
             }
         }
     }
@@ -872,13 +1156,13 @@ class ConfigurationGroupFragment : Fragment() {
                             // .setMessage(getString(R.string.delete_confirm_prompt))
                             .setPositiveButton(R.string.yes) { dialog: DialogInterface, which: Int ->
                                 adapter.remove(index)
-                                undoManager.remove(index to proxyEntity)
+                                undoManager?.remove(index to proxyEntity)
                             }
                             .setNegativeButton(R.string.no, null)
                             .show()
                     } else {
                         adapter.remove(index)
-                        undoManager.remove(index to proxyEntity)
+                        undoManager?.remove(index to proxyEntity)
                     }
                 }
             }
@@ -909,13 +1193,13 @@ class ConfigurationGroupFragment : Fragment() {
                                         .setTitle(R.string.delete_confirm_prompt)
                                         .setPositiveButton(R.string.yes) { dialog: DialogInterface, which: Int ->
                                             adapter.remove(index)
-                                            undoManager.remove(index to proxyEntity)
+                                            undoManager?.remove(index to proxyEntity)
                                         }
                                         .setNegativeButton(R.string.no, null)
                                         .show()
                                 } else {
                                     adapter.remove(index)
-                                    undoManager.remove(index to proxyEntity)
+                                    undoManager?.remove(index to proxyEntity)
                                 }
                             }
                             true

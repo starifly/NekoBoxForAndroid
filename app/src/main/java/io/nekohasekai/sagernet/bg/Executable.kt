@@ -13,7 +13,6 @@ object Executable {
         "libtrojan.so",
         "libtrojan-go.so",
         "libnaive.so",
-        "libtuic.so",
         "libhysteria.so",
         "libmieru.so",
         "libmasterdnsvpn.so",

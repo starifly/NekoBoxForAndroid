@@ -1,0 +1,19 @@
+proxies:
+  - name: ss-first
+    type: ss
+    server: 192.0.2.2
+    port: 443
+    cipher: aes-128-gcm
+    password: alpha
+  - name: missing-server
+    type: ss
+    port: 444
+    cipher: aes-128-gcm
+    password: beta
+  - name: vm-last
+    type: vmess
+    server: example.com
+    port: 8443
+    uuid: 00000000-0000-4000-8000-000000000002
+    alterId: 0
+    cipher: auto

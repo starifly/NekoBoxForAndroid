@@ -130,7 +130,7 @@ object RawUpdater : GroupUpdater() {
             val indexOf = HashMap<Protocols.Deduplication, Int>()
             val uniqueNames = HashMap<Protocols.Deduplication, String>()
             for (_proxy in proxies) {
-                val proxy = Protocols.Deduplication(_proxy, _proxy.javaClass.toString())
+                val proxy = Protocols.Deduplication(_proxy)
                 if (!uniqueProxies.add(proxy)) {
                     // O(1) lookup of the first-seen insertion index instead of O(n)
                     // LinkedHashSet.indexOf (which made dedup O(n^2) over the subscription).

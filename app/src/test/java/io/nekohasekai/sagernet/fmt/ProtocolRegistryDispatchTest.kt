@@ -1,9 +1,11 @@
 package io.nekohasekai.sagernet.fmt
 
+import io.nekohasekai.sagernet.database.ProtocolRegistry
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.fmt.amneziawg.AmneziaWGBean
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
+import io.nekohasekai.sagernet.fmt.hysteria.toUri
 import io.nekohasekai.sagernet.fmt.internal.ChainBean
 import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
 import io.nekohasekai.sagernet.fmt.masterdnsvpn.MasterDnsVpnBean
@@ -11,30 +13,40 @@ import io.nekohasekai.sagernet.fmt.mieru.MieruBean
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.fmt.olcrtc.OlcrtcBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
+import io.nekohasekai.sagernet.fmt.shadowsocks.toUri
 import io.nekohasekai.sagernet.fmt.shadowsocksr.ShadowsocksRBean
 import io.nekohasekai.sagernet.fmt.snell.SnellBean
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
+import io.nekohasekai.sagernet.fmt.socks.toUri
 import io.nekohasekai.sagernet.fmt.ssh.SSHBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.fmt.trojan_go.TrojanGoBean
 import io.nekohasekai.sagernet.fmt.tuic.TuicBean
 import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
+import io.nekohasekai.sagernet.fmt.v2ray.toUriVMessVLESSTrojan
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
+import io.nekohasekai.sagernet.ui.profile.*
 import moe.matsuri.nb4a.proxy.anytls.AnyTLSBean
+import moe.matsuri.nb4a.proxy.anytls.AnyTLSSettingsActivity
 import moe.matsuri.nb4a.proxy.config.ConfigBean
+import moe.matsuri.nb4a.proxy.config.ConfigSettingActivity
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
+import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * Wire-format safety net for the protocol descriptor registry (Plan 029, Option C).
  *
  * The registry may change *how* type dispatch is expressed (putByteArray / requireBean /
  * putBean) but must NEVER change the on-disk Kryo wire format or the persisted TYPE_* ids -
- * existing device profiles deserialize by exactly these bytes + ids. Because local builds are
- * forbidden here, this pure-JVM test (run on Depot's unit-tests workflow) is the golden net:
+ * existing device profiles deserialize by exactly these bytes + ids. This Robolectric test runs
+ * on the Namespace unit-test job and provides the golden net:
  * for every persistable bean type it asserts
  *   1. serialize -> deserialize -> serialize is byte-stable (write/read paths are symmetric), and
  *   2. the ProxyEntity type-dispatch round-trips: putBean(bean) sets the expected TYPE_* id and
@@ -44,6 +56,8 @@ import org.junit.Test
  * If the registry ever maps a type id to the wrong (de)serializer or drops a field, one of these
  * assertions fails - catching the "profiles become undeserializable / mis-typed" data hazard.
  */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35], application = android.app.Application::class)
 class ProtocolRegistryDispatchTest {
 
     private fun <T : AbstractBean> byteStable(bean: T) {
@@ -224,8 +238,78 @@ class ProtocolRegistryDispatchTest {
     }
 
     @Test
-    fun allPersistableTypesCovered() {
-        // Guard: if a new TYPE_* is added to the putBean ladder, add it here too.
+    fun standardLinkDispatch_matchesExistingFormatters() {
+        val socks = socks().apply { initializeDefaultValues() }
+        assertEquals(socks.toUri(), ProxyEntity().putBean(socks).toStdLink())
+        val shadowsocks = ss().apply { initializeDefaultValues() }
+        assertEquals(shadowsocks.toUri(), ProxyEntity().putBean(shadowsocks).toStdLink())
+        val vmess = vmess().apply { initializeDefaultValues() }
+        assertEquals(
+            vmess.toUriVMessVLESSTrojan(false),
+            ProxyEntity().putBean(vmess).toStdLink(),
+        )
+        val hysteria = hysteria().apply { initializeDefaultValues() }
+        assertEquals(hysteria.toUri(), ProxyEntity().putBean(hysteria).toStdLink())
+    }
+
+    @Test
+    fun registryMetadata_matchesEveryPersistableType() {
+        val settingsActivities = mapOf(
+            ProxyEntity.TYPE_SOCKS to SocksSettingsActivity::class.java,
+            ProxyEntity.TYPE_HTTP to HttpSettingsActivity::class.java,
+            ProxyEntity.TYPE_SS to ShadowsocksSettingsActivity::class.java,
+            ProxyEntity.TYPE_SSR to ShadowsocksRSettingsActivity::class.java,
+            ProxyEntity.TYPE_VMESS to VMessSettingsActivity::class.java,
+            ProxyEntity.TYPE_TROJAN to TrojanSettingsActivity::class.java,
+            ProxyEntity.TYPE_TROJAN_GO to TrojanGoSettingsActivity::class.java,
+            ProxyEntity.TYPE_MIERU to MieruSettingsActivity::class.java,
+            ProxyEntity.TYPE_NAIVE to NaiveSettingsActivity::class.java,
+            ProxyEntity.TYPE_HYSTERIA to HysteriaSettingsActivity::class.java,
+            ProxyEntity.TYPE_SSH to SSHSettingsActivity::class.java,
+            ProxyEntity.TYPE_WG to WireGuardSettingsActivity::class.java,
+            ProxyEntity.TYPE_AWG to AmneziaWGSettingsActivity::class.java,
+            ProxyEntity.TYPE_TUIC to TuicSettingsActivity::class.java,
+            ProxyEntity.TYPE_JUICITY to JuicitySettingsActivity::class.java,
+            ProxyEntity.TYPE_SHADOWTLS to ShadowTLSSettingsActivity::class.java,
+            ProxyEntity.TYPE_ANYTLS to AnyTLSSettingsActivity::class.java,
+            ProxyEntity.TYPE_CHAIN to ChainSettingsActivity::class.java,
+            ProxyEntity.TYPE_CONFIG to ConfigSettingActivity::class.java,
+            ProxyEntity.TYPE_SNELL to SnellSettingsActivity::class.java,
+            ProxyEntity.TYPE_MASTERDNSVPN to MasterDnsVpnSettingsActivity::class.java,
+            ProxyEntity.TYPE_OLCRTC to OlcrtcSettingsActivity::class.java,
+        )
+        val nonStandardLinkTypes = setOf(
+            ProxyEntity.TYPE_SSH,
+            ProxyEntity.TYPE_WG,
+            ProxyEntity.TYPE_AWG,
+            ProxyEntity.TYPE_SHADOWTLS,
+            ProxyEntity.TYPE_CONFIG,
+        )
+        val dedicatedStandardLinkTypes = setOf(
+            ProxyEntity.TYPE_SOCKS,
+            ProxyEntity.TYPE_HTTP,
+            ProxyEntity.TYPE_SS,
+            ProxyEntity.TYPE_SSR,
+            ProxyEntity.TYPE_VMESS,
+            ProxyEntity.TYPE_TROJAN,
+            ProxyEntity.TYPE_TROJAN_GO,
+            ProxyEntity.TYPE_NAIVE,
+            ProxyEntity.TYPE_HYSTERIA,
+            ProxyEntity.TYPE_TUIC,
+            ProxyEntity.TYPE_JUICITY,
+            ProxyEntity.TYPE_ANYTLS,
+            ProxyEntity.TYPE_SNELL,
+            ProxyEntity.TYPE_MASTERDNSVPN,
+            ProxyEntity.TYPE_OLCRTC,
+        )
+
         assertEquals(22, allBeans.size)
+        assertEquals(allBeans.map { it.second }.toSet(), settingsActivities.keys)
+        for ((_, type) in allBeans) {
+            val descriptor = ProtocolRegistry.forType(type)!!
+            assertEquals(settingsActivities.getValue(type), descriptor.settingsActivityClass)
+            assertEquals(type !in nonStandardLinkTypes, descriptor.hasStandardLink)
+            assertEquals(type in dedicatedStandardLinkTypes, descriptor.toStandardLink != null)
+        }
     }
 }

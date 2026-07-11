@@ -1,0 +1,10 @@
+{
+  "outbounds": [
+    {
+      "type": "socks",
+      "tag": "edge-one",
+      "server": "192.0.2.9",
+      "server_port": 1080
+    }
+  ]
+}

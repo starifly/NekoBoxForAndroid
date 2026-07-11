@@ -9,47 +9,33 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.fmt.*
 import io.nekohasekai.sagernet.fmt.amneziawg.AmneziaWGBean
 import io.nekohasekai.sagernet.fmt.http.HttpBean
-import io.nekohasekai.sagernet.fmt.http.toUri
 import io.nekohasekai.sagernet.fmt.hysteria.*
 import io.nekohasekai.sagernet.fmt.internal.ChainBean
 import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
-import io.nekohasekai.sagernet.fmt.juicity.toUri
 import io.nekohasekai.sagernet.fmt.masterdnsvpn.MasterDnsVpnBean
 import io.nekohasekai.sagernet.fmt.mieru.MieruBean
 import io.nekohasekai.sagernet.fmt.mieru.buildMieruConfig
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.fmt.naive.buildNaiveConfig
-import io.nekohasekai.sagernet.fmt.naive.toUri
 import io.nekohasekai.sagernet.fmt.olcrtc.OlcrtcBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.*
 import io.nekohasekai.sagernet.fmt.shadowsocksr.ShadowsocksRBean
-import io.nekohasekai.sagernet.fmt.shadowsocksr.toUri
 import io.nekohasekai.sagernet.fmt.snell.SnellBean
-import io.nekohasekai.sagernet.fmt.snell.toUri
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
-import io.nekohasekai.sagernet.fmt.socks.toUri
 import io.nekohasekai.sagernet.fmt.ssh.SSHBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.fmt.trojan_go.TrojanGoBean
 import io.nekohasekai.sagernet.fmt.trojan_go.buildTrojanGoConfig
-import io.nekohasekai.sagernet.fmt.trojan_go.toUri
 import io.nekohasekai.sagernet.fmt.tuic.TuicBean
-import io.nekohasekai.sagernet.fmt.tuic.toUri
 import io.nekohasekai.sagernet.fmt.v2ray.*
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.ktx.app
-import io.nekohasekai.sagernet.ui.profile.*
+import io.nekohasekai.sagernet.ui.profile.ProfileSettingsActivity
 import moe.matsuri.nb4a.SingBoxOptions.BrutalOptions
 import moe.matsuri.nb4a.SingBoxOptions.MultiplexOptions
 import moe.matsuri.nb4a.proxy.anytls.AnyTLSBean
-import moe.matsuri.nb4a.proxy.anytls.AnyTLSSettingsActivity
-import moe.matsuri.nb4a.proxy.anytls.toUri
 import moe.matsuri.nb4a.proxy.config.ConfigBean
-import moe.matsuri.nb4a.proxy.config.ConfigSettingActivity
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
-import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity
-import io.nekohasekai.sagernet.fmt.masterdnsvpn.toUri as toMasterDnsVpnUri
-import io.nekohasekai.sagernet.fmt.olcrtc.toUri as toOlcrtcUri
 
 @Entity(
     tableName = "proxy_entities",
@@ -220,35 +206,13 @@ data class ProxyEntity(
     }
 
     fun haveStandardLink(): Boolean {
-        return when (requireBean()) {
-            is SSHBean -> false
-            is WireGuardBean -> false
-            is AmneziaWGBean -> false
-            is ShadowTLSBean -> false
-            is ConfigBean -> false
-            else -> true
-        }
+        requireBean()
+        return ProtocolRegistry.forType(type)!!.hasStandardLink
     }
 
-    fun toStdLink(compact: Boolean = false): String = with(requireBean()) {
-        when (this) {
-            is SOCKSBean -> toUri()
-            is HttpBean -> toUri()
-            is ShadowsocksBean -> toUri()
-            is ShadowsocksRBean -> toUri()
-            is VMessBean -> toUriVMessVLESSTrojan(false)
-            is TrojanBean -> toUriVMessVLESSTrojan(true)
-            is TrojanGoBean -> toUri()
-            is NaiveBean -> toUri()
-            is HysteriaBean -> toUri()
-            is TuicBean -> toUri()
-            is JuicityBean -> toUri()
-            is AnyTLSBean -> toUri()
-            is SnellBean -> toUri()
-            is MasterDnsVpnBean -> toMasterDnsVpnUri()
-            is OlcrtcBean -> toOlcrtcUri()
-            else -> toUniversalLink()
-        }
+    fun toStdLink(compact: Boolean = false): String {
+        val bean = requireBean()
+        return ProtocolRegistry.forType(type)!!.toStandardLink?.invoke(bean) ?: bean.toUniversalLink()
     }
 
     fun exportConfig(): Pair<String, String> {
@@ -387,34 +351,9 @@ data class ProxyEntity(
     }
 
     fun settingIntent(ctx: Context, isSubscription: Boolean): Intent {
-        return Intent(
-            ctx,
-            when (type) {
-                TYPE_SOCKS -> SocksSettingsActivity::class.java
-                TYPE_HTTP -> HttpSettingsActivity::class.java
-                TYPE_SS -> ShadowsocksSettingsActivity::class.java
-                TYPE_SSR -> ShadowsocksRSettingsActivity::class.java
-                TYPE_VMESS -> VMessSettingsActivity::class.java
-                TYPE_TROJAN -> TrojanSettingsActivity::class.java
-                TYPE_TROJAN_GO -> TrojanGoSettingsActivity::class.java
-                TYPE_MIERU -> MieruSettingsActivity::class.java
-                TYPE_NAIVE -> NaiveSettingsActivity::class.java
-                TYPE_HYSTERIA -> HysteriaSettingsActivity::class.java
-                TYPE_SSH -> SSHSettingsActivity::class.java
-                TYPE_WG -> WireGuardSettingsActivity::class.java
-                TYPE_AWG -> AmneziaWGSettingsActivity::class.java
-                TYPE_TUIC -> TuicSettingsActivity::class.java
-                TYPE_JUICITY -> JuicitySettingsActivity::class.java
-                TYPE_SHADOWTLS -> ShadowTLSSettingsActivity::class.java
-                TYPE_ANYTLS -> AnyTLSSettingsActivity::class.java
-                TYPE_CHAIN -> ChainSettingsActivity::class.java
-                TYPE_CONFIG -> ConfigSettingActivity::class.java
-                TYPE_SNELL -> SnellSettingsActivity::class.java
-                TYPE_MASTERDNSVPN -> MasterDnsVpnSettingsActivity::class.java
-                TYPE_OLCRTC -> OlcrtcSettingsActivity::class.java
-                else -> throw IllegalArgumentException()
-            },
-        ).apply {
+        val activityClass = ProtocolRegistry.forType(type)?.settingsActivityClass
+            ?: throw IllegalArgumentException("No settings activity for type $type")
+        return Intent(ctx, activityClass).apply {
             putExtra(ProfileSettingsActivity.EXTRA_PROFILE_ID, id)
             putExtra(ProfileSettingsActivity.EXTRA_IS_SUBSCRIPTION, isSubscription)
         }
@@ -446,6 +385,9 @@ data class ProxyEntity(
 
         @Query("DELETE FROM proxy_entities WHERE id IN (:proxyId)")
         fun deleteById(proxyId: Long): Int
+
+        @Query("DELETE FROM proxy_entities WHERE id IN (:proxyIds)")
+        fun deleteByIds(proxyIds: List<Long>): Int
 
         @Query("DELETE FROM proxy_entities WHERE groupId = :groupId")
         fun deleteByGroup(groupId: Long)

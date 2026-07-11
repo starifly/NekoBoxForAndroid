@@ -12,8 +12,8 @@ cd "$(dirname "$0")/.."
 cleanup() { ./gradlew --stop >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
-echo ">> spotlessKotlinCheck"
-./gradlew spotlessKotlinCheck
+echo ">> spotlessCheck"
+./gradlew spotlessCheck
 
 echo ">> compileOssDebugKotlin"
 ./gradlew :app:compileOssDebugKotlin

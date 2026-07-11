@@ -73,7 +73,7 @@ object PluginManager {
             return null
         }
         return when (pluginId) {
-            "hysteria-plugin" -> soIfExist("libhysteria.so")
+            // Hysteria v1 resolves through the external plugin only; its bundled sidecar was removed.
             "mieru-plugin" -> soIfExist("libmieru.so")
             "masterdnsvpn-plugin" -> soIfExist("libmasterdnsvpn.so")
             "olcrtc-plugin" -> soIfExist("libolcrtc.so")

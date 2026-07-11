@@ -42,6 +42,14 @@ public class SingBoxOptions {
             .disableHtmlEscaping()
             .create();
 
+    public static JsonObject toJsonTree(SingBoxOption option) {
+        return gsonSingbox.toJsonTree(option).getAsJsonObject();
+    }
+
+    public static String treeToJson(JsonElement tree) {
+        return gsonSingbox.toJson(tree);
+    }
+
     public static class SingBoxOption {
 
         public transient Map<String, Object> _hack_config_map; // still merged using the normal json approach, so don't use _hack inside Object

@@ -30,6 +30,13 @@ for cand in ../../sing-box ../sing-box ../../../sing-box; do
     break
   fi
 done
+LIBNEKO_DIR=""
+for cand in ../../libneko ../libneko ../../../libneko; do
+  if [ -d "$cand" ] && [ -e "$cand/go.mod" ]; then
+    LIBNEKO_DIR="$cand"
+    break
+  fi
+done
 SING_BOX_VERSION=""
 # Preferred source: explicit pin in get_source_env.sh (deterministic, no tag dependency).
 if [ -f ../buildScript/lib/core/get_source_env.sh ]; then
@@ -37,6 +44,28 @@ if [ -f ../buildScript/lib/core/get_source_env.sh ]; then
   source ../buildScript/lib/core/get_source_env.sh 2>/dev/null || true
   SING_BOX_VERSION="${VERSION_SING_BOX:-}"
 fi
+
+# Local sibling replacements must match the source commits used by CI. This prevents an AAR
+# from silently depending on whichever revisions happen to be checked out beside this repo.
+# Deliberate experiments can opt out with ALLOW_UNPINNED_SIBLINGS=1.
+check_sibling_pin() {
+  local dir="$1"
+  local expected="$2"
+  local label="$3"
+  [ -z "$dir" ] && return
+  local actual
+  actual="$(git -C "$dir" rev-parse HEAD 2>/dev/null)" || actual=unknown
+  if [ -z "$expected" ] || [ "$actual" != "$expected" ]; then
+    echo "ERROR: $label checkout is at $actual but CI pins $expected" >&2
+    echo "       checkout the pinned revision or set ALLOW_UNPINNED_SIBLINGS=1." >&2
+    exit 1
+  fi
+}
+if [ "${ALLOW_UNPINNED_SIBLINGS:-0}" != "1" ]; then
+  check_sibling_pin "$SING_BOX_DIR" "${COMMIT_SING_BOX:-}" "sing-box"
+  check_sibling_pin "$LIBNEKO_DIR" "${COMMIT_LIBNEKO:-}" "libneko"
+fi
+
 # Fallbacks if the pin is missing: read_tag, then git describe.
 if [ -z "$SING_BOX_VERSION" ] && [ -n "$SING_BOX_DIR" ]; then
   git -C "$SING_BOX_DIR" fetch --tags --force origin 2>/dev/null || true

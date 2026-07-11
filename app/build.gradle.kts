@@ -114,7 +114,8 @@ dependencies {
     testImplementation("org.robolectric:robolectric:4.16.1")
 
     // Instrumented tests (androidTest) — Room migration verification on a real SQLite.
-    // Runs on a device/emulator (see .depot/workflows/android-instrumented.yml), not the JVM.
+    // Runs on the CI "Instrumented (Room migrations)" job when the runner has KVM; otherwise
+    // run manually on a device before any Room version or schema bump.
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.room:room-testing:2.7.2")

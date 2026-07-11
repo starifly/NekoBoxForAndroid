@@ -11,6 +11,8 @@ env:
   MDVPN_REF: android-vpnservice-protect-hook
   MDVPN_COMMIT: d481d72d4b86783a87d536c214d2c68cc4e9320e
   NAIVE_VERSION: v149.0.7827.114-1
+  OLCRTC_REPO: https://github.com/openlibrecommunity/olcrtc.git
+  OLCRTC_COMMIT: 1255cf8248ee4a52cb355ceb8cf72281a5f1affd
 permissions:
   contents: read
 jobs:
@@ -90,14 +92,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - name: Sidecars Status
-        run: cat buildScript/lib/mieru.sh buildScript/lib/masterdnsvpn.sh buildScript/lib/naive.sh buildScript/init/env.sh buildScript/init/env_ndk.sh | sha1sum > sidecars_status
+        run: |
+          git ls-files -s -- \
+            buildScript/lib/mieru.sh \
+            buildScript/lib/masterdnsvpn.sh \
+            buildScript/lib/naive.sh \
+            buildScript/lib/olcrtc.sh \
+            buildScript/lib/olcrtc-src/main.go \
+            buildScript/lib/olcrtc-src/go.mod \
+            buildScript/init/env.sh \
+            buildScript/init/env_ndk.sh \
+            | sha1sum > sidecars_status
       - name: Sidecars Cache
         id: cache
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             app/executableSo
-          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.MDVPN_COMMIT }}-${{ env.NAIVE_VERSION }}-sidecars
+          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.MDVPN_COMMIT }}-${{ env.NAIVE_VERSION }}-${{ env.OLCRTC_COMMIT }}-sidecars
       - name: Install Golang
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
@@ -112,6 +124,9 @@ jobs:
       - name: Naive Download
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./run lib naive
+      - name: olcRTC Build
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ./run lib olcrtc
       - name: Upload Sidecars
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1
         with:
@@ -141,7 +156,7 @@ jobs:
       - name: Verify Sidecar Artifacts
         run: |
           for abi in arm64-v8a armeabi-v7a x86 x86_64; do
-            for so in libmieru.so libmasterdnsvpn.so libnaive.so; do
+            for so in libmieru.so libmasterdnsvpn.so libnaive.so libolcrtc.so; do
               if [ ! -f "app/executableSo/$abi/$so" ]; then
                 echo "Error: missing app/executableSo/$abi/$so (sidecar artifact missing)" >&2
                 exit 1

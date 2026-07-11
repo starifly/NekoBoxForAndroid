@@ -29,7 +29,6 @@ import moe.matsuri.nb4a.proxy.config.ConfigBean
 import moe.matsuri.nb4a.utils.Util
 import java.net.UnknownHostException
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicLong
 
 class BaseService {
 
@@ -96,22 +95,14 @@ class BaseService {
         val binder = Binder(this)
         var connectingJob: Job? = null
 
-        // True while a reload-induced restart (stopRunner(restart=true)) is in flight. An explicit
-        // CLOSE/user stop racing the teardown clears it so the restart is cancelled rather than
-        // reviving a service the user stopped. Touched only on the main dispatcher.
-        var pendingRestart = false
-
-        // Bumped only when the service transitions into a stop (Stopping/Stopped). An async
-        // reload() captures this at entry and bails in reloadInner() if it advanced, so a stop
-        // that raced the async refresh can't revive a stopped service. Crucially this does NOT
-        // bump on Connecting->Connected progress, so a legitimate reload/profile-switch issued
-        // while connecting is not falsely dropped. ABA-safe (monotonic).
-        val stopGeneration = AtomicLong(0)
+        // The stop/reload decision core (pendingRestart + stopGeneration); see ServiceStopGate
+        // for the invariants and threading contract.
+        val stopGate = ServiceStopGate()
 
         fun changeState(s: State, msg: String? = null) {
             if (state == s && msg == null) return
             if (s == State.Stopping || s == State.Stopped) {
-                stopGeneration.incrementAndGet()
+                stopGate.onEnterStopState()
             }
             state = s
             DataStore.serviceState = s
@@ -218,7 +209,7 @@ class BaseService {
             // async refresh below makes reloadInner() a no-op instead of reviving a stopped
             // service. This does NOT trip on Connecting->Connected progress, so a reload issued
             // while connecting still applies.
-            val reloadStopGeneration = data.stopGeneration.get()
+            val reloadStopGeneration = data.stopGate.captureGeneration()
             runOnDefaultDispatcher {
                 try {
                     DataStore.configurationStore.refreshSuspend()
@@ -253,7 +244,7 @@ class BaseService {
             // A stop raced the async refresh: drop this stale reload so it can't restart a service
             // the user stopped. (A Connecting->Connected transition does NOT bump stopGeneration,
             // so an in-flight legitimate reload still applies.)
-            if (data.stopGeneration.get() != reloadStopGeneration) return
+            if (data.stopGate.isStale(reloadStopGeneration)) return
             if (DataStore.selectedProxy == 0L) {
                 stopRunner(false, (this as Context).getString(R.string.profile_empty))
                 return
@@ -337,15 +328,9 @@ class BaseService {
             DataStore.vpnService = null
             DataStore.mixedInboundAuthed = false
 
-            if (data.state == State.Stopping) {
-                // A teardown is already in progress. If this is an explicit stop (restart=false)
-                // racing a reload-induced restart (restart=true), cancel the pending restart so an
-                // explicit CLOSE/user-stop wins instead of being silently dropped while the
-                // in-flight stopRunner(true) goes on to call startRunner().
-                if (!restart) data.pendingRestart = false
-                return
-            }
-            data.pendingRestart = restart
+            // A teardown already in progress merges this request (explicit stop cancels a
+            // pending restart; see ServiceStopGate.onStopRequested) and we must return.
+            if (data.stopGate.onStopRequested(restart, data.state == State.Stopping)) return
             data.notification?.destroy()
             data.notification = null
             this as Service
@@ -369,7 +354,7 @@ class BaseService {
                 data.changeState(State.Stopped, msg)
                 // stop the service if nothing has bound to it. Re-read pendingRestart: an explicit
                 // CLOSE that raced this teardown may have cleared it.
-                if (data.pendingRestart) {
+                if (data.stopGate.consumeRestart()) {
                     startRunner()
                 } else {
                     stopSelf()

@@ -203,10 +203,29 @@ private fun resolveChainInternal(entity: ProxyEntity): MutableList<ProxyEntity> 
     return mutableListOf(entity)
 }
 
-private fun resolveChain(entity: ProxyEntity): MutableList<ProxyEntity> {
-    val thisGroup = SagerDatabase.groupDao.getById(entity.groupId)
-    val frontProxy = thisGroup?.frontProxy?.let { SagerDatabase.proxyDao.getById(it) }
-    val landingProxy = thisGroup?.landingProxy?.let { SagerDatabase.proxyDao.getById(it) }
+private class BuildLookupCache {
+    private val groups = HashMap<Long, ProxyGroup?>()
+    private val proxies = HashMap<Long, ProxyEntity?>()
+
+    fun group(groupId: Long): ProxyGroup? {
+        if (groups.containsKey(groupId)) return groups[groupId]
+        return SagerDatabase.groupDao.getById(groupId).also { groups[groupId] = it }
+    }
+
+    fun proxy(proxyId: Long): ProxyEntity? {
+        val cached = if (proxies.containsKey(proxyId)) {
+            proxies[proxyId]
+        } else {
+            SagerDatabase.proxyDao.getById(proxyId).also { proxies[proxyId] = it }
+        }
+        return cached?.copy()?.putBean(cached.requireBean().clone())
+    }
+}
+
+private fun resolveChain(entity: ProxyEntity, lookupCache: BuildLookupCache): MutableList<ProxyEntity> {
+    val thisGroup = lookupCache.group(entity.groupId)
+    val frontProxy = thisGroup?.frontProxy?.let(lookupCache::proxy)
+    val landingProxy = thisGroup?.landingProxy?.let(lookupCache::proxy)
     val list = resolveChainInternal(entity)
     if (frontProxy != null) {
         list.add(frontProxy)
@@ -262,7 +281,8 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
     // Per-port credentials for authenticated external-plugin SOCKS loopbacks (#1166).
     val localProxyCredentials = HashMap<Int, Pair<String, String>>()
     val readableNames = mutableSetOf(TAG_DIRECT, TAG_BYPASS, TAG_BLOCK, TAG_FRAGMENT, TAG_MIXED, TAG_PROXY)
-    val group = SagerDatabase.groupDao.getById(proxy.groupId)
+    val lookupCache = BuildLookupCache()
+    val group = lookupCache.group(proxy.groupId)
 
     fun ProxyEntity.resolveChainInternal(): MutableList<ProxyEntity> = resolveChainInternal(this)
 
@@ -276,7 +296,7 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
         return name
     }
 
-    fun ProxyEntity.resolveChain(): MutableList<ProxyEntity> = resolveChain(this)
+    fun ProxyEntity.resolveChain(): MutableList<ProxyEntity> = resolveChain(this, lookupCache)
 
     val extraRules = if (forTest) listOf() else SagerDatabase.rulesDao.enabledRules()
     val extraProxies =
@@ -307,7 +327,6 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
     // If a host appears here too, it is shared with a normal profile, so we must NOT hijack
     // it onto a per-subscription resolver (keep it on the global direct path).
     val nonCustomFinalHosts = hashSetOf<String>()
-    val groupCache = HashMap<Long, ProxyGroup?>() // groupId -> group (build-time cache)
     val isVPN = DataStore.serviceMode == Key.MODE_VPN
     val bind = if (!forTest && DataStore.allowAccess) "0.0.0.0" else LOCALHOST
     // Whether the local mixed (SOCKS/HTTP) inbound is present in the final config.
@@ -521,9 +540,7 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
                     // same subscription, so the resolver is scoped to its own servers only.
                     if (!forTest) {
                         val ownerGid = entity.groupId
-                        val ownerGroup = groupCache.getOrPut(ownerGid) {
-                            SagerDatabase.groupDao.getById(ownerGid)
-                        }
+                        val ownerGroup = lookupCache.group(ownerGid)
                         val resolver = ownerGroup
                             ?.takeIf { it.type == GroupType.SUBSCRIPTION }
                             ?.subscription?.customDnsResolver
@@ -682,11 +699,12 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
                     }
 
                     if (needGlobal && DataStore.enableTLSFragment) {
-                        val outboundMap = currentOutbound.asMap()
-                        val tlsOptions = outboundMap["tls"] as? Map<*, *>
-                        if (tlsOptions?.get("enabled") == true) {
-                            currentOutbound._hack_config_map["detour"] = TAG_FRAGMENT
-                        }
+                        val tls = SingBoxOptions.toJsonTree(currentOutbound).get("tls")
+                        val enabled = tls?.takeIf { it.isJsonObject }?.asJsonObject?.get("enabled")
+                        val tlsEnabled = enabled?.isJsonPrimitive == true &&
+                            enabled.asJsonPrimitive.isBoolean &&
+                            enabled.asBoolean
+                        if (tlsEnabled) currentOutbound._hack_config_map["detour"] = TAG_FRAGMENT
                     }
                 }
 
@@ -1310,10 +1328,10 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
 
         if (!forTest) _hack_custom_config = DataStore.globalCustomConfig
     }.let {
-        val configMap = it.asMap()
-        Util.mergeJSON(configMap, proxy.requireBean().customConfigJson)
+        val configTree = SingBoxOptions.toJsonTree(it)
+        Util.mergeJsonElement(configTree, proxy.requireBean().customConfigJson)
         ConfigBuildResult(
-            gson.toJson(configMap),
+            SingBoxOptions.treeToJson(configTree),
             externalIndexMap,
             proxy.id,
             trafficMap,
