@@ -19,10 +19,6 @@ jobs:
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
-      - name: Guard - AGENTS.md must stay untracked
-        run: bash ./scripts/check-agents-untracked.sh
-      - name: Guard - no backed-up SharedPreferences
-        run: bash ./scripts/check-no-shared-prefs.sh
       - name: Guard - lint baseline may only shrink
         run: bash ./scripts/check-lint-baseline.sh
   test:

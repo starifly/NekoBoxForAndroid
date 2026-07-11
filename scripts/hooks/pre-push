@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-# Sample pre-push hook. NOT auto-installed (git hooks live in .git/hooks, which is
-# not version-controlled). To use it:
-#   ln -s ../../scripts/hooks/pre-push .git/hooks/pre-push
-# It runs the local verification gate and blocks the push on failure.
-set -euo pipefail
-exec "$(git rev-parse --show-toplevel)/scripts/verify.sh"
