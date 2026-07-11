@@ -90,7 +90,7 @@
     <string name="enable_fakedns">FakeDNS aktivieren</string>
     <string name="fakedns_message">Kann dazu führen, dass andere Anwendungen neu gestartet werden müssen, um nach dem Stoppen des Proxys eine Verbindung zum Netzwerk herzustellen</string>
     <string name="dns_hosts">Domain-Umschreibung</string>
-    <string name="dns_hosts_dialog_message">One per line. Lines starting with # are comments. Example:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
+    <string name="dns_hosts_dialog_message">Eine pro Zeile. Zeilen, die mit # beginnen, sind Kommentare. Beispiel:\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="port_local_dns">Lokaler DNS-Port</string>
     <string name="require_transproxy">Transproxy eingehend aktivieren</string>
     <string name="transproxy_mode">Transproxy-Modus</string>
@@ -325,11 +325,11 @@
     <string name="append_http_proxy">HTTP-Proxy an VPN anhängen</string>
     <string name="append_http_proxy_sum">HTTP-Proxy wird direkt vom Browser / einigen
         unterstützten Apps verwendet, ohne die virtuelle Netzwerkschnittstelle zu durchlaufen (Android 10+)</string>
-    <string name="http_proxy_bypass">HTTP proxy bypass list</string>
-    <string name="http_proxy_bypass_dialog_message">One per line. Lines starting with # are comments. Example: *zhihu.com</string>
-    <string name="append_http_proxy_security_title">Security Notice</string>
-    <string name="append_http_proxy_security_message">When enabled, other apps on this device can directly use the local proxy port.\n\nRecommendation: Only enable this if you trust all installed apps.</string>
-    <string name="enable_anyway">Enable Anyway</string>
+    <string name="http_proxy_bypass">HTTP-Proxy-Bypass-Liste</string>
+    <string name="http_proxy_bypass_dialog_message">Eine pro Zeile. Zeilen, die mit # beginnen, sind Kommentare. Beispiel: *zhihu.com</string>
+    <string name="append_http_proxy_security_title">Sicherheitshinweis</string>
+    <string name="append_http_proxy_security_message">Wenn aktiviert, können andere Apps auf diesem Gerät den lokalen Proxy-Port direkt nutzen.\n\nEmpfehlung: Aktivieren Sie dies nur, wenn Sie allen installierten Apps vertrauen.</string>
+    <string name="enable_anyway">Trotzdem aktivieren</string>
     <string name="strict_route">Strenge Route</string>
     <string name="protocol_settings">Protokolleinstellungen</string>
     <string name="trojan_provider">Trojan-Anbieter</string>
@@ -373,9 +373,9 @@
     <string name="subscription_update">Abonnement aktualisieren</string>
     <string name="subscription_update_message">Aktualisiere %s …</string>
     <string name="group_filter">Filter</string>
-    <string name="server_dns">Custom Server DNS</string>
-    <string name="server_dns_subscription_sum">Optional DNS used only to resolve server domains in this subscription. Leave empty to use the default behavior. Accepts https://, tls://, quic:// or host[:port].</string>
-    <string name="server_dns_invalid">Invalid custom server DNS. Use https://, tls://, quic:// or host[:port], or leave empty.</string>
+    <string name="server_dns">Benutzerdefinierter Server-DNS</string>
+    <string name="server_dns_subscription_sum">Optionaler DNS, der nur zur Auflösung von Server-Domänen in diesem Abonnement verwendet wird. Leer lassen, um das Standardverhalten zu verwenden. Akzeptiert https://, tls://, quic:// oder host[:port].</string>
+    <string name="server_dns_invalid">Ungültiger benutzerdefinierter Server-DNS. Verwenden Sie https://, tls://, quic:// oder host[:port], oder lassen Sie es leer.</string>
     <string name="subscription_used">%s verwendet</string>
     <string name="subscription_traffic">%s verwendet / %s verbleibend</string>
     <string name="subscription_expire">Ablauf: %s</string>
