@@ -6,8 +6,10 @@ on:
         description: "Release Tag"
         required: true
       publish:
-        description: "Publish: If want ignore"
+        description: "Publish the completed release"
         required: false
+        type: boolean
+        default: false
 env:
   MIERU_VERSION: v3.34.1
   MDVPN_REF: android-vpnservice-protect-hook
@@ -159,7 +161,7 @@ jobs:
           path: ${{ env.APK }}
   publish:
     name: Publish Release
-    if: github.event.inputs.publish != 'y'
+    if: ${{ inputs.publish == true }}
     runs-on: namespace-profile-nekoyay
     permissions:
       contents: write

@@ -21,6 +21,8 @@ jobs:
           fetch-depth: 0
       - name: Guard - lint baseline may only shrink
         run: bash ./scripts/check-lint-baseline.sh
+      - name: Guard - release publication requires explicit opt-in
+        run: bash scripts/check-release-publish-gate.sh --self-test
   test:
     name: Unit Tests
     runs-on: namespace-profile-nekoyay
