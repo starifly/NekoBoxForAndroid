@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
 env:
-  MIERU_VERSION: v3.34.0
+  MIERU_VERSION: v3.34.1
   MDVPN_REF: android-vpnservice-protect-hook
   MDVPN_COMMIT: d481d72d4b86783a87d536c214d2c68cc4e9320e
   NAIVE_VERSION: v149.0.7827.114-1
