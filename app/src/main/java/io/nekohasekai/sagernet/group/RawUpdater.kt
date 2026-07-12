@@ -42,6 +42,32 @@ import org.yaml.snakeyaml.error.YAMLException
 @Suppress("EXPERIMENTAL_API_USAGE")
 object RawUpdater : GroupUpdater() {
 
+    internal data class ReconciliationResult(
+        val contentChanged: Boolean,
+        val orderChanged: Boolean,
+    )
+
+    internal fun reconcileExistingProfile(
+        entity: ProxyEntity,
+        bean: AbstractBean,
+        userOrder: Long,
+    ): ReconciliationResult {
+        val existsBean = entity.requireBean()
+        bean.customOutboundJson = existsBean.customOutboundJson
+        bean.customConfigJson = existsBean.customConfigJson
+
+        val contentChanged = existsBean != bean
+        val orderChanged = entity.userOrder != userOrder
+        if (contentChanged || orderChanged) {
+            entity.putBean(bean)
+        }
+        if (orderChanged) {
+            entity.userOrder = userOrder
+        }
+
+        return ReconciliationResult(contentChanged, orderChanged)
+    }
+
     @SuppressLint("Recycle")
     override suspend fun doUpdate(
         proxyGroup: ProxyGroup,
@@ -190,31 +216,20 @@ object RawUpdater : GroupUpdater() {
         for ((name, bean) in nameMap.entries) {
             if (toReplace.contains(name)) {
                 val entity = toReplace[name]!!
-                val existsBean = entity.requireBean()
-                // update subscription, preserving custom override settings
-                bean.customOutboundJson = existsBean.customOutboundJson
-                bean.customConfigJson = existsBean.customConfigJson
-                when {
-                    existsBean != bean -> {
-                        changed++
-                        entity.putBean(bean)
-                        toUpdate.add(entity)
-                        updated[entity.displayName()] = name
-
-                        Logs.d("Updated profile: $name")
-                    }
-
-                    entity.userOrder != userOrder -> {
-                        entity.putBean(bean)
-                        toUpdate.add(entity)
-                        entity.userOrder = userOrder
-
-                        Logs.d("Reordered profile: $name")
-                    }
-
-                    else -> {
-                        Logs.d("Ignored profile: $name")
-                    }
+                val reconciliation = reconcileExistingProfile(entity, bean, userOrder)
+                if (reconciliation.contentChanged || reconciliation.orderChanged) {
+                    toUpdate.add(entity)
+                }
+                if (reconciliation.contentChanged) {
+                    changed++
+                    updated[entity.displayName()] = name
+                    Logs.d("Updated profile: $name")
+                }
+                if (reconciliation.orderChanged) {
+                    Logs.d("Reordered profile: $name")
+                }
+                if (!reconciliation.contentChanged && !reconciliation.orderChanged) {
+                    Logs.d("Ignored profile: $name")
                 }
             } else {
                 changed++
