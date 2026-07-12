@@ -19,7 +19,6 @@ import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.*
-import io.nekohasekai.sagernet.database.preference.KeyValuePair
 import io.nekohasekai.sagernet.database.preference.PublicDatabase
 import io.nekohasekai.sagernet.databinding.LayoutBackupBinding
 import io.nekohasekai.sagernet.databinding.LayoutImportBinding
@@ -31,7 +30,6 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
@@ -680,104 +678,13 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
     }
 
     suspend fun finishImport(content: JSONObject, profile: Boolean, rule: Boolean, setting: Boolean) {
-        // Validate-then-commit: decode EVERY selected section into memory first. If any entry
-        // is malformed the decode throws here, BEFORE any destructive reset() runs, so a bad
-        // (or maliciously truncated) backup file can never partially wipe the live DB.
-        //
-        // profiles and groups are one logical section (a config backup always contains both);
-        // they are decoded and committed together so neither is left without the other.
-        val version = content.optInt("version", 1)
-        if (version != 1 && version != BackupFormatV2.VERSION) {
-            error("Unsupported backup version: $version")
-        }
-
-        val importConfigs = profile && content.has("profiles")
-        val profiles = if (importConfigs) {
-            when (version) {
-                BackupFormatV2.VERSION -> BackupFormatV2.decodeProfiles(content.getJSONArray("profiles"))
-                else -> decodeArray(content.getJSONArray("profiles")) { ProxyEntity.CREATOR.createFromParcel(it) }
-            }
-        } else {
-            null
-        }
-        val groups = if (importConfigs) {
-            when (version) {
-                BackupFormatV2.VERSION -> BackupFormatV2.decodeGroups(content.getJSONArray("groups"))
-                else -> decodeArray(content.getJSONArray("groups")) { ProxyGroup.CREATOR.createFromParcel(it) }
-            }
-        } else {
-            null
-        }
-        val rules = if (rule && content.has("rules")) {
-            when (version) {
-                BackupFormatV2.VERSION -> BackupFormatV2.decodeRules(content.getJSONArray("rules"))
-                else -> decodeArray(content.getJSONArray("rules")) { ParcelizeBridge.createRule(it) }
-            }
-        } else {
-            null
-        }
-        val settings = if (setting && content.has("settings")) {
-            BackupFormatV2.sanitizeSettings(
-                when (version) {
-                    BackupFormatV2.VERSION -> BackupFormatV2.decodeSettings(content.getJSONArray("settings"))
-                    else -> decodeArray(content.getJSONArray("settings")) {
-                        KeyValuePair.CREATOR.createFromParcel(it)
-                    }
-                },
-            )
-        } else {
-            null
-        }
-
-        // Commit phase: only reached if every section above decoded successfully. Each
-        // reset()+insert() pair runs in its own DB transaction so it is atomic - an
-        // interruption can't leave a table cleared-but-not-repopulated.
-        if (profiles != null && groups != null) {
-            SagerDatabase.instance.runInTransaction {
-                SagerDatabase.proxyDao.reset()
-                SagerDatabase.proxyDao.insert(profiles)
-                SagerDatabase.groupDao.reset()
-                SagerDatabase.groupDao.insert(groups)
-            }
-        }
-        rules?.let {
-            SagerDatabase.instance.runInTransaction {
-                SagerDatabase.rulesDao.reset()
-                SagerDatabase.rulesDao.insert(it)
-            }
-        }
-        settings?.let {
-            // Drain earlier write-through work, then replace settings through the store's ordered
-            // durable path. This keeps approval merges and restore on one serialization boundary.
-            DataStore.configurationStore.awaitWrites()
-            DataStore.configurationStore.replaceAllDurable(it)
-        }
-    }
-
-    /**
-     * Decode every base64'd, Parcel-marshalled entry in [array] into memory. Each entry is
-     * decoded in its own try/finally so the Parcel is always recycled; a malformed entry
-     * throws (aborting the whole import) before the caller commits any reset+insert.
-     *
-     * NOTE: Parcel.unmarshall on imported bytes is a known deserialization hazard and an
-     * unstable persistence format. This legacy path is retained only for version 1 backups;
-     * new exports use the explicit Parcel-free version 2 schema. The validate-then-commit
-     * ordering above removes the partial-wipe risk for legacy imports.
-     */
-    private fun <T> decodeArray(array: JSONArray, create: (Parcel) -> T): List<T> {
-        val out = ArrayList<T>(array.length())
-        for (i in 0 until array.length()) {
-            val data = Util.b64Decode(array[i] as String)
-            val parcel = Parcel.obtain()
-            try {
-                parcel.unmarshall(data, 0, data.size)
-                parcel.setDataPosition(0)
-                out.add(create(parcel))
-            } finally {
-                parcel.recycle()
-            }
-        }
-        return out
+        restoreBackup(
+            content,
+            profile,
+            rule,
+            setting,
+            DatabaseBackupRestoreOperations,
+        )
     }
 
     private fun showMessage(message: String) {
