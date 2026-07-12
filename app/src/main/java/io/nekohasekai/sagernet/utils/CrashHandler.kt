@@ -8,6 +8,7 @@ import com.jakewharton.processphoenix.ProcessPhoenix
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.database.preference.KeyValuePair
 import io.nekohasekai.sagernet.database.preference.PublicDatabase
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
@@ -18,6 +19,24 @@ import java.io.InputStreamReader
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
+
+private val diagnosticSettingKeys = listOf(
+    Key.APP_THEME,
+    Key.NIGHT_THEME,
+    Key.SERVICE_MODE,
+    Key.METERED_NETWORK,
+    Key.SPEED_INTERVAL,
+    Key.SHOW_DIRECT_SPEED,
+    Key.LOG_LEVEL,
+    Key.PROFILE_TRAFFIC_STATISTICS,
+)
+
+internal fun formatDiagnosticSettings(rows: Collection<KeyValuePair>): List<String> {
+    val rowsByKey = rows.associateBy(KeyValuePair::key)
+    return diagnosticSettingKeys.mapNotNull { key ->
+        rowsByKey[key]?.let { "$key: $it" }
+    }
+}
 
 object CrashHandler : Thread.UncaughtExceptionHandler {
 
@@ -100,15 +119,14 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
             Build.SUPPORTED_ABIS.filter { it.isNotBlank() }.joinToString(", ")
         }\n\n"
 
+        report += "Settings: \n"
         try {
-            report += "Settings: \n"
-            for (pair in PublicDatabase.kvPairDao.all()) {
-                if (pair.key == Key.PLUGIN_SIGNER_APPROVALS) continue
+            for (line in formatDiagnosticSettings(PublicDatabase.kvPairDao.all())) {
                 report += "\n"
-                report += pair.key + ": " + pair.toString()
+                report += line
             }
-        } catch (e: Exception) {
-            report += "Export settings failed: " + formatThrowable(e)
+        } catch (_: Exception) {
+            report += "Settings unavailable"
         }
 
         report += "\n\n"
