@@ -42,7 +42,16 @@ object DefaultNetworkListener {
             is NetworkMessage.Start -> {
                 if (listeners.isEmpty()) register()
                 listeners[message.key] = message.listener
-                if (network != null) message.listener(network)
+                if (network != null) {
+                    message.listener(network)
+                } else if (fallback) {
+                    val activeNetwork = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        SagerNet.connectivity.activeNetwork
+                    } else {
+                        null
+                    }
+                    message.listener(activeNetwork)
+                }
             }
             is NetworkMessage.Get -> {
                 check(listeners.isNotEmpty()) { "Getting network without any listeners is not supported" }
@@ -124,6 +133,7 @@ object DefaultNetworkListener {
     }
 
     private var fallback = false
+    private val callbackRegistration = NetworkCallbackRegistration()
     private val request = NetworkRequest.Builder().apply {
         addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
         addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED)
@@ -145,8 +155,19 @@ object DefaultNetworkListener {
      * Source: https://android.googlesource.com/platform/frameworks/base/+/2df4c7d/services/core/java/com/android/server/ConnectivityService.java#887
      */
     private fun register() {
-        try {
-            fallback = false
+        if (callbackRegistration.requiresFallback) {
+            callbackRegistration.unregister {
+                SagerNet.connectivity.unregisterNetworkCallback(Callback)
+            }.onFailure {
+                Logs.w("DefaultNetworkListener: retry unregister failed", it)
+            }
+        }
+        if (callbackRegistration.requiresFallback) {
+            fallback = true
+            return
+        }
+        fallback = false
+        callbackRegistration.register {
             when (Build.VERSION.SDK_INT) {
                 in 31..Int.MAX_VALUE ->
                     @TargetApi(31)
@@ -177,11 +198,18 @@ object DefaultNetworkListener {
                     // known bug on API 23: https://stackoverflow.com/a/33509180/2245107
                 }
             }
-        } catch (e: Exception) {
-            Logs.w(e)
+        }.onFailure {
+            Logs.w(it)
             fallback = true
         }
     }
 
-    private fun unregister() = SagerNet.connectivity.unregisterNetworkCallback(Callback)
+    private fun unregister() {
+        callbackRegistration.unregister {
+            SagerNet.connectivity.unregisterNetworkCallback(Callback)
+        }.onFailure {
+            fallback = true
+            Logs.w("DefaultNetworkListener: failed to unregister network callback", it)
+        }
+    }
 }
