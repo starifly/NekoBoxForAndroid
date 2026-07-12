@@ -1,15 +1,12 @@
 package io.nekohasekai.sagernet.bg.proto
 
-import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.ServiceNotification
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.utils.Commandline
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.runBlocking
-import moe.matsuri.nb4a.utils.JavaUtil
 
 class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = null) :
     BoxInstance(profile) {
@@ -25,11 +22,7 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     override fun buildConfig() {
         super.buildConfig()
         lastSelectorGroupId = super.config.selectorGroupId
-        //
-        if (notTmp) Logs.d(Commandline.redactProcessOutput(config.config))
-        if (notTmp && BuildConfig.DEBUG) {
-            Logs.d(Commandline.redactProcessOutput(JavaUtil.gson.toJson(config.trafficMap)))
-        }
+        if (notTmp) Logs.d(safeConfigDiagnostics(config, 0))
     }
 
     // only use this in temporary instance
@@ -40,18 +33,7 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
 
     override suspend fun init() {
         super.init()
-        pluginConfigs.forEach { (_, plugin) ->
-            val (_, content) = plugin
-            Logs.d(redactPluginConfigForLog(content))
-        }
-    }
-
-    private fun redactPluginConfigForLog(content: String): String {
-        return if ('\u0000' in content) {
-            Commandline.toRedactedString(content.split('\u0000'))
-        } else {
-            Commandline.redactProcessOutput(content)
-        }
+        Logs.d(safeConfigDiagnostics(config, pluginConfigs.size))
     }
 
     override suspend fun loadConfig() {
