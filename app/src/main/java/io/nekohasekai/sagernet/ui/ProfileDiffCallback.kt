@@ -5,8 +5,8 @@ import androidx.recyclerview.widget.DiffUtil
 internal class ProfileDiffCallback(
     private val oldIds: List<Long>,
     private val newIds: List<Long>,
-    private val oldStamps: Map<Long, Int>,
-    private val newStamps: Map<Long, Int>,
+    private val oldStamps: Map<Long, ProfileRowStamp>,
+    private val newStamps: Map<Long, ProfileRowStamp>,
 ) : DiffUtil.Callback() {
     override fun getOldListSize() = oldIds.size
 

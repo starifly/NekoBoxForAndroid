@@ -463,6 +463,11 @@ class MainActivity :
         binding.drawerLayout.closeDrawers()
     }
 
+    private fun refreshConfigurationProfileState() {
+        (supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ConfigurationFragment)
+            ?.refreshProfileState()
+    }
+
     fun displayFragmentWithId(@IdRes id: Int): Boolean {
         when (id) {
             R.id.nav_configuration -> {
@@ -485,6 +490,7 @@ class MainActivity :
 
     private fun changeState(state: BaseService.State, msg: String? = null, animate: Boolean = false) {
         DataStore.serviceState = state
+        refreshConfigurationProfileState()
 
         binding.fab.changeState(state, DataStore.serviceState, animate)
         binding.stats.changeState(state)
@@ -545,6 +551,7 @@ class MainActivity :
         val old = DataStore.selectedProxy
         DataStore.selectedProxy = id
         DataStore.currentProfile = id
+        refreshConfigurationProfileState()
         runOnDefaultDispatcher {
             ProfileManager.postUpdate(old, true)
             ProfileManager.postUpdate(id, true)

@@ -126,6 +126,47 @@ class ConfigurationFragment @JvmOverloads constructor(
 
     val alwaysShowAddress by lazy { DataStore.alwaysShowAddress }
 
+    private var selectedProfileSnapshot = 0L
+    private var currentProfileSnapshot = 0L
+    private var serviceStartedSnapshot = false
+
+    private fun syncProfileState() {
+        val selectedProfile = selectedItem?.id ?: DataStore.selectedProxy
+        val currentProfile = DataStore.currentProfile
+        val serviceStarted = DataStore.serviceState.started
+        if (
+            selectedProfileSnapshot == selectedProfile &&
+            currentProfileSnapshot == currentProfile &&
+            serviceStartedSnapshot == serviceStarted
+        ) {
+            return
+        }
+
+        val changedIds = setOf(
+            selectedProfileSnapshot,
+            currentProfileSnapshot,
+            selectedProfile,
+            currentProfile,
+        ).filterTo(mutableSetOf()) { it > 0L }
+
+        selectedProfileSnapshot = selectedProfile
+        currentProfileSnapshot = currentProfile
+        serviceStartedSnapshot = serviceStarted
+
+        if (!::adapter.isInitialized || changedIds.isEmpty()) return
+        adapter.groupFragments.values.forEach { fragment ->
+            fragment.adapter?.refreshProfileState(changedIds)
+        }
+    }
+
+    internal fun refreshProfileState() {
+        runOnMainDispatcher { syncProfileState() }
+    }
+
+    internal fun isSelectedProfile(profileId: Long) = selectedProfileSnapshot == profileId
+
+    internal fun isRunningProfile(profileId: Long) = serviceStartedSnapshot && currentProfileSnapshot == profileId
+
     fun getCurrentGroupFragment(): ConfigurationGroupFragment? {
         return try {
             childFragmentManager.findFragmentByTag("f" + DataStore.selectedGroup) as ConfigurationGroupFragment?
@@ -205,6 +246,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         val groupListBinding = LayoutGroupListBinding.bind(view)
         groupPager = groupListBinding.groupPager
         tabLayout = groupListBinding.groupTab
+        syncProfileState()
         adapter = GroupPagerAdapter()
         ProfileManager.addListener(adapter)
         GroupManager.addListener(adapter)

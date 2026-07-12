@@ -25,9 +25,22 @@ class ProfileDiffCallbackTest {
             updates(
                 oldIds = listOf(1L),
                 newIds = listOf(1L),
-                oldStamps = mapOf(1L to 1),
-                newStamps = mapOf(1L to 2),
+                oldStamps = mapOf(1L to stamp(1)),
+                newStamps = mapOf(1L to stamp(2)),
             ),
+        )
+    }
+
+    @Test
+    fun rowPartnerStateChange_emitsPeerChange() {
+        val ids = listOf(1L, 2L)
+        val baseStamps = ids.associateWith { 1 }
+        val before = buildProfileRowStamps(ids, baseStamps, 2) { false }
+        val after = buildProfileRowStamps(ids, baseStamps, 2) { it == 2L }
+
+        assertEquals(
+            listOf("change:0:1"),
+            updates(ids, ids, before, after),
         )
     }
 
@@ -52,8 +65,8 @@ class ProfileDiffCallbackTest {
     private fun updates(
         oldIds: List<Long>,
         newIds: List<Long>,
-        oldStamps: Map<Long, Int> = oldIds.associateWith { 1 },
-        newStamps: Map<Long, Int> = newIds.associateWith { 1 },
+        oldStamps: Map<Long, ProfileRowStamp> = oldIds.associateWith { stamp(1) },
+        newStamps: Map<Long, ProfileRowStamp> = newIds.associateWith { stamp(1) },
     ): List<String> {
         val updates = mutableListOf<String>()
         DiffUtil.calculateDiff(ProfileDiffCallback(oldIds, newIds, oldStamps, newStamps))
@@ -78,4 +91,10 @@ class ProfileDiffCallbackTest {
             )
         return updates
     }
+
+    private fun stamp(content: Int) = ProfileRowStamp(
+        content = content,
+        reserveMiddleRow = false,
+        doubleColumn = false,
+    )
 }
