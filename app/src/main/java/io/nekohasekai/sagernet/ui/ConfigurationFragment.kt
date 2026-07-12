@@ -1768,33 +1768,33 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             override suspend fun onUpdated(data: TrafficData) {
                 try {
-                    val cached = configurationList[data.id] ?: return
-                    if (cached.tx == data.tx && cached.rx == data.rx) return
-                    cached.tx = data.tx
-                    cached.rx = data.rx
-                    val index = configurationIdList.indexOf(data.id)
-                    if (index != -1) {
-                        val holder = layoutManager.findViewByPosition(index)
-                            ?.let { configurationListView.getChildViewHolder(it) } as ConfigurationHolder?
-                        if (holder != null) {
-                            val previous = holder.lastSelfHasMiddleRow
-                            val newHasMiddleRow = try {
-                                val e = holder.entity
-                                val showTraffic = data.tx + data.rx != 0L
-                                val bean = e.requireBean()
-                                val addr = if (alwaysShowAddress && bean.name.isNotBlank()) {
-                                    bean.displayAddress()
-                                } else ""
-                                !((!showTraffic || e.status <= 0) && addr.isBlank())
-                            } catch (e: Exception) {
-                                null
-                            }
-                            onMainDispatcher {
-                                holder.bind(holder.entity, data)
-                            }
-                            if (previous != null && newHasMiddleRow != null && previous != newHasMiddleRow) {
-                                refreshSameRowNeighbours(index)
-                            }
+                    onMainDispatcher {
+                        val cached = configurationList[data.id] ?: return@onMainDispatcher
+                        if (cached.tx == data.tx && cached.rx == data.rx) {
+                            return@onMainDispatcher
+                        }
+
+                        val index = configurationIdList.indexOf(data.id)
+                        val holder = if (index != -1) {
+                            layoutManager.findViewByPosition(index)
+                                ?.let { configurationListView.getChildViewHolder(it) } as? ConfigurationHolder
+                        } else null
+                        val previous = holder?.lastSelfHasMiddleRow
+
+                        cached.tx = data.tx
+                        cached.rx = data.rx
+
+                        val newHasMiddleRow = try {
+                            hasMiddleRow(cached)
+                        } catch (e: Exception) {
+                            null
+                        }
+                        holder?.bind(cached)
+
+                        if (index != -1 && previous != null && newHasMiddleRow != null &&
+                            previous != newHasMiddleRow
+                        ) {
+                            refreshSameRowNeighbours(index)
                         }
                     }
                 } catch (e: Exception) {
@@ -1844,8 +1844,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
                 }
 
-                configurationList.clear()
-                configurationList.putAll(newProfiles.associateBy { it.id })
+                val newProfileMap = newProfiles.associateBy { it.id }
                 val newProfileIds = newProfiles.map { it.id }
 
                 var selectedProfileIndex = -1
@@ -1856,6 +1855,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
 
                 configurationListView.post {
+                    configurationList.clear()
+                    configurationList.putAll(newProfileMap)
                     configurationIdList.clear()
                     configurationIdList.addAll(newProfileIds)
                     notifyDataSetChanged()
