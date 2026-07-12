@@ -1768,33 +1768,32 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             override suspend fun onUpdated(data: TrafficData) {
                 try {
-                    val cached = configurationList[data.id] ?: return
-                    if (cached.tx == data.tx && cached.rx == data.rx) return
-                    cached.tx = data.tx
-                    cached.rx = data.rx
-                    val index = configurationIdList.indexOf(data.id)
-                    if (index != -1) {
-                        val holder = layoutManager.findViewByPosition(index)
-                            ?.let { configurationListView.getChildViewHolder(it) } as ConfigurationHolder?
-                        if (holder != null) {
-                            val previous = holder.lastSelfHasMiddleRow
-                            val newHasMiddleRow = try {
-                                val e = holder.entity
-                                val showTraffic = data.tx + data.rx != 0L
-                                val bean = e.requireBean()
-                                val addr = if (alwaysShowAddress && bean.name.isNotBlank()) {
-                                    bean.displayAddress()
-                                } else ""
-                                !((!showTraffic || e.status <= 0) && addr.isBlank())
-                            } catch (e: Exception) {
-                                null
-                            }
-                            onMainDispatcher {
-                                holder.bind(holder.entity, data)
-                            }
-                            if (previous != null && newHasMiddleRow != null && previous != newHasMiddleRow) {
-                                refreshSameRowNeighbours(index)
-                            }
+                    onMainDispatcher {
+                        val cached = configurationList[data.id] ?: return@onMainDispatcher
+                        if (cached.tx == data.tx && cached.rx == data.rx) {
+                            return@onMainDispatcher
+                        }
+
+                        val previouslyShowedTraffic = cached.tx + cached.rx != 0L
+
+                        cached.tx = data.tx
+                        cached.rx = data.rx
+                        val holder = configurationListView.findViewHolderForItemId(data.id)
+                            as? ConfigurationHolder ?: return@onMainDispatcher
+                        val index = holder.bindingAdapterPosition
+                        val previous = holder.lastSelfHasMiddleRow
+                        val showTraffic = cached.tx + cached.rx != 0L
+
+                        if (previous == null || previouslyShowedTraffic != showTraffic) {
+                            holder.bind(cached)
+                        } else if (showTraffic) {
+                            holder.bindTraffic(cached)
+                        }
+
+                        if (index != RecyclerView.NO_POSITION && previous != null &&
+                            previous != holder.lastSelfHasMiddleRow
+                        ) {
+                            refreshSameRowNeighbours(index)
                         }
                     }
                 } catch (e: Exception) {
@@ -1844,8 +1843,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
                 }
 
-                configurationList.clear()
-                configurationList.putAll(newProfiles.associateBy { it.id })
+                val newProfileMap = newProfiles.associateBy { it.id }
                 val newProfileIds = newProfiles.map { it.id }
 
                 var selectedProfileIndex = -1
@@ -1856,6 +1854,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
 
                 configurationListView.post {
+                    configurationList.clear()
+                    configurationList.putAll(newProfileMap)
                     configurationIdList.clear()
                     configurationIdList.addAll(newProfileIds)
                     notifyDataSetChanged()
@@ -2056,7 +2056,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 )
             }
 
-            fun bind(proxyEntity: ProxyEntity, trafficData: TrafficData? = null) {
+            fun bind(proxyEntity: ProxyEntity) {
                 val pf = parentFragment as? ConfigurationFragment ?: return
 
                 entity = proxyEntity
@@ -2066,13 +2066,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                 profileType.text = proxyEntity.displayType()
                 profileType.setTextColor(requireContext().getProtocolColor(proxyEntity.type))
 
-                var rx = proxyEntity.rx
-                var tx = proxyEntity.tx
-                if (trafficData != null) {
-                    // use new data
-                    tx = trafficData.tx
-                    rx = trafficData.rx
-                }
+                val rx = proxyEntity.rx
+                val tx = proxyEntity.tx
 
                 val showTraffic = rx + tx != 0L
                 trafficText.isVisible = showTraffic
@@ -2160,6 +2155,24 @@ class ConfigurationFragment @JvmOverloads constructor(
                     shareButton.isVisible = true
                 }
 
+            }
+
+            fun bindTraffic(proxyEntity: ProxyEntity) {
+                if (entity.id != proxyEntity.id) {
+                    bind(proxyEntity)
+                    return
+                }
+
+                val traffic = view.context.getString(
+                    R.string.traffic,
+                    Formatter.formatFileSize(view.context, proxyEntity.tx),
+                    Formatter.formatFileSize(view.context, proxyEntity.rx)
+                )
+                if (proxyEntity.status <= 0) {
+                    profileStatus.text = traffic
+                } else {
+                    trafficText.text = traffic
+                }
             }
 
             var currentName = ""
