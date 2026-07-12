@@ -124,28 +124,28 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
         }
 
         if (startsWith("sn://")) {
-            Logs.d("Try parse universal link: $this")
+            Logs.d("Trying universal parser")
             runCatching {
                 entities.add(parseUniversal(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("Universal parser rejected input")
             }
         } else if (startsWith("socks://") || startsWith("socks4://") || startsWith("socks4a://") || startsWith(
                 "socks5://",
             )
         ) {
-            Logs.d("Try parse socks link: $this")
+            Logs.d("Trying SOCKS parser")
             runCatching {
                 entities.add(parseSOCKS(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("SOCKS parser rejected input")
             }
         } else if (matches("(http|https)://.*".toRegex())) {
-            Logs.d("Try parse http link: $this")
+            Logs.d("Trying HTTP parser")
             runCatching {
                 entities.add(parseHttp(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("HTTP parser rejected input")
                 if (subscriptionCandidate == null) {
                     val clashUrl = HttpUrl.Builder()
                         .scheme("https")
@@ -159,109 +159,109 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
                 }
             }
         } else if (startsWith("vmess://")) {
-            Logs.d("Try parse v2ray link: $this")
+            Logs.d("Trying V2Ray parser")
             runCatching {
                 entities.add(parseV2Ray(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("V2Ray parser rejected input")
             }
         } else if (startsWith("vless://")) {
-            Logs.d("Try parse vless link: $this")
+            Logs.d("Trying VLESS parser")
             runCatching {
                 entities.add(parseV2Ray(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("VLESS parser rejected input")
             }
         } else if (startsWith("trojan://")) {
-            Logs.d("Try parse trojan link: $this")
+            Logs.d("Trying Trojan parser")
             runCatching {
                 entities.add(parseTrojan(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("Trojan parser rejected input")
             }
         } else if (startsWith("trojan-go://")) {
-            Logs.d("Try parse trojan-go link: $this")
+            Logs.d("Trying Trojan-Go parser")
             runCatching {
                 entities.add(parseTrojanGo(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("Trojan-Go parser rejected input")
             }
         } else if (startsWith("ss://")) {
-            Logs.d("Try parse shadowsocks link: $this")
+            Logs.d("Trying Shadowsocks parser")
             runCatching {
                 entities.add(parseShadowsocks(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("Shadowsocks parser rejected input")
             }
         } else if (startsWith("ssr://")) {
-            Logs.d("Try parse shadowsocksr link: $this")
+            Logs.d("Trying ShadowsocksR parser")
             runCatching {
                 entities.add(parseShadowsocksR(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("ShadowsocksR parser rejected input")
             }
         } else if (startsWith("naive+")) {
-            Logs.d("Try parse naive link: $this")
+            Logs.d("Trying Naive parser")
             runCatching {
                 entities.add(parseNaive(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("Naive parser rejected input")
             }
         } else if (startsWith("hysteria://")) {
-            Logs.d("Try parse hysteria1 link: $this")
+            Logs.d("Trying Hysteria 1 parser")
             runCatching {
                 entities.add(parseHysteria1(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("Hysteria 1 parser rejected input")
             }
         } else if (startsWith("hysteria2://") || startsWith("hy2://")) {
-            Logs.d("Try parse hysteria2 link: $this")
+            Logs.d("Trying Hysteria 2 parser")
             runCatching {
                 entities.add(parseHysteria2(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("Hysteria 2 parser rejected input")
             }
         } else if (startsWith("tuic://")) {
-            Logs.d("Try parse TUIC link: $this")
+            Logs.d("Trying TUIC parser")
             runCatching {
                 entities.add(parseTuic(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("TUIC parser rejected input")
             }
         } else if (startsWith("juicity://")) {
-            Logs.d("Try parse Juicity link: $this")
+            Logs.d("Trying Juicity parser")
             runCatching {
                 entities.add(parseJuicity(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("Juicity parser rejected input")
             }
         } else if (startsWith("snell://")) {
-            Logs.d("Try parse Snell link: $this")
+            Logs.d("Trying Snell parser")
             runCatching {
                 entities.add(parseSnell(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("Snell parser rejected input")
             }
         } else if (startsWith("anytls://")) {
-            Logs.d("Try parse anytls link: $this")
+            Logs.d("Trying AnyTLS parser")
             runCatching {
                 entities.add(parseAnytls(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("AnyTLS parser rejected input")
             }
         } else if (startsWith("masterdns://")) {
-            Logs.d("Try parse MasterDnsVPN link: $this")
+            Logs.d("Trying MasterDnsVPN parser")
             runCatching {
                 entities.add(parseMasterDnsVpn(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("MasterDnsVPN parser rejected input")
             }
         } else if (startsWith("olcrtc://")) {
-            Logs.d("Try parse olcRTC link")
+            Logs.d("Trying olcRTC parser")
             runCatching {
                 entities.add(parseOlcrtc(this))
             }.onFailure {
-                Logs.w(it)
+                Logs.w("olcRTC parser rejected input")
             }
         }
     }

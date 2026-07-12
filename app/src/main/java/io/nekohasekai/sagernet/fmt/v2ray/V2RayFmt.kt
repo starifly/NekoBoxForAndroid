@@ -55,15 +55,15 @@ fun parseV2Ray(link: String): StandardV2RayBean {
     if (!link.contains("?")) {
         try {
             return parseV2RayN(link)
-        } catch (e: Exception) {
-            Logs.i("try v2rayN: " + e.readableMessage)
+        } catch (_: Exception) {
+            Logs.i("V2RayN parser rejected input")
         }
     }
 
     try {
         return tryResolveVmess4Kitsunebi(link)
-    } catch (e: Exception) {
-        Logs.i("try Kitsunebi: " + e.readableMessage)
+    } catch (_: Exception) {
+        Logs.i("Kitsunebi parser rejected input")
     }
 
     // "std" format
