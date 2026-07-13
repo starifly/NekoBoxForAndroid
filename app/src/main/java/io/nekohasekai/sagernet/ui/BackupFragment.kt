@@ -12,6 +12,7 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.jakewharton.processphoenix.ProcessPhoenix
@@ -24,21 +25,47 @@ import io.nekohasekai.sagernet.databinding.LayoutBackupBinding
 import io.nekohasekai.sagernet.databinding.LayoutImportBinding
 import io.nekohasekai.sagernet.databinding.LayoutProgressBinding
 import io.nekohasekai.sagernet.ktx.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import moe.matsuri.nb4a.utils.Util
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.Credentials
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import org.json.JSONObject
 import java.io.BufferedInputStream
-import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.IOException
 import java.util.*
-import java.util.zip.Deflater
-import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
-import java.util.zip.ZipOutputStream
+import kotlin.coroutines.resume
+
+private suspend fun Call.awaitResponse(): Response = suspendCancellableCoroutine { continuation ->
+    continuation.invokeOnCancellation { cancel() }
+    enqueue(
+        object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                continuation.resumeWith(Result.failure(e))
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                continuation.resume(response) { _, undeliveredResponse, _ ->
+                    undeliveredResponse.close()
+                }
+            }
+        },
+    )
+}
 
 internal fun backupFileName(now: Date = Date()): String {
     val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(now)
@@ -47,19 +74,20 @@ internal fun backupFileName(now: Date = Date()): String {
 
 class BackupFragment : NamedFragment(R.layout.layout_backup) {
 
-    private lateinit var binding: LayoutBackupBinding
-    private lateinit var backupData: ByteArray
-    private var isWebDAVBackup = false
+    private var pendingExportData: ByteArray? = null
     private var isBackupInProgress = false
     private var isRestoreInProgress = false
-    private var currentJob: kotlinx.coroutines.Job? = null
+    private var backupJob: Job? = null
     private var snackbar: Snackbar? = null
-    private var restoreJob: kotlinx.coroutines.Job? = null
+    private var restoreJob: Job? = null
 
     override fun onDestroyView() {
-        super.onDestroyView()
+        backupJob?.cancel()
+        backupJob = null
+        isBackupInProgress = false
         snackbar?.dismiss()
         snackbar = null
+        pendingExportData = null
         // if a restore operation is in progress, cancel it
         if (isRestoreInProgress) {
             restoreJob?.cancel()
@@ -67,36 +95,44 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
             isRestoreInProgress = false
             MessageStore.showMessage(requireActivity(), R.string.restore_cancelled)
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        currentJob?.cancel()
-        currentJob = null
+        super.onDestroyView()
     }
 
     override fun name0() = app.getString(R.string.backup)
 
     var content = ""
     private val exportSettings = registerForActivityResult(ActivityResultContracts.CreateDocument()) { data ->
-        if (data != null) {
-            runOnDefaultDispatcher {
-                try {
-                    requireActivity().contentResolver.openOutputStream(data)!!.use { os ->
-                        os.write(backupData)
-                    }
-                    onMainDispatcher {
-                        snackbar(getString(R.string.action_export_msg)).show()
-                    }
-                } catch (e: Exception) {
-                    Logs.w(e)
-                    onMainDispatcher {
-                        snackbar(e.readableMessage).show()
+        val exportData = pendingExportData.also { pendingExportData = null }
+        if (data == null) {
+            isBackupInProgress = false
+            return@registerForActivityResult
+        }
+        if (exportData == null) {
+            isBackupInProgress = false
+            snackbar(R.string.action_export_err).show()
+            return@registerForActivityResult
+        }
+        val contentResolver = requireActivity().contentResolver
+        backupJob = viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    contentResolver.openOutputStream(data)!!.use { os ->
+                        os.write(exportData)
                     }
                 }
+                snackbar(getString(R.string.action_export_msg)).show()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Logs.w(e)
+                snackbar(e.readableMessage).show()
+            } finally {
+                isBackupInProgress = false
             }
         }
     }
+
+    private fun backupIsBusy() = isBackupInProgress || pendingExportData != null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -104,35 +140,69 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
         val binding = LayoutBackupBinding.bind(view)
 
         binding.actionExport.setOnClickListener {
-            runOnDefaultDispatcher {
-                backupData = doBackup(
-                    binding.backupConfigurations.isChecked,
-                    binding.backupRules.isChecked,
-                    binding.backupSettings.isChecked,
-                )
-                onMainDispatcher {
+            if (backupIsBusy()) {
+                showMessage(R.string.backup_in_progress)
+                return@setOnClickListener
+            }
+            val backupConfigurations = binding.backupConfigurations.isChecked
+            val backupRules = binding.backupRules.isChecked
+            val backupSettings = binding.backupSettings.isChecked
+            isBackupInProgress = true
+            backupJob = viewLifecycleOwner.lifecycleScope.launch {
+                var destinationPending = false
+                try {
+                    val exportData = withContext(Dispatchers.IO) {
+                        doBackup(
+                            backupConfigurations,
+                            backupRules,
+                            backupSettings,
+                            BackupArchiveFormat.JSON,
+                        )
+                    }
+                    pendingExportData = exportData
                     startFilesForResult(
                         exportSettings,
                         backupFileName(),
                     )
+                    destinationPending = true
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Logs.w(e)
+                    snackbar(e.readableMessage).show()
+                } finally {
+                    if (!destinationPending) {
+                        pendingExportData = null
+                        isBackupInProgress = false
+                    }
                 }
             }
         }
 
         binding.actionShare.setOnClickListener {
-            runOnDefaultDispatcher {
-                backupData = doBackup(
-                    binding.backupConfigurations.isChecked,
-                    binding.backupRules.isChecked,
-                    binding.backupSettings.isChecked,
-                )
-                val shareDir = File(app.cacheDir, "share").apply { mkdirs() }
-                val cacheFile = File(
-                    shareDir,
-                    backupFileName(),
-                )
-                cacheFile.writeBytes(backupData)
-                onMainDispatcher {
+            if (backupIsBusy()) {
+                showMessage(R.string.backup_in_progress)
+                return@setOnClickListener
+            }
+            val backupConfigurations = binding.backupConfigurations.isChecked
+            val backupRules = binding.backupRules.isChecked
+            val backupSettings = binding.backupSettings.isChecked
+            isBackupInProgress = true
+            backupJob = viewLifecycleOwner.lifecycleScope.launch {
+                try {
+                    val cacheFile = withContext(Dispatchers.IO) {
+                        val shareData = doBackup(
+                            backupConfigurations,
+                            backupRules,
+                            backupSettings,
+                            BackupArchiveFormat.JSON,
+                        )
+                        val shareDir = File(app.cacheDir, "share").apply { mkdirs() }
+                        File(
+                            shareDir,
+                            backupFileName(),
+                        ).also { it.writeBytes(shareData) }
+                    }
                     startActivity(
                         Intent.createChooser(
                             Intent(Intent.ACTION_SEND).setType("application/json")
@@ -148,6 +218,13 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                             app.getString(R.string.abc_shareactionprovider_share_with),
                         ),
                     )
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Logs.w(e)
+                    snackbar(e.readableMessage).show()
+                } finally {
+                    isBackupInProgress = false
                 }
             }
         }
@@ -182,86 +259,54 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
     }
 
     private fun backupToWebDAV() {
-        if (isBackupInProgress) {
+        if (backupIsBusy()) {
             showMessage(R.string.backup_in_progress)
             return
         }
         isBackupInProgress = true
         val activity = requireActivity()
-        runOnDefaultDispatcher {
+        backupJob = viewLifecycleOwner.lifecycleScope.launch {
             try {
-                isWebDAVBackup = true
-                val backupData = doBackup(
-                    true, // back up configs and groups
-                    true, // back up route rules
-                    true, // back up settings
-                )
-                isWebDAVBackup = false
-
-                val client = OkHttpClient()
-
-                // normalize URL
-                val baseUrl = DataStore.webdavServer!!.trimEnd('/')
-                val path = DataStore.webdavPath?.trim('/')?.takeIf { it.isNotEmpty() } ?: "Nekobox"
-
-                // use an English-formatted timestamp as the file name, with a .zip suffix
-                val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-                val version = BuildConfig.VERSION_NAME
-                val fileName = "nekobox_backup_${version}_$timestamp.zip"
-
-                // ensure baseUrl is a valid URL that uses TLS
-                // (WebDAV backup contains all config keys, plaintext http:// is forbidden)
-                val baseHttpUrl = WebDAVSecurity.requireSecureUrl(baseUrl)
-
-                val dirUrl = baseHttpUrl.newBuilder().apply {
-                    path.split('/').filter { it.isNotEmpty() }.forEach { segment ->
-                        addPathSegment(segment)
-                    }
-                }.build()
-
-                val fileUrl = dirUrl.newBuilder()
-                    .addPathSegment(fileName)
-                    .build()
-
-                Logs.d("WebDAV backup - Directory URL: ${redactedWebDavUrlForLog(dirUrl)}")
-                Logs.d("WebDAV backup - File URL: ${redactedWebDavUrlForLog(fileUrl)}")
-
-                // first check whether the directory exists
-                val propfindRequest = Request.Builder()
-                    .url(dirUrl)
-                    .method("PROPFIND", null)
-                    .header(
-                        "Authorization",
-                        Credentials.basic(
-                            DataStore.webdavUsername ?: "",
-                            DataStore.webdavPassword ?: "",
-                        ),
+                withContext(Dispatchers.IO) {
+                    val backupData = doBackup(
+                        true, // back up configs and groups
+                        true, // back up route rules
+                        true, // back up settings
+                        BackupArchiveFormat.ZIP,
                     )
-                    .header("Depth", "0")
-                    .build()
 
-                var needCreateDir = false
-                client.newCall(propfindRequest).execute().use { response ->
-                    Logs.d("WebDAV backup - PROPFIND response: ${response.code}")
-                    when (response.code) {
-                        404 -> needCreateDir = true
-                        207 -> needCreateDir = false // directory exists
-                        401 -> throw Exception("Authentication failed")
-                        else -> {
-                            if (!response.isSuccessful) {
-                                Logs.e("WebDAV backup - PROPFIND failed: ${response.code} ${response.message}")
-                                throw Exception("Failed to check directory (${response.code}): ${response.message}")
-                            }
+                    val client = OkHttpClient()
+
+                    // normalize URL
+                    val baseUrl = DataStore.webdavServer!!.trimEnd('/')
+                    val path = DataStore.webdavPath?.trim('/')?.takeIf { it.isNotEmpty() } ?: "Nekobox"
+
+                    // use an English-formatted timestamp as the file name, with a .zip suffix
+                    val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+                    val version = BuildConfig.VERSION_NAME
+                    val fileName = "nekobox_backup_${version}_$timestamp.zip"
+
+                    // ensure baseUrl is a valid URL that uses TLS
+                    // (WebDAV backup contains all config keys, plaintext http:// is forbidden)
+                    val baseHttpUrl = WebDAVSecurity.requireSecureUrl(baseUrl)
+
+                    val dirUrl = baseHttpUrl.newBuilder().apply {
+                        path.split('/').filter { it.isNotEmpty() }.forEach { segment ->
+                            addPathSegment(segment)
                         }
-                    }
-                }
+                    }.build()
 
-                // create the directory if needed
-                if (needCreateDir) {
-                    Logs.d("WebDAV backup - Creating directory")
-                    val mkcolRequest = Request.Builder()
+                    val fileUrl = dirUrl.newBuilder()
+                        .addPathSegment(fileName)
+                        .build()
+
+                    Logs.d("WebDAV backup - Directory URL: ${redactedWebDavUrlForLog(dirUrl)}")
+                    Logs.d("WebDAV backup - File URL: ${redactedWebDavUrlForLog(fileUrl)}")
+
+                    // first check whether the directory exists
+                    val propfindRequest = Request.Builder()
                         .url(dirUrl)
-                        .method("MKCOL", null)
+                        .method("PROPFIND", null)
                         .header(
                             "Authorization",
                             Credentials.basic(
@@ -269,44 +314,80 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                                 DataStore.webdavPassword ?: "",
                             ),
                         )
+                        .header("Depth", "0")
                         .build()
 
-                    client.newCall(mkcolRequest).execute().use { response ->
-                        if (!response.isSuccessful) {
-                            Logs.e("WebDAV backup - MKCOL failed: ${response.code} ${response.message}")
-                            throw Exception("Failed to create directory (${response.code}): ${response.message}")
+                    var needCreateDir = false
+                    client.newCall(propfindRequest).awaitResponse().use { response ->
+                        Logs.d("WebDAV backup - PROPFIND response: ${response.code}")
+                        when (response.code) {
+                            404 -> needCreateDir = true
+                            207 -> needCreateDir = false // directory exists
+                            401 -> throw Exception("Authentication failed")
+                            else -> {
+                                if (!response.isSuccessful) {
+                                    Logs.e("WebDAV backup - PROPFIND failed: ${response.code} ${response.message}")
+                                    throw Exception("Failed to check directory (${response.code}): ${response.message}")
+                                }
+                            }
                         }
                     }
-                }
 
-                // use the correct Content-Type when uploading the file
-                val putRequest = Request.Builder()
-                    .url(fileUrl)
-                    .put(backupData.toRequestBody("application/zip".toMediaType()))
-                    .apply {
-                        header(
-                            "Authorization",
-                            Credentials.basic(
-                                DataStore.webdavUsername ?: "",
-                                DataStore.webdavPassword ?: "",
-                            ),
-                        )
+                    currentCoroutineContext().ensureActive()
+
+                    // create the directory if needed
+                    if (needCreateDir) {
+                        Logs.d("WebDAV backup - Creating directory")
+                        val mkcolRequest = Request.Builder()
+                            .url(dirUrl)
+                            .method("MKCOL", null)
+                            .header(
+                                "Authorization",
+                                Credentials.basic(
+                                    DataStore.webdavUsername ?: "",
+                                    DataStore.webdavPassword ?: "",
+                                ),
+                            )
+                            .build()
+
+                        client.newCall(mkcolRequest).awaitResponse().use { response ->
+                            if (!response.isSuccessful) {
+                                Logs.e("WebDAV backup - MKCOL failed: ${response.code} ${response.message}")
+                                throw Exception("Failed to create directory (${response.code}): ${response.message}")
+                            }
+                        }
                     }
-                    .build()
 
-                client.newCall(putRequest).execute().use { response ->
-                    if (!response.isSuccessful) {
-                        Logs.e("WebDAV backup - PUT failed: ${response.code} ${response.message}")
-                        throw Exception("Upload failed (${response.code}): ${response.message}")
+                    currentCoroutineContext().ensureActive()
+
+                    // use the correct Content-Type when uploading the file
+                    val putRequest = Request.Builder()
+                        .url(fileUrl)
+                        .put(backupData.toRequestBody("application/zip".toMediaType()))
+                        .apply {
+                            header(
+                                "Authorization",
+                                Credentials.basic(
+                                    DataStore.webdavUsername ?: "",
+                                    DataStore.webdavPassword ?: "",
+                                ),
+                            )
+                        }
+                        .build()
+
+                    client.newCall(putRequest).awaitResponse().use { response ->
+                        if (!response.isSuccessful) {
+                            Logs.e("WebDAV backup - PUT failed: ${response.code} ${response.message}")
+                            throw Exception("Upload failed (${response.code}): ${response.message}")
+                        }
+                        Logs.d("WebDAV backup - Upload successful")
                     }
-                    Logs.d("WebDAV backup - Upload successful")
                 }
 
-                onMainDispatcher {
-                    MessageStore.showMessage(activity, R.string.webdav_backup_success)
-                }
+                MessageStore.showMessage(activity, R.string.webdav_backup_success)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                isWebDAVBackup = false // ensure the flag is reset even when an exception occurs
                 Logs.w(e)
 
                 val errorMessage = try {
@@ -319,9 +400,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
                     "WebDAV backup failed: ${e.message ?: ""}"
                 }
 
-                onMainDispatcher {
-                    MessageStore.showMessage(activity, errorMessage)
-                }
+                MessageStore.showMessage(activity, errorMessage)
             } finally {
                 isBackupInProgress = false
             }
@@ -535,7 +614,12 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
         }
     }
 
-    private suspend fun doBackup(profile: Boolean, rule: Boolean, setting: Boolean): ByteArray {
+    private suspend fun doBackup(
+        profile: Boolean,
+        rule: Boolean,
+        setting: Boolean,
+        format: BackupArchiveFormat,
+    ): ByteArray {
         if (setting) {
             // configurationStore writes are async write-through; drain pending commits so a
             // just-changed setting is present in the backup rather than only in the live snapshot.
@@ -555,31 +639,7 @@ class BackupFragment : NamedFragment(R.layout.layout_backup) {
             }
         }
 
-        val jsonContent = out.toStringPretty()
-        return if (isWebDAVBackup) {
-            ByteArrayOutputStream().use { bos ->
-                ZipOutputStream(bos).use { zos ->
-                    zos.setLevel(Deflater.BEST_COMPRESSION)
-
-                    val entry = ZipEntry("nekobox_backup.json").apply {
-                        method = ZipEntry.DEFLATED
-                    }
-
-                    // write data
-                    zos.putNextEntry(entry)
-                    val bytes = jsonContent.toByteArray(Charsets.UTF_8)
-                    zos.write(bytes)
-                    zos.closeEntry()
-
-                    // ensure all data is written and compressed
-                    zos.finish()
-                }
-                bos.toByteArray()
-            }
-        } else {
-            // local export and share functionality uses JSON format
-            jsonContent.toByteArray()
-        }
+        return encodeBackupArchive(out.toStringPretty(), format)
     }
 
     val importFile = registerForActivityResult(ActivityResultContracts.GetContent()) { file ->
