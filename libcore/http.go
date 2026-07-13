@@ -20,7 +20,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/sagernet/quic-go"
@@ -248,56 +247,194 @@ func (r *httpRequest) Execute() (HTTPResponse, error) {
 	return httpResp, nil
 }
 
-type requestFunc func() (response *http.Response, err error)
+type requestFunc func(context.Context) (response *http.Response, err error)
+
+type labeledRequestFunc struct {
+	label   string
+	request requestFunc
+}
+
+var errEmptyHTTPResponse = errors.New("empty response")
+
+type indexedHTTPResponse struct {
+	index    int
+	response *http.Response
+}
+
+type cancelOnCloseBody struct {
+	io.ReadCloser
+	cancel context.CancelFunc
+}
+
+func (b *cancelOnCloseBody) Close() error {
+	err := b.ReadCloser.Close()
+	b.cancel()
+	return err
+}
+
+func raceHTTPRequests(ctx context.Context, funcs []labeledRequestFunc) (*http.Response, error) {
+	successCh := make(chan indexedHTTPResponse)
+	doneCh := make(chan struct{}, len(funcs))
+	workerCancels := make([]context.CancelFunc, len(funcs))
+	var finalErr error
+	var mu sync.Mutex
+
+	addError := func(err error) {
+		mu.Lock()
+		finalErr = errors.Join(finalErr, err)
+		mu.Unlock()
+	}
+	resultError := func() error {
+		mu.Lock()
+		defer mu.Unlock()
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return errors.Join(finalErr, ctxErr)
+		}
+		if finalErr == nil {
+			return errEmptyHTTPResponse
+		}
+		return finalErr
+	}
+
+	for index, f := range funcs {
+		workerCtx, workerCancel := context.WithCancel(context.WithoutCancel(ctx))
+		workerCancels[index] = workerCancel
+		go func(index int, f labeledRequestFunc, requestCtx context.Context, cancel context.CancelFunc) {
+			cancelOnExit := true
+			defer func() {
+				if cancelOnExit {
+					cancel()
+				}
+				doneCh <- struct{}{}
+			}()
+			defer device.DeferPanicToError("http", func(err error) {
+				addError(fmt.Errorf("%s: %w", f.label, err))
+				log.Println(err)
+			})
+
+			rsp, err := f.request(requestCtx)
+			if rsp == nil || err != nil {
+				if err == nil {
+					err = errEmptyHTTPResponse
+				}
+				addError(fmt.Errorf("%s: %w", f.label, err))
+				if rsp != nil && rsp.Body != nil {
+					rsp.Body.Close()
+				}
+				return
+			}
+
+			if rsp.StatusCode != http.StatusOK {
+				hr := &httpResponse{Response: rsp}
+				addError(fmt.Errorf("%s: %s", f.label, hr.errorString()))
+				return
+			}
+
+			select {
+			case successCh <- indexedHTTPResponse{index: index, response: rsp}:
+				// The response body owns the winning request context until Close.
+				cancelOnExit = false
+			case <-requestCtx.Done():
+				if rsp.Body != nil {
+					rsp.Body.Close()
+				}
+			}
+		}(index, f, workerCtx, workerCancel)
+	}
+
+	completed := 0
+	cancelAndWait := func(winner int) {
+		for index, cancel := range workerCancels {
+			if index != winner {
+				cancel()
+			}
+		}
+		for completed < len(funcs) {
+			<-doneCh
+			completed++
+		}
+	}
+
+	for completed < len(funcs) {
+		select {
+		case result := <-successCh:
+			if ctx.Err() != nil {
+				workerCancels[result.index]()
+				if result.response.Body != nil {
+					result.response.Body.Close()
+				}
+				cancelAndWait(-1)
+				return nil, resultError()
+			}
+			cancelAndWait(result.index)
+			if result.response.Body == nil {
+				workerCancels[result.index]()
+			} else {
+				result.response.Body = &cancelOnCloseBody{
+					ReadCloser: result.response.Body,
+					cancel:     workerCancels[result.index],
+				}
+			}
+			return result.response, nil
+		case <-doneCh:
+			completed++
+			if completed == len(funcs) {
+				return nil, resultError()
+			}
+		case <-ctx.Done():
+			cancelAndWait(-1)
+			return nil, resultError()
+		}
+	}
+	return nil, resultError()
+}
 
 func (r *httpRequest) doH3Direct() (HTTPResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	successCh := make(chan *http.Response, 1)
-	var finalErr error
-	var failedCount atomic.Uint32
-	var successCount atomic.Uint32
-	var mu sync.Mutex
-
-	funcs := []requestFunc{
-		// Http(s) With Ech
-		func() (response *http.Response, err error) {
-			request := r.request.Clone(context.Background())
-			echClient := &http.Client{
-				Timeout: defaultHTTPRequestTimeout,
-				Transport: &http.Transport{
-					DialTLSContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-						var d net.Dialer
-						c, err := d.DialContext(ctx, network, addr)
-						if err != nil {
-							return c, err
-						}
-						domain := addr
-						if host, _, _ := net.SplitHostPort(addr); host != "" {
-							domain = host
-						}
-						echTls := ech.NewECHClientConfig(domain, &r.tls, gLocalDNSTransport)
-						return echTls.Client(ctx, c)
+	funcs := []labeledRequestFunc{
+		{
+			label: "http(s)",
+			request: func(ctx context.Context) (response *http.Response, err error) {
+				request := r.request.Clone(ctx)
+				echClient := &http.Client{
+					Timeout: defaultHTTPRequestTimeout,
+					Transport: &http.Transport{
+						DialTLSContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+							var d net.Dialer
+							c, err := d.DialContext(ctx, network, addr)
+							if err != nil {
+								return c, err
+							}
+							domain := addr
+							if host, _, _ := net.SplitHostPort(addr); host != "" {
+								domain = host
+							}
+							echTls := ech.NewECHClientConfig(domain, &r.tls, gLocalDNSTransport)
+							return echTls.Client(ctx, c)
+						},
+						DisableKeepAlives: true,
 					},
-					DisableKeepAlives: true,
-				},
-			}
-			return echClient.Do(request)
+				}
+				return echClient.Do(request)
+			},
 		},
-		// H3 HTTPS
-		func() (response *http.Response, err error) {
-			request := r.request.Clone(context.Background())
-			h3Client := &http.Client{
-				Timeout: defaultHTTPRequestTimeout,
-				Transport: &http3.Transport{
-					TLSClientConfig: r.tls.Clone(),
-					QUICConfig: &quic.Config{
-						MaxIdleTimeout: time.Second,
+		{
+			label: "h3",
+			request: func(ctx context.Context) (response *http.Response, err error) {
+				request := r.request.Clone(ctx)
+				h3Client := &http.Client{
+					Timeout: defaultHTTPRequestTimeout,
+					Transport: &http3.Transport{
+						TLSClientConfig: r.tls.Clone(),
+						QUICConfig: &quic.Config{
+							MaxIdleTimeout: time.Second,
+						},
 					},
-				},
-			}
-			return h3Client.Do(request)
+				}
+				return h3Client.Do(request)
+			},
 		},
 	}
 
@@ -305,64 +442,11 @@ func (r *httpRequest) doH3Direct() (HTTPResponse, error) {
 		funcs = funcs[:1]
 	}
 
-	for i, f := range funcs {
-		go func(f requestFunc) {
-			defer device.DeferPanicToError("http", func(err error) { log.Println(err) })
-			defer func() {
-				if successCount.Load() == 0 {
-					if failedCount.Add(1) >= uint32(len(funcs)) {
-						// all failed
-						cancel()
-					}
-				}
-			}()
-
-			var t string
-			switch i {
-			case 0:
-				t = "http(s)"
-			case 1:
-				t = "h3"
-			}
-
-			// execute the HTTP request
-			rsp, err := f()
-			if rsp == nil || err != nil {
-				mu.Lock()
-				finalErr = errors.Join(finalErr, fmt.Errorf("%s: %w", t, err))
-				mu.Unlock()
-				if rsp != nil && rsp.Body != nil {
-					rsp.Body.Close()
-				}
-				return
-			}
-
-			// handle the HTTP status code
-			if rsp.StatusCode != http.StatusOK {
-				hr := &httpResponse{Response: rsp}
-				err = fmt.Errorf("%s: %s", t, hr.errorString())
-				mu.Lock()
-				finalErr = errors.Join(finalErr, err)
-				mu.Unlock()
-				return
-			}
-
-			select {
-			case successCh <- rsp:
-				// first successful request, don't close the body
-				successCount.Add(1)
-			default:
-				rsp.Body.Close()
-			}
-		}(f)
+	result, err := raceHTTPRequests(ctx, funcs)
+	if err != nil {
+		return nil, err
 	}
-
-	select {
-	case result := <-successCh:
-		return &httpResponse{Response: result}, nil
-	case <-ctx.Done():
-		return nil, finalErr
-	}
+	return &httpResponse{Response: result}, nil
 }
 
 type httpResponse struct {
