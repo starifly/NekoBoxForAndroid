@@ -157,10 +157,46 @@ jobs:
           fi
           APK=$(dirname "$APK")
           echo "APK=$APK" >> $GITHUB_ENV
+      - name: Generate APK checksums
+        env:
+          APK: ${{ env.APK }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          APK_FILES=("$APK"/*.apk)
+          if [ "${#APK_FILES[@]}" -eq 0 ]; then
+            echo "Error: no release APKs found in $APK" >&2
+            exit 1
+          fi
+          (
+            cd "$APK"
+            sha256sum ./*.apk > SHA256SUMS
+          )
       - uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1
         with:
           name: APKs
           path: ${{ env.APK }}
+      - name: Publish arm64 release APK to Namespace workspace store
+        env:
+          APK: ${{ env.APK }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          APK_FILES=("$APK"/*arm64-v8a*.apk)
+          if [ "${#APK_FILES[@]}" -ne 1 ]; then
+            echo "Error: expected one arm64-v8a release APK, found ${#APK_FILES[@]}" >&2
+            exit 1
+          fi
+          APK_FILE="${APK_FILES[0]}"
+          REF="${GITHUB_REF_NAME//\//-}"
+          DEST_DIR="nekobox-release/${REF}/${GITHUB_RUN_ID}"
+          DEST="$DEST_DIR/$(basename "$APK_FILE")"
+          ARM64_SUMS=$(mktemp)
+          (cd "$APK" && sha256sum "./$(basename "$APK_FILE")") > "$ARM64_SUMS"
+          nsc artifact upload "$APK_FILE" "$DEST"
+          nsc artifact upload "$ARM64_SUMS" "$DEST_DIR/SHA256SUMS"
+          echo "Uploaded to Namespace workspace store: $DEST"
+          echo "Uploaded checksums to Namespace workspace store: $DEST_DIR/SHA256SUMS"
   publish:
     name: Publish Release
     if: ${{ inputs.publish == true }}
@@ -178,9 +214,24 @@ jobs:
           path: artifacts
       - name: Release
         run: |
+          set -euo pipefail
           wget -O ghr.tar.gz https://github.com/tcnksm/ghr/releases/download/v0.13.0/ghr_v0.13.0_linux_amd64.tar.gz
           tar -xvf ghr.tar.gz
           mv ghr*linux_amd64/ghr .
+          shopt -s globstar nullglob
+          CHECKSUM_FILES=(artifacts/**/SHA256SUMS)
+          if [ "${#CHECKSUM_FILES[@]}" -ne 1 ]; then
+            echo "Error: expected one SHA256SUMS file, found ${#CHECKSUM_FILES[@]}" >&2
+            exit 1
+          fi
+          CHECKSUM_DIR=$(dirname "${CHECKSUM_FILES[0]}")
+          (cd "$CHECKSUM_DIR" && sha256sum --check SHA256SUMS)
+          APK_FILES=(artifacts/**/*.apk)
+          if [ "${#APK_FILES[@]}" -eq 0 ]; then
+            echo "Error: no release APKs found in artifacts" >&2
+            exit 1
+          fi
           mkdir apks
-          find artifacts -name "*.apk" -exec cp {} apks \;
+          RELEASE_FILES=("${APK_FILES[@]}" "${CHECKSUM_FILES[@]}")
+          cp "${RELEASE_FILES[@]}" apks/
           ./ghr -delete -t "${{ github.token }}" -n "${{ github.event.inputs.tag }}" "${{ github.event.inputs.tag }}" apks
