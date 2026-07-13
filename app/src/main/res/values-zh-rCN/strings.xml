@@ -373,6 +373,9 @@
     <string name="select_apps">选择应用</string>
     <string name="apps_message">%d 个应用</string>
     <string name="hysteria_obfs">混淆密码</string>
+    <string name="hysteria2_ech_summary">高级可选功能。需要服务器提供 ECH 配置列表。配置缺失或过期时连接会失败；启用混淆时通常不需要 ECH。</string>
+    <string name="hysteria2_ech_config_hint">粘贴服务器提供的 base64 配置列表，或完整的 ECH CONFIGS PEM 块。</string>
+    <string name="hysteria2_ech_config_invalid">请先输入有效的 ECH 配置列表，再启用 ECH。</string>
     <string name="hysteria_auth_type">认证类型</string>
     <string name="hysteria_auth_payload">认证密码</string>
     <string name="hysteria_upload_mbps">最大上行 (Mbps)</string>

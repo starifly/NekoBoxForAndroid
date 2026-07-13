@@ -1,7 +1,9 @@
 package io.nekohasekai.sagernet.ui.profile
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.preference.EditTextPreference
+import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import io.nekohasekai.sagernet.Key
@@ -9,7 +11,9 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
+import io.nekohasekai.sagernet.fmt.hysteria.canonicalHysteria2ECHConfig
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
+import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import moe.matsuri.nb4a.ui.SimpleMenuPreference
 
 class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
@@ -25,6 +29,8 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         DataStore.serverHy2ObfsType = hysteria2ObfsType
         DataStore.serverHy2GeckoMinPacket = geckoMinPacketSize
         DataStore.serverHy2GeckoMaxPacket = geckoMaxPacketSize
+        DataStore.serverHy2EchEnabled = enableECH
+        DataStore.serverHy2EchConfig = echConfig
         DataStore.serverAuthType = authPayloadType
         DataStore.serverProtocolInt = protocol
         DataStore.serverPassword = authPayload
@@ -40,6 +46,25 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         DataStore.serverHopInterval = hopInterval
     }
 
+    override suspend fun saveAndExit() {
+        if (DataStore.protocolVersion == 2 && DataStore.serverHy2EchEnabled) {
+            val failure = runCatching {
+                canonicalHysteria2ECHConfig(DataStore.serverHy2EchConfig)
+            }.exceptionOrNull()
+            if (failure != null) {
+                onMainDispatcher {
+                    Toast.makeText(
+                        this@HysteriaSettingsActivity,
+                        failure.message ?: getString(R.string.hysteria2_ech_config_invalid),
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
+                return
+            }
+        }
+        super.saveAndExit()
+    }
+
     override fun HysteriaBean.serialize() {
         name = DataStore.profileName
         protocolVersion = DataStore.protocolVersion
@@ -49,6 +74,8 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
         hysteria2ObfsType = DataStore.serverHy2ObfsType
         geckoMinPacketSize = DataStore.serverHy2GeckoMinPacket
         geckoMaxPacketSize = DataStore.serverHy2GeckoMaxPacket
+        enableECH = DataStore.serverHy2EchEnabled
+        echConfig = DataStore.serverHy2EchConfig
         authPayloadType = DataStore.serverAuthType
         authPayload = DataStore.serverPassword
         protocol = DataStore.serverProtocolInt
@@ -77,6 +104,20 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
 
         val protocol = findPreference<SimpleMenuPreference>(Key.SERVER_PROTOCOL)!!
         val alpn = findPreference<EditTextPreference>(Key.SERVER_ALPN)!!
+
+        val echCategory = findPreference<PreferenceCategory>(Key.SERVER_HY2_ECH_CATEGORY)!!
+        val enableECH = findPreference<SwitchPreference>(Key.SERVER_HY2_ECH_ENABLED)!!
+        val echConfig = findPreference<EditTextPreference>(Key.SERVER_HY2_ECH_CONFIG)!!
+
+        fun updateECH(enabled: Boolean, version: Int) {
+            val isHy2 = version == 2
+            echCategory.isVisible = isHy2
+            echConfig.isVisible = isHy2 && enabled
+        }
+        enableECH.setOnPreferenceChangeListener { _, newValue ->
+            updateECH(newValue as Boolean, DataStore.protocolVersion)
+            true
+        }
 
         // Hysteria2 obfs type selector: controls visibility of the obfs password and the
         // Gecko packet-size fields. Only shown for HY2.
@@ -145,6 +186,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                 authPayload.title = resources.getString(R.string.hysteria_auth_payload)
             }
             updateObfs(DataStore.serverHy2ObfsType, v)
+            updateECH(DataStore.serverHy2EchEnabled, v)
         }
         findPreference<SimpleMenuPreference>(Key.PROTOCOL_VERSION)!!.setOnPreferenceChangeListener { _, newValue ->
             updateVersion(newValue.toString().toIntOrNull() ?: 1)

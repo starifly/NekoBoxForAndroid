@@ -466,6 +466,9 @@
     <string name="hysteria2_obfs_type">Obfuscation Type</string>
     <string name="hysteria2_gecko_min_packet">Gecko Min Packet Size</string>
     <string name="hysteria2_gecko_max_packet">Gecko Max Packet Size</string>
+    <string name="hysteria2_ech_summary">Advanced and optional. Requires the server ECH config list. The connection fails if the config is missing or stale; ECH is usually unnecessary when obfuscation is enabled.</string>
+    <string name="hysteria2_ech_config_hint">Paste the base64 config list from the server, or a complete ECH CONFIGS PEM block.</string>
+    <string name="hysteria2_ech_config_invalid">Enter a valid ECH config list before enabling ECH.</string>
     <string name="action_masterdnsvpn">MasterDnsVPN</string>
     <string name="mdv_domains">Tunnel Domains</string>
     <string name="mdv_encryption_method">Encryption Method</string>

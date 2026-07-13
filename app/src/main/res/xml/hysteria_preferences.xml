@@ -121,4 +121,21 @@
             app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
-</PreferenceScreen> 
+    <PreferenceCategory
+        app:key="serverHy2EchCategory"
+        app:title="@string/ech_settings">
+        <SwitchPreference
+            app:defaultValue="false"
+            app:icon="@drawable/ic_baseline_security_24"
+            app:key="serverHy2EchEnabled"
+            app:summary="@string/hysteria2_ech_summary"
+            app:title="@string/enable_ech" />
+        <EditTextPreference
+            app:dialogMessage="@string/hysteria2_ech_config_hint"
+            app:icon="@drawable/ic_baseline_nfc_24"
+            app:key="serverHy2EchConfig"
+            app:title="@string/ech_config"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

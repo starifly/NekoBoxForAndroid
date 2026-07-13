@@ -1,9 +1,17 @@
 package io.nekohasekai.sagernet.fmt
 
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
+import io.nekohasekai.sagernet.fmt.hysteria.buildSingBoxOutboundHysteriaBean
+import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria2
 import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria2Json
+import io.nekohasekai.sagernet.fmt.hysteria.toUri
+import moe.matsuri.nb4a.SingBoxOptions
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -17,6 +25,21 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], application = android.app.Application::class)
 class HysteriaFmtTest {
+
+    // Structurally valid ECHConfigList using an X25519 public key and example.com public name.
+    private val echConfig = "AEb+DQBCAAAgACAHo3y8FCCTyLdV3BsQ6Gy0JjdK0WqoU+0L38CyuG0cfAAMAAEAAQABAAIAAQADAAtleGFtcGxlLmNvbQAA"
+
+    private fun hysteria2Bean() = HysteriaBean().apply {
+        protocolVersion = 2
+        serverAddress = "example.com"
+        serverPorts = "443"
+        authPayload = "password"
+        sni = "real.example.com"
+        initializeDefaultValues()
+    }
+
+    private fun buildHysteria2(bean: HysteriaBean) =
+        buildSingBoxOutboundHysteriaBean(bean) as SingBoxOptions.Outbound_Hysteria2Options
 
     @Test
     fun parseHysteria2Json_mapsCoreFields() {
@@ -90,5 +113,135 @@ class HysteriaFmtTest {
         ).parseHysteria2Json()
         assertEquals(100, bean.uploadMbps)
         assertEquals(1000, bean.downloadMbps)
+    }
+
+    @Test
+    fun parseHysteria2Json_mapsExplicitEchConfig() {
+        val bean = JSONObject(
+            """{ "server": "h:443", "auth": "a", "tls": { "sni": "real.example.com", "ech": "$echConfig" } }""",
+        ).parseHysteria2Json()
+
+        assertEquals(true, bean.enableECH)
+        assertEquals(echConfig, bean.echConfig)
+    }
+
+    @Test
+    fun parseHysteria2Uri_roundTripsExplicitEchConfig() {
+        // Some producers place standard base64 directly in the query, including an
+        // unescaped '+'. Preserve it rather than applying form-style '+' decoding.
+        val parsed = parseHysteria2(
+            "hy2://password@example.com:443/?sni=real.example.com&ech=$echConfig#ECH",
+        ).apply { initializeDefaultValues() }
+
+        assertEquals(true, parsed.enableECH)
+        assertEquals(echConfig, parsed.echConfig)
+
+        val exported = parsed.toUri()
+        assertTrue(exported.contains("%2B"))
+        val reparsed = parseHysteria2(exported).apply { initializeDefaultValues() }
+        assertEquals(true, reparsed.enableECH)
+        assertEquals(echConfig, reparsed.echConfig)
+        assertEquals("real.example.com", reparsed.sni)
+    }
+
+    @Test
+    fun disabledEch_isOmittedFromUriAndOutbound() {
+        val bean = hysteria2Bean().apply {
+            enableECH = false
+            echConfig = this@HysteriaFmtTest.echConfig
+        }
+
+        assertFalse(bean.toUri().contains("ech="))
+        assertNull(buildHysteria2(bean).tls.ech)
+    }
+
+    @Test
+    fun enabledEch_wrapsRawBase64ForSingBox() {
+        val bean = hysteria2Bean().apply {
+            enableECH = true
+            echConfig = this@HysteriaFmtTest.echConfig
+        }
+
+        val ech = buildHysteria2(bean).tls.ech
+        assertEquals(true, ech.enabled)
+        assertEquals(
+            listOf(
+                "-----BEGIN ECH CONFIGS-----",
+                echConfig,
+                "-----END ECH CONFIGS-----",
+            ),
+            ech.config,
+        )
+    }
+
+    @Test
+    fun enabledEch_acceptsAndCanonicalizesPem() {
+        val wrappedConfig = echConfig.chunked(32).joinToString("\n")
+        val bean = hysteria2Bean().apply {
+            enableECH = true
+            echConfig = """
+                -----BEGIN ECH CONFIGS-----
+                $wrappedConfig
+                -----END ECH CONFIGS-----
+            """.trimIndent()
+        }
+
+        val ech = buildHysteria2(bean).tls.ech
+        assertEquals(
+            listOf(
+                "-----BEGIN ECH CONFIGS-----",
+                echConfig,
+                "-----END ECH CONFIGS-----",
+            ),
+            ech.config,
+        )
+    }
+
+    @Test
+    fun enabledEch_requiresExplicitValidConfig() {
+        val missing = hysteria2Bean().apply {
+            enableECH = true
+            echConfig = ""
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            buildSingBoxOutboundHysteriaBean(missing)
+        }
+
+        val missingFromUninitializedJavaBean = hysteria2Bean().apply {
+            enableECH = true
+            echConfig = null
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            buildSingBoxOutboundHysteriaBean(missingFromUninitializedJavaBean)
+        }
+
+        val malformedStructure = hysteria2Bean().apply {
+            enableECH = true
+            echConfig = "AQIDBA=="
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            buildSingBoxOutboundHysteriaBean(malformedStructure)
+        }
+
+        val malformedBase64 = hysteria2Bean().apply {
+            enableECH = true
+            echConfig = "not base64!"
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            buildSingBoxOutboundHysteriaBean(malformedBase64)
+        }
+    }
+
+    @Test
+    fun hysteria1_ignoresEchFields() {
+        val bean = hysteria2Bean().apply {
+            protocolVersion = 1
+            authPayloadType = HysteriaBean.TYPE_STRING
+            enableECH = true
+            echConfig = this@HysteriaFmtTest.echConfig
+        }
+
+        val outbound = buildSingBoxOutboundHysteriaBean(bean) as SingBoxOptions.Outbound_HysteriaOptions
+        assertNull(outbound.tls.ech)
     }
 }

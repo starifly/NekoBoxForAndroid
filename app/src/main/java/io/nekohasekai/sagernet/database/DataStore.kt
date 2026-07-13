@@ -322,6 +322,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverHy2ObfsType by profileCacheStore.stringToInt(Key.SERVER_HY2_OBFS_TYPE)
     var serverHy2GeckoMinPacket by profileCacheStore.stringToInt(Key.SERVER_HY2_GECKO_MIN_PACKET) { 512 }
     var serverHy2GeckoMaxPacket by profileCacheStore.stringToInt(Key.SERVER_HY2_GECKO_MAX_PACKET) { 1200 }
+    var serverHy2EchEnabled by profileCacheStore.boolean(Key.SERVER_HY2_ECH_ENABLED)
+    var serverHy2EchConfig by profileCacheStore.string(Key.SERVER_HY2_ECH_CONFIG)
 
     // MasterDnsVPN
     var mdvDomains by profileCacheStore.string(Key.MDV_DOMAINS)

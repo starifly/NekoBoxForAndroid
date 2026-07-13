@@ -144,6 +144,9 @@ object Key {
     const val SERVER_HY2_OBFS_TYPE = "serverHy2ObfsType"
     const val SERVER_HY2_GECKO_MIN_PACKET = "serverHy2GeckoMinPacket"
     const val SERVER_HY2_GECKO_MAX_PACKET = "serverHy2GeckoMaxPacket"
+    const val SERVER_HY2_ECH_CATEGORY = "serverHy2EchCategory"
+    const val SERVER_HY2_ECH_ENABLED = "serverHy2EchEnabled"
+    const val SERVER_HY2_ECH_CONFIG = "serverHy2EchConfig"
 
     // MasterDnsVPN
     const val MDV_DOMAINS = "mdvDomains"

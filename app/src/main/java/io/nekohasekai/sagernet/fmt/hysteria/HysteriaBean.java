@@ -55,6 +55,10 @@ public class HysteriaBean extends AbstractBean {
     public Integer geckoMinPacketSize;
     public Integer geckoMaxPacketSize;
 
+    // Hysteria 2 ECH is explicit and fail-closed. Existing profiles keep it disabled.
+    public Boolean enableECH;
+    public String echConfig;
+
     @Override
     public boolean canMapping() {
         return protocol != PROTOCOL_FAKETCP;
@@ -75,6 +79,8 @@ public class HysteriaBean extends AbstractBean {
         }
         if (geckoMinPacketSize == null) geckoMinPacketSize = 512;
         if (geckoMaxPacketSize == null) geckoMaxPacketSize = 1200;
+        if (enableECH == null) enableECH = false;
+        if (echConfig == null) echConfig = "";
         if (sni == null) sni = "";
         if (alpn == null) alpn = "";
         if (caText == null) caText = "";
@@ -97,7 +103,7 @@ public class HysteriaBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(8);
+        output.writeInt(9);
         super.serialize(output);
 
         output.writeInt(protocolVersion);
@@ -123,6 +129,9 @@ public class HysteriaBean extends AbstractBean {
         output.writeInt(hysteria2ObfsType);
         output.writeInt(geckoMinPacketSize);
         output.writeInt(geckoMaxPacketSize);
+
+        output.writeBoolean(Boolean.TRUE.equals(enableECH));
+        output.writeString(echConfig);
     }
 
     @Override
@@ -171,6 +180,13 @@ public class HysteriaBean extends AbstractBean {
             hysteria2ObfsType = input.readInt();
             geckoMinPacketSize = input.readInt();
             geckoMaxPacketSize = input.readInt();
+        }
+        if (version >= 9) {
+            enableECH = input.readBoolean();
+            echConfig = input.readString();
+        } else {
+            enableECH = false;
+            echConfig = "";
         }
         // For version < 8, hysteria2ObfsType/gecko* stay null and are derived in
         // initializeDefaultValues() (Salamander when an obfuscation password exists).

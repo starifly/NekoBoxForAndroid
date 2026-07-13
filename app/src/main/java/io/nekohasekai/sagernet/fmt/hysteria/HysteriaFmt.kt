@@ -5,9 +5,146 @@ import io.nekohasekai.sagernet.fmt.LOCALHOST
 import io.nekohasekai.sagernet.ktx.*
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
+import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.json.JSONObject
 import java.io.File
+import java.net.URLDecoder
+import java.nio.ByteBuffer
+import java.util.Base64
+
+private const val ECH_CONFIGS_BEGIN = "-----BEGIN ECH CONFIGS-----"
+private const val ECH_CONFIGS_END = "-----END ECH CONFIGS-----"
+private const val ECH_CONFIG_VERSION = 0xFE0D
+private const val MAX_ECH_CONFIG_BASE64_LENGTH = 87_384
+
+/**
+ * Normalize a Hysteria 2 ECH config list to canonical standard base64.
+ *
+ * Hysteria shares the public config as raw base64, while sing-box requires an
+ * ECH CONFIGS PEM block. Manual profiles may paste either representation.
+ */
+internal fun canonicalHysteria2ECHConfig(config: String?): String {
+    val trimmed = requireNotNull(config) {
+        "Hysteria 2 ECH config is required when ECH is enabled"
+    }.trim()
+    require(trimmed.isNotEmpty()) { "Hysteria 2 ECH config is required when ECH is enabled" }
+
+    val payload = if (trimmed.startsWith(ECH_CONFIGS_BEGIN)) {
+        require(trimmed.endsWith(ECH_CONFIGS_END)) {
+            "Invalid Hysteria 2 ECH config: incomplete ECH CONFIGS PEM block"
+        }
+        trimmed.removePrefix(ECH_CONFIGS_BEGIN).removeSuffix(ECH_CONFIGS_END)
+    } else {
+        require(!trimmed.contains("-----BEGIN") && !trimmed.contains("-----END")) {
+            "Invalid Hysteria 2 ECH config: expected base64 or an ECH CONFIGS PEM block"
+        }
+        trimmed
+    }
+
+    val compact = payload.filterNot { it.isWhitespace() }
+    require(compact.length <= MAX_ECH_CONFIG_BASE64_LENGTH) {
+        "Invalid Hysteria 2 ECH config: config list is too large"
+    }
+    val decoded = try {
+        Base64.getDecoder().decode(compact)
+    } catch (e: IllegalArgumentException) {
+        throw IllegalArgumentException("Invalid Hysteria 2 ECH config: expected standard base64", e)
+    }
+    validateHysteria2ECHConfigList(decoded)
+    return Base64.getEncoder().encodeToString(decoded)
+}
+
+private fun validateHysteria2ECHConfigList(raw: ByteArray) {
+    val encodedList = ByteBuffer.wrap(raw)
+    val configList = encodedList.readUint16LengthPrefixed("ECHConfigList")
+    require(!encodedList.hasRemaining()) {
+        "Invalid Hysteria 2 ECH config: trailing data after ECHConfigList"
+    }
+    require(configList.hasRemaining()) { "Invalid Hysteria 2 ECH config: config list is empty" }
+
+    var hasSupportedConfig = false
+    while (configList.hasRemaining()) {
+        val version = configList.readUint16("ECHConfig version")
+        val config = configList.readUint16LengthPrefixed("ECHConfig")
+        if (version == ECH_CONFIG_VERSION) {
+            validateSupportedECHConfig(config)
+            hasSupportedConfig = true
+        }
+    }
+    require(hasSupportedConfig) {
+        "Invalid Hysteria 2 ECH config: no supported ECHConfig entry"
+    }
+}
+
+private fun validateSupportedECHConfig(config: ByteBuffer) {
+    config.readUint8("config_id")
+    config.readUint16("kem_id")
+
+    val publicKey = config.readUint16LengthPrefixed("public_key")
+    require(publicKey.hasRemaining()) { "Invalid Hysteria 2 ECH config: public key is empty" }
+
+    val cipherSuites = config.readUint16LengthPrefixed("cipher_suites")
+    require(cipherSuites.hasRemaining() && cipherSuites.remaining() % 4 == 0) {
+        "Invalid Hysteria 2 ECH config: malformed cipher suites"
+    }
+    while (cipherSuites.hasRemaining()) {
+        cipherSuites.readUint16("kdf_id")
+        cipherSuites.readUint16("aead_id")
+    }
+
+    config.readUint8("maximum_name_length")
+    val publicNameLength = config.readUint8("public_name length")
+    require(publicNameLength > 0) { "Invalid Hysteria 2 ECH config: public name is empty" }
+    config.readBytes(publicNameLength, "public_name")
+
+    val extensions = config.readUint16LengthPrefixed("extensions")
+    while (extensions.hasRemaining()) {
+        extensions.readUint16("extension type")
+        extensions.readUint16LengthPrefixed("extension data")
+    }
+    require(!config.hasRemaining()) {
+        "Invalid Hysteria 2 ECH config: trailing data in ECHConfig"
+    }
+}
+
+private fun ByteBuffer.readUint8(field: String): Int {
+    require(remaining() >= 1) { "Invalid Hysteria 2 ECH config: truncated $field" }
+    return get().toInt() and 0xFF
+}
+
+private fun ByteBuffer.readUint16(field: String): Int {
+    require(remaining() >= 2) { "Invalid Hysteria 2 ECH config: truncated $field" }
+    return short.toInt() and 0xFFFF
+}
+
+private fun ByteBuffer.readUint16LengthPrefixed(field: String): ByteBuffer {
+    val length = readUint16("$field length")
+    return readBytes(length, field)
+}
+
+private fun ByteBuffer.readBytes(length: Int, field: String): ByteBuffer {
+    require(length <= remaining()) { "Invalid Hysteria 2 ECH config: truncated $field" }
+    val value = slice().apply { limit(length) }
+    position(position() + length)
+    return value
+}
+
+private fun singBoxHysteria2ECHConfig(config: String?) = listOf(
+    ECH_CONFIGS_BEGIN,
+    canonicalHysteria2ECHConfig(config),
+    ECH_CONFIGS_END,
+)
+
+/** Decode an encoded query value without treating an unescaped base64 '+' as a space. */
+private fun HttpUrl.queryParameterPreservingPlus(name: String): String? {
+    val pair = encodedQuery
+        ?.split('&')
+        ?.firstOrNull { it.substringBefore('=') == name }
+        ?: return null
+    val encodedValue = pair.substringAfter('=', "")
+    return URLDecoder.decode(encodedValue.replace("+", "%2B"), Charsets.UTF_8.name())
+}
 
 // hysteria://host:port?auth=123456&peer=sni.domain&insecure=1|0&upmbps=100&downmbps=100&alpn=hysteria&obfs=xplus&obfsParam=123456#remarks
 fun parseHysteria1(url: String): HysteriaBean {
@@ -84,6 +221,10 @@ fun parseHysteria2(url: String): HysteriaBean {
         }
         link.queryParameter("insecure")?.also {
             allowInsecure = it == "1" || it == "true"
+        }
+        link.queryParameterPreservingPlus("ech")?.also {
+            echConfig = canonicalHysteria2ECHConfig(it)
+            enableECH = true
         }
 //        link.queryParameter("upmbps")?.also {
 //            uploadMbps = it.toIntOrNull() ?: uploadMbps
@@ -169,6 +310,9 @@ fun HysteriaBean.toUri(): String {
         if (sni.isNotBlank()) {
             builder.addQueryParameter("sni", sni)
         }
+        if (enableECH == true) {
+            builder.addQueryParameter("ech", canonicalHysteria2ECHConfig(echConfig))
+        }
         if (obfuscation.isNotBlank() && hysteria2ObfsType != HysteriaBean.OBFS_NONE) {
             when (hysteria2ObfsType) {
                 HysteriaBean.OBFS_GECKO -> {
@@ -232,7 +376,7 @@ fun JSONObject.parseHysteria1Json(): HysteriaBean {
  * Mirrors the official HY2 client config schema and the parseHysteria2(url) field mapping:
  *   server: "host:port"            -> serverAddress / serverPorts
  *   auth: "<string>"               -> authPayload (string type)
- *   tls: { sni, insecure }         -> sni / allowInsecure
+ *   tls: { sni, insecure, ech }    -> sni / allowInsecure / explicit ECH config
  *   obfs: { type, salamander|gecko: { password, minPacketSize, maxPacketSize } } -> obfs fields
  *   bandwidth: { up, down }        -> uploadMbps / downloadMbps (Mbps ints when numeric)
  */
@@ -256,10 +400,14 @@ fun JSONObject.parseHysteria2Json(): HysteriaBean {
             authPayloadType = HysteriaBean.TYPE_STRING
             authPayload = it
         }
-        // tls block (sni / insecure).
+        // tls block (sni / insecure / Hysteria 2.10 ECH config list).
         optJSONObject("tls")?.also { tls ->
             tls.getStr("sni")?.also { sni = it }
             tls.getBool("insecure")?.also { allowInsecure = it }
+            tls.getStr("ech")?.also {
+                echConfig = canonicalHysteria2ECHConfig(it)
+                enableECH = true
+            }
         }
         // obfs block: { type: "salamander"|"gecko", salamander: { password }, gecko: {...} }.
         optJSONObject("obfs")?.also { obfs ->
@@ -473,6 +621,12 @@ fun buildSingBoxOutboundHysteriaBean(bean: HysteriaBean): SingBoxOptions.SingBox
                 alpn = listOf("h3")
                 if (bean.caText.isNotBlank()) {
                     certificate = bean.caText
+                }
+                if (bean.enableECH == true) {
+                    ech = SingBoxOptions.OutboundECHOptions().apply {
+                        enabled = true
+                        config = singBoxHysteria2ECHConfig(bean.echConfig)
+                    }
                 }
                 insecure = bean.allowInsecure || DataStore.globalAllowInsecure
                 enabled = true

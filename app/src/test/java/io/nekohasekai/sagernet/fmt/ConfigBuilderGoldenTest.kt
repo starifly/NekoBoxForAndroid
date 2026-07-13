@@ -184,7 +184,39 @@ class ConfigBuilderGoldenTest {
         assertEquals("192.0.2.30", outbound.getString("server"))
         assertEquals(8443, outbound.getInt("server_port"))
         assertEquals("charlie", outbound.getString("password"))
+        assertFalse(outbound.getJSONObject("tls").has("ech"))
         assertResultMaps(result, profile)
+    }
+
+    @Test
+    fun hysteria2Ech_emitsExplicitStaticConfig() {
+        val profile = addProfile(
+            addGroup(),
+            HysteriaBean().apply {
+                protocolVersion = 2
+                serverAddress = "192.0.2.31"
+                serverPorts = "443"
+                authPayload = "delta"
+                sni = "real.example.com"
+                enableECH = true
+                echConfig = "AEb+DQBCAAAgACAHo3y8FCCTyLdV3BsQ6Gy0JjdK0WqoU+0L38CyuG0cfAAMAAEAAQABAAIAAQADAAtleGFtcGxlLmNvbQAA"
+                name = "golden-hy2-ech"
+                initializeDefaultValues()
+            },
+        )
+
+        val outbound = outbound(JSONObject(build(profile, forTest = true).config), "hysteria2")
+        val ech = outbound.getJSONObject("tls").getJSONObject("ech")
+
+        assertTrue(ech.getBoolean("enabled"))
+        assertEquals(
+            listOf(
+                "-----BEGIN ECH CONFIGS-----",
+                "AEb+DQBCAAAgACAHo3y8FCCTyLdV3BsQ6Gy0JjdK0WqoU+0L38CyuG0cfAAMAAEAAQABAAIAAQADAAtleGFtcGxlLmNvbQAA",
+                "-----END ECH CONFIGS-----",
+            ),
+            strings(ech.getJSONArray("config")),
+        )
     }
 
     @Test
