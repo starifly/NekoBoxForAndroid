@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.bg.proto
 
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.ServiceNotification
+import io.nekohasekai.sagernet.bg.runRequiredCompletion
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.ktx.Logs
 import kotlinx.coroutines.Dispatchers
@@ -51,14 +52,21 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
         looper?.start()
     }
 
-    override fun close() {
+    suspend fun closeAndPersist() = runRequiredCompletion(
+        after = {
+            try {
+                looper?.stop()
+            } finally {
+                looper = null
+            }
+        },
+    ) {
         super.close()
-        // Teardown is called on the main thread; the final traffic flush in looper.stop() does
-        // synchronous DAO writes, so run the blocking body on a background dispatcher to keep it
-        // off the UI thread (Plan 027 — main-thread-DB allowance removed).
-        runBlocking(Dispatchers.Default) {
-            looper?.stop()
-            looper = null
-        }
+    }
+
+    // Synchronous compatibility path for Closeable callers. Service teardown uses
+    // closeAndPersist() through runServiceTeardown instead of blocking its caller.
+    override fun close() = runBlocking(Dispatchers.Default) {
+        closeAndPersist()
     }
 }

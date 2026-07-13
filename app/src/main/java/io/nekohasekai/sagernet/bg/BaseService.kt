@@ -312,14 +312,17 @@ class BaseService {
             }
         }
 
-        fun killProcesses() {
-            data.proxy?.close()
-            wakeLock?.apply {
-                release()
-                wakeLock = null
-            }
-            runOnDefaultDispatcher {
-                DefaultNetworkListener.stop(this@Interface)
+        suspend fun killProcesses() {
+            runServiceTeardown(
+                after = {
+                    wakeLock?.apply {
+                        release()
+                        wakeLock = null
+                    }
+                    DefaultNetworkListener.stop(this@Interface)
+                },
+            ) {
+                data.proxy?.closeAndPersist()
             }
         }
 

@@ -51,10 +51,11 @@ class VpnService :
     }
 
     @Suppress("EXPERIMENTAL_API_USAGE")
-    override fun killProcesses() {
-        conn?.close()
-        conn = null
-        super.killProcesses()
+    override suspend fun killProcesses() {
+        runServiceTeardown(after = { super.killProcesses() }) {
+            conn?.close()
+            conn = null
+        }
     }
 
     override fun onBind(intent: Intent) = when (intent.action) {
