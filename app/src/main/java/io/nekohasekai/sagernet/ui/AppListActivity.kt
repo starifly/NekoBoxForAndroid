@@ -11,8 +11,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Filter
-import android.widget.Filterable
 import androidx.annotation.UiThread
 import androidx.core.util.contains
 import androidx.core.util.set
@@ -36,7 +34,9 @@ import io.nekohasekai.sagernet.utils.PackageCache
 import io.nekohasekai.sagernet.widget.ListListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.zhanghai.android.fastscroll.FastScrollerBuilder
@@ -56,12 +56,12 @@ class AppListActivity : ThemedActivity() {
     private class ProxiedApp(
         private val pm: PackageManager,
         private val appInfo: ApplicationInfo,
-        val packageName: String,
-    ) {
-        val name: CharSequence = appInfo.loadLabel(pm) // cached for sorting
+        override val packageName: String,
+    ) : AppFilterEntry {
+        override val name: CharSequence = appInfo.loadLabel(pm) // cached for sorting
         val icon: Drawable get() = appInfo.loadIcon(pm)
-        val uid get() = appInfo.uid
-        val sys get() = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+        override val uid get() = appInfo.uid
+        override val sys get() = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
     }
 
     private inner class AppViewHolder(val binding: LayoutAppsItemBinding) :
@@ -100,7 +100,6 @@ class AppListActivity : ThemedActivity() {
 
     private inner class AppsAdapter :
         RecyclerView.Adapter<AppViewHolder>(),
-        Filterable,
         PopupTextProvider {
         var filteredApps = apps
 
@@ -129,31 +128,17 @@ class AppListActivity : ThemedActivity() {
 
         override fun getItemCount(): Int = filteredApps.size
 
-        private val filterImpl = object : Filter() {
-            override fun performFiltering(constraint: CharSequence) = FilterResults().apply {
-                var filteredApps = if (constraint.isEmpty()) {
-                    apps
-                } else {
-                    apps.filter {
-                        it.name.contains(constraint, true) || it.packageName.contains(
-                            constraint,
-                            true,
-                        ) || it.uid.toString().contains(constraint)
-                    }
-                }
-                if (!sysApps) filteredApps = filteredApps.filter { !it.sys }
-                count = filteredApps.size
-                values = filteredApps
-            }
+        fun computeFiltered(constraint: CharSequence) = filterApps(
+            apps = apps,
+            query = constraint,
+            includeSystem = sysApps,
+        )
 
-            override fun publishResults(constraint: CharSequence, results: FilterResults) {
-                @Suppress("UNCHECKED_CAST")
-                filteredApps = results.values as List<ProxiedApp>
-                notifyDataSetChanged()
-            }
+        fun publishFiltered(result: List<ProxiedApp>) {
+            filteredApps = result
+            @Suppress("NotifyDataSetChanged")
+            notifyDataSetChanged()
         }
-
-        override fun getFilter(): Filter = filterImpl
 
         override fun getPopupText(view: View, position: Int): CharSequence {
             return filteredApps[position].name.firstOrNull()?.toString() ?: ""
@@ -165,8 +150,21 @@ class AppListActivity : ThemedActivity() {
     private lateinit var binding: LayoutAppListBinding
     private val proxiedUids = SparseBooleanArray()
     private var loader: Job? = null
+    private var filterJob: Job? = null
+
+    @Volatile
     private var apps = emptyList<ProxiedApp>()
     private val appsAdapter = AppsAdapter()
+
+    @UiThread
+    private fun applyFilter(constraint: String = binding.search.text?.toString() ?: "", debounceMs: Long = 0) {
+        filterJob?.cancel()
+        filterJob = lifecycleScope.launch {
+            if (debounceMs > 0) delay(debounceMs)
+            val result = withContext(Dispatchers.Default) { appsAdapter.computeFiltered(constraint) }
+            if (isActive) appsAdapter.publishFiltered(result)
+        }
+    }
 
     private fun initProxiedUids(str: String = DataStore.routePackages) {
         proxiedUids.clear()
@@ -187,7 +185,7 @@ class AppListActivity : ThemedActivity() {
             loading.crossFadeFrom(binding.list)
             val adapter = binding.list.adapter as AppsAdapter
             withContext(Dispatchers.IO) { adapter.reload() }
-            adapter.filter.filter(binding.search.text?.toString() ?: "")
+            applyFilter()
             if (apps.isEmpty()) {
                 binding.list.visibility = View.GONE
                 binding.appPlaceholder.root.crossFadeFrom(loading)
@@ -227,18 +225,19 @@ class AppListActivity : ThemedActivity() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.root, ListListener)
 
         binding.search.addTextChangedListener {
-            appsAdapter.filter.filter(it?.toString() ?: "")
+            applyFilter(it?.toString() ?: "", debounceMs = 250)
         }
 
         binding.showSystemApps.isChecked = sysApps
         binding.showSystemApps.setOnCheckedChangeListener { _, isChecked ->
             sysApps = isChecked
-            appsAdapter.filter.filter(binding.search.text?.toString() ?: "")
+            applyFilter()
         }
 
         loadApps()
     }
 
+    @Volatile
     private var sysApps = false
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -261,7 +260,7 @@ class AppListActivity : ThemedActivity() {
                         .joinToString("\n") { it.packageName }
                     apps = apps.sortedWith(compareBy({ !isProxiedApp(it) }, { it.name.toString() }))
                     onMainDispatcher {
-                        appsAdapter.filter.filter(binding.search.text?.toString() ?: "")
+                        applyFilter()
                     }
                 }
 
@@ -274,7 +273,7 @@ class AppListActivity : ThemedActivity() {
                     DataStore.routePackages = ""
                     apps = apps.sortedWith(compareBy({ !isProxiedApp(it) }, { it.name.toString() }))
                     onMainDispatcher {
-                        appsAdapter.filter.filter(binding.search.text?.toString() ?: "")
+                        applyFilter()
                     }
                 }
             }
@@ -330,6 +329,7 @@ class AppListActivity : ThemedActivity() {
 
     override fun onDestroy() {
         loader?.cancel()
+        filterJob?.cancel()
         super.onDestroy()
     }
 }

@@ -63,12 +63,12 @@ class AppManagerActivity : ThemedActivity() {
     private class ProxiedApp(
         private val pm: PackageManager,
         private val appInfo: ApplicationInfo,
-        val packageName: String,
-    ) {
-        val name: CharSequence = appInfo.loadLabel(pm) // cached for sorting
+        override val packageName: String,
+    ) : AppFilterEntry {
+        override val name: CharSequence = appInfo.loadLabel(pm) // cached for sorting
         val icon: Drawable get() = appInfo.loadIcon(pm)
-        val uid get() = appInfo.uid
-        val sys get() = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+        override val uid get() = appInfo.uid
+        override val sys get() = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
     }
 
     private inner class AppViewHolder(val binding: LayoutAppsItemBinding) :
@@ -137,20 +137,11 @@ class AppManagerActivity : ThemedActivity() {
         // filter() call (OutOfMemoryError: pthread_create failed, issue #1086).
         // Computes the filtered list off the main thread and publishes on main;
         // callers cancel the previous job via applyFilter() below.
-        fun computeFiltered(constraint: CharSequence): List<ProxiedApp> {
-            var result = if (constraint.isEmpty()) {
-                apps
-            } else {
-                apps.filter {
-                    it.name.contains(constraint, true) || it.packageName.contains(
-                        constraint,
-                        true,
-                    ) || it.uid.toString().contains(constraint)
-                }
-            }
-            if (!sysApps) result = result.filter { !it.sys }
-            return result
-        }
+        fun computeFiltered(constraint: CharSequence) = filterApps(
+            apps = apps,
+            query = constraint,
+            includeSystem = sysApps,
+        )
 
         fun publishFiltered(result: List<ProxiedApp>) {
             filteredApps = result
