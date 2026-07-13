@@ -1,8 +1,15 @@
 import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
+import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.getByName
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
@@ -228,6 +235,20 @@ fun Project.setupApp() {
     // The preview flavor uses PRE_VERSION_NAME to match the previous behaviour.
     val previewVersionName = requireMetadata().getProperty("PRE_VERSION_NAME")
     androidComponents.onVariants { variant ->
+        val shortcutResourcesTask = tasks.register<GenerateShortcutResourcesTask>(
+            "generate${variant.name.replaceFirstChar { it.uppercase() }}ShortcutResources",
+        ) {
+            val effectivePackageName = if (variant.buildType == "debug") "$pkgName.debug" else pkgName
+            targetPackage.set(effectivePackageName)
+            outputDirectory.set(
+                layout.buildDirectory.dir("generated/shortcutResources/${variant.name}"),
+            )
+        }
+        variant.sources.res?.addGeneratedSourceDirectory(
+            shortcutResourcesTask,
+            GenerateShortcutResourcesTask::outputDirectory,
+        )
+
         val isPreview = variant.flavorName == "preview" ||
             variant.productFlavors.any { (_, flavor) -> flavor == "preview" }
         val version = if (isPreview) previewVersionName else verName
@@ -241,5 +262,27 @@ fun Project.setupApp() {
         variant.artifacts.use(renameTask)
             .wiredWith { it.input }
             .toListenTo(SingleArtifact.APK)
+    }
+}
+
+@CacheableTask
+abstract class GenerateShortcutResourcesTask : DefaultTask() {
+    @get:Input
+    abstract val targetPackage: Property<String>
+
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
+
+    @TaskAction
+    fun generate() {
+        val xmlDirectory = outputDirectory.dir("xml").get().asFile.apply { mkdirs() }
+        xmlDirectory.resolve("shortcuts.xml").writeText(renderShortcuts(targetPackage.get()))
+    }
+
+    private fun renderShortcuts(packageName: String): String {
+        val template = checkNotNull(javaClass.getResourceAsStream("/shortcuts-template.xml")) {
+            "shortcuts-template.xml resource not found"
+        }.bufferedReader().use { it.readText() }
+        return template.replace("{{TARGET_PACKAGE}}", packageName)
     }
 }
