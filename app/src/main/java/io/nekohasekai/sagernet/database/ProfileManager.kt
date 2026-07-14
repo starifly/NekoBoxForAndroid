@@ -16,7 +16,7 @@ object ProfileManager {
 
     interface Listener {
         suspend fun onAdd(profile: ProxyEntity)
-        suspend fun onUpdated(data: TrafficData)
+        suspend fun onUpdated(data: List<TrafficData>)
         suspend fun onUpdated(profile: ProxyEntity, noTraffic: Boolean)
         suspend fun onRemoved(groupId: Long, profileId: Long)
     }
@@ -101,6 +101,12 @@ object ProfileManager {
         SagerDatabase.proxyDao.updateTraffic(profileId, rx, tx)
     }
 
+    suspend fun resetTraffic(profileIds: LongArray) {
+        if (profileIds.isNotEmpty()) {
+            SagerDatabase.proxyDao.resetTraffic(profileIds)
+        }
+    }
+
     suspend fun deleteProfile2(groupId: Long, profileId: Long) {
         if (SagerDatabase.proxyDao.deleteById(profileId) == 0) return
         if (DataStore.selectedProxy == profileId) {
@@ -153,7 +159,8 @@ object ProfileManager {
         iterator { onUpdated(profile, noTraffic) }
     }
 
-    suspend fun postUpdate(data: TrafficData) {
+    suspend fun postUpdate(data: List<TrafficData>) {
+        if (data.isEmpty()) return
         iterator { onUpdated(data) }
     }
 

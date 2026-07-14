@@ -566,6 +566,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
 
             R.id.action_clear_traffic_statistics -> {
+                val trafficService = (activity as? MainActivity)?.connection?.service
                 runOnDefaultDispatcher {
                     val profiles = SagerDatabase.proxyDao.getByGroup(DataStore.currentGroupId())
                     val toClear = mutableListOf<ProxyEntity>()
@@ -578,6 +579,11 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
                     if (toClear.isNotEmpty()) {
                         ProfileManager.updateProfile(toClear)
+                    }
+                    try {
+                        trafficService?.resetTraffic(profiles.map { it.id }.toLongArray())
+                    } catch (e: Exception) {
+                        Logs.w(e)
                     }
                     onMainDispatcher {
                         getCurrentGroupFragment()?.adapter?.clearTrafficStatistics()
@@ -1173,7 +1179,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
         }
 
-        override suspend fun onUpdated(data: TrafficData) = Unit
+        override suspend fun onUpdated(data: List<TrafficData>) = Unit
 
         override suspend fun onUpdated(profile: ProxyEntity, noTraffic: Boolean) = Unit
 
@@ -1766,34 +1772,34 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
             }
 
-            override suspend fun onUpdated(data: TrafficData) {
+            override suspend fun onUpdated(data: List<TrafficData>) {
                 try {
                     onMainDispatcher {
-                        val cached = configurationList[data.id] ?: return@onMainDispatcher
-                        if (cached.tx == data.tx && cached.rx == data.rx) {
-                            return@onMainDispatcher
-                        }
+                        for (update in data) {
+                            val cached = configurationList[update.id] ?: continue
+                            if (cached.tx == update.tx && cached.rx == update.rx) continue
 
-                        val previouslyShowedTraffic = cached.tx + cached.rx != 0L
+                            val previouslyShowedTraffic = cached.tx + cached.rx != 0L
 
-                        cached.tx = data.tx
-                        cached.rx = data.rx
-                        val holder = configurationListView.findViewHolderForItemId(data.id)
-                            as? ConfigurationHolder ?: return@onMainDispatcher
-                        val index = holder.bindingAdapterPosition
-                        val previous = holder.lastSelfHasMiddleRow
-                        val showTraffic = cached.tx + cached.rx != 0L
+                            cached.tx = update.tx
+                            cached.rx = update.rx
+                            val holder = configurationListView.findViewHolderForItemId(update.id)
+                                as? ConfigurationHolder ?: continue
+                            val index = holder.bindingAdapterPosition
+                            val previous = holder.lastSelfHasMiddleRow
+                            val showTraffic = cached.tx + cached.rx != 0L
 
-                        if (previous == null || previouslyShowedTraffic != showTraffic) {
-                            holder.bind(cached)
-                        } else if (showTraffic) {
-                            holder.bindTraffic(cached)
-                        }
+                            if (previous == null || previouslyShowedTraffic != showTraffic) {
+                                holder.bind(cached)
+                            } else if (showTraffic) {
+                                holder.bindTraffic(cached)
+                            }
 
-                        if (index != RecyclerView.NO_POSITION && previous != null &&
-                            previous != holder.lastSelfHasMiddleRow
-                        ) {
-                            refreshSameRowNeighbours(index)
+                            if (index != RecyclerView.NO_POSITION && previous != null &&
+                                previous != holder.lastSelfHasMiddleRow
+                            ) {
+                                refreshSameRowNeighbours(index)
+                            }
                         }
                     }
                 } catch (e: Exception) {

@@ -16,6 +16,7 @@ class TrafficUpdater(
         var rxRate: Long = 0,
         var lastUpdate: Long = 0,
         var ignore: Boolean = false,
+        var hasTrafficDelta: Boolean = false,
     )
 
     private fun updateOne(item: TrafficLooperData): TrafficLooperData {
@@ -23,9 +24,10 @@ class TrafficUpdater(
         val now = System.currentTimeMillis()
         val interval = now - item.lastUpdate
         item.lastUpdate = now
-        if (interval <= 0) return item.apply {
-            rxRate = 0
-            txRate = 0
+        if (interval <= 0) {
+            item.rxRate = 0
+            item.txRate = 0
+            return TrafficLooperData(tag = item.tag)
         }
 
         // query
@@ -48,20 +50,23 @@ class TrafficUpdater(
         )
     }
 
-    suspend fun updateAll() {
+    fun updateAll() {
         val updated = mutableMapOf<String, TrafficLooperData>() // diffs
         items.forEach { item ->
+            item.hasTrafficDelta = false
             if (item.ignore) return@forEach
-            var diff = updated[item.tag]
+            val diff = updated[item.tag]
             // query a tag only once
             if (diff == null) {
-                diff = updateOne(item)
-                updated[item.tag] = diff
+                val newDiff = updateOne(item)
+                updated[item.tag] = newDiff
+                item.hasTrafficDelta = newDiff.rx != 0L || newDiff.tx != 0L
             } else {
                 item.rx += diff.rx
                 item.tx += diff.tx
                 item.rxRate = diff.rxRate
                 item.txRate = diff.txRate
+                item.hasTrafficDelta = diff.rx != 0L || diff.tx != 0L
             }
         }
 //        Logs.d(JavaUtil.gson.toJson(items))

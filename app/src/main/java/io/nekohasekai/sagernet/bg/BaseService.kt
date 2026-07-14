@@ -140,6 +140,12 @@ class BaseService {
             callbacks.unregister(cb)
         }
 
+        override fun resetTraffic(profileIds: LongArray) {
+            launch(Dispatchers.Default) {
+                data?.proxy?.looper?.resetTraffic(profileIds)
+            }
+        }
+
         override fun urlTest(): Int {
             if (data?.proxy?.box == null) {
                 error("core not started")
