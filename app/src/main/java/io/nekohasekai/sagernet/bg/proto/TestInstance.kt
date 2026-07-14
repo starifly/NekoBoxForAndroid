@@ -16,6 +16,8 @@ import kotlin.coroutines.resumeWithException
 class TestInstance(profile: ProxyEntity, val link: String, private val timeout: Int) :
     BoxInstance(profile) {
 
+    protected override val enableOlcrtcRecovery = false
+
     // close() can be reached from two paths that may overlap on cancellation: the
     // suspendCancellableCoroutine's invokeOnCancellation and the `use { }` block's
     // exit. BoxInstance.close() is not safe to run twice (native box.close()), so

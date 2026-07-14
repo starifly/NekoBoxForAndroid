@@ -10,6 +10,7 @@
 package io.nekohasekai.sagernet.ui.profile
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
 import io.nekohasekai.sagernet.Key
@@ -17,7 +18,9 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
 import io.nekohasekai.sagernet.fmt.olcrtc.OlcrtcBean
+import io.nekohasekai.sagernet.fmt.olcrtc.validateOlcrtcProfile
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
+import io.nekohasekai.sagernet.ktx.onMainDispatcher
 
 class OlcrtcSettingsActivity : ProfileSettingsActivity<OlcrtcBean>() {
 
@@ -51,12 +54,22 @@ class OlcrtcSettingsActivity : ProfileSettingsActivity<OlcrtcBean>() {
         dnsServer = DataStore.olcrtcDnsServer
 
         // Fail fast in the editor instead of saving a profile that can only fail at connect.
-        // DataStore string() may return null if a field was never edited; coalesce to "".
-        require(!roomId.isNullOrBlank()) { "olcRTC: room id / URL is required" }
-        require(!clientId.isNullOrBlank()) { "olcRTC: client id is required" }
-        val hex = keyHex ?: ""
-        require(hex.length == 64 && hex.all { it in '0'..'9' || it in 'a'..'f' || it in 'A'..'F' }) {
-            "olcRTC: encryption key must be 64 hex characters"
+        validateOlcrtcProfile(requireClientId = true)
+    }
+
+    override suspend fun saveAndExit() {
+        try {
+            // Validate a temporary bean before the base path can stop an active profile.
+            createEntity().apply { serialize() }
+            super.saveAndExit()
+        } catch (e: IllegalArgumentException) {
+            onMainDispatcher {
+                Toast.makeText(
+                    applicationContext,
+                    e.message ?: "Invalid olcRTC profile",
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
         }
     }
 

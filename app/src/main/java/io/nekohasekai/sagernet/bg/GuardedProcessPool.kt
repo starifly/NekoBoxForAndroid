@@ -12,11 +12,22 @@ import io.nekohasekai.sagernet.utils.Commandline
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.selects.select
 import libcore.Libcore
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import kotlin.concurrent.thread
+
+private data class ProcessGenerationExit(
+    val exitCode: Int,
+    val readyAtMillis: Long? = null,
+)
+
+private data class RestartReadinessResult(
+    val readyAtMillis: Long? = null,
+    val error: IOException? = null,
+)
 
 class GuardedProcessPool(private val onFatal: suspend (IOException) -> Unit) : CoroutineScope {
     companion object {
@@ -43,51 +54,165 @@ class GuardedProcessPool(private val onFatal: suspend (IOException) -> Unit) : C
             }.start()
         }
 
+        private fun watchProcess(cmdName: String, exitChannel: Channel<Int>) {
+            val proc = process
+            thread(name = "stderr-$cmdName") {
+                streamLogger(proc.errorStream) {
+                    Libcore.nekoLogPrintln("[$cmdName] ${Commandline.redactProcessOutput(it)}")
+                }
+            }
+            thread(name = "stdout-$cmdName") {
+                streamLogger(proc.inputStream) {
+                    Libcore.nekoLogPrintln("[$cmdName] ${Commandline.redactProcessOutput(it)}")
+                }
+            }
+            // The channel is generation-local and buffered, so this waiter never blocks a
+            // later generation and remains available to bounded NonCancellable teardown.
+            thread(name = "waitFor-$cmdName") {
+                val code = proc.waitFor()
+                if (exitChannel.trySendBlocking(code).isFailure) {
+                    Logs.w("$cmdName: could not deliver exit code $code (channel closed)")
+                }
+            }
+        }
+
+        private suspend fun observeRestart(
+            cmdName: String,
+            exitChannel: Channel<Int>,
+            onRestartCallback: suspend () -> Unit,
+        ): ProcessGenerationExit = coroutineScope {
+            val readiness = async {
+                try {
+                    onRestartCallback()
+                    RestartReadinessResult(readyAtMillis = SystemClock.elapsedRealtime())
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    RestartReadinessResult(
+                        error = if (e is IOException) e else IOException("restart readiness check failed", e),
+                    )
+                }
+            }
+            select {
+                exitChannel.onReceive { exitCode ->
+                    readiness.cancelAndJoin()
+                    ProcessGenerationExit(exitCode)
+                }
+                readiness.onAwait { result ->
+                    val readinessError = result.error
+                    if (readinessError == null) {
+                        ProcessGenerationExit(
+                            exitCode = exitChannel.receive(),
+                            readyAtMillis = result.readyAtMillis,
+                        )
+                    } else {
+                        Logs.w("$cmdName restart readiness failed; restarting")
+                        val exitCode = terminateProcess(exitChannel)
+                            ?: throw IOException(
+                                "$cmdName could not stop after restart readiness failure",
+                                readinessError,
+                            )
+                        ProcessGenerationExit(exitCode)
+                    }
+                }
+            }
+        }
+
+        private fun signalProcess(signal: Int) {
+            try {
+                Os.kill(pid.get(process) as Int, signal)
+            } catch (e: ErrnoException) {
+                if (e.errno != OsConstants.ESRCH) Logs.w(e)
+            } catch (e: ReflectiveOperationException) {
+                Logs.w(e)
+            }
+        }
+
+        private suspend fun terminateProcess(exitChannel: Channel<Int>): Int? = withContext(NonCancellable) {
+            exitChannel.tryReceive().getOrNull()?.let { return@withContext it }
+            if (Build.VERSION.SDK_INT < 24) {
+                signalProcess(OsConstants.SIGTERM)
+                withTimeoutOrNull(500) { exitChannel.receive() }?.let { return@withContext it }
+            }
+            process.destroy()
+            withTimeoutOrNull(1000) { exitChannel.receive() }?.let { return@withContext it }
+            if (Build.VERSION.SDK_INT >= 26) {
+                process.destroyForcibly()
+            } else {
+                signalProcess(OsConstants.SIGKILL)
+            }
+            withTimeoutOrNull(1000) { exitChannel.receive() }
+        }
+
         @DelicateCoroutinesApi
-        suspend fun looper(onRestartCallback: (suspend () -> Unit)?) {
+        suspend fun looper(
+            onRestartPrepare: (() -> Unit)?,
+            onRestartCallback: (suspend () -> Unit)?,
+            restartPolicy: GuardedProcessRestartPolicy?,
+            restartOnExit: Boolean,
+        ) {
             var running = true
+            var restarted = false
+            var currentExitChannel: Channel<Int>? = null
             val cmdName = File(cmd.first()).nameWithoutExtension
-            val exitChannel = Channel<Int>()
+            val backoff = restartPolicy.createBackoff()
             try {
                 while (true) {
-                    thread(name = "stderr-$cmdName") {
-                        streamLogger(process.errorStream) {
-                            Libcore.nekoLogPrintln("[$cmdName] ${Commandline.redactProcessOutput(it)}")
-                        }
-                    }
-                    thread(name = "stdout-$cmdName") {
-                        streamLogger(process.inputStream) {
-                            Libcore.nekoLogPrintln("[$cmdName] ${Commandline.redactProcessOutput(it)}")
-                        }
-                    }
-                    // Dedicated waiter thread (lifecycle independent of the pool's Job) so the
-                    // NonCancellable teardown below can still drain the exit code even after the
-                    // pool is cancelled. Use trySendBlocking instead of runBlocking { send } to
-                    // avoid spinning up a coroutine dispatcher on this raw thread.
-                    val proc = process
-                    thread(name = "waitFor-$cmdName") {
-                        val code = proc.waitFor()
-                        // If the channel is already closed/failed, log rather than silently drop
-                        // (the NonCancellable teardown below also bounds its receive()).
-                        if (exitChannel.trySendBlocking(code).isFailure) {
-                            Logs.w("$cmdName: could not deliver exit code $code (channel closed)")
-                        }
-                    }
+                    val exitChannel = Channel<Int>(capacity = 1)
+                    currentExitChannel = exitChannel
+                    watchProcess(cmdName, exitChannel)
                     val startTime = SystemClock.elapsedRealtime()
-                    val exitCode = exitChannel.receive()
-                    running = false
-                    when {
-                        SystemClock.elapsedRealtime() - startTime < 1000 -> throw IOException(
-                            "$cmdName exits too fast (exit code: $exitCode)",
-                        )
-
-                        exitCode == 128 + OsConstants.SIGKILL -> Logs.w("$cmdName was killed")
-                        else -> Logs.w(IOException("$cmdName unexpectedly exits with code $exitCode"))
+                    val generation = if (restarted && onRestartCallback != null) {
+                        observeRestart(cmdName, exitChannel, onRestartCallback)
+                    } else {
+                        ProcessGenerationExit(exitChannel.receive())
                     }
-                    Logs.i("restart process: ${Commandline.toRedactedString(cmd)} (last exit code: $exitCode)")
+                    running = false
+                    currentExitChannel = null
+                    exitChannel.close()
+
+                    val exitTime = SystemClock.elapsedRealtime()
+                    val processUptimeMillis = exitTime - startTime
+                    if (shouldFailAfterProcessExit(restartOnExit, restartPolicy, processUptimeMillis)) {
+                        throw IOException("$cmdName exited (exit code: ${generation.exitCode})")
+                    }
+                    when (generation.exitCode) {
+                        128 + OsConstants.SIGKILL -> Logs.w("$cmdName was killed")
+                        else -> Logs.w(
+                            IOException("$cmdName unexpectedly exits with code ${generation.exitCode}"),
+                        )
+                    }
+
+                    val readyDurationMillis = generation.readyAtMillis?.let {
+                        (exitTime - it).coerceAtLeast(0L)
+                    }
+                    val restartDelayMillis = backoff?.delayAfterExit(readyDurationMillis)
+                    try {
+                        onRestartPrepare?.invoke()
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        throw if (e is IOException) {
+                            e
+                        } else {
+                            IOException("$cmdName restart preparation failed", e)
+                        }
+                    }
+                    if (restartDelayMillis != null) {
+                        Logs.i(
+                            "restart process after ${restartDelayMillis}ms: " +
+                                Commandline.toRedactedString(cmd),
+                        )
+                        delay(restartDelayMillis)
+                    } else {
+                        Logs.i(
+                            "restart process: ${Commandline.toRedactedString(cmd)} " +
+                                "(last exit code: ${generation.exitCode})",
+                        )
+                    }
                     start()
                     running = true
-                    onRestartCallback?.invoke()
+                    restarted = true
                 }
             } catch (e: IOException) {
                 Logs.w("error occurred. stop guard: ${Commandline.toRedactedString(cmd)}")
@@ -95,26 +220,11 @@ class GuardedProcessPool(private val onFatal: suspend (IOException) -> Unit) : C
                 // and stop a freshly-restarted instance.
                 this@GuardedProcessPool.launch(Dispatchers.Main.immediate) { onFatal(e) }
             } finally {
-                if (running) {
-                    withContext(NonCancellable) { // clean-up cannot be cancelled
-                        if (Build.VERSION.SDK_INT < 24) {
-                            try {
-                                Os.kill(pid.get(process) as Int, OsConstants.SIGTERM)
-                            } catch (e: ErrnoException) {
-                                if (e.errno != OsConstants.ESRCH) Logs.w(e)
-                            } catch (e: ReflectiveOperationException) {
-                                Logs.w(e)
-                            }
-                            if (withTimeoutOrNull(500) { exitChannel.receive() } != null) return@withContext
-                        }
-                        process.destroy() // kill the process
-                        if (Build.VERSION.SDK_INT >= 26) {
-                            if (withTimeoutOrNull(1000) { exitChannel.receive() } != null) return@withContext
-                            process.destroyForcibly() // Force to kill the process if it's still alive
-                        }
-                        // Bounded so a missed exit-code send (closed channel) can't hang teardown.
-                        withTimeoutOrNull(1000) { exitChannel.receive() }
-                    } // otherwise process already exited, nothing to be done
+                val exitChannel = currentExitChannel
+                if (running && exitChannel != null) {
+                    terminateProcess(exitChannel)
+                } else if (running) {
+                    process.destroy()
                 }
             }
         }
@@ -127,12 +237,15 @@ class GuardedProcessPool(private val onFatal: suspend (IOException) -> Unit) : C
     fun start(
         cmd: List<String>,
         env: MutableMap<String, String> = mutableMapOf(),
+        onRestartPrepare: (() -> Unit)? = null,
         onRestartCallback: (suspend () -> Unit)? = null,
+        restartPolicy: GuardedProcessRestartPolicy? = null,
+        restartOnExit: Boolean = true,
     ) {
         Logs.i("start process: ${Commandline.toRedactedString(cmd)}")
         Guard(cmd, env).apply {
             start() // if start fails, IOException will be thrown directly
-            launch { looper(onRestartCallback) }
+            launch { looper(onRestartPrepare, onRestartCallback, restartPolicy, restartOnExit) }
         }
         processCount += 1
     }

@@ -34,6 +34,7 @@ import (
 	"net/netip"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -56,11 +57,13 @@ func main() {
 		vp8FPS      = flag.Int("vp8-fps", 30, "vp8 fps")
 		vp8Batch    = flag.Int("vp8-batch", 8, "vp8 batch size")
 		protectPath = flag.String("protect-path", "", "path to libcore protect unix socket")
+		readyMarker = flag.String("ready-marker", "", "app-private readiness marker path")
 		readyMillis = flag.Int("ready-timeout-ms", 60000, "readiness wait in ms")
 		debug       = flag.Bool("debug", false, "verbose logging")
 	)
 	flag.Parse()
 
+	removeReadyMarker(*readyMarker)
 	mobile.SetDebug(*debug)
 	if !*debug {
 		// Quiet by default so room ids / carrier urls are not written to logs.
@@ -91,11 +94,69 @@ func main() {
 		mobile.Stop()
 		log.Fatalf("olcrtc wait ready: %v", err)
 	}
+	if err := publishReadyMarker(*readyMarker); err != nil {
+		mobile.Stop()
+		removeReadyMarker(*readyMarker)
+		log.Fatalf("olcrtc ready marker: %v", err)
+	}
+	defer removeReadyMarker(*readyMarker)
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	<-sig
+	ticker := time.NewTicker(15 * time.Second)
+	defer ticker.Stop()
+	defer signal.Stop(sig)
+
+	if !waitAfterReady(sig, ticker.C, mobile.IsRunning) {
+		mobile.Stop()
+		removeReadyMarker(*readyMarker)
+		log.Fatal("olcrtc runtime stopped after readiness")
+	}
 	mobile.Stop()
+}
+
+// waitAfterReady returns true for a requested signal shutdown and false when the
+// already-ready mobile runtime reaches its terminal stopped state.
+func waitAfterReady(signals <-chan os.Signal, ticks <-chan time.Time, isRunning func() bool) bool {
+	for {
+		select {
+		case <-signals:
+			return true
+		case <-ticks:
+			if !isRunning() {
+				return false
+			}
+		}
+	}
+}
+
+// publishReadyMarker atomically proves that this app-owned wrapper, rather than
+// an unrelated loopback listener, reached mobile readiness. The parent keeps the
+// marker in its private no-backup directory and clears it before each generation.
+func publishReadyMarker(path string) error {
+	if path == "" {
+		return nil
+	}
+	temp, err := os.CreateTemp(filepath.Dir(path), ".olcrtc-ready-*")
+	if err != nil {
+		return err
+	}
+	tempPath := temp.Name()
+	defer os.Remove(tempPath)
+	if _, err := temp.WriteString("ready\n"); err != nil {
+		temp.Close()
+		return err
+	}
+	if err := temp.Close(); err != nil {
+		return err
+	}
+	return os.Rename(tempPath, path)
+}
+
+func removeReadyMarker(path string) {
+	if path != "" {
+		_ = os.Remove(path)
+	}
 }
 
 // installProtectedDefaults replaces net.DefaultResolver and http.DefaultTransport

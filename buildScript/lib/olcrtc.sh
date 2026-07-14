@@ -2,7 +2,7 @@
 # Build the olcRTC CLIENT as an Android native executable for all ABIs and install
 # them as bundled sidecars (app/executableSo/<abi>/libolcrtc.so).
 #
-# olcRTC (github.com/openlibrecommunity/olcrtc) is an encrypted TCP-over-WebRTC
+# olcRTC (github.com/hawkff/olcrtc) is an encrypted TCP-over-WebRTC
 # tunnel. We bundle ONLY the client (cnc role): it opens a loopback SOCKS5 listener
 # that a sing-box `socks` outbound dials, and tunnels traffic out over a common meet
 # service. The server side is deployed separately and is never shipped in the app.
@@ -15,15 +15,13 @@
 #
 # A tiny wrapper main (buildScript/lib/olcrtc-src) imports olcRTC's `mobile` package at
 # a pinned commit, wires socket protection to libcore's protect_path unix socket, and
-# parses CLI flags. We clone the pinned upstream commit and point the wrapper module at
+# parses CLI flags. We clone the pinned source commit and point the wrapper module at
 # it via a replace directive so the build is fully reproducible and offline-stable.
 #
-# OLCRTC_REPO/OLCRTC_COMMIT default to the upstream project at a commit that carries
-# the protected pion net (internal/protect/pionnet.go + the jitsi SetNet hook, merged
-# in openlibrecommunity/olcrtc#111) plus Jitsi ICE-service URL normalization
-# (openlibrecommunity/olcrtc#121). Pinning at/after both keeps the media path off
-# the tun and prevents malformed service-discovery entries from failing peer-
-# connection setup.
+# OLCRTC_REPO/OLCRTC_COMMIT default to the maintained fork at an immutable commit
+# that includes protected pion networking, Jitsi ICE-service URL normalization,
+# and deterministic targeted peer readiness. Pinning the full commit keeps these
+# transport and routing invariants identical between the app and server builds.
 #
 # Usage: ./run lib olcrtc
 set -e
@@ -36,8 +34,8 @@ if [ -z "$ANDROID_NDK_HOME" ]; then
   exit 1
 fi
 
-OLCRTC_REPO="${OLCRTC_REPO:-https://github.com/openlibrecommunity/olcrtc.git}"
-OLCRTC_COMMIT="${OLCRTC_COMMIT:-1255cf8248ee4a52cb355ceb8cf72281a5f1affd}"
+OLCRTC_REPO="${OLCRTC_REPO:-https://github.com/hawkff/olcrtc.git}"
+OLCRTC_COMMIT="${OLCRTC_COMMIT:-ad5cc1e3d60b657b15ccd26f8db91395bf9630d0}"
 
 if ! command -v go >/dev/null 2>&1; then
   echo "Error: go not found on PATH (olcRTC needs Go 1.26+)." >&2
@@ -83,8 +81,9 @@ fi
 BUILD="$(pwd)/.olcrtc-wrapper"
 rm -rf "$BUILD"
 mkdir -p "$BUILD"
-cp "$SRC/main.go" "$SRC/go.mod" "$BUILD/"
+cp "$SRC/main.go" "$SRC/main_test.go" "$SRC/go.mod" "$BUILD/"
 ( cd "$BUILD" && go mod edit -replace "github.com/openlibrecommunity/olcrtc=$WORK" && go mod tidy )
+( cd "$BUILD" && go test . )
 
 build_abi() {
   local abi="$1" goarch="$2" cc="$3" goarm="$4"

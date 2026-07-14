@@ -15,8 +15,8 @@ env:
   MDVPN_REF: android-vpnservice-protect-hook
   MDVPN_COMMIT: d481d72d4b86783a87d536c214d2c68cc4e9320e
   NAIVE_VERSION: v149.0.7827.114-1
-  OLCRTC_REPO: https://github.com/openlibrecommunity/olcrtc.git
-  OLCRTC_COMMIT: 1255cf8248ee4a52cb355ceb8cf72281a5f1affd
+  OLCRTC_REPO: https://github.com/hawkff/olcrtc.git
+  OLCRTC_COMMIT: ad5cc1e3d60b657b15ccd26f8db91395bf9630d0
 permissions:
   contents: read
 jobs:
@@ -68,6 +68,7 @@ jobs:
             buildScript/lib/naive.sh \
             buildScript/lib/olcrtc.sh \
             buildScript/lib/olcrtc-src/main.go \
+            buildScript/lib/olcrtc-src/main_test.go \
             buildScript/lib/olcrtc-src/go.mod \
             buildScript/init/env.sh \
             buildScript/init/env_ndk.sh \
