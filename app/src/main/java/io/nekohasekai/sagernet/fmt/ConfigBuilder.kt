@@ -731,28 +731,35 @@ fun buildConfig(
                         return DNSRule_DefaultOptions().apply {
                             if (uidList.isNotEmpty()) user_id = uidList
                             domainList?.let { makeSingBoxRule(it) }
-                        }
-                    }
-
-		    when (rule.outbound) {
-                        -1L -> {
-                            userDNSRuleList += makeDnsRuleObj().apply { server = "dns-direct" }
                             
+                            val nonIpRulesets = mutableListOf<String>()
                             if (rule_set != null && rulesetTags.isNotEmpty()) {
                                 for (tag in rule_set) {
-                                    // 只处理ruleset标签，且必须是非IP类型
                                     val tagInfo = rulesetTags.find { it.first == tag }
                                     if (tag.startsWith("ruleset-") && tagInfo != null && !tagInfo.second) {
-                                        userDNSRuleList += DNSRule_DefaultOptions().apply {
-                                            rule_set = mutableListOf(tag)
-                                            server = "dns-direct"
-                                        }
+                                        nonIpRulesets.add(tag)
                                     }
                                 }
                             }
+                            if (nonIpRulesets.isNotEmpty()) {
+                                rule_set = nonIpRulesets
+                            }
+                        }
+                    }
+
+      when (rule.outbound) {
+                        -1L -> {
+                            userDNSRuleList += makeDnsRuleObj().apply { server = "dns-direct" }
                         }
 
-                        0L -> {
+                        -2L -> {
+                            userDNSRuleList += makeDnsRuleObj().apply {
+                                server = "dns-block"
+                                disable_cache = true
+                            }
+                        }
+
+                        else -> {
                             if (useFakeDns) userDNSRuleList += makeDnsRuleObj().apply {
                                 server = "dns-fake"
                                 inbound = listOf("tun-in")
@@ -762,50 +769,8 @@ fun buildConfig(
                                     server = "dns-remote"
                                 }
                             }
-                            
-                            if (rule_set != null && rulesetTags.isNotEmpty()) {
-                                for (tag in rule_set) {
-                                    val tagInfo = rulesetTags.find { it.first == tag }
-                                    if (tag.startsWith("ruleset-") && tagInfo != null && !tagInfo.second) {
-                                        if (useFakeDns) {
-                                            userDNSRuleList += DNSRule_DefaultOptions().apply {
-                                                rule_set = mutableListOf(tag)
-                                                server = "dns-fake"
-                                                inbound = listOf("tun-in")
-                                                query_type = listOf("A", "AAAA")
-                                            }
-                                        } else {
-                                            userDNSRuleList += DNSRule_DefaultOptions().apply {
-                                                rule_set = mutableListOf(tag)
-                                                server = "dns-remote"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        -2L -> {
-                            userDNSRuleList += makeDnsRuleObj().apply {
-                                server = "dns-block"
-                                disable_cache = true
-                            }
-                            
-                            if (rule_set != null && rulesetTags.isNotEmpty()) {
-                                for (tag in rule_set) {
-                                    val tagInfo = rulesetTags.find { it.first == tag }
-                                    if (tag.startsWith("ruleset-") && tagInfo != null && !tagInfo.second) {
-                                        userDNSRuleList += DNSRule_DefaultOptions().apply {
-                                            rule_set = mutableListOf(tag)
-                                            server = "dns-block"
-                                            disable_cache = true
-                                        }
-                                    }
-                                }
-                            }
                         }
                     }
-
                     outbound = when (val outId = rule.outbound) {
                         0L -> mainProxyTag
                         -1L -> TAG_BYPASS
