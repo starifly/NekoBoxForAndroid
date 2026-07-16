@@ -51,7 +51,6 @@ The Hysteria 2 client supports the new Gecko (experimental) obfuscation.
 
 - `NaïveProxy` (Bundled)
 - `Mieru` (Bundled)
-- `MasterDnsVPN` (Bundled) - DNS-tunnel transport for restrictive networks
 
 <details>
 <summary><b>🕰️ Legacy protocols</b> (kept for compatibility)</summary>
