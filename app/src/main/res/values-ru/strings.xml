@@ -631,11 +631,13 @@
     <string name="app_list_permission_denied">Не удалось прочитать установленные приложения.\nОбычно это связано с тем, что система ограничила разрешение на чтение приложений.\nПожалуйста, предоставьте разрешения в настройках системы.</string>
     <string name="open_app_settings">Открыть настройки системы</string>
     <string name="action_snell">Snell</string>
-    <string name="snell_psk">Ключ</string>
+    <string name="snell_psk">Предварительно общий ключ</string>
+    <string name="snell_userkey">Ключ пользователя</string>
     <string name="snell_version">Версия</string>
     <string name="snell_network">Протокол</string>
     <string name="snell_obfs_mode">Режим Obfs</string>
     <string name="snell_obfs_host">Хост Obfs</string>
+    <string name="snell_mode">Режим</string>
     <string name="snell_reuse">Повторное использование</string>
-    <string name="snell_reuse_summary">Только v4/v5</string>
+    <string name="snell_reuse_summary">Только v4-v6</string>
 </resources>

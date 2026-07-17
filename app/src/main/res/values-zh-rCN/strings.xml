@@ -587,4 +587,16 @@
     <string name="vless_encryption_hint">mlkem768x25519plus.native.0rtt.KEY1.KEY2...</string>
     <string name="app_list_permission_denied">无法读取已安装的应用。\n这通常是由于系统限制了应用的读取权限（例如某些中国厂商系统）。\n请在系统设置中授予权限。</string>
     <string name="open_app_settings">打开系统设置</string>
+
+    <!-- Snell Protocol -->
+    <string name="action_snell">Snell</string>
+    <string name="snell_psk">预共享密钥</string>
+    <string name="snell_userkey">用户密钥</string>
+    <string name="snell_version">版本</string>
+    <string name="snell_network">协议</string>
+    <string name="snell_obfs_mode">Obfs 模式</string>
+    <string name="snell_obfs_host">Obfs 主机</string>
+    <string name="snell_mode">模式</string>
+    <string name="snell_reuse">复用</string>
+    <string name="snell_reuse_summary">仅适用于 v4-v6</string>
 </resources>

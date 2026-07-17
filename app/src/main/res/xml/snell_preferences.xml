@@ -27,6 +27,12 @@
             app:key="psk"
             app:title="@string/snell_psk" />
 
+        <EditTextPreference
+            app:dialogLayout="@layout/layout_password_dialog"
+            app:icon="@drawable/ic_settings_password"
+            app:key="userKey"
+            app:title="@string/snell_userkey" />
+
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
             app:defaultValue="4"
             app:entries="@array/snell_versions_entry"
@@ -58,6 +64,15 @@
             app:icon="@drawable/ic_hardware_router"
             app:key="obfsHost"
             app:title="@string/snell_obfs_host"
+            app:useSimpleSummaryProvider="true" />
+
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+            app:defaultValue="default"
+            app:entries="@array/snell_v6_modes_entry"
+            app:entryValues="@array/snell_v6_modes_value"
+            app:icon="@drawable/ic_baseline_legend_toggle_24"
+            app:key="mode"
+            app:title="@string/snell_mode"
             app:useSimpleSummaryProvider="true" />
 
         <SwitchPreference

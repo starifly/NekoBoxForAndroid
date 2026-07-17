@@ -591,11 +591,13 @@
     <string name="mux_preference">多路複用</string>
     <string name="padding">填充</string>
     <string name="action_snell">Snell</string>
-    <string name="snell_psk">金鑰</string>
+    <string name="snell_psk">預共享金鑰</string>
+    <string name="snell_userkey">使用者金鑰</string>
     <string name="snell_version">版本</string>
     <string name="snell_network">協定</string>
     <string name="snell_obfs_mode">Obfs 模式</string>
     <string name="snell_obfs_host">Obfs 主機</string>
+    <string name="snell_mode">模式</string>
     <string name="snell_reuse">重用</string>
-    <string name="snell_reuse_summary">僅 v4/v5</string>
+    <string name="snell_reuse_summary">僅 v4-v6</string>
 </resources>

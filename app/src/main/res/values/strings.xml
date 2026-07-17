@@ -675,12 +675,14 @@
 
     <!-- Snell Protocol -->
     <string name="action_snell">Snell</string>
-    <string name="snell_psk">密钥</string>
-    <string name="snell_version">版本</string>
-    <string name="snell_network">协议</string>
-    <string name="snell_obfs_mode">Obfs 模式</string>
-    <string name="snell_obfs_host">Obfs 主机</string>
+    <string name="snell_psk">Pre-shared Key</string>
+    <string name="snell_userkey">User Key</string>
+    <string name="snell_version">Version</string>
+    <string name="snell_network">Network</string>
+    <string name="snell_obfs_mode">Obfs Mode</string>
+    <string name="snell_obfs_host">Obfs Host</string>
+    <string name="snell_mode">Mode</string>
     <string name="snell_reuse">Reuse</string>
-    <string name="snell_reuse_summary">v4/v5 only</string>
+    <string name="snell_reuse_summary">v4-v6 only</string>
 
 </resources>
