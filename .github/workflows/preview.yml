@@ -14,7 +14,7 @@ permissions:
 jobs:
   libcore:
     name: Native Build (LibCore)
-    runs-on: namespace-profile-nekoyay
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -48,7 +48,7 @@ jobs:
           if-no-files-found: error
   sidecars:
     name: Native Build (Sidecars)
-    runs-on: namespace-profile-nekoyay
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -98,7 +98,7 @@ jobs:
           if-no-files-found: error
   build:
     name: Build OSS APK
-    runs-on: namespace-profile-nekoyay
+    runs-on: ubuntu-latest
     needs:
       - libcore
       - sidecars
