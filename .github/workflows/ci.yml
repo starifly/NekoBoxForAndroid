@@ -37,7 +37,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - name: Download LibCore
-        uses: namespace-actions/download-artifact@5c070f7d7ebdc47682b04aa736c76e46ff5f6e1e # v1
+        uses: actions/download-artifact@v4 # v1
         with:
           name: libcore-aar-ci
           path: app/libs
@@ -65,7 +65,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - name: Download LibCore
-        uses: namespace-actions/download-artifact@5c070f7d7ebdc47682b04aa736c76e46ff5f6e1e # v1
+        uses: actions/download-artifact@v4 # v1
         with:
           name: libcore-aar-ci
           path: app/libs
@@ -108,7 +108,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - name: Download LibCore
-        uses: namespace-actions/download-artifact@5c070f7d7ebdc47682b04aa736c76e46ff5f6e1e # v1
+        uses: actions/download-artifact@v4 # v1
         with:
           name: libcore-aar-ci
           path: app/libs
@@ -158,7 +158,7 @@ jobs:
       - name: Verify 16 KB ELF alignment
         run: bash ./scripts/verify-elf-alignment.sh app/libs/libcore.aar
       - name: Upload LibCore
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1
+        uses: actions/upload-artifact@v4 # v1
         with:
           name: libcore-aar-ci
           path: app/libs/libcore.aar
@@ -210,7 +210,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./run lib olcrtc
       - name: Upload Sidecars
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1
+        uses: actions/upload-artifact@v4 # v1
         with:
           name: sidecars-so-ci
           path: app/executableSo
@@ -245,12 +245,12 @@ jobs:
           key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}-ci
 
       - name: Download LibCore
-        uses: namespace-actions/download-artifact@5c070f7d7ebdc47682b04aa736c76e46ff5f6e1e # v1
+        uses: actions/download-artifact@v4 # v1
         with:
           name: libcore-aar-ci
           path: app/libs
       - name: Download Sidecars
-        uses: namespace-actions/download-artifact@5c070f7d7ebdc47682b04aa736c76e46ff5f6e1e # v1
+        uses: actions/download-artifact@v4 # v1
         with:
           name: sidecars-so-ci
           path: app/executableSo
