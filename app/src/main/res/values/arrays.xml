@@ -668,6 +668,7 @@
         <item>3</item>
         <item>4</item>
         <item>5</item>
+        <item>6</item>
     </string-array>
 
     <string-array name="snell_versions_value">
@@ -676,6 +677,7 @@
         <item>3</item>
         <item>4</item>
         <item>5</item>
+        <item>6</item>
     </string-array>
 
     <string-array name="snell_obfs_modes_entry">
@@ -700,6 +702,18 @@
         <item></item>
         <item>tcp</item>
         <item>udp</item>
+    </string-array>
+
+    <string-array name="snell_v6_modes_entry">
+        <item>Default</item>
+        <item>Unshaped</item>
+        <item>Unsafe Raw</item>
+    </string-array>
+
+    <string-array name="snell_v6_modes_value">
+        <item>default</item>
+        <item>unshaped</item>
+        <item>unsafe-raw</item>
     </string-array>
 
 </resources>

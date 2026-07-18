@@ -28,7 +28,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
-import io.nekohasekai.sagernet.aidl.TrafficData
+import io.nekohasekai.sagernet.aidl.TrafficDataBatch
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.database.DataStore
@@ -498,10 +498,8 @@ class MainActivity : ThemedActivity(),
         binding.stats.updateSpeed(stats.txRateProxy, stats.rxRateProxy)
     }
 
-    override fun cbTrafficUpdate(data: TrafficData) {
-        runOnDefaultDispatcher {
-            ProfileManager.postUpdate(data)
-        }
+    override suspend fun cbTrafficUpdate(data: TrafficDataBatch) {
+        ProfileManager.postUpdate(data.items)
     }
 
     override fun cbSelectorUpdate(id: Long) {

@@ -33,6 +33,7 @@ import androidx.core.view.isVisible
 import androidx.core.view.size
 import kotlinx.coroutines.delay
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceDataStore
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -103,14 +104,18 @@ import io.nekohasekai.sagernet.ui.profile.VMessSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.WireGuardSettingsActivity
 import io.nekohasekai.sagernet.widget.QRCodeDialog
 import io.nekohasekai.sagernet.widget.UndoSnackbarManager
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import moe.matsuri.nb4a.Protocols
 import moe.matsuri.nb4a.Protocols.getProtocolColor
 import moe.matsuri.nb4a.proxy.anytls.AnyTLSSettingsActivity
@@ -124,6 +129,7 @@ import java.net.UnknownHostException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import java.util.zip.ZipInputStream
 import kotlin.collections.set
 import androidx.appcompat.app.AlertDialog
@@ -154,32 +160,94 @@ class ConfigurationFragment @JvmOverloads constructor(
     @Volatile
     private var currentProfileSnapshot = 0L
 
+    @Volatile
+    private var serviceStartedSnapshot = DataStore.serviceState.started
+
+    private data class ProfileStateSnapshot(
+        val selectedProxy: Long,
+        val currentProfile: Long,
+        val serviceStarted: Boolean,
+    )
+
+    private val profileStateRequests = Channel<Long>(Channel.CONFLATED)
+    private val profileStateGeneration = AtomicLong()
+    private val profileStateInitialized = CompletableDeferred<Unit>()
+
     fun refreshProfileState() {
-        runOnLifecycleDispatcher {
-            val selectedProxy = selectedItem?.id ?: DataStore.selectedProxy
-            val currentProfile = DataStore.currentProfile
-            onMainDispatcher {
-                updateProfileStateSnapshots(selectedProxy, currentProfile)
-            }
+        lifecycleScope.launch(Dispatchers.Main.immediate) {
+            val generation = profileStateGeneration.incrementAndGet()
+            profileStateRequests.trySend(generation)
         }
     }
 
     private fun updateSelectedProxySnapshot(profileId: Long) {
-        updateProfileStateSnapshots(profileId, currentProfileSnapshot)
+        val generation = profileStateGeneration.incrementAndGet()
+        updateProfileStateSnapshots(
+            profileId,
+            currentProfileSnapshot,
+            DataStore.serviceState.started,
+        )
+        profileStateRequests.trySend(generation)
     }
 
-    private fun updateProfileStateSnapshots(selectedProxy: Long, currentProfile: Long) {
-        val changedIds = setOf(
-            selectedProxySnapshot,
-            currentProfileSnapshot,
-            selectedProxy,
-            currentProfile,
-        ).filterTo(mutableSetOf()) { it > 0L }
+    private fun startProfileStateActor() {
+        lifecycleScope.launch(Dispatchers.Main.immediate) {
+            for (generation in profileStateRequests) {
+                val snapshot = try {
+                    withContext(Dispatchers.IO) {
+                        ProfileStateSnapshot(
+                            selectedProxy = selectedItem?.id ?: DataStore.selectedProxy,
+                            currentProfile = DataStore.currentProfile,
+                            serviceStarted = DataStore.serviceState.started,
+                        )
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Logs.w(e)
+                    if (generation == profileStateGeneration.get()) {
+                        profileStateInitialized.complete(Unit)
+                    }
+                    continue
+                }
+                if (generation != profileStateGeneration.get()) continue
+                updateProfileStateSnapshots(
+                    snapshot.selectedProxy,
+                    snapshot.currentProfile,
+                    snapshot.serviceStarted,
+                )
+                profileStateInitialized.complete(Unit)
+            }
+        }
+    }
+
+    private fun updateProfileStateSnapshots(
+        selectedProxy: Long,
+        currentProfile: Long,
+        serviceStarted: Boolean,
+    ) {
+        val changedIds = mutableSetOf<Long>()
+        if (selectedProxySnapshot != selectedProxy) {
+            changedIds.add(selectedProxySnapshot)
+            changedIds.add(selectedProxy)
+        }
+        if (currentProfileSnapshot != currentProfile) {
+            changedIds.add(currentProfileSnapshot)
+            changedIds.add(currentProfile)
+        }
+        if (serviceStartedSnapshot != serviceStarted) {
+            changedIds.add(selectedProxySnapshot)
+            changedIds.add(currentProfileSnapshot)
+            changedIds.add(selectedProxy)
+            changedIds.add(currentProfile)
+        }
+        changedIds.removeAll { it <= 0L }
 
         selectedProxySnapshot = selectedProxy
         currentProfileSnapshot = currentProfile
+        serviceStartedSnapshot = serviceStarted
 
-        if (!::adapter.isInitialized) return
+        if (changedIds.isEmpty() || !::adapter.isInitialized) return
         adapter.groupFragments.values.forEach { fragment ->
             fragment.adapter?.refreshProfileState(changedIds)
         }
@@ -188,6 +256,10 @@ class ConfigurationFragment @JvmOverloads constructor(
     private fun isSelectedProfile(profileId: Long) = selectedProxySnapshot == profileId
 
     private fun isCurrentProfile(profileId: Long) = currentProfileSnapshot == profileId
+
+    private fun isCurrentGroupPagerAdapter(candidate: GroupPagerAdapter): Boolean {
+        return ::adapter.isInitialized && adapter === candidate
+    }
 
     fun getCurrentGroupFragment(): GroupFragment? {
         return try {
@@ -227,6 +299,8 @@ class ConfigurationFragment @JvmOverloads constructor(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
+        startProfileStateActor()
+        refreshProfileState()
 
         if (savedInstanceState != null) {
             parentFragmentManager.beginTransaction()
@@ -566,6 +640,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
 
             R.id.action_clear_traffic_statistics -> {
+                val trafficService = (activity as? MainActivity)?.connection?.service
                 runOnDefaultDispatcher {
                     val profiles = SagerDatabase.proxyDao.getByGroup(DataStore.currentGroupId())
                     val toClear = mutableListOf<ProxyEntity>()
@@ -578,6 +653,11 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
                     if (toClear.isNotEmpty()) {
                         ProfileManager.updateProfile(toClear)
+                    }
+                    try {
+                        trafficService?.resetTraffic(profiles.map { it.id }.toLongArray())
+                    } catch (e: Exception) {
+                        Logs.w(e)
                     }
                     onMainDispatcher {
                         getCurrentGroupFragment()?.adapter?.clearTrafficStatistics()
@@ -1054,8 +1134,10 @@ class ConfigurationFragment @JvmOverloads constructor(
         var selectedGroupIndex = 0
         var groupList: ArrayList<ProxyGroup> = ArrayList()
         var groupFragments: HashMap<Long, GroupFragment> = HashMap()
+        private val reloadGeneration = AtomicLong()
 
         fun reload(now: Boolean = false) {
+            val generation = reloadGeneration.incrementAndGet()
 
             if (!select) {
                 groupPager.unregisterOnPageChangeCallback(updateSelectedCallback)
@@ -1073,14 +1155,12 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
                 }
 
-                val selectedProxy = selectedItem?.id ?: DataStore.selectedProxy
-                val currentProfile = DataStore.currentProfile
+                if (generation != reloadGeneration.get()) return@runOnDefaultDispatcher
 
                 var selectedGroup = selectedItem?.groupId ?: DataStore.currentGroupId()
-                var set = false
+                var newSelectedGroupIndex: Int? = null
                 if (selectedGroup > 0L) {
-                    selectedGroupIndex = newGroupList.indexOfFirst { it.id == selectedGroup }
-                    set = true
+                    newSelectedGroupIndex = newGroupList.indexOfFirst { it.id == selectedGroup }
                 } else if (groupList.size == 1) {
                     selectedGroup = groupList[0].id
                     if (DataStore.selectedGroup != selectedGroup) {
@@ -1090,16 +1170,34 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                 val runFunc = if (now) activity?.let { it::runOnUiThread } else groupPager::post
                 if (runFunc != null) {
+                    val reloadAdapter = this@GroupPagerAdapter
                     runFunc {
-                        updateProfileStateSnapshots(selectedProxy, currentProfile)
-                        groupList = newGroupList
-                        notifyDataSetChanged()
-                        if (set) groupPager.setCurrentItem(selectedGroupIndex, false)
-                        val hideTab = groupList.size < 2
-                        tabLayout.isGone = hideTab
-                        toolbar.elevation = if (hideTab) 0F else dp2px(4).toFloat()
-                        if (!select) {
-                            groupPager.registerOnPageChangeCallback(updateSelectedCallback)
+                        val viewOwner = viewLifecycleOwnerLiveData.value
+                        if (generation == reloadGeneration.get() && viewOwner != null &&
+                            isCurrentGroupPagerAdapter(reloadAdapter)
+                        ) {
+                            viewOwner.lifecycleScope.launch(Dispatchers.Main.immediate) {
+                                profileStateInitialized.await()
+                                if (generation != reloadGeneration.get() ||
+                                    viewLifecycleOwnerLiveData.value !== viewOwner ||
+                                    !isCurrentGroupPagerAdapter(reloadAdapter)
+                                ) {
+                                    return@launch
+                                }
+                                refreshProfileState()
+                                newSelectedGroupIndex?.let { selectedGroupIndex = it }
+                                groupList = newGroupList
+                                notifyDataSetChanged()
+                                if (newSelectedGroupIndex != null) {
+                                    groupPager.setCurrentItem(selectedGroupIndex, false)
+                                }
+                                val hideTab = groupList.size < 2
+                                tabLayout.isGone = hideTab
+                                toolbar.elevation = if (hideTab) 0F else dp2px(4).toFloat()
+                                if (!select) {
+                                    groupPager.registerOnPageChangeCallback(updateSelectedCallback)
+                                }
+                            }
                         }
                     }
                 }
@@ -1173,7 +1271,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
         }
 
-        override suspend fun onUpdated(data: TrafficData) = Unit
+        override suspend fun onUpdated(data: List<TrafficData>) = Unit
 
         override suspend fun onUpdated(profile: ProxyEntity, noTraffic: Boolean) = Unit
 
@@ -1429,6 +1527,13 @@ class ConfigurationFragment @JvmOverloads constructor(
             GroupManager.addListener(adapter!!)
             configurationListView.adapter = adapter
             configurationListView.setItemViewCacheSize(20)
+            configurationListView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                        adapter?.flushPendingTrafficUpdates()
+                    }
+                }
+            })
 
             if (!select) {
                 undoManager = UndoSnackbarManager(activity as MainActivity, adapter!!)
@@ -1489,6 +1594,8 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             var configurationIdList: MutableList<Long> = mutableListOf()
             val configurationList = HashMap<Long, ProxyEntity>()
+            private val pendingTrafficUpdates = HashSet<Long>()
+            private val profileStatePayload = Any()
 
             private fun getItem(profileId: Long): ProxyEntity {
                 var profile = configurationList[profileId]
@@ -1554,8 +1661,93 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
             }
 
+            override fun onBindViewHolder(
+                holder: ConfigurationHolder,
+                position: Int,
+                payloads: List<Any>,
+            ) {
+                if (payloads.isNotEmpty() && payloads.all { it === profileStatePayload }) {
+                    try {
+                        holder.bindProfileState(getItemAt(position))
+                    } catch (ignored: NullPointerException) { // when group deleted
+                    }
+                } else {
+                    onBindViewHolder(holder, position)
+                }
+            }
+
             override fun onViewRecycled(holder: ConfigurationHolder) {
                 holder.lastSelfHasMiddleRow = null
+                holder.lastBoundTx = Long.MIN_VALUE
+                holder.lastBoundRx = Long.MIN_VALUE
+            }
+
+            override fun onViewAttachedToWindow(holder: ConfigurationHolder) {
+                super.onViewAttachedToWindow(holder)
+                val profileId = holder.itemId
+                val cached = configurationList[profileId] ?: return
+                if (holder.lastBoundTx == cached.tx && holder.lastBoundRx == cached.rx) return
+                configurationListView.post {
+                    if (!holder.itemView.isAttachedToWindow || holder.itemId != profileId) {
+                        return@post
+                    }
+                    val latest = configurationList[profileId] ?: return@post
+                    if (holder.lastBoundTx == latest.tx && holder.lastBoundRx == latest.rx) {
+                        return@post
+                    }
+                    if (configurationListView.scrollState != RecyclerView.SCROLL_STATE_IDLE) {
+                        pendingTrafficUpdates.add(profileId)
+                    } else {
+                        updateVisibleTraffic(profileId, holder)
+                    }
+                }
+            }
+
+            private fun updateVisibleTraffic(
+                profileId: Long,
+                visibleHolder: ConfigurationHolder? = null,
+            ) {
+                val cached = configurationList[profileId] ?: return
+                val holder = if (visibleHolder != null) {
+                    visibleHolder
+                } else {
+                    configurationListView.findViewHolderForItemId(profileId)
+                        as? ConfigurationHolder ?: return
+                }
+                if (holder.lastBoundTx == cached.tx && holder.lastBoundRx == cached.rx) return
+
+                val index = holder.bindingAdapterPosition
+                val previousHasMiddleRow = holder.lastSelfHasMiddleRow
+                val previouslyShowedTraffic = holder.lastBoundTx != Long.MIN_VALUE &&
+                        holder.lastBoundRx != Long.MIN_VALUE &&
+                        holder.lastBoundTx + holder.lastBoundRx != 0L
+                val showTraffic = cached.tx + cached.rx != 0L
+
+                if (previousHasMiddleRow == null || previouslyShowedTraffic != showTraffic) {
+                    holder.bind(cached)
+                } else if (showTraffic) {
+                    holder.bindTraffic(cached)
+                }
+
+                if (index != RecyclerView.NO_POSITION && previousHasMiddleRow != null &&
+                    previousHasMiddleRow != holder.lastSelfHasMiddleRow
+                ) {
+                    refreshSameRowNeighbours(index)
+                }
+            }
+
+            fun flushPendingTrafficUpdates() {
+                if (pendingTrafficUpdates.isEmpty()) return
+                for (index in 0 until configurationListView.childCount) {
+                    val holder = configurationListView.getChildViewHolder(
+                        configurationListView.getChildAt(index)
+                    ) as? ConfigurationHolder ?: continue
+                    val profileId = holder.itemId
+                    if (profileId in pendingTrafficUpdates) {
+                        updateVisibleTraffic(profileId, holder)
+                    }
+                }
+                pendingTrafficUpdates.clear()
             }
 
             fun refreshSameRowNeighbours(position: Int) {
@@ -1592,7 +1784,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             fun refreshProfileState(profileIds: Set<Long>) {
                 profileIds.forEach { profileId ->
                     val index = configurationIdList.indexOf(profileId)
-                    if (index >= 0) notifyItemChanged(index)
+                    if (index >= 0) notifyItemChanged(index, profileStatePayload)
                 }
             }
 
@@ -1754,7 +1946,14 @@ class ConfigurationFragment @JvmOverloads constructor(
                     } else {
                         profile
                     }
+                    val contentChanged = !noTraffic ||
+                            cachedProfile == null ||
+                            cachedProfile != updatedProfile ||
+                            cachedProfile.dirty != updatedProfile.dirty ||
+                            cachedProfile.displayName() != updatedProfile.displayName()
                     configurationList[profile.id] = updatedProfile
+                    if (noTraffic && !contentChanged) return@post
+
                     val newHasMiddleRow = hasMiddleRow(updatedProfile)
                     val holder = layoutManager.findViewByPosition(index)
                         ?.let { configurationListView.getChildViewHolder(it) } as? ConfigurationHolder
@@ -1766,34 +1965,20 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
             }
 
-            override suspend fun onUpdated(data: TrafficData) {
+            override suspend fun onUpdated(data: List<TrafficData>) {
                 try {
                     onMainDispatcher {
-                        val cached = configurationList[data.id] ?: return@onMainDispatcher
-                        if (cached.tx == data.tx && cached.rx == data.rx) {
-                            return@onMainDispatcher
-                        }
+                        for (update in data) {
+                            val cached = configurationList[update.id] ?: continue
+                            if (cached.tx == update.tx && cached.rx == update.rx) continue
 
-                        val previouslyShowedTraffic = cached.tx + cached.rx != 0L
-
-                        cached.tx = data.tx
-                        cached.rx = data.rx
-                        val holder = configurationListView.findViewHolderForItemId(data.id)
-                            as? ConfigurationHolder ?: return@onMainDispatcher
-                        val index = holder.bindingAdapterPosition
-                        val previous = holder.lastSelfHasMiddleRow
-                        val showTraffic = cached.tx + cached.rx != 0L
-
-                        if (previous == null || previouslyShowedTraffic != showTraffic) {
-                            holder.bind(cached)
-                        } else if (showTraffic) {
-                            holder.bindTraffic(cached)
-                        }
-
-                        if (index != RecyclerView.NO_POSITION && previous != null &&
-                            previous != holder.lastSelfHasMiddleRow
-                        ) {
-                            refreshSameRowNeighbours(index)
+                            cached.tx = update.tx
+                            cached.rx = update.rx
+                            if (configurationListView.scrollState != RecyclerView.SCROLL_STATE_IDLE) {
+                                pendingTrafficUpdates.add(update.id)
+                            } else {
+                                updateVisibleTraffic(update.id)
+                            }
                         }
                     }
                 } catch (e: Exception) {
@@ -1879,7 +2064,9 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             lateinit var entity: ProxyEntity
 
-            var lastSelfHasMiddleRow: Boolean? = null            
+            var lastSelfHasMiddleRow: Boolean? = null
+            var lastBoundTx = Long.MIN_VALUE
+            var lastBoundRx = Long.MIN_VALUE
             private fun showShareMenu(anchor: View, proxyEntity: ProxyEntity) {
                 val popup = PopupMenu(requireContext(), anchor)
                 popup.menuInflater.inflate(R.menu.profile_share_menu, popup.menu)
@@ -2155,6 +2342,23 @@ class ConfigurationFragment @JvmOverloads constructor(
                     shareButton.isVisible = true
                 }
 
+                lastBoundTx = tx
+                lastBoundRx = rx
+
+            }
+
+            fun bindProfileState(proxyEntity: ProxyEntity) {
+                if (!::entity.isInitialized || entity.id != proxyEntity.id) {
+                    bind(proxyEntity)
+                    return
+                }
+                val pf = parentFragment as? ConfigurationFragment ?: return
+                val selected = pf.isSelectedProfile(proxyEntity.id)
+                val started = selected && DataStore.serviceState.started &&
+                        pf.isCurrentProfile(proxyEntity.id)
+                editButton.isEnabled = !started
+                removeButton.isEnabled = !started
+                applySelected(selected)
             }
 
             fun bindTraffic(proxyEntity: ProxyEntity) {
@@ -2173,6 +2377,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                 } else {
                     trafficText.text = traffic
                 }
+                lastBoundTx = proxyEntity.tx
+                lastBoundRx = proxyEntity.rx
             }
 
             var currentName = ""
