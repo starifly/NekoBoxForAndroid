@@ -602,9 +602,6 @@
     <string name="enable_tls_fragment">Включить фрагментацию TLS Client Hello</string>
     <string name="fragment_length">Длина фрагмента (мин-макс)</string>
     <string name="fragment_interval">Интервал фрагмента (мин-макс)</string>
-    <string name="backup_local">Локальная резервная копия</string>
-    <string name="backup_webdav">Резервная копия WebDAV</string>
-    <string name="webdav_settings">Настройки WebDAV</string>
     <string name="webdav_server">Адрес сервера</string>
     <string name="webdav_username">Имя пользователя</string>
     <string name="webdav_password">Пароль</string>
@@ -612,8 +609,6 @@
     <string name="webdav_test">Проверить соединение</string>
     <string name="webdav_test_success">Соединение успешно</string>
     <string name="webdav_test_failed" formatted="false">Ошибка соединения: %s</string>
-    <string name="backup_to_webdav">Резервное копирование в WebDAV</string>
-    <string name="restore_from_webdav">Восстановление из WebDAV</string>
     <string name="webdav_backup_success">Резервное копирование в WebDAV выполнено</string>
     <string name="webdav_backup_failed">Не удалось создать резервную копию в WebDAV: %s</string>
     <string name="webdav_restore_success">Восстановление из WebDAV выполнено</string>

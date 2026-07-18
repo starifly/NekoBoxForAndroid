@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.aidl;
 
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData;
+import io.nekohasekai.sagernet.aidl.TrafficData;
 import io.nekohasekai.sagernet.aidl.TrafficDataBatch;
 
 oneway interface ISagerNetServiceCallback {

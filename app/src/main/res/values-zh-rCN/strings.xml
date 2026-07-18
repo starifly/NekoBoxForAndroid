@@ -71,9 +71,6 @@
     <string name="show_stop_sum">如果你不想使用快捷面板作为开关</string>
     <string name="show_direct_speed">显示直连速度</string>
     <string name="show_direct_speed_sum">同时在通知中显示未经过代理的流量速度</string>
-    <string name="security_settings">TLS 安全设置</string>
-    <string name="allow_insecure">允许不安全连接</string>
-    <string name="allow_insecure_sum">禁用证书检查。启用后，此配置与明文一样安全。</string>
     <string name="speed_detail">代理： %1$s↑ %2$s↓\n直连： %3$s↑ %4$s↓</string>
     <string name="speed">%s/s</string>
     <string name="connection_test_testing">测试中…</string>
@@ -83,15 +80,11 @@
     <string name="connection_test_fail">网络不可用</string>
     <string name="connection_test_error_status_code">错误代码：#%d</string>
     <string name="cag_dns">DNS设置</string>
-    <string name="remote_dns">远程DNS</string>
-    <string name="direct_dns">直连DNS</string>
     <string name="enable_dns_routing">启用DNS路由</string>
     <string name="dns_routing_message">使用直连DNS解析绕过路由中的域名。请注意
         潜在的DNS泄露风险</string>
     <string name="enable_fakedns">启用FakeDNS</string>
     <string name="fakedns_message">可能导致其他应用在代理停止后需要重启以重新连接网络</string>
-    <string name="dns_hosts">域名重写</string>
-    <string name="dns_hosts_dialog_message">每行一个。以 # 开头的行是注释。示例：\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="port_local_dns">本地DNS端口</string>
     <string name="require_transproxy">启用透明代理入站</string>
     <string name="transproxy_mode">透明代理模式</string>
@@ -132,12 +125,9 @@
     <string name="early_data_header_name">早期数据头部名称</string>
     <string name="encryption">加密</string>
     <string name="extra_headers">额外头部</string>
-    <string name="config_type">配置类型</string>
-    <string name="edit_config">编辑配置</string>
     <!-- feature category -->
     <string name="ipv6">IPv6 路由</string>
     <string name="prefer">首选</string>
-    <string name="only">仅</string>
     <string name="metered">计费提示</string>
     <string name="metered_summary">提示系统将 VPN 视为按量计费</string>
     <string name="menu_route">路由</string>
@@ -298,14 +288,13 @@
     <string name="license">许可证</string>
     <string name="route_warn">在添加自定义规则前请确保已阅读文档，
         否则可能无法连接互联网。</string>
-    <string name="lines">%d 行</string>
     <string name="night_mode">夜间模式</string>
     <string name="language">语言</string>
     <string name="follow_system">跟随系统</string>
     <string name="enable">启用</string>
     <string name="disable">禁用</string>
     <string name="auto">自动</string>
-    <string name="security_settings">TLS 安全设置</string>
+    <string name="ttings">TLS 安全设置</string>
     <string name="allow_insecure">允许不安全的连接</string>
     <string name="allow_insecure_sum">禁用证书检查. 启用后该配置安全性相当于明文</string>
     <string name="config_type">配置类型</string>
@@ -316,14 +305,6 @@
     </plurals>
     <string name="not_set">未设置</string>
     <string name="only">仅</string>
-    <string name="prefer">优先</string>
-    <string name="route_not_asset">不是资源文件: 预期 .db 为扩展名, 但 %s</string>
-    <string name="route_asset_no_update">已为最新</string>
-    <string name="route_asset_updated">已更新</string>
-    <string name="route_asset_status">本地版本: %s</string>
-    <string name="route_rules_provider">路由资源更新源</string>
-    <string name="route_assets">资源</string>
-    <string name="route_manage_assets">管理路由资源</string>
     <string name="enable_log">启用日志</string>
     <string name="enable_log_sum">用于调试</string>
     <string name="list">列表</string>
@@ -405,14 +386,8 @@
     <string name="profile_import">导入配置</string>
     <string name="profile_import_message">确认要导入配置 %s 吗？</string>
     <string name="clear_profiles_message">确定要清空此分组吗？</string>
-    <string name="no_proxies_found_in_subscription">未在此订阅内找到服务器配置</string>
-    <string name="action_export">导出</string>
     <string name="remote_dns">远程 DNS</string>
     <string name="direct_dns">直连 DNS</string>
-    <string name="enable_dns_routing">启用 DNS 路由</string>
-    <string name="dns_routing_message">使用直连 DNS 解析绕过路由中的 domains. 注意潜在的 DNS 泄漏</string>
-    <string name="enable_fakedns">启用 FakeDNS</string>
-    <string name="fakedns_message">可能导致其他应用程序在代理停止后需要重新启动以重新连接到网络</string>
     <string name="dns_hosts">域名重写</string>
     <string name="dns_hosts_dialog_message">一行一个，# 开头代表注释。示例：\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="apps">应用</string>
