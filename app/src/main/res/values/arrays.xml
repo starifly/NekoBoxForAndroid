@@ -780,6 +780,8 @@
         <item>default</item>
         <item>unshaped</item>
         <item>unsafe-raw</item>
+    </string-array>
+
     <string-array name="olcrtc_carrier">
         <item>jitsi</item>
         <item>telemost</item>
