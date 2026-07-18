@@ -734,10 +734,28 @@ fun buildConfig(
                         }
                     }
 
-		    when (rule.outbound) {
+                    val hasDomainCriteria = !domainList.isNullOrEmpty()
+                    val hasIpCriteria =
+                        rule.ip.isNotBlank() || rulesetTags.any { it.second }
+                    val hasDomainRuleset = rulesetTags.any { !it.second }
+                    val isAppOnlyDns =
+                        uidList.isNotEmpty() &&
+                            !hasDomainCriteria &&
+                            !hasIpCriteria &&
+                            !hasDomainRuleset &&
+                            rule.port.isBlank() &&
+                            rule.sourcePort.isBlank() &&
+                            rule.network.isBlank() &&
+                            rule.source.isBlank() &&
+                            rule.protocol.isBlank()
+                    val shouldAddDnsRule = hasDomainCriteria || isAppOnlyDns
+
+                    when (rule.outbound) {
                         -1L -> {
-                            userDNSRuleList += makeDnsRuleObj().apply { server = "dns-direct" }
-                            
+                            if (shouldAddDnsRule) {
+                                userDNSRuleList += makeDnsRuleObj().apply { server = "dns-direct" }
+                            }
+
                             if (rule_set != null && rulesetTags.isNotEmpty()) {
                                 for (tag in rule_set) {
                                     // 只处理ruleset标签，且必须是非IP类型
@@ -753,16 +771,18 @@ fun buildConfig(
                         }
 
                         0L -> {
-                            if (useFakeDns) userDNSRuleList += makeDnsRuleObj().apply {
-                                server = "dns-fake"
-                                inbound = listOf("tun-in")
-                                query_type = listOf("A", "AAAA")
-                            } else {
-                                userDNSRuleList += makeDnsRuleObj().apply {
-                                    server = "dns-remote"
+                            if (shouldAddDnsRule) {
+                                if (useFakeDns) userDNSRuleList += makeDnsRuleObj().apply {
+                                    server = "dns-fake"
+                                    inbound = listOf("tun-in")
+                                    query_type = listOf("A", "AAAA")
+                                } else {
+                                    userDNSRuleList += makeDnsRuleObj().apply {
+                                        server = "dns-remote"
+                                    }
                                 }
                             }
-                            
+
                             if (rule_set != null && rulesetTags.isNotEmpty()) {
                                 for (tag in rule_set) {
                                     val tagInfo = rulesetTags.find { it.first == tag }
@@ -786,11 +806,13 @@ fun buildConfig(
                         }
 
                         -2L -> {
-                            userDNSRuleList += makeDnsRuleObj().apply {
-                                server = "dns-block"
-                                disable_cache = true
+                            if (shouldAddDnsRule) {
+                                userDNSRuleList += makeDnsRuleObj().apply {
+                                    server = "dns-block"
+                                    disable_cache = true
+                                }
                             }
-                            
+
                             if (rule_set != null && rulesetTags.isNotEmpty()) {
                                 for (tag in rule_set) {
                                     val tagInfo = rulesetTags.find { it.first == tag }
