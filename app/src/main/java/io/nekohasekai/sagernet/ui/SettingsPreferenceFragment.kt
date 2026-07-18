@@ -47,6 +47,27 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         addPreferencesFromResource(R.xml.global_preferences)
 
         val appTheme = findPreference<ColorPickerPreference>(Key.APP_THEME)!!
+        val useSystemTheme = findPreference<SwitchPreference>(Key.USE_SYSTEM_THEME)!!
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            useSystemTheme.isVisible = false
+        } else {
+            useSystemTheme.setOnPreferenceChangeListener { _, newValue ->
+                val enabled = newValue as Boolean
+                appTheme.isEnabled = !enabled
+                if (DataStore.serviceState.started) {
+                    SagerNet.reloadService()
+                }
+                val theme = if (enabled) Theme.getTheme(Theme.MONET) else Theme.getTheme(DataStore.appTheme)
+                app.setTheme(theme)
+                requireActivity().apply {
+                    setTheme(theme)
+                    ActivityCompat.recreate(this)
+                }
+                true
+            }
+            appTheme.isEnabled = !DataStore.useSystemTheme
+        }
+
         appTheme.setOnPreferenceChangeListener { _, newTheme ->
             if (DataStore.serviceState.started) {
                 SagerNet.reloadService()

@@ -630,6 +630,10 @@
         <item name="cardElevatedSurfaceColor">@color/card_elevated_verdant_mint</item>
     </style>
 
+    <style name="Theme.SagerNet.Monet" parent="Theme.SagerNet" />
+
+    <style name="Theme.SagerNet.Dialog.Monet" parent="Theme.SagerNet.Dialog" />
+
     <style name="Theme.Start" parent="Theme.MaterialComponents.DayNight">
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="colorPrimary">@android:color/transparent</item>

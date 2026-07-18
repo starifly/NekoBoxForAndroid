@@ -8,6 +8,12 @@
             app:key="isAutoConnect"
             app:summary="@string/auto_connect_summary"
             app:title="@string/auto_connect" />
+	<SwitchPreference
+            app:defaultValue="false"
+            app:icon="@drawable/ic_baseline_color_lens_24"
+            app:key="useSystemTheme"
+            app:title="@string/use_system_theme"
+            app:summary="@string/use_system_theme_summary" />
         <moe.matsuri.nb4a.ui.ColorPickerPreference
             android:title="@string/theme"
             app:icon="@drawable/ic_baseline_color_lens_24"
