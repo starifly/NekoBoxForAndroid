@@ -39,8 +39,8 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="actionBarTheme">@style/ThemeOverlay.Material3.ActionBar</item>
-        <item name="materialAlertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog</item>
-        <item name="alertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog.M3</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog.M3</item>
         <item name="android:dialogTheme">@style/Theme.Material3.DayNight.Dialog</item>
         <item name="dialogTheme">@style/Theme.Material3.DayNight.Dialog</item>
         <item name="chipStyle">@style/Widget.MaterialComponents.Chip.Choice.SagerNet</item>
@@ -152,18 +152,18 @@
         <item name="colorOnSecondaryContainer">#2B151C</item>
     </style>
 
-    <style name="ThemeOverlay.SagerNet.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
-        <item name="android:windowBackground">@drawable/bg_dialog_m3</item>
-        <item name="buttonBarPositiveButtonStyle">@style/Widget.Material3.Button.TextButton.Dialog</item>
-        <item name="buttonBarNegativeButtonStyle">@style/Widget.Material3.Button.TextButton.Dialog</item>
-        <item name="buttonBarNeutralButtonStyle">@style/Widget.Material3.Button.TextButton.Dialog</item>
-        <item name="android:checkedTextViewStyle">@style/Widget.Material3.CheckedTextView</item>
+    <style name="ThemeOverlay.SagerNet.AlertDialog.M3"
+    	parent="ThemeOverlay.Material3.MaterialAlertDialog">
+	    <item name="android:windowBackground">@drawable/bg_dialog_m3</item>
+	    <item name="buttonBarPositiveButtonStyle">@style/Widget.Material3.Button.TextButton.Dialog</item>
+	    <item name="buttonBarNegativeButtonStyle">@style/Widget.Material3.Button.TextButton.Dialog</item>
+	    <item name="buttonBarNeutralButtonStyle">@style/Widget.Material3.Button.TextButton.Dialog</item>
+	    <item name="android:checkedTextViewStyle">@style/Widget.Material3.CheckedTextView</item>
     </style>
-
     <style name="PreferenceThemeOverlay.SagerNet" parent="PreferenceThemeOverlay.v14.Material">
-        <item name="alertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog</item>
-        <item name="android:alertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog</item>
-        <item name="materialAlertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog.M3</item>
+        <item name="android:alertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog.M3</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog.M3</item>
         <item name="preferenceStyle">@style/Preference.SagerNet</item>
         <item name="dialogPreferenceStyle">@style/Preference.SagerNet.Dialog</item>
         <item name="editTextPreferenceStyle">@style/Preference.SagerNet.EditText</item>
