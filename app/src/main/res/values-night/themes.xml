@@ -12,6 +12,24 @@
       Selecting Dracula also forces night mode on (SettingsPreferenceFragment),
       which is what brings these overrides into effect.
     -->
+    <style name="Theme.SagerNet">
+        <!-- Missing attributes for night theme -->
+        <item name="appBarBackgroundColor">@color/colorSurface</item>
+        <item name="cardElevatedSurfaceColor">@color/colorSurfaceContainer</item>
+        <item name="protocolColor">@color/colorPrimary</item>
+        <item name="profileNameColor">@color/colorOnSurface</item>
+        <item name="statusConnectedColor">@color/colorPrimary</item>
+        <item name="statusStoppedColor">@color/colorOnSurfaceVariant</item>
+        <item name="statusConnectingColor">@color/colorSecondary</item>
+        <item name="testFailColor">@color/colorError</item>
+        <item name="speedTextColor">@color/colorOnSurface</item>
+        <item name="fabStoppedColor">@color/colorPrimary</item>
+        <item name="fabConnectedColor">@color/colorPrimary</item>
+        <item name="statusDetailColor">@color/colorOnSurfaceVariant</item>
+        <item name="statusTestingColor">@color/colorSecondary</item>
+        <item name="routeProxyColor">@color/colorPrimary</item>
+        <item name="navSelectedColor">@color/colorPrimary</item>
+    </style>
     <style name="Theme.SagerNet.Dracula" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/color_dracula</item>
         <item name="appBarBackgroundColor">@color/color_dracula</item>
