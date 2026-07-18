@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
+     
+     <color name="colorPrimary">#FF0000</color>   <!-- 替換成你想要的主色 -->
+    <color name="colorOnPrimary">#FFFFFF</color>
+    <color name="colorSurface">#FFFFFF</color>
+    <color name="colorOnSurface">#000000</color>
+    <color name="colorSurfaceContainer">#F5F5F5</color>
+    <color name="colorSurfaceContainerLow">#EEEEEE</color>
+    <color name="colorSecondary">#FF4081</color>
+    <color name="colorError">#F44336</color>
+    <color name="colorOnSurfaceVariant">#666666</color>
 
     <integer-array name="material_colors">
         <item>@color/material_red_500</item>

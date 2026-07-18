@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    
+    <color name="colorPrimary">#FF0000</color>
+    <color name="colorOnPrimary">#FFFFFF</color>
+    <color name="colorSurface">#121212</color>
+    <color name="colorOnSurface">#FFFFFF</color>
+    <color name="colorSurfaceContainer">#1E1E1E</color>
+    <color name="colorSurfaceContainerLow">#2A2A2A</color>
+    <color name="colorSecondary">#FF4081</color>
+    <color name="colorError">#F44336</color>
+    <color name="colorOnSurfaceVariant">#BBBBBB</color>
+
     <color name="fab_color_progress">@color/material_light_white</color>
     <color name="preference_simple_menu_background">#303030</color>
     <!-- 卡片默认细边框：约 12% 白 -->
