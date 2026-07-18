@@ -21,14 +21,26 @@ import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.ui.MainActivity
+import kotlin.math.abs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class StatsBar @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null,
-    defStyleAttr: Int = com.google.android.material.R.attr.materialCardViewStyle,
-) : MaterialCardView(context, attrs, defStyleAttr), CoordinatorLayout.AttachedBehavior {
+  defStyleAttr: Int = R.attr.bottomAppBarStyle,
+) : BottomAppBar(context, attrs, defStyleAttr) {
+    companion object {
+        private const val INITIAL_HIDE_DELAY_MS = 100L
+        private const val SCROLL_TOGGLE_THRESHOLD_DP = 8f
+    }
+
+    private enum class Transition {
+        ShowImmediate,
+        ShowAnimated,
+        HideImmediate,
+        HideAfterStart,
+    }
 
     private lateinit var statusText: TextView
     private lateinit var txText: TextView
@@ -36,8 +48,7 @@ class StatsBar @JvmOverloads constructor(
     private lateinit var speedRow: View
     private lateinit var textContainer: View
     private lateinit var behavior: YourBehavior
-
-    private val mainActivity: MainActivity
+private val mainActivity: MainActivity
         get() {
             var current = context
             while (current is ContextWrapper) {
@@ -50,6 +61,20 @@ class StatsBar @JvmOverloads constructor(
     var allowShow = true
     private var hideOnScroll = true
 
+    private var scrollHidden = false
+    private var scrollDirection = 0 // 1 = hide (dy>0), -1 = show (dy<0), 0 = none
+    private var scrollAccumulatedDy = 0
+    private val scrollToggleThresholdPx =
+        (SCROLL_TOGGLE_THRESHOLD_DP * resources.displayMetrics.density).toInt().coerceAtLeast(8)
+
+    var useExternalScrollDriver = false
+        set(value) {
+            if (field == value) return
+            field = value
+            syncScrollHiddenFromView()
+            resetScrollDriverState()
+            updateHideOnScroll()
+        }
     private fun ensureViews() {
         if (!::statusText.isInitialized) {
             statusText = findViewById(R.id.status)
@@ -140,6 +165,72 @@ class StatsBar @JvmOverloads constructor(
     fun refreshSpeedVisibility() {
         ensureViews()
         if (this::speedRow.isInitialized) speedRow.isVisible = DataStore.speedInterval > 0
+        TooltipCompat.setTooltipText(this, text)
+    }
+
+    private fun updateHideOnScroll() {
+        hideOnScroll =
+            !useExternalScrollDriver && allowShow && currentState == BaseService.State.Connected
+    }
+
+    private fun shouldShow(): Boolean {
+        return allowShow && currentState == BaseService.State.Connected
+    }
+
+    private fun resetScrollDriverState() {
+        scrollDirection = 0
+        scrollAccumulatedDy = 0
+    }
+
+    private fun syncScrollHiddenFromView() {
+        if (!isLaidOut || height <= 0) return
+        scrollHidden = translationY >= height / 2f
+    }
+
+    fun onListScrolled(dy: Int) {
+        if (!useExternalScrollDriver || !shouldShow() || dy == 0) return
+
+        val direction = if (dy > 0) 1 else -1
+        if (direction != scrollDirection) {
+            scrollDirection = direction
+            scrollAccumulatedDy = 0
+        }
+        scrollAccumulatedDy += dy
+
+        val wantHidden = scrollAccumulatedDy > 0
+        if (wantHidden == scrollHidden) {
+            if (abs(scrollAccumulatedDy) > scrollToggleThresholdPx) {
+                scrollAccumulatedDy = direction * scrollToggleThresholdPx
+            }
+            return
+        }
+        if (abs(scrollAccumulatedDy) < scrollToggleThresholdPx) return
+
+        scrollHidden = wantHidden
+        scrollAccumulatedDy = 0
+        if (wantHidden) performHide() else performShow()
+    }
+
+    fun syncMainControls(
+        showControls: Boolean,
+        state: BaseService.State,
+        showWhenConnected: Boolean,
+        animate: Boolean,
+    ) {
+        currentState = state
+        allowShow = showControls
+        when {
+            !showControls || state != BaseService.State.Connected -> {
+                applyTransition(
+                    if (animate && showControls) Transition.HideAfterStart else Transition.HideImmediate
+                )
+            }
+
+            showWhenConnected -> applyTransition(
+                if (animate) Transition.ShowAnimated else Transition.ShowImmediate
+            )
+            alpha == 0f && isLaidOut -> alpha = 1f
+        }
     }
 
     // Two-tone status: color the lead segment (split at [sep], kept with the lead)
@@ -188,6 +279,13 @@ class StatsBar @JvmOverloads constructor(
         fun postWhenStarted(what: () -> Unit) = activity.lifecycleScope.launch(Dispatchers.Main) {
             delay(100L)
             activity.withStarted { what() }
+    private fun commitHidden(animated: Boolean) {
+        alpha = 1f
+        scrollHidden = true
+        resetScrollDriverState()
+        if (!animated) {
+            syncHiddenPosition()
+            return
         }
 
         postWhenStarted {

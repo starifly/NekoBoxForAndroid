@@ -1146,10 +1146,27 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
                             if (uidList.isNotEmpty()) user_id = uidList
                             domainList?.let { makeSingBoxRule(it) }}
                     }
+val hasDomainCriteria = !domainList.isNullOrEmpty()
+                    val hasIpCriteria =
+                        rule.ip.isNotBlank() || rulesetTags.any { it.second }
+                    val hasDomainRuleset = rulesetTags.any { !it.second }
+                    val isAppOnlyDns =
+                        uidList.isNotEmpty() &&
+                            !hasDomainCriteria &&
+                            !hasIpCriteria &&
+                            !hasDomainRuleset &&
+                            rule.port.isBlank() &&
+                            rule.sourcePort.isBlank() &&
+                            rule.network.isBlank() &&
+                            rule.source.isBlank() &&
+                            rule.protocol.isBlank()
+                    val shouldAddDnsRule = hasDomainCriteria || isAppOnlyDns
 
                     when (rule.outbound) {
                         -1L -> {
-                            userDNSRuleList += makeDnsRuleObj().apply { server = "dns-direct" }
+                            if (shouldAddDnsRule) {
+                                userDNSRuleList += makeDnsRuleObj().apply { server = "dns-direct" }
+                            }
 
                             val nonIpRulesets = mutableListOf<String>()
                             if (rule_set != null && rulesetTags.isNotEmpty()) {
@@ -1165,23 +1182,19 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
                                 rule_set = nonIpRulesets
                             }
                         }
-                    }
-
-      when (rule.outbound) {
-                        -1L -> {
-                            userDNSRuleList += makeDnsRuleObj().apply { server = "dns-direct" }
-                        }
 
                         0L -> {
-                            if (useFakeDns) {
-                                userDNSRuleList += makeDnsRuleObj().apply {
-                                    server = "dns-fake"
-                                    inbound = listOf("tun-in")
-                                    query_type = listOf("A", "AAAA")
-                                }
-                            } else {
-                                userDNSRuleList += makeDnsRuleObj().apply {
-                                    server = "dns-remote"
+                            if (shouldAddDnsRule) {
+                                if (useFakeDns) {
+                                    userDNSRuleList += makeDnsRuleObj().apply {
+                                        server = "dns-fake"
+                                        inbound = listOf("tun-in")
+                                        query_type = listOf("A", "AAAA")
+                                    }
+                                } else {
+                                    userDNSRuleList += makeDnsRuleObj().apply {
+                                        server = "dns-remote"
+                                    }
                                 }
                             }
 
@@ -1206,11 +1219,13 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
                                 }
                             }
                         }
-
+                    }
                         -2L -> {
-                            userDNSRuleList += makeDnsRuleObj().apply {
-                                server = "dns-block"
-                                disable_cache = true
+                            if (shouldAddDnsRule) {
+                                userDNSRuleList += makeDnsRuleObj().apply {
+                                    server = "dns-block"
+                                    disable_cache = true
+                                }
                             }
 
                             if (rule_set != null && rulesetTags.isNotEmpty()) {

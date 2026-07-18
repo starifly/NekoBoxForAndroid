@@ -1662,6 +1662,113 @@ val groupListBinding = LayoutGroupListBinding.bind(view)
                 }
             }
 
+            override fun onBindViewHolder(
+                holder: ConfigurationHolder,
+                position: Int,
+                payloads: List<Any>,
+            ) {
+                if (payloads.isNotEmpty() && payloads.all { it === profileStatePayload }) {
+                    try {
+                        holder.bindProfileState(getItemAt(position))
+                    } catch (ignored: NullPointerException) { // when group deleted
+                    }
+                } else {
+                    onBindViewHolder(holder, position)
+                }
+            }
+
+            override fun onViewRecycled(holder: ConfigurationHolder) {
+                holder.lastSelfHasMiddleRow = null
+                holder.lastBoundTx = Long.MIN_VALUE
+                holder.lastBoundRx = Long.MIN_VALUE
+            }
+
+            override fun onViewAttachedToWindow(holder: ConfigurationHolder) {
+                super.onViewAttachedToWindow(holder)
+                val profileId = holder.itemId
+                val cached = configurationList[profileId] ?: return
+                if (holder.lastBoundTx == cached.tx && holder.lastBoundRx == cached.rx) return
+                if (configurationListView.scrollState != RecyclerView.SCROLL_STATE_IDLE) {
+                    pendingTrafficUpdates.add(profileId)
+                    return
+                }
+                updateVisibleTraffic(profileId, holder)
+            }
+
+            private fun updateVisibleTraffic(
+                profileId: Long,
+                visibleHolder: ConfigurationHolder? = null,
+            ) {
+                val cached = configurationList[profileId] ?: return
+                val holder = if (visibleHolder != null) {
+                    visibleHolder
+                } else {
+                    configurationListView.findViewHolderForItemId(profileId)
+                        as? ConfigurationHolder ?: return
+                }
+                if (holder.lastBoundTx == cached.tx && holder.lastBoundRx == cached.rx) return
+
+                val index = holder.bindingAdapterPosition
+                val previousHasMiddleRow = holder.lastSelfHasMiddleRow
+                val previouslyShowedTraffic = holder.lastBoundTx != Long.MIN_VALUE &&
+                        holder.lastBoundRx != Long.MIN_VALUE &&
+                        holder.lastBoundTx + holder.lastBoundRx != 0L
+                val showTraffic = cached.tx + cached.rx != 0L
+
+                if (previousHasMiddleRow == null || previouslyShowedTraffic != showTraffic) {
+                    holder.bind(cached)
+                } else if (showTraffic) {
+                    holder.bindTraffic(cached)
+                }
+
+                if (index != RecyclerView.NO_POSITION && previousHasMiddleRow != null &&
+                    previousHasMiddleRow != holder.lastSelfHasMiddleRow
+                ) {
+                    refreshSameRowNeighbours(index)
+                }
+            }
+
+            fun flushPendingTrafficUpdates() {
+                if (pendingTrafficUpdates.isEmpty()) return
+                for (index in 0 until configurationListView.childCount) {
+                    val holder = configurationListView.getChildViewHolder(
+                        configurationListView.getChildAt(index)
+                    ) as? ConfigurationHolder ?: continue
+                    val profileId = holder.itemId
+                    if (profileId in pendingTrafficUpdates) {
+                        updateVisibleTraffic(profileId, holder)
+                    }
+                }
+                pendingTrafficUpdates.clear()
+            }
+
+            fun refreshSameRowNeighbours(position: Int) {
+                if (position == RecyclerView.NO_POSITION) return
+                val lm = (layoutManager as? FixedGridLayoutManager) ?: return
+                val spanCount = lm.spanCount
+                val rowCount = lm.rowIndexOf(position)
+                var rowMax = (rowCount + 1) * spanCount - 1
+                if (rowMax >= itemCount) rowMax = itemCount - 1
+                var rowStart = rowCount * spanCount
+                if (rowStart < 0) rowStart = 0
+                configurationListView.post {
+                    for (i in rowStart..rowMax) {
+                        if (i == position) continue
+                        notifyItemChanged(i)
+                    }
+                }
+            }
+
+            fun refreshFromPosition(startPosition: Int) {
+                if (layoutManager !is FixedGridLayoutManager) return
+                val start = startPosition.coerceAtLeast(0)
+                if (start >= itemCount) return
+                val count = itemCount - start
+                configurationListView.post {
+                    notifyItemRangeChanged(start, count)
+                }
+            }
+
             override fun getItemCount(): Int {
                 return configurationIdList.size
             }
@@ -2210,6 +2317,20 @@ val groupListBinding = LayoutGroupListBinding.bind(view)
                     }
                 }
 
+                val traffic = view.context.getString(
+                    R.string.traffic,
+                    Formatter.formatFileSize(view.context, proxyEntity.tx),
+                    Formatter.formatFileSize(view.context, proxyEntity.rx)
+                )
+                if (proxyEntity.status <= 0) {
+                    if (profileStatus.text?.toString() != traffic) {
+                        profileStatus.text = traffic
+                    }
+                } else if (trafficText.text?.toString() != traffic) {
+                    trafficText.text = traffic
+                }
+                lastBoundTx = proxyEntity.tx
+                lastBoundRx = proxyEntity.rx
             }
 
             var currentName = ""
