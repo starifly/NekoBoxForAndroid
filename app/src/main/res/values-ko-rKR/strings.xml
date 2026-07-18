@@ -12,11 +12,21 @@
     <string name="menu_group">그룹</string>
     <string name="menu_about">정보</string>
     <string name="theme">테마</string>
+    <string name="theme_dynamic">Dynamic (Material You)</string>
+    <string name="theme_dark_high_contrast">Dark High Contrast</string>
+    <string name="theme_dracula_m3">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_monokai">Monokai</string>
+    <string name="theme_ayu">Ayu</string>
+    <string name="theme_catppuccin">Catppuccin</string>
+    <string name="theme_classic_colors">Legacy colors…</string>
+    <string name="theme_classic_color_swatch">Color theme %1$d</string>
     <string name="document">문서</string>
     <string name="group_default">미분류</string>
     <string name="quick_toggle">전환</string>
     <string name="quick_enable">활성화</string>
     <string name="quick_disable">비활성화</string>
+    <string name="quick_clear_cache_restart">Clear Cache &amp; Restart</string>
     <string name="tile_title">스위처</string>
     <string name="menu_traffic">트래픽</string>
     <string name="menu_dashboard">sing-box 대시보드</string>
@@ -40,9 +50,9 @@
     <string name="group_status_empty">빈 그룹</string>
     <string name="group_status_empty_subscription">아직 업데이트되지 않음</string>
     <string name="group_status_proxies">%d 프록시</string>
-    <string name="group_status_proxies_subscription">%1$d 프록시 | %2$s에 업데이트됨</string>
+    <string name="group_status_proxies_subscription">%1$d Proxies | Updated on %2$s</string>
     <string name="group_no_difference">%s: 차이 없음</string>
-    <string name="group_updated">%1$s: %2$d개의 프록시 업데이트됨</string>
+    <string name="group_updated">%1$s: Updated %2$d proxies</string>
     <string name="group_show_diff">차이</string>
     <string name="group_diff">차이 (%s)</string>
     <string name="group_delete_confirm_prompt">이 그룹을 삭제하시겠습니까?</string>
@@ -59,6 +69,10 @@
     <string name="cag_route">경로 설정</string>
     <string name="allow_access">LAN 연결 허용</string>
     <string name="allow_access_sum">인바운드 서버를 0.0.0.0에 바인딩</string>
+    <string name="require_proxy_in_vpn">Keep local proxy in VPN mode</string>
+    <string name="require_proxy_in_vpn_sum">Keep the local SOCKS/HTTP proxy port open while in VPN mode. Off by default: in VPN mode the port is usually unneeded and leaving it open lets other apps reach it.</string>
+    <string name="proxy_mode_inbound_auth">Authenticate local proxy in Proxy mode</string>
+    <string name="proxy_mode_inbound_auth_sum">Require username/password on the local SOCKS/HTTP proxy when running in Proxy (non-VPN) mode. Enable to stop other apps from using it as an open relay.</string>
     <string name="inbound_settings">인바운드 설정</string>
     <string name="general_settings">앱 설정</string>
     <string name="require_http">HTTP 인바운드 활성화</string>
@@ -74,11 +88,12 @@
     <string name="security_settings">TLS 보안 설정</string>
     <string name="allow_insecure">안전하지 않은 연결 허용</string>
     <string name="allow_insecure_sum">인증서 확인을 비활성화합니다. 활성화하면 이 설정은 평문과 같은 보안 수준입니다.</string>
+    <string name="lifetime_traffic">All-time: %1$s↑ %2$s↓</string>
     <string name="speed_detail">프록시: %1$s↑ %2$s↓\n직접: %3$s↑ %4$s↓</string>
     <string name="speed">%s/s</string>
     <string name="connection_test_testing">테스트 중…</string>
-    <string name="connection_test_available">성공: HTTPS 핸드셰이크 소요 시간 %dms</string>
-    <string name="connection_test_available_http">성공: HTTP 핸드셰이크 소요 시간 %dms</string>
+    <string name="connection_test_available">Delay: %d ms</string>
+    <string name="connection_test_available_http">Delay: %d ms</string>
     <string name="connection_test_error">실패: %s</string>
     <string name="connection_test_fail">인터넷 사용 불가</string>
     <string name="connection_test_error_status_code">오류 코드: #%d</string>
@@ -215,15 +230,20 @@
     <string name="add_profile">프로필 추가</string>
     <string name="select_profile">프로필 선택</string>
     <string name="proxy_chain">프록시 체인</string>
+    <string name="proxy_waterfall">Waterfall</string>
+    <string name="proxy_fastest">Fastest</string>
     <string name="custom_config">사용자 설정</string>
     <string name="balancer">밸런서</string>
     <string name="balancer_settings">밸런서 설정</string>
     <string name="balancer_type">유형</string>
     <string name="balancer_strategy">전략</string>
     <string name="chain_settings">체인 설정</string>
+    <string name="waterfall_settings">Waterfall Settings</string>
+    <string name="fastest_settings">Fastest Settings</string>
     <string name="config_settings">설정 설정</string>
     <string name="circular_reference">순환 참조</string>
     <string name="circular_reference_sum">경로는 자신을 포함할 수 없습니다.</string>
+    <string name="profile_reference_not_allowed">This profile is already added, creates a circular reference, or is not allowed in this group.</string>
     <string name="clear_profiles">지우기</string>
     <string name="action_create_group">빈 그룹</string>
     <string name="action_from_link">구독에서</string>
@@ -233,6 +253,11 @@
     <string name="action_export">내보내기</string>
     <string name="action_import">클립보드에서 가져오기</string>
     <string name="action_import_file">파일에서 가져오기</string>
+    <string name="scan_qr_hint">Point the camera at a QR code</string>
+    <string name="scan_toggle_torch">Toggle flashlight</string>
+    <string name="scan_torch_turn_on">Turn flashlight on</string>
+    <string name="scan_torch_turn_off">Turn flashlight off</string>
+    <string name="scan_no_qr_found">No QR code found in the selected image</string>
     <string name="action_export_msg">내보내기 성공!</string>
     <string name="action_export_err">내보내기 실패.</string>
     <string name="action_import_msg">가져오기 성공!</string>
@@ -261,6 +286,7 @@
     <!-- status -->
     <string name="connecting">연결 중…</string>
     <string name="vpn_connected">연결됨, 탭하여 연결 확인</string>
+    <string name="connection_status_connected">Connected</string>
     <string name="not_connected">연결되지 않음</string>
     <!-- subscriptions -->
     <string name="subscriptions">구독</string>
@@ -269,12 +295,16 @@
     <string name="no_proxies_found">링크에서 프록시를 찾을 수 없습니다</string>
     <string name="no_proxies_found_in_subscription">구독에서 프록시를 찾을 수 없습니다</string>
     <string name="no_proxies_found_in_file">파일에서 프록시를 찾을 수 없습니다</string>
+    <string name="invalid_amnezia_config">Invalid or damaged Amnezia configuration</string>
+    <string name="no_amnezia_awg_profiles">No AmneziaWG profiles found in the configuration</string>
     <string name="no_proxies_found_in_clipboard">클립보드에서 프록시를 찾을 수 없습니다</string>
     <string name="deduplication">중복 제거</string>
     <string name="donate">후원</string>
     <string name="donate_info">나는 돈을 사랑합니다</string>
     <string name="ignore_battery_optimizations">배터리 최적화 무시</string>
     <string name="ignore_battery_optimizations_sum">일부 제한 제거</string>
+    <string name="battery_optimization_enabled">Enabled - the app can run unrestricted in the background</string>
+    <string name="battery_optimization_disabled">Disabled - tap to allow background activity</string>
     <!-- plugin -->
     <string name="plugin">플러그인</string>
     <string name="plugin_configure">설정…</string>
@@ -282,6 +312,15 @@
     <string name="plugin_unknown">알 수 없는 플러그인 %s</string>
     <string name="plugin_untrusted">경고: 이 플러그인은 알려진 신뢰할 수 있는
         출처에서 가져온 것이 아닙니다.</string>
+    <string name="plugin_signer_unreadable">unreadable</string>
+    <string name="plugin_signer_rejected">Blocked plugin package %1$s with signer %2$s. Connect again to review it.</string>
+    <string name="plugin_approval_title">Approve plugin package?</string>
+    <string name="plugin_approval_message">Package: %1$s\n\nSHA-256 certificate fingerprint(s):\n%2$s\n\nThe installed plugin’s executable code can run through the app’s plugin interface. Approve only if you trust this package.</string>
+    <string name="plugin_approval_action">Approve</string>
+    <string name="plugin_approval_success">Plugin package approved. Connect again to use it.</string>
+    <string name="plugin_approval_failed">The plugin package could not be approved.</string>
+    <string name="plugin_approval_conflict_title">Plugin package conflict</string>
+    <string name="plugin_approval_conflict_message">More than one untrusted package provides this plugin: %s\n\nRemove the conflict before approving a package.</string>
     <string name="plugin_auto_connect_unlock_only">이 플러그인은 자동 연결과 작동하지 않을 수 있습니다.</string>
     <string name="proxy_cat">서버 설정</string>
     <string name="ss_cat">Shadowsocks 설정</string>
@@ -294,6 +333,10 @@
     <string name="route_warn">사용자 정의 규칙을 추가하기 전에 문서를 읽었는지 확인하세요.
         그렇지 않으면 인터넷에 연결하지 못할 수 있습니다.</string>
     <string name="lines">%d 줄</string>
+    <plurals name="dns_hosts_lines">
+        <item quantity="other">%d lines</item>
+    </plurals>
+    <string name="not_set">Not set</string>
     <string name="night_mode">야간 모드</string>
     <string name="language">언어</string>
     <string name="follow_system">시스템 따르기</string>
@@ -321,10 +364,11 @@
     <string name="connection_test_timeout_error">시간 초과</string>
     <string name="append_http_proxy">VPN에 HTTP 프록시 추가</string>
     <string name="append_http_proxy_sum">HTTP 프록시는 (브라우저/일부 지원 앱)에서 직접 사용되며, 가상 NIC 장치(Android 10+)를 거치지 않습니다.</string>
-    <string name="http_proxy_bypass">HTTP 프록시 우회 목록</string>
     <string name="http_proxy_bypass_dialog_message">한 줄에 하나씩. #으로 시작하는 줄은 주석입니다. 예: *zhihu.com</string>
     <string name="append_http_proxy_security_title">보안 알림</string>
     <string name="append_http_proxy_security_message">활성화하면 이 기기의 다른 앱이 로컬 프록시 포트를 직접 사용할 수 있습니다.\n\n권장: 설치된 모든 앱을 신뢰하는 경우에만 활성화하세요.</string>
+    <string name="http_proxy_bypass">HTTP 프록시 우회 목록</string>
+    <string name="http_proxy_bypass_sum">Hosts that skip the system HTTP proxy and connect directly when Append HTTP Proxy to VPN is on. One pattern per line, e.g. 192.168.* or 10.*. Defaults to private and loopback ranges.</string>
     <string name="enable_anyway">그래도 활성화</string>
     <string name="strict_route">엄격한 경로</string>
     <string name="protocol_settings">프로토콜 설정</string>
@@ -344,6 +388,9 @@
     <string name="filter_include">포함</string>
     <string name="filter_exclude">제외</string>
     <string name="filter_regex">필터 (정규식)</string>
+    <string name="subscription_custom_dns">Custom resolver</string>
+    <string name="subscription_custom_dns_sum">Optional DNS used only to resolve this subscription\'s server domains. Leave empty to use the global DNS. Accepts https://, tls://, quic:// or host[:port].</string>
+    <string name="subscription_custom_dns_invalid">Invalid resolver. Use https://, tls://, quic:// or host[:port], or leave empty.</string>
     <string name="raw">원본</string>
     <string name="update_settings">업데이트 설정</string>
     <string name="auto_update">자동 업데이트</string>
@@ -351,9 +398,14 @@
     <string name="update_when_connected_only">연결된 경우에만 업데이트</string>
     <string name="update_when_connected_only_sum">IP 주소 유출 방지</string>
     <string name="subscription_user_agent">UserAgent</string>
+    <string name="subscription_send_hwid">Send HWID</string>
+    <string name="subscription_send_hwid_summary">Send HWID, Android version, and device model when updating this subscription</string>
+    <string name="subscription_custom_hwid_params">Custom HWID parameters</string>
+    <string name="subscription_custom_hwid_params_summary">Format: hwid=value,os=value,osVersion=value,model=value. Leave empty to use this device values; when filled, only listed values are sent.</string>
     <string name="confirm">확인</string>
     <string name="missing_plugin">플러그인 누락</string>
-    <string name="profile_requiring_plugin">프로필 %1$s에는 %2$s 플러그인이 필요하지만 찾을 수 없습니다.</string>
+    <string name="profile_requiring_plugin">Profile %1$s requires the %2$s plugin to be installed, but
+        it was not found.</string>
     <string name="action_learn_more">자세히 알아보기</string>
     <string name="action_download">다운로드</string>
     <string name="install_from_play_store">Play 스토어에서 설치</string>
@@ -371,7 +423,7 @@
     <string name="server_dns_subscription_sum">이 구독에서 서버 도메인을 확인하는 데만 사용되는 선택적 DNS입니다. 기본 동작을 사용하려면 비워 둡니다. https://, tls://, quic:// 또는 host[:port] 형식을 허용합니다.</string>
     <string name="server_dns_invalid">잘못된 사용자 지정 서버 DNS입니다. https://, tls://, quic:// 또는 host[:port]를 사용하거나 비워 두세요.</string>
     <string name="subscription_used">%s 사용됨</string>
-    <string name="subscription_traffic">%1$s 사용됨 / %2$s 남음</string>
+    <string name="subscription_traffic">%1$s Used / %2$s Remaining</string>
     <string name="subscription_expire">만료: %s</string>
     <string name="subscription_import">구독 가져오기</string>
     <string name="subscription_import_message">구독 %s을(를) 가져오시겠습니까? 신뢰할 수 없는 출처에서 오는 경우 이 작업을 수행하면 IP 및 이 동작이 유출될 수 있습니다.</string>
@@ -382,6 +434,48 @@
     <string name="select_apps">애플리케이션 선택</string>
     <string name="apps_message">%d개 애플리케이션</string>
     <string name="hysteria_obfs">난독화 비밀번호</string>
+    <string name="hysteria2_obfs_type">Obfuscation Type</string>
+    <string name="hysteria2_gecko_min_packet">Gecko Min Packet Size</string>
+    <string name="hysteria2_gecko_max_packet">Gecko Max Packet Size</string>
+    <string name="hysteria2_ech_summary">Advanced and optional. Requires the server ECH config list. The connection fails if the config is missing or stale; ECH is usually unnecessary when obfuscation is enabled.</string>
+    <string name="hysteria2_ech_config_hint">Paste the base64 config list from the server, or a complete ECH CONFIGS PEM block.</string>
+    <string name="hysteria2_ech_config_invalid">Enter a valid ECH config list before enabling ECH.</string>
+    <string name="action_masterdnsvpn">MasterDnsVPN</string>
+    <string name="mdv_domains">Tunnel Domains</string>
+    <string name="mdv_encryption_method">Encryption Method</string>
+    <string name="mdv_encryption_key">Encryption Key</string>
+    <string name="mdv_resolvers">DNS Resolvers</string>
+    <string name="mdv_resilience_cat">Resolver &amp; Resilience</string>
+    <string name="mdv_balancing_strategy">Resolver Balancing Strategy</string>
+    <string name="mdv_packet_dup">Packet Duplication Count</string>
+    <string name="mdv_setup_packet_dup">Setup Packet Duplication Count</string>
+    <string name="mdv_auto_disable_timeout">Auto-disable Timeout Servers</string>
+    <string name="mdv_auto_remove_low_mtu">Auto-remove Low-MTU Servers</string>
+    <string name="mdv_base_encode">Base-encode Data</string>
+    <string name="mdv_compression_cat">Compression</string>
+    <string name="mdv_upload_compression">Upload Compression</string>
+    <string name="mdv_download_compression">Download Compression</string>
+    <string name="mdv_compression_min_size">Compression Min Size</string>
+    <string name="mdv_mtu_cat">MTU Discovery</string>
+    <string name="mdv_min_upload_mtu">Min Upload MTU</string>
+    <string name="mdv_min_download_mtu">Min Download MTU</string>
+    <string name="mdv_max_upload_mtu">Max Upload MTU</string>
+    <string name="mdv_max_download_mtu">Max Download MTU</string>
+    <string name="mdv_misc_cat">Misc</string>
+    <string name="mdv_local_dns_enabled">Local DNS Server</string>
+    <string name="mdv_local_dns_port">로컬 DNS 포트</string>
+    <string name="mdv_log_level">로그 레벨</string>
+    <string name="mdv_advanced_json">Advanced JSON Override</string>
+    <string name="action_olcrtc">olcRTC</string>
+    <string name="olcrtc_carrier">Carrier</string>
+    <string name="olcrtc_room_id">Room ID / URL</string>
+    <string name="olcrtc_client_id">Client ID</string>
+    <string name="olcrtc_key_hex">Encryption Key (64 hex)</string>
+    <string name="olcrtc_transport_cat">Transport</string>
+    <string name="olcrtc_transport">Transport</string>
+    <string name="olcrtc_vp8_fps">VP8 FPS</string>
+    <string name="olcrtc_vp8_batch">VP8 Batch Size</string>
+    <string name="olcrtc_dns_server">DNS Resolver</string>
     <string name="hysteria_auth_type">인증 유형</string>
     <string name="hysteria_auth_payload">인증 페이로드</string>
     <string name="hysteria_upload_mbps">최대 업로드 속도 (Mbps)</string>
@@ -394,7 +488,9 @@
     <string name="group_order_origin">원본</string>
     <string name="group_order_by_name">이름 순</string>
     <string name="group_order_by_delay">지연 시간 순</string>
-    <string name="plugin_exists_but_on_shit_system">프로필 %1$s에는 %2$s 플러그인이 필요하지만, 사용자의 독점 장비 공급업체(일반적으로 감시 자본 거대 기업 및 악성 소프트웨어 제조업체)가 Android를 조작하여 플러그인을 사용할 수 없게 만들었습니다.</string>
+    <string name="plugin_exists_but_on_shit_system">Profile %1$s requires the %2$s plugin, but your
+        proprietary equipment vendor (usually surveillance capital giants and malware maker)
+        tampered with your Android, making the plugin unusable.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks 안드로이드 플러그인)</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (Shadowsocks 안드로이드 플러그인)</string>
     <string name="tcp_connections">%d TCP 연결</string>
@@ -427,6 +523,23 @@
     <string name="wireguard_local_address">로컬 주소</string>
     <string name="wireguard_public_key">피어 공개 키</string>
     <string name="wireguard_psk">피어 사전 공유 키</string>
+    <string name="amneziawg_category">AmneziaWG 2.0</string>
+    <string name="amneziawg_jc">Jc (junk packets)</string>
+    <string name="amneziawg_jmin">Jmin (junk min size)</string>
+    <string name="amneziawg_jmax">Jmax (junk max size)</string>
+    <string name="amneziawg_s1">S1</string>
+    <string name="amneziawg_s2">S2</string>
+    <string name="amneziawg_s3">S3</string>
+    <string name="amneziawg_s4">S4</string>
+    <string name="amneziawg_h1">H1</string>
+    <string name="amneziawg_h2">H2</string>
+    <string name="amneziawg_h3">H3</string>
+    <string name="amneziawg_h4">H4</string>
+    <string name="amneziawg_i1">I1</string>
+    <string name="amneziawg_i2">I2</string>
+    <string name="amneziawg_i3">I3</string>
+    <string name="amneziawg_i4">I4</string>
+    <string name="amneziawg_i5">I5</string>
     <string name="warp_license">CloudFlare Warp는 무료 WireGuard VPN 제공업체입니다. 사용함으로써 TOS에 동의하게 됩니다.</string>
     <string name="warp_generate">구성 생성</string>
     <string name="generating">생성 중...</string>
@@ -470,14 +583,17 @@
     <string name="tuic_disable_sni">SNI 비활성화</string>
     <string name="tuic_reduce_rtt">0-RTT QUIC 핸드셰이크 활성화</string>
     <string name="pinned_certchain_sha256">고정 인증서 SHA256</string>
-    <string name="please_update">앱이 너무 오래되었습니다(%1$s). %2$s에 작동이 중지됩니다.
-        업데이트해 주세요!</string>
-    <string name="please_update_force">앱이 너무 오래되었습니다(%1$s). %2$s에 작동이 중지되었습니다.
-        업데이트해 주세요!</string>
+    <string name="please_update">Your APP is too old (%1$s). And will stop working at %2$s. Please
+        update!</string>
+    <string name="please_update_force">Your APP is too old (%1$s). And has been stopped working at %2$s.
+        Please update!</string>
     <string name="connection_test_delete_unavailable">사용 불가 지우기</string>
     <string name="move">이동</string>
     <string name="exe_prefer_provider">플러그인 선호 제공자</string>
     <string name="create_shortcut">바로가기 만들기</string>
+    <string name="create_clear_cache_shortcut_summary">Create a home screen shortcut for cache clear and restart</string>
+    <string name="shortcut_pin_requested">Shortcut request sent to launcher</string>
+    <string name="shortcut_pin_not_supported">Launcher does not support pinning shortcuts</string>
     <string name="app_tls_version">구독 최소 TLS 버전</string>
     <string name="hop_interval">포트 홉 간격(초)</string>
     <string name="domain_strategy_for_remote">원격 도메인 전략</string>
@@ -490,6 +606,8 @@
     <string name="is_outbound_only">아웃바운드 전용 JSON</string>
     <string name="save">저장</string>
     <string name="set_panel_url">패널 URL 설정</string>
+    <string name="action_close">Close</string>
+    <string name="invalid_panel_url">Invalid panel URL. Use HTTPS or localhost HTTP only.</string>
     <string name="enable_clash_api">Clash API 활성화</string>
     <string name="log_level">로그 레벨</string>
     <string name="enable_clash_api_summary">127.0.0.1:9090에서 Clash API 및 yacd 대시보드 제공</string>
@@ -552,11 +670,13 @@
     <string name="webdav_server_error">서버 오류</string>
     <string name="webdav_connect_failed">연결 실패, 코드: %d</string>
     <string name="webdav_create_dir_failed">백업 디렉터리를 생성하거나 액세스하지 못했습니다</string>
+    <string name="webdav_insecure_url">Insecure WebDAV server URL. Use an https:// address; plain http:// would transmit your credentials and backup (which contains all profile secrets) in cleartext.</string>
     <string name="global_mode">글로벌 모드</string>
     <string name="global_mode_summary">모든 라우팅 규칙을 우회하고 현재 노드를 통해 모든 트래픽을 프록시합니다</string>
     <string name="mux_preference">멀티플렉스</string>
     <string name="padding">패딩</string>
     <string name="network_change_reset_connections">네트워크 변경 시 아웃바운드 연결 재설정</string>
+    <string name="restart_profile_on_network_change">Restart active profile when network changes</string>
     <string name="wake_reset_connections">디바이스가 절전 모드에서 깨어날 때 아웃바운드 연결 재설정</string>
     <string name="backup_in_progress">백업이 이미 진행 중입니다</string>
     <string name="restore_in_progress">복원이 이미 진행 중입니다</string>
@@ -592,11 +712,26 @@
     <string name="open_app_settings">시스템 설정 열기</string>
     <!-- Snell Protocol -->
     <string name="action_snell">Snell</string>
-    <string name="snell_psk">PSK</string>
+    <string name="snell_psk">사전 공유 키</string>
+    <string name="snell_userkey">사용자 키</string>
     <string name="snell_version">버전</string>
-    <string name="snell_network">프로토콜</string>
+    <string name="snell_network">네트워크</string>
     <string name="snell_obfs_mode">Obfs 모드</string>
     <string name="snell_obfs_host">Obfs 호스트</string>
+    <string name="snell_mode">모드</string>
     <string name="snell_reuse">재사용</string>
-    <string name="snell_reuse_summary">v4/v5 전용</string>
+    <string name="snell_reuse_summary">v4-v6 전용</string>
+    <string name="interface_settings">Interface</string>
+    <string name="ui_style">Interface style</string>
+    <string name="ui_style_expressive">New</string>
+    <string name="ui_style_classic">Classic</string>
+    <string name="dynamic_colors">Dynamic colors</string>
+    <string name="dynamic_colors_summary">Use the system Material You palette</string>
+    <string name="dynamic_colors_unavailable">Available on Android 12 and newer</string>
+    <string name="dynamic_colors_classic">Available with the new interface</string>
+    <string name="theme_fallback_summary">Used when dynamic colors are unavailable or disabled</string>
+    <string name="more_options">More options</string>
+    <string name="amoled_theme">AMOLED Dark Theme</string>
+    <string name="amoled_theme_summary">Pure black background in dark mode</string>
+    <string name="app_theme">Accent Color</string>
 </resources>
