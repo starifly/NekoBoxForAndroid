@@ -15,7 +15,7 @@ pushd sing-box >/dev/null
 git remote set-url origin https://github.com/hawkff/sing-box.git
 git fetch origin --tags --force
 git checkout "$COMMIT_SING_BOX"
-python3 ../NekoBoxForAndroid/buildScript/lib/core/patch_sing_box_awg.py "$(pwd)"
+# python3 ../NekoBoxForAndroid/buildScript/lib/core/patch_sing_box_awg.py "$(pwd)"
 python3 ../NekoBoxForAndroid/buildScript/lib/core/patch_sing_box_balancers.py "$(pwd)"
 popd >/dev/null
 

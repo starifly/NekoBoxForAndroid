@@ -37,7 +37,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
-          go-version: '1.23.4'
+          go-version: '1.26.4'
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./run lib core
@@ -80,7 +80,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
-          go-version: '1.23.4'
+          go-version: '1.26.4'
       - name: Mieru Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./run lib mieru
