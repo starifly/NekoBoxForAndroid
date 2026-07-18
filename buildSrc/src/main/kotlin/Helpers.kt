@@ -15,7 +15,6 @@ import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Base64
@@ -228,17 +227,6 @@ fun Project.setupApp() {
                     "PRE_VERSION_NAME",
                     "\"${requireMetadata().getProperty("PRE_VERSION_NAME")}\"",
                 )
-            }
-        }
-
-        val buildDateStamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyMMdd"))
-        val abiPattern = Regex("(armeabi-v7a|arm64-v8a|x86_64|x86)")
-
-        applicationVariants.all {
-            outputs.all {
-                this as BaseVariantOutputImpl
-                val abi = abiPattern.find(outputFileName)?.value ?: "universal"
-                outputFileName = "NB_SF-$buildDateStamp-$abi.apk"
             }
         }
 
