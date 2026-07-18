@@ -1687,20 +1687,11 @@ class ConfigurationFragment @JvmOverloads constructor(
                 val profileId = holder.itemId
                 val cached = configurationList[profileId] ?: return
                 if (holder.lastBoundTx == cached.tx && holder.lastBoundRx == cached.rx) return
-                configurationListView.post {
-                    if (!holder.itemView.isAttachedToWindow || holder.itemId != profileId) {
-                        return@post
-                    }
-                    val latest = configurationList[profileId] ?: return@post
-                    if (holder.lastBoundTx == latest.tx && holder.lastBoundRx == latest.rx) {
-                        return@post
-                    }
-                    if (configurationListView.scrollState != RecyclerView.SCROLL_STATE_IDLE) {
-                        pendingTrafficUpdates.add(profileId)
-                    } else {
-                        updateVisibleTraffic(profileId, holder)
-                    }
+                if (configurationListView.scrollState != RecyclerView.SCROLL_STATE_IDLE) {
+                    pendingTrafficUpdates.add(profileId)
+                    return
                 }
+                updateVisibleTraffic(profileId, holder)
             }
 
             private fun updateVisibleTraffic(
@@ -2373,8 +2364,10 @@ class ConfigurationFragment @JvmOverloads constructor(
                     Formatter.formatFileSize(view.context, proxyEntity.rx)
                 )
                 if (proxyEntity.status <= 0) {
-                    profileStatus.text = traffic
-                } else {
+                    if (profileStatus.text?.toString() != traffic) {
+                        profileStatus.text = traffic
+                    }
+                } else if (trafficText.text?.toString() != traffic) {
                     trafficText.text = traffic
                 }
                 lastBoundTx = proxyEntity.tx
