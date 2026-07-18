@@ -973,7 +973,7 @@
         <item name="primaryOrTextPrimary">?android:textColorPrimary</item>
     </style>
 
-    <style name="Theme.Start" parent="Theme.SagerNet.Expressive">
+    <style name="Theme.Start" parent="Theme.SagerNet">
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="colorPrimary">@android:color/transparent</item>
         <item name="appBarBackgroundColor">@android:color/transparent</item>
