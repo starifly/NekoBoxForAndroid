@@ -32,7 +32,8 @@ android {
         }
     }
 
-    sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
+// 35行目付近：新しい書き方に修正
+    sourceSets.getByName("androidTest").assets.directories.add("$projectDir/schemas")
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
@@ -43,16 +44,12 @@ android {
         generateLocaleConfig = true
     }
 
-    // ==========================================
-    // ここから下を新しく追加してください
-    // ==========================================
+    // 末尾の lint ブロック：プロパティ名を修正
     lint {
-        // 多言語ファイル (strings.xml) のフォーマットエラーを無視する
         disable.add("StringFormatMatches")
         disable.add("StringFormatCount")
         disable.add("StringFormatInvalid")
-        // エラーが出てもビルドを強制的に進める
-        isAbortOnError = false
+        abortOnError = false
     }
 }
 
