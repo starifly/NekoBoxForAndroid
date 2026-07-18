@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:duplicateParentState="false"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:fitsSystemWindows="true">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar"
@@ -19,6 +20,7 @@
             app:layout_scrollFlags="scroll|enterAlways"
             app:titleEnabled="false">
 
+            <!-- 只保留一個 toolbar -->
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
@@ -40,7 +42,7 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="4dp">
+                    android:layout_margin="4dp"
                     app:cardCornerRadius="0dp"
                     app:cardElevation="0dp">
 
@@ -116,7 +118,6 @@
                         </com.google.android.material.textfield.TextInputLayout>
 
                     </LinearLayout>
-
                 </com.google.android.material.card.MaterialCardView>
 
             </LinearLayout>
@@ -130,17 +131,6 @@
                 android:clickable="false"
                 android:focusable="false"
                 app:layout_collapseMode="pin" />
-
-            <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="?attr/uiAppBarBackground"
-                android:elevation="0dp"
-                android:theme="?actionBarTheme"
-                android:touchscreenBlocksFocus="false"
-                app:layout_collapseMode="pin"
-                app:title="@string/app_name" />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
