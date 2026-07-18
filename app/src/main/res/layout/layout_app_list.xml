@@ -46,13 +46,13 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_margin="4dp">
+                        android:layout_margin="4dp"
                         android:orientation="vertical"
                         android:padding="12dp">
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/show_system_apps"
-                            style="@style/Widget.MaterialComponents.Chip.Filter"
+                            style="@style/Widget.Material3.Chip.Filter"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="4dp"
@@ -62,50 +62,18 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="@string/search_apps">
-                        <com.google.android.material.chip.Chip
-                                android:id="@+id/show_system_apps"
-                                style="@style/Widget.Material3.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginBottom="4dp"
-                                android:text="@string/show_system_apps" />
 
-                            <com.google.android.material.textfield.TextInputLayout
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/search"
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content">
+                                android:layout_height="wrap_content" />
 
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/search"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content" />
-
-                            </com.google.android.material.textfield.TextInputLayout>
+                        </com.google.android.material.textfield.TextInputLayout>
 
                     </LinearLayout>
                 </LinearLayout>
 
             </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="500dp"
-                android:layout_gravity="top"
-                android:layout_marginTop="-500dp"
-                android:background="?attr/uiAppBarBackground"
-                android:clickable="false"
-                android:focusable="false"
-                app:layout_collapseMode="pin" />
-
-            <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="?attr/uiAppBarBackground"
-                android:elevation="0dp"
-                android:theme="?actionBarTheme"
-                android:touchscreenBlocksFocus="false"
-                app:layout_collapseMode="pin"
-                app:title="@string/app_name" />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
