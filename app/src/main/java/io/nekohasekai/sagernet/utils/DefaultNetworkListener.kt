@@ -91,18 +91,12 @@ object DefaultNetworkListener {
     }
 
     suspend fun start(key: Any, listener: (Network?) -> Unit) = networkActor.send(NetworkMessage.Start(key, listener))
-
     suspend fun get() = if (fallback) {
-        @TargetApi(23)
-        {
-            SagerNet.connectivity.activeNetwork
-                ?: throw UnknownHostException() // failed to listen, return current if available
-        }
-    } else {
-        NetworkMessage.Get().run {
-            networkActor.send(this)
-            response.await()
-        }
+        SagerNet.connectivity.activeNetwork
+            ?: throw UnknownHostException() // failed to listen, return current if available
+    } else NetworkMessage.Get().run {
+        networkActor.send(this)
+        response.await()
     }
 
     suspend fun stop(key: Any) = networkActor.send(NetworkMessage.Stop(key))
@@ -203,8 +197,8 @@ object DefaultNetworkListener {
             fallback = true
         }
     }
-
     private fun unregister() {
+        if (fallback) return
         callbackRegistration.unregister {
             SagerNet.connectivity.unregisterNetworkCallback(Callback)
         }.onFailure {

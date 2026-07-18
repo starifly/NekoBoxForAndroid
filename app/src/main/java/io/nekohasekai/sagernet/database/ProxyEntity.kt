@@ -112,6 +112,10 @@ data class ProxyEntity(
         const val TYPE_AWG = 26
         const val TYPE_OLCRTC = 27
 
+        // Shifted from sf/main to avoid collision with SNELL and MASTERDNSVPN
+        const val TYPE_WATERFALL = 28
+        const val TYPE_FASTEST = 29
+
         const val TYPE_CONFIG = 998
 
         // 999 was the Matsuri "Neko Plugin" protocol (removed). Reserved: do not
@@ -121,6 +125,8 @@ data class ProxyEntity(
         const val TYPE_CHAIN = 8
 
         val chainName by lazy { app.getString(R.string.proxy_chain) }
+        val waterfallName by lazy { app.getString(R.string.proxy_waterfall) }
+        val fastestName by lazy { app.getString(R.string.proxy_fastest) }
 
         @JvmField
         val CREATOR = object : CREATOR<ProxyEntity>() {
@@ -180,27 +186,100 @@ data class ProxyEntity(
 
         dirty = input.readBoolean()
     }
-
-    fun putByteArray(byteArray: ByteArray) {
+fun putByteArray(byteArray: ByteArray) {
         // Registry routes each persisted type id to the same KryoConverters.*Deserialize the
         // historical when(type) ladder used and stores it in the matching typed field. An
         // unknown/dead id is a no-op, matching the old ladder's absent else-branch.
-        ProtocolRegistry.forType(type)?.let { it.setBean(this, it.deserialize(byteArray)) }
+        val descriptor = ProtocolRegistry.forType(type)
+        if (descriptor != null) {
+            descriptor.setBean(this, descriptor.deserialize(byteArray))
+        } else {
+            when (type) {
+                TYPE_SOCKS -> socksBean = KryoConverters.socksDeserialize(byteArray)
+                TYPE_HTTP -> httpBean = KryoConverters.httpDeserialize(byteArray)
+                TYPE_SS -> ssBean = KryoConverters.shadowsocksDeserialize(byteArray)
+                TYPE_SSR -> ssrBean = KryoConverters.shadowsocksrDeserialize(byteArray)
+                TYPE_VMESS -> vmixBean = KryoConverters.vmessDeserialize(byteArray)
+                TYPE_TROJAN -> trojanBean = KryoConverters.trojanDeserialize(byteArray)
+                TYPE_TROJAN_GO -> trojanGoBean = KryoConverters.trojanGoDeserialize(byteArray)
+                TYPE_MIERU -> mieruBean = KryoConverters.mieruDeserialize(byteArray)
+                TYPE_NAIVE -> naiveBean = KryoConverters.naiveDeserialize(byteArray)
+                TYPE_HYSTERIA -> hysteriaBean = KryoConverters.hysteriaDeserialize(byteArray)
+                TYPE_SSH -> sshBean = KryoConverters.sshDeserialize(byteArray)
+                TYPE_WG -> wgBean = KryoConverters.wireguardDeserialize(byteArray)
+                TYPE_TUIC -> tuicBean = KryoConverters.tuicDeserialize(byteArray)
+                TYPE_JUICITY -> juicityBean = KryoConverters.juicityDeserialize(byteArray)
+                TYPE_SHADOWTLS -> shadowTLSBean = KryoConverters.shadowTLSDeserialize(byteArray)
+                TYPE_ANYTLS -> anyTLSBean = KryoConverters.anyTLSDeserialize(byteArray)
+                TYPE_CHAIN, TYPE_WATERFALL, TYPE_FASTEST -> chainBean = KryoConverters.chainDeserialize(byteArray)
+                TYPE_NEKO -> nekoBean = KryoConverters.nekoDeserialize(byteArray)
+                TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
+            }
+        }
     }
 
-    fun displayType(): String = ProtocolRegistry.forType(type)?.displayType?.invoke(this) ?: "Undefined type $type"
+    fun displayType(): String {
+        return ProtocolRegistry.forType(type)?.displayType?.invoke(this) ?: when (type) {
+            TYPE_SOCKS -> socksBean?.protocolName() ?: "SOCKS"
+            TYPE_HTTP -> if (httpBean?.isTLS() == true) "HTTPS" else "HTTP"
+            TYPE_SS -> "Shadowsocks"
+            TYPE_SSR -> "ShadowsocksR"
+            TYPE_VMESS -> if (vmessBean?.isVLESS == true) "VLESS" else "VMess"
+            TYPE_TROJAN -> "Trojan"
+            TYPE_TROJAN_GO -> "Trojan-Go"
+            TYPE_MIERU -> "Mieru"
+            TYPE_NAIVE -> "Naïve"
+            TYPE_HYSTERIA -> "Hysteria" + (hysteriaBean?.protocolVersion ?: "")
+            TYPE_SSH -> "SSH"
+            TYPE_WG -> if (wgBean?.isAmneziaWG == true) "AmneziaWG 2.0" else "WireGuard"
+            TYPE_TUIC -> "TUIC"
+            TYPE_JUICITY -> "Juicity"
+            TYPE_SHADOWTLS -> "ShadowTLS"
+            TYPE_ANYTLS -> "AnyTLS"
+            TYPE_CHAIN -> chainName
+            TYPE_WATERFALL -> waterfallName
+            TYPE_FASTEST -> fastestName
+            TYPE_NEKO -> nekoBean?.displayType() ?: "Neko"
+            TYPE_CONFIG -> configBean?.displayType() ?: "Config"
+            else -> "Undefined type $type"
+        }
+    }
 
     fun displayName() = requireBean().displayName()
     fun displayAddress() = requireBean().displayAddress()
 
     fun requireBean(): AbstractBean {
-        val descriptor = ProtocolRegistry.forType(type) ?: error("Undefined type $type")
-        return descriptor.getBean(this) ?: error("Null ${displayType()} profile")
+        val descriptor = ProtocolRegistry.forType(type)
+        if (descriptor != null) {
+            return descriptor.getBean(this) ?: error("Null ${displayType()} profile")
+        }
+        return when (type) {
+            TYPE_SOCKS -> socksBean
+            TYPE_HTTP -> httpBean
+            TYPE_SS -> ssBean
+            TYPE_SSR -> ssrBean
+            TYPE_VMESS -> vmessBean
+            TYPE_TROJAN -> trojanBean
+            TYPE_TROJAN_GO -> trojanGoBean
+            TYPE_MIERU -> mieruBean
+            TYPE_NAIVE -> naiveBean
+            TYPE_HYSTERIA -> hysteriaBean
+            TYPE_SSH -> sshBean
+            TYPE_WG -> wgBean
+            TYPE_TUIC -> tuicBean
+            TYPE_JUICITY -> juicityBean
+            TYPE_SHADOWTLS -> shadowTLSBean
+            TYPE_ANYTLS -> anyTLSBean
+            TYPE_CHAIN, TYPE_WATERFALL, TYPE_FASTEST -> chainBean
+            TYPE_NEKO -> nekoBean
+            TYPE_CONFIG -> configBean
+            else -> error("Undefined type $type")
+        } ?: error("Null ${displayType()} profile")
     }
 
     fun haveLink(): Boolean {
         return when (type) {
-            TYPE_CHAIN -> false
+            TYPE_CHAIN, TYPE_WATERFALL, TYPE_FASTEST -> false
             else -> true
         }
     }
@@ -347,15 +426,166 @@ data class ProxyEntity(
         val descriptor = ProtocolRegistry.forBean(bean) ?: error("Unregistered bean class ${bean.javaClass.simpleName}")
         type = descriptor.type
         descriptor.setBean(this, bean)
+        socksBean = null
+        httpBean = null
+        ssBean = null
+        ssrBean = null
+        vmessBean = null
+        trojanBean = null
+        trojanGoBean = null
+        mieruBean = null
+        naiveBean = null
+        hysteriaBean = null
+        sshBean = null
+        wgBean = null
+        tuicBean = null
+        juicityBean = null
+        shadowTLSBean = null
+        anyTLSBean = null
+        chainBean = null
+        configBean = null
+        nekoBean = null
+
+        when (bean) {
+            is SOCKSBean -> {
+                type = TYPE_SOCKS
+                socksBean = bean
+            }
+
+            is HttpBean -> {
+                type = TYPE_HTTP
+                httpBean = bean
+            }
+
+            is ShadowsocksBean -> {
+                type = TYPE_SS
+                ssBean = bean
+            }
+
+            is ShadowsocksRBean -> {
+                type = TYPE_SSR
+                ssrBean = bean
+            }
+
+            is VMessBean -> {
+                type = TYPE_VMESS
+                vmessBean = bean
+            }
+
+            is TrojanBean -> {
+                type = TYPE_TROJAN
+                trojanBean = bean
+            }
+
+            is TrojanGoBean -> {
+                type = TYPE_TROJAN_GO
+                trojanGoBean = bean
+            }
+
+            is MieruBean -> {
+                type = TYPE_MIERU
+                mieruBean = bean
+            }
+
+            is NaiveBean -> {
+                type = TYPE_NAIVE
+                naiveBean = bean
+            }
+
+            is HysteriaBean -> {
+                type = TYPE_HYSTERIA
+                hysteriaBean = bean
+            }
+
+            is SSHBean -> {
+                type = TYPE_SSH
+                sshBean = bean
+            }
+
+            is WireGuardBean -> {
+                type = TYPE_WG
+                wgBean = bean
+            }
+
+            is TuicBean -> {
+                type = TYPE_TUIC
+                tuicBean = bean
+            }
+
+            is JuicityBean -> {
+                type = TYPE_JUICITY
+                juicityBean = bean
+            }
+
+            is ShadowTLSBean -> {
+                type = TYPE_SHADOWTLS
+                shadowTLSBean = bean
+            }
+
+            is AnyTLSBean -> {
+                type = TYPE_ANYTLS
+                anyTLSBean = bean
+            }
+
+            is ChainBean -> {
+                type = when (bean.strategy) {
+                    ChainBean.STRATEGY_WATERFALL -> TYPE_WATERFALL
+                    ChainBean.STRATEGY_FASTEST -> TYPE_FASTEST
+                    else -> TYPE_CHAIN
+                }
+                chainBean = bean
+            }
+
+            is NekoBean -> {
+                type = TYPE_NEKO
+                nekoBean = bean
+            }
+
+            is ConfigBean -> {
+                type = TYPE_CONFIG
+                configBean = bean
+            }
+
+            else -> error("Undefined type $type")
+        }
         return this
     }
 
-    fun settingIntent(ctx: Context, isSubscription: Boolean): Intent {
+fun settingIntent(ctx: Context, isSubscription: Boolean): Intent {
         val activityClass = ProtocolRegistry.forType(type)?.settingsActivityClass
-            ?: throw IllegalArgumentException("No settings activity for type $type")
+            ?: when (type) {
+                TYPE_SOCKS -> SocksSettingsActivity::class.java
+                TYPE_HTTP -> HttpSettingsActivity::class.java
+                TYPE_SS -> ShadowsocksSettingsActivity::class.java
+                TYPE_SSR -> ShadowsocksRSettingsActivity::class.java
+                TYPE_VMESS -> VMessSettingsActivity::class.java
+                TYPE_TROJAN -> TrojanSettingsActivity::class.java
+                TYPE_TROJAN_GO -> TrojanGoSettingsActivity::class.java
+                TYPE_MIERU -> MieruSettingsActivity::class.java
+                TYPE_NAIVE -> NaiveSettingsActivity::class.java
+                TYPE_HYSTERIA -> HysteriaSettingsActivity::class.java
+                TYPE_SSH -> SSHSettingsActivity::class.java
+                TYPE_WG -> WireGuardSettingsActivity::class.java
+                TYPE_TUIC -> TuicSettingsActivity::class.java
+                TYPE_JUICITY -> JuicitySettingsActivity::class.java
+                TYPE_SHADOWTLS -> ShadowTLSSettingsActivity::class.java
+                TYPE_ANYTLS -> AnyTLSSettingsActivity::class.java
+                TYPE_CHAIN, TYPE_WATERFALL, TYPE_FASTEST -> ChainSettingsActivity::class.java
+                TYPE_CONFIG -> ConfigSettingActivity::class.java
+                else -> throw IllegalArgumentException("No settings activity for type $type")
+            }
         return Intent(ctx, activityClass).apply {
             putExtra(ProfileSettingsActivity.EXTRA_PROFILE_ID, id)
             putExtra(ProfileSettingsActivity.EXTRA_IS_SUBSCRIPTION, isSubscription)
+            if (this@ProxyEntity.type == TYPE_CHAIN ||
+                this@ProxyEntity.type == TYPE_WATERFALL ||
+                this@ProxyEntity.type == TYPE_FASTEST
+            ) {
+                putExtra(
+                    ChainSettingsActivity.EXTRA_STRATEGY,
+                    this@ProxyEntity.chainBean!!.strategy,
+                )
+            }
         }
     }
 

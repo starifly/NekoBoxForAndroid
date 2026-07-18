@@ -15,14 +15,31 @@ import moe.matsuri.nb4a.utils.JavaUtil;
 
 public class ChainBean extends InternalBean {
 
+    public static final int STRATEGY_CHAIN = 0;
+    public static final int STRATEGY_WATERFALL = 1;
+    public static final int STRATEGY_FASTEST = 2;
+
     public List<Long> proxies;
+    public int strategy;
 
     @Override
     public String displayName() {
         if (JavaUtil.isNotBlank(name)) {
             return name;
         } else {
-            return "Chain " + Math.abs(hashCode());
+            String prefix;
+            switch (strategy) {
+                case STRATEGY_WATERFALL:
+                    prefix = "Waterfall";
+                    break;
+                case STRATEGY_FASTEST:
+                    prefix = "Fastest";
+                    break;
+                default:
+                    prefix = "Chain";
+                    break;
+            }
+            return prefix + " " + Math.abs(hashCode());
         }
     }
 
@@ -38,7 +55,8 @@ public class ChainBean extends InternalBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(1);
+        output.writeInt(2);
+        output.writeInt(strategy);
         output.writeInt(proxies.size());
         for (Long proxy : proxies) {
             output.writeLong(proxy);
@@ -51,6 +69,11 @@ public class ChainBean extends InternalBean {
         if (version < 1) {
             input.readString();
             input.readInt();
+        }
+        if (version >= 2) {
+            strategy = input.readInt();
+        } else {
+            strategy = STRATEGY_CHAIN;
         }
         int length = input.readInt();
         proxies = new ArrayList<>();

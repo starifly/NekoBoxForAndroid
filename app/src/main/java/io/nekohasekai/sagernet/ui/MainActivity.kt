@@ -55,6 +55,9 @@ import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 import io.nekohasekai.sagernet.plugin.PluginTrust
 import moe.matsuri.nb4a.plugin.Plugins
+import io.nekohasekai.sagernet.ui.MessageStore
+import io.nekohasekai.sagernet.ui.publishClearCacheShortcut
+import io.nekohasekai.sagernet.ktx.Logs
 import moe.matsuri.nb4a.utils.Util
 import java.util.Locale
 
@@ -73,6 +76,11 @@ class MainActivity :
     override val fabView get() = binding.fab
     override fun showFab() = binding.fab.show()
     override fun hideFab() = binding.fab.hide()
+
+    companion object {
+        const val ACTION_CLEAR_CACHE_AND_RESTART = "com.isaiandco.neko.action.CLEAR_CACHE_AND_RESTART"
+        const val EXTRA_CLEAR_CACHE_AND_RESTART = "extraClearCacheAndRestart"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -134,11 +142,14 @@ class MainActivity :
         DataStore.configurationStore.registerChangeListener(this)
         GroupManager.userInterface = GroupInterfaceAdapter(this)
 
-        if (intent?.action == Intent.ACTION_VIEW) {
-            onNewIntent(intent)
+        intent?.let {
+            if (!handleSpecialIntent(it) && it.action == Intent.ACTION_VIEW) {
+                onNewIntent(it)
+            }
         }
 
         refreshNavMenu(DataStore.enableClashAPI)
+        publishClearCacheShortcut(this)
 
         // sdk 33 notification
         if (Build.VERSION.SDK_INT >= 33) {
@@ -193,6 +204,9 @@ class MainActivity :
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
+
+        if (handleSpecialIntent(intent)) return
 
         val uri = intent.data ?: return
 
@@ -203,6 +217,18 @@ class MainActivity :
                 importProfile(uri)
             }
         }
+    }
+
+    private fun handleSpecialIntent(intent: Intent): Boolean {
+        val fromShortcut = intent.getBooleanExtra(EXTRA_CLEAR_CACHE_AND_RESTART, false)
+        if (!fromShortcut && intent.action != ACTION_CLEAR_CACHE_AND_RESTART) return false
+
+        clearAppCacheAndRestart()
+        return true
+    }
+
+    private fun clearAppCacheAndRestart() {
+        recoverVlessTlsStateAndRestart(this)
     }
 
     fun urlTest(): Int {
@@ -616,6 +642,7 @@ class MainActivity :
                 showWhenConnected = DataStore.showBottomBar,
                 animate = true,
             )
+            Key.SPEED_INTERVAL -> binding.stats.refreshSpeedVisibility()
             Key.PROXY_APPS, Key.BYPASS_MODE, Key.INDIVIDUAL -> {
                 if (DataStore.serviceState.canStop) {
                     snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {

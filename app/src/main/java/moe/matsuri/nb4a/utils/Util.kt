@@ -46,8 +46,6 @@ object Util {
         return text.substring(zLen, yLen)
     }
 
-    // Base64 for all
-
     fun b64EncodeUrlSafe(s: String): String {
         return b64EncodeUrlSafe(s.toByteArray())
     }
@@ -56,7 +54,6 @@ object Util {
         return String(Base64.encode(b, Base64.NO_PADDING or Base64.NO_WRAP or Base64.URL_SAFE))
     }
 
-    // v2rayN Style
     fun b64EncodeOneLine(b: ByteArray): String {
         return String(Base64.encode(b, Base64.NO_WRAP))
     }
@@ -89,8 +86,6 @@ object Util {
     }
 
     fun zlibCompress(input: ByteArray, level: Int): ByteArray {
-        // Compress the bytes
-        // 1 to 4 bytes/char for UTF-8
         val output = ByteArray(input.size * 4)
         val compressor = Deflater(level).apply {
             setInput(input)
@@ -251,5 +246,14 @@ object Util {
         val match = regex.find(headerValue)
         val encoded = match?.groupValues?.get(1) ?: ""
         return URLDecoder.decode(encoded, StandardCharsets.UTF_8.name())
+    }
+
+    fun generateCryptoSecurePassword(length: Int = 20): String {
+        val chars =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_-+=."
+        val secureRandom = java.security.SecureRandom()
+        return (1..length)
+            .map { chars[secureRandom.nextInt(chars.length)] }
+            .joinToString("")
     }
 }

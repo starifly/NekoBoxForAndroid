@@ -21,9 +21,6 @@
 
 > 🛑 **Note:** The Google Play build has been controlled by a third party since May 2024 and is closed-source. Please don't install it.
 
-Grab the latest signed APK from the [**Releases**](https://github.com/hawkff/NekoBoxForAndroid/releases) page.
-
-<br>
 
 ## 🚀 Protocols
 
@@ -233,12 +230,12 @@ Core:
 
 - [SagerNet/sing-box](https://github.com/SagerNet/sing-box)
 
-Android GUI:
+### Android GUI
 
 - [shadowsocks/shadowsocks-android](https://github.com/shadowsocks/shadowsocks-android)
 - [SagerNet/SagerNet](https://github.com/SagerNet/SagerNet)
 
-Web Dashboard:
+### Web Dashboard
 
 - [Yacd-meta](https://github.com/MetaCubeX/Yacd-meta)
 

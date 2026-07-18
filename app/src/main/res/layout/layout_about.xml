@@ -27,7 +27,8 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginRight="8dp"
                 android:clickable="true"
-                android:focusable="true">
+                android:focusable="true"
+                app:cardElevation="?attr/uiCardElevation">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -57,9 +58,24 @@
                 android:id="@+id/about_fragment_holder"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginBottom="8dp"
+                app:cardElevation="?attr/uiCardElevation">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/about_list"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/about_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false" />
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:overScrollMode="never"

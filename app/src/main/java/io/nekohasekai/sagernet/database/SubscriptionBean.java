@@ -19,6 +19,8 @@ public class SubscriptionBean extends Serializable {
     public Boolean deduplication;
     public Boolean updateWhenConnectedOnly;
     public String customUserAgent;
+    public Boolean sendHwid;
+    public String customHwidParams;
     public Boolean autoUpdate;
     public Integer autoUpdateDelay;
     public Integer lastUpdated;
@@ -72,11 +74,12 @@ public class SubscriptionBean extends Serializable {
         output.writeString(filterRegex);
 
         // v3
-        output.writeString(customDnsResolver);
+        output.writeBoolean(sendHwid);
+        output.writeString(customHwidParams);
     }
 
     public void serializeForShare(ByteBufferOutput output) {
-        output.writeInt(0);
+        output.writeInt(1);
 
         output.writeInt(type);
 
@@ -86,6 +89,8 @@ public class SubscriptionBean extends Serializable {
         output.writeBoolean(deduplication);
         output.writeBoolean(updateWhenConnectedOnly);
         output.writeString(customUserAgent);
+        output.writeBoolean(sendHwid);
+        output.writeString(customHwidParams);
     }
 
     @Override
@@ -108,10 +113,9 @@ public class SubscriptionBean extends Serializable {
             filterMode = input.readInt();
             filterRegex = input.readString();
         }
-
-        // v3
         if (version >= 3) {
-            customDnsResolver = input.readString();
+            sendHwid = input.readBoolean();
+            customHwidParams = input.readString();
         }
     }
 
@@ -124,6 +128,10 @@ public class SubscriptionBean extends Serializable {
         deduplication = input.readBoolean();
         updateWhenConnectedOnly = input.readBoolean();
         customUserAgent = input.readString();
+        if (version >= 1) {
+            sendHwid = input.readBoolean();
+            customHwidParams = input.readString();
+        }
     }
 
     @Override
@@ -135,6 +143,8 @@ public class SubscriptionBean extends Serializable {
         if (deduplication == null) deduplication = false;
         if (updateWhenConnectedOnly == null) updateWhenConnectedOnly = false;
         if (customUserAgent == null) customUserAgent = "";
+        if (sendHwid == null) sendHwid = false;
+        if (customHwidParams == null) customHwidParams = "";
         if (autoUpdate == null) autoUpdate = false;
         if (autoUpdateDelay == null) autoUpdateDelay = 1440;
         if (lastUpdated == null) lastUpdated = 0;

@@ -5,7 +5,7 @@ import android.widget.Toast
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.SwitchPreference
+import androidx.preference.SwitchPreferenceCompat
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
@@ -166,7 +166,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                     false
                 findPreference<EditTextPreference>(Key.SERVER_CONNECTION_RECEIVE_WINDOW)!!.isVisible =
                     false
-                findPreference<SwitchPreference>(Key.SERVER_DISABLE_MTU_DISCOVERY)!!.isVisible =
+                findPreference<SwitchPreferenceCompat>(Key.SERVER_DISABLE_MTU_DISCOVERY)!!.isVisible =
                     false
                 //
                 authPayload.title = resources.getString(R.string.password)
@@ -180,7 +180,7 @@ class HysteriaSettingsActivity : ProfileSettingsActivity<HysteriaBean>() {
                     true
                 findPreference<EditTextPreference>(Key.SERVER_CONNECTION_RECEIVE_WINDOW)!!.isVisible =
                     true
-                findPreference<SwitchPreference>(Key.SERVER_DISABLE_MTU_DISCOVERY)!!.isVisible =
+                findPreference<SwitchPreferenceCompat>(Key.SERVER_DISABLE_MTU_DISCOVERY)!!.isVisible =
                     true
                 //
                 authPayload.title = resources.getString(R.string.hysteria_auth_payload)

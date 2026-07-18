@@ -24,7 +24,7 @@
         app:title="@string/group_order"
         app:useSimpleSummaryProvider="true" />
 
-    <SwitchPreference
+    <SwitchPreferenceCompat
         app:icon="@drawable/ic_baseline_manage_search_24"
         app:key="groupIsSelector"
         app:title="@string/use_selector" />
@@ -51,20 +51,13 @@
             app:title="@string/group_subscription_link"
             app:useSimpleSummaryProvider="true" />
 
-        <EditTextPreference
-            app:icon="@drawable/ic_action_dns"
-            app:key="subscriptionServerDns"
-            app:summary="@string/server_dns_subscription_sum"
-            app:title="@string/server_dns"
-            app:useSimpleSummaryProvider="true" />
-
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:icon="@drawable/ic_baseline_manage_search_24"
             app:key="subscriptionForceResolve"
             app:summary="@string/force_resolve_sum"
             app:title="@string/force_resolve" />
 
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:icon="@drawable/ic_baseline_import_contacts_24"
             app:key="subscriptionDeduplication"
             app:summary="@string/deduplication_sum"
@@ -97,7 +90,7 @@
     <PreferenceCategory
         app:key="subscriptionUpdate"
         app:title="@string/update_settings">
-        <SwitchPreference
+        <SwitchPreferenceCompat
             app:icon="@drawable/ic_baseline_security_24"
             app:key="subscriptionUpdateWhenConnectedOnly"
             app:summary="@string/update_when_connected_only_sum"
@@ -107,7 +100,18 @@
             app:key="subscriptionUserAgent"
             app:title="@string/subscription_user_agent"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
+        <SwitchPreferenceCompat
+            app:icon="@drawable/ic_baseline_security_24"
+            app:key="subscriptionSendHwid"
+            app:summary="@string/subscription_send_hwid_summary"
+            app:title="@string/subscription_send_hwid" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_grid_3x3_24"
+            app:key="subscriptionCustomHwidParams"
+            app:summary="@string/subscription_custom_hwid_params_summary"
+            app:title="@string/subscription_custom_hwid_params"
+            app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
             app:icon="@drawable/ic_baseline_flip_camera_android_24"
             app:key="subscriptionAutoUpdate"
             app:title="@string/auto_update" />

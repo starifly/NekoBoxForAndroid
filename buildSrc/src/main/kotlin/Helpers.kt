@@ -15,6 +15,9 @@ import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Base64
 import java.util.Properties
 
@@ -53,7 +56,7 @@ fun Project.setupCommon() {
         buildToolsVersion = "36.0.0"
         compileSdk = 36
         defaultConfig {
-            minSdk = 21
+            minSdk = 23
             targetSdk = 35
         }
         buildTypes {
@@ -133,36 +136,46 @@ fun Project.setupAppCommon() {
     setupCommon()
 
     val lp = requireLocalProperties()
-    val keystorePwd = lp.getProperty("KEYSTORE_PASS") ?: System.getenv("KEYSTORE_PASS")
-    val alias = lp.getProperty("ALIAS_NAME") ?: System.getenv("ALIAS_NAME")
-    val pwd = lp.getProperty("ALIAS_PASS") ?: System.getenv("ALIAS_PASS")
-    // release.keystore is intentionally NOT committed (gitignored). CI decodes it from
-    // the KEYSTORE_B64 secret before the release build. Only wire up release signing when
-    // the keystore file is actually present and a (non-blank) password is provided;
-    // otherwise skip it so debug / PR / keyless builds don't fail. Empty-string env vars
-    // (unset GitHub secrets expand to "") count as absent.
-    val releaseKeystore = rootProject.file("release.keystore")
-    val canSign = releaseKeystore.exists() &&
-        !keystorePwd.isNullOrBlank() &&
-        !alias.isNullOrBlank() &&
-        !pwd.isNullOrBlank()
+    val keystorePwd = (lp.getProperty("KEYSTORE_PASS") ?: System.getenv("KEYSTORE_PASS"))
+        ?.takeIf { it.isNotBlank() }
+    val alias = (lp.getProperty("ALIAS_NAME") ?: System.getenv("ALIAS_NAME"))
+        ?.takeIf { it.isNotBlank() }
+    val pwd = (lp.getProperty("ALIAS_PASS") ?: System.getenv("ALIAS_PASS"))
+        ?.takeIf { it.isNotBlank() }
+    val releaseKeystoreFile = rootProject.file("release.keystore")
+    val debugKeystoreFile = rootProject.file("app/debug.keystore")
 
     android.apply {
-        if (canSign) {
-            signingConfigs {
+        signingConfigs {
+            if (keystorePwd != null && alias != null && pwd != null && releaseKeystoreFile.isFile) {
                 create("release") {
-                    storeFile = releaseKeystore
+                    storeFile = releaseKeystoreFile
                     storePassword = keystorePwd
                     keyAlias = alias
                     keyPassword = pwd
                 }
             }
+            if (debugKeystoreFile.isFile) {
+                create("ciDebug") {
+                    storeFile = debugKeystoreFile
+                    storePassword = "android"
+                    keyAlias = "androiddebugkey"
+                    keyPassword = "android"
+                }
+            }
         }
         buildTypes {
-            val key = signingConfigs.findByName("release")
-            if (key != null) {
-                getByName("release").signingConfig = key
-                getByName("debug").signingConfig = key
+            val releaseKey = signingConfigs.findByName("release")
+            val ciDebugKey = signingConfigs.findByName("ciDebug")
+            when {
+                releaseKey != null -> {
+                    getByName("release").signingConfig = releaseKey
+                    getByName("debug").signingConfig = releaseKey
+                }
+
+                ciDebugKey != null -> {
+                    getByName("debug").signingConfig = ciDebugKey
+                }
             }
         }
     }
@@ -215,6 +228,17 @@ fun Project.setupApp() {
                     "PRE_VERSION_NAME",
                     "\"${requireMetadata().getProperty("PRE_VERSION_NAME")}\"",
                 )
+            }
+        }
+
+        val buildDateStamp = LocalDate.now().format(DateTimeFormatter.ofPattern("yyMMdd"))
+        val abiPattern = Regex("(armeabi-v7a|arm64-v8a|x86_64|x86)")
+
+        applicationVariants.all {
+            outputs.all {
+                this as BaseVariantOutputImpl
+                val abi = abiPattern.find(outputFileName)?.value ?: "universal"
+                outputFileName = "NB_SF-$buildDateStamp-$abi.apk"
             }
         }
 

@@ -21,6 +21,7 @@ import io.nekohasekai.sagernet.ktx.string
 import io.nekohasekai.sagernet.ktx.stringToInt
 import io.nekohasekai.sagernet.ktx.stringToIntIfExists
 import moe.matsuri.nb4a.TempDatabase
+import moe.matsuri.nb4a.utils.Util
 
 // Default exclusion patterns for the system HTTP proxy (appendHttpProxy).
 // These are Android ProxyInfo host/suffix patterns (NOT CIDRs): private and
@@ -39,7 +40,6 @@ val DEFAULT_HTTP_PROXY_BYPASS = listOf(
 
 object DataStore : OnPreferenceDataStoreChangeListener {
 
-    // share service state in main & bg process
     @Volatile
     var serviceState = BaseService.State.Idle
 
@@ -53,17 +53,13 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     )
     val profileCacheStore = RoomPreferenceDataStore(TempDatabase.profileCacheDao)
 
-    // last used, but may not be running
     var currentProfile by configurationStore.long(Key.PROFILE_CURRENT)
 
     var selectedProxy by configurationStore.long(Key.PROFILE_ID)
-    var selectedGroup by configurationStore.long(Key.PROFILE_GROUP) { currentGroupId() } // "ungrouped" group id = 1
+    var selectedGroup by configurationStore.long(Key.PROFILE_GROUP) { currentGroupId() }
 
-    // only in bg process
     var vpnService: VpnService? = null
     var baseService: BaseService.Interface? = null
-
-    // main
 
     var runningTest = false
 
@@ -122,12 +118,12 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var allowInsecureOnRequest by configurationStore.boolean(Key.ALLOW_INSECURE_ON_REQUEST)
     var networkChangeResetConnections by configurationStore.boolean(Key.NETWORK_CHANGE_RESET_CONNECTIONS) { true }
+    var restartProfileOnNetworkChange by configurationStore.boolean(
+        Key.RESTART_PROFILE_ON_NETWORK_CHANGE
+    ) { true }
     var wakeResetConnections by configurationStore.boolean(Key.WAKE_RESET_CONNECTIONS)
 
-    //
-
-    var isExpert by configurationStore.boolean(Key.APP_EXPERT)
-    var appTheme by configurationStore.int(Key.APP_THEME)
+    var isExpert by configurationStore.boolean(Key.APP_EXPERT)var appTheme by configurationStore.stringToInt(Key.APP_THEME) { 0 }
     var useSystemTheme by configurationStore.boolean(Key.USE_SYSTEM_THEME)
     var nightTheme by configurationStore.stringToInt(Key.NIGHT_THEME)
 
@@ -136,6 +132,9 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     // Dark High Contrast). Key name kept for backward compatibility.
     var nightThemeBeforeDracula by configurationStore.int(Key.NIGHT_THEME_BEFORE_DRACULA) { -1 }
     var appLanguage by configurationStore.string(Key.APP_LANGUAGE) { "" }
+    var dynamicColors by configurationStore.boolean(Key.DYNAMIC_COLORS)
+    var amoledTheme by configurationStore.boolean(Key.AMOLED_THEME)
+    var uiDesignVersion by configurationStore.int(Key.UI_DESIGN_VERSION)
     var serviceMode by configurationStore.string(Key.SERVICE_MODE) { Key.MODE_VPN }
 
     var trafficSniffing by configurationStore.stringToInt(Key.TRAFFIC_SNIFFING) { 1 }
@@ -179,7 +178,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         "0"
     } // defaults to 0, no automatic update
 
-    // hopefully hashCode = mHandle doesn't change, currently this is true from KitKat to Nougat
     private val userIndex by lazy { Binder.getCallingUserHandle().hashCode() }
     val mixedSecret: String
         @Synchronized get() {
@@ -233,10 +231,34 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     val mixedInboundUser: String get() = if (mixedInboundAuthed) Key.MIXED_USERNAME else ""
     val mixedInboundPass: String get() = if (mixedInboundAuthed) mixedSecret else ""
+    var socksPort: Int
+        get() = configurationStore.getString(Key.SOCKS_PORT)?.let { parsePort(it, mixedPort) } ?: mixedPort
+        set(value) = saveLocalPort(Key.SOCKS_PORT, value)
+
+    var httpPort: Int
+        get() = configurationStore.getString(Key.HTTP_PORT)?.let { parsePort(it, socksPort + 1) } ?: (socksPort + 1)
+        set(value) = saveLocalPort(Key.HTTP_PORT, value)
+
+    var mixedUsername by configurationStore.string(Key.MIXED_USERNAME) { "User" }
+    var mixedPassword by configurationStore.string(Key.MIXED_PASSWORD) {
+        Util.generateCryptoSecurePassword()
+    }
 
     fun initGlobal() {
         if (configurationStore.getString(Key.MIXED_PORT) == null) {
             mixedPort = mixedPort
+        }
+        if (configurationStore.getString(Key.SOCKS_PORT) == null) {
+            socksPort = mixedPort
+        }
+        if (configurationStore.getString(Key.HTTP_PORT) == null) {
+            httpPort = socksPort + 1
+        }
+        if (configurationStore.getString(Key.MIXED_USERNAME) == null) {
+            mixedUsername = "User"
+        }
+        if (configurationStore.getString(Key.MIXED_PASSWORD) == null) {
+            mixedPassword = Util.generateCryptoSecurePassword()
         }
     }
 
@@ -272,15 +294,11 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var yacdURL by configurationStore.string("yacdURL") { "http://127.0.0.1:9090/ui" }
 
-    // protocol
-
     var globalAllowInsecure by configurationStore.boolean(Key.GLOBAL_ALLOW_INSECURE) { false }
 
     var enableTLSFragment by configurationStore.boolean(Key.ENABLE_TLS_FRAGMENT) { false }
     var fragmentLength by configurationStore.string(Key.FRAGMENT_LENGTH) { "100-200" }
     var fragmentInterval by configurationStore.string(Key.FRAGMENT_INTERVAL) { "10-20" }
-
-    // old cache, DO NOT ADD
 
     var dirty by profileCacheStore.boolean(Key.PROFILE_DIRTY)
     var editingId by profileCacheStore.long(Key.PROFILE_ID)
@@ -404,6 +422,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var subscriptionDeduplication by profileCacheStore.boolean(Key.SUBSCRIPTION_DEDUPLICATION)
     var subscriptionUpdateWhenConnectedOnly by profileCacheStore.boolean(Key.SUBSCRIPTION_UPDATE_WHEN_CONNECTED_ONLY)
     var subscriptionUserAgent by profileCacheStore.string(Key.SUBSCRIPTION_USER_AGENT)
+    var subscriptionSendHwid by profileCacheStore.boolean(Key.SUBSCRIPTION_SEND_HWID)
+    var subscriptionCustomHwidParams by profileCacheStore.string(Key.SUBSCRIPTION_CUSTOM_HWID_PARAMS)
     var subscriptionAutoUpdate by profileCacheStore.boolean(Key.SUBSCRIPTION_AUTO_UPDATE)
     var subscriptionAutoUpdateDelay by profileCacheStore.stringToInt(Key.SUBSCRIPTION_AUTO_UPDATE_DELAY) { 360 }
     var subscriptionFilterMode by profileCacheStore.stringToInt(Key.SUBSCRIPTION_FILTER_MODE) { 0 }
@@ -412,8 +432,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var subscriptionCustomDns by profileCacheStore.string(Key.SUBSCRIPTION_CUSTOM_DNS)
 
     var rulesFirstCreate by profileCacheStore.boolean("rulesFirstCreate")
-
-    // var enableTLSFragment by configurationStore.boolean(Key.ENABLE_TLS_FRAGMENT)
 
     var webdavServer: String?
         get() = configurationStore.getString("webdavServer")

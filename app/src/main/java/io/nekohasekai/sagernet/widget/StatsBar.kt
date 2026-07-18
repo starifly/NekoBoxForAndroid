@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.widget
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.ContextWrapper
 import android.text.SpannableStringBuilder
 import android.text.format.Formatter
 import android.text.style.ForegroundColorSpan
@@ -10,91 +11,92 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.widget.TooltipCompat
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.withStarted
-import com.google.android.material.bottomappbar.BottomAppBar
+import com.google.android.material.behavior.HideBottomViewOnScrollBehavior
+import com.google.android.material.card.MaterialCardView
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.ui.MainActivity
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class StatsBar @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = R.attr.bottomAppBarStyle,
-) : BottomAppBar(context, attrs, defStyleAttr) {
-    companion object {
-        private const val INITIAL_HIDE_DELAY_MS = 100L
-    }
-
-    private enum class Transition {
-        ShowImmediate,
-        ShowAnimated,
-        HideImmediate,
-        HideAfterStart,
-    }
+    context: Context, attrs: AttributeSet? = null,
+    defStyleAttr: Int = com.google.android.material.R.attr.materialCardViewStyle,
+) : MaterialCardView(context, attrs, defStyleAttr), CoordinatorLayout.AttachedBehavior {
 
     private lateinit var statusText: TextView
     private lateinit var txText: TextView
     private lateinit var rxText: TextView
-    @Suppress("unused")
+    private lateinit var speedRow: View
+    private lateinit var textContainer: View
     private lateinit var behavior: YourBehavior
-    private var currentState = BaseService.State.Idle
-    private var pendingTransition: Transition? = Transition.HideImmediate
-    private var transitionJob: Job? = null
 
-    var useExternalScrollDriver = false
-
-    var allowShow = false
-        set(value) {
-            field = value
-            updateHideOnScroll()
+    private val mainActivity: MainActivity
+        get() {
+            var current = context
+            while (current is ContextWrapper) {
+                if (current is MainActivity) return current
+                current = current.baseContext
+            }
+            error("StatsBar must be hosted by MainActivity")
         }
 
-    init {
-        alpha = 0f
+    var allowShow = true
+    private var hideOnScroll = true
+
+    private fun ensureViews() {
+        if (!::statusText.isInitialized) {
+            statusText = findViewById(R.id.status)
+            txText = findViewById(R.id.tx)
+            rxText = findViewById(R.id.rx)
+            speedRow = findViewById(R.id.speed_row)
+            textContainer = findViewById(R.id.text_container)
+        }
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val parentWidth = View.MeasureSpec.getSize(widthMeasureSpec)
+        val lp = layoutParams as? android.view.ViewGroup.MarginLayoutParams
+        val margins = (lp?.leftMargin ?: 0) + (lp?.rightMargin ?: 0)
+        val maxAllowedWidth = parentWidth - margins
+
+        val newWidthMeasureSpec = View.MeasureSpec.makeMeasureSpec(maxAllowedWidth, View.MeasureSpec.AT_MOST)
+        super.onMeasure(newWidthMeasureSpec, heightMeasureSpec)
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        radius = h / 2f
     }
 
     override fun getBehavior(): YourBehavior {
-        if (!this::behavior.isInitialized) behavior = YourBehavior()
+        if (!this::behavior.isInitialized) behavior = YourBehavior { allowShow }
         return behavior
     }
 
-    inner class YourBehavior : Behavior() {
-override fun onStartNestedScroll(
+    class YourBehavior(val getAllowShow: () -> Boolean) : HideBottomViewOnScrollBehavior<StatsBar>() {
+
+        override fun onStartNestedScroll(
             coordinatorLayout: CoordinatorLayout,
-            child: BottomAppBar,
-            directTarget: View,
+            child: StatsBar,
+            directTargetChild: View,
             target: View,
             nestedScrollAxes: Int,
             type: Int,
-        ): Boolean {
-            if (useExternalScrollDriver) return false
-            return super.onStartNestedScroll(
-                coordinatorLayout,
-                child,
-                directTarget,
-                target,
-                nestedScrollAxes,
-                type,
-            )
-        }
+        ): Boolean = child.hideOnScroll && super.onStartNestedScroll(
+            coordinatorLayout, child, directTargetChild, target, nestedScrollAxes, type
+        )
 
         override fun onNestedScroll(
-            coordinatorLayout: CoordinatorLayout,
-            child: BottomAppBar,
-            target: View,
-            dxConsumed: Int,
-            dyConsumed: Int,
-            dxUnconsumed: Int,
-            dyUnconsumed: Int,
-            type: Int,
-            consumed: IntArray,
+            coordinatorLayout: CoordinatorLayout, child: StatsBar, target: View,
+            dxConsumed: Int, dyConsumed: Int, dxUnconsumed: Int, dyUnconsumed: Int,
+            type: Int, consumed: IntArray,
         ) {
             super.onNestedScroll(
                 coordinatorLayout,
@@ -108,29 +110,42 @@ override fun onStartNestedScroll(
                 consumed,
             )
         }
-        override fun slideUp(child: BottomAppBar) {
-            if (!allowShow) return
+
+        override fun slideUp(child: StatsBar) {
+            if (!getAllowShow()) return
             super.slideUp(child)
+        }
+
+        override fun slideDown(child: StatsBar) {
+            super.slideDown(child)
         }
     }
 
+    fun performShow() = getBehavior().slideUp(this)
+
+    fun performHide() = getBehavior().slideDown(this)
+
     override fun setOnClickListener(l: OnClickListener?) {
-        // findViewById (not ViewBinding): status/tx/rx are sibling views declared in the host
-        // layout (layout_main), not children of a layout this custom BottomAppBar inflates.
-        statusText = findViewById(R.id.status)
-        txText = findViewById(R.id.tx)
-        rxText = findViewById(R.id.rx)
+        ensureViews()
+        refreshSpeedVisibility()
         super.setOnClickListener(l)
     }
 
-    private fun setStatus(text: CharSequence) {
+    private fun setStatus(text: CharSequence, tooltip: CharSequence = text) {
+        ensureViews()
         statusText.text = text
-        TooltipCompat.setTooltipText(this, text)
+        TooltipCompat.setTooltipText(this, tooltip)
+    }
+
+    fun refreshSpeedVisibility() {
+        ensureViews()
+        if (this::speedRow.isInitialized) speedRow.isVisible = DataStore.speedInterval > 0
     }
 
     // Two-tone status: color the lead segment (split at [sep], kept with the lead)
     // and the remainder separately. Used for "Connected, …" and "Success: …".
     private fun setStatusTwoTone(full: CharSequence, sep: Char, leadAttr: Int, restAttr: Int) {
+        ensureViews()
         val s = full.toString()
         val idx = s.indexOf(sep)
         if (idx < 0) {
@@ -156,10 +171,7 @@ override fun onStartNestedScroll(
     }
 
     private fun setStatusColorByState(state: BaseService.State) {
-        // Connected = statusConnectedColor (green), Stopped/Stopping = statusStoppedColor
-        // (red - "Shutting down…" reads as red), Connecting = statusConnectingColor (Dracula
-        // yellow; colorOnPrimary elsewhere), other = colorOnPrimary.
-        // Non-Dracula themes default these attrs to colorOnPrimary, so no change.
+        ensureViews()
         val attr = when (state) {
             BaseService.State.Connected -> R.attr.statusConnectedColor
             BaseService.State.Stopped, BaseService.State.Stopping -> R.attr.statusStoppedColor
@@ -170,101 +182,54 @@ override fun onStartNestedScroll(
     }
 
     fun changeState(state: BaseService.State) {
-        val activity = context.unwrap<MainActivity>()
+        val activity = mainActivity
+        val showText = state != BaseService.State.Idle && state != BaseService.State.Stopped
+
         fun postWhenStarted(what: () -> Unit) = activity.lifecycleScope.launch(Dispatchers.Main) {
             delay(100L)
             activity.withStarted { what() }
         }
-        if ((state == BaseService.State.Connected).also { hideOnScroll = it }) {
-            postWhenStarted {
-                if (allowShow) performShow()
-                // "Connected," in green; the "tap to check connection" hint in detail color.
+
+        postWhenStarted {
+            ensureViews()
+            val transition = android.transition.AutoTransition().apply {
+                duration = 250
+            }
+            (parent as? android.view.ViewGroup)?.let {
+                android.transition.TransitionManager.beginDelayedTransition(it, transition)
+            }
+            textContainer.visibility = if (showText) View.VISIBLE else View.GONE
+
+            if (allowShow) performShow()
+
+            if (state == BaseService.State.Connected) {
+                refreshSpeedVisibility()
+                // 整合 HEAD 的雙色顯示："Connected," 為綠色，後續的點擊提示為細節顏色
                 setStatusTwoTone(
                     app.getText(R.string.vpn_connected),
                     ',',
                     R.attr.statusConnectedColor,
                     R.attr.statusDetailColor,
                 )
+            } else {
+                updateSpeed(0, 0)
+                setStatusColorByState(state)
+                setStatus(
+                    context.getText(
+                        when (state) {
+                            BaseService.State.Connecting -> R.string.connecting
+                            BaseService.State.Stopping -> R.string.stopping
+                            else -> R.string.not_connected
+                        }
+                    )
+                )
             }
-        } else {
-            getBehavior().slideUp(this)
-            animate().cancel()
-            translationY = 0f
-        }
-    }
-
-    private fun commitHidden(animated: Boolean) {
-        alpha = 1f
-        if (!animated) {
-            syncHiddenPosition()
-            return
-        }
-        val activity = context as? MainActivity
-        if (activity == null) {
-            post {
-                if (shouldShow()) {
-                    commitVisible(animated = false)
-                } else if (isLaidOut && height > 0) {
-                    performHide()
-                } else {
-                    pendingTransition = Transition.HideAfterStart
-                }
-            }
-            return
-        }
-        transitionJob = activity.lifecycleScope.launch(Dispatchers.Main) {
-            delay(INITIAL_HIDE_DELAY_MS)
-            activity.whenStarted {
-                transitionJob = null
-                if (shouldShow()) {
-                    commitVisible(animated = false)
-                } else if (isLaidOut && height > 0) {
-                    performHide()
-                } else {
-                    pendingTransition = Transition.HideAfterStart
-                }
-            }
-        }
-    }
-
-    private fun syncHiddenPosition() {
-        getBehavior().slideDown(this)
-        animate().cancel()
-        translationY = height.toFloat()
-        alpha = 1f
-    }
-
-    private fun cancelPendingTransition() {
-        transitionJob?.cancel()
-        transitionJob = null
-    }
-
-    private fun hasPendingDelayedHide(): Boolean {
-        return pendingTransition == Transition.HideAfterStart || transitionJob != null
-    }
-
-    fun changeState(state: BaseService.State) {
-        currentState = state
-        updateHideOnScroll()
-        if (state == BaseService.State.Connected) {
-            setStatus(app.getText(R.string.vpn_connected))
-        } else {
-            updateSpeed(0, 0)
-            setStatusColorByState(state)
-            setStatus(
-                context.getText(
-                    when (state) {
-                        BaseService.State.Connecting -> R.string.connecting
-                        BaseService.State.Stopping -> R.string.stopping
-                        else -> R.string.not_connected
-                    },
-                ),
-            )
         }
     }
 
     @SuppressLint("SetTextI18n")
     fun updateSpeed(txRate: Long, rxRate: Long) {
+        ensureViews()
         val speedColor = context.getColorAttr(R.attr.speedTextColor)
         txText.setTextColor(speedColor)
         rxText.setTextColor(speedColor)
@@ -283,8 +248,9 @@ override fun onStartNestedScroll(
     }
 
     fun testConnection() {
-        val activity = context.unwrap<MainActivity>()
+        val activity = mainActivity
         isEnabled = false
+        ensureViews()
         // "Testing…" in the testing color.
         statusText.setTextColor(context.getColorAttr(R.attr.statusTestingColor))
         setStatus(app.getText(R.string.connection_test_testing))
@@ -312,8 +278,7 @@ override fun onStartNestedScroll(
                 Logs.w(e.toString())
                 onMainDispatcher {
                     isEnabled = true
-                    statusText.setTextColor(context.getColorAttr(R.attr.statusTestingColor))
-                    setStatus(app.getText(R.string.connection_test_testing))
+                    setStatusColorByState(BaseService.State.Idle) // 發生錯誤時重設顏色
 
                     activity.snackbar(
                         app.getString(

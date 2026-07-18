@@ -21,117 +21,116 @@
 
         <io.nekohasekai.sagernet.widget.StatsBar
             android:id="@+id/stats"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="28dp"
             android:nextFocusUp="@+id/fab"
-            app:contentInsetStart="0dp"
-            app:fabAlignmentMode="center"
-            app:fabAnchorMode="cradle"
-            app:hideOnScroll="true"
-            app:layout_scrollFlags="enterAlways|scroll">
+            app:cardBackgroundColor="@color/translucent_primary_container"
+            app:cardElevation="3dp"
+            app:strokeWidth="0dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <FrameLayout
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackground"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:background="?attr/selectableItemBackground">
 
-                <TextView
-                    android:id="@+id/tx"
+                <LinearLayout
+                    android:id="@+id/text_container"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_gravity="fill_horizontal"
-                    android:ellipsize="marquee"
-                    android:singleLine="true"
-                    android:textColor="@color/white"
-                    android:textSize="14sp" />
+                    android:layout_gravity="start|center_vertical"
+                    android:layout_marginStart="88dp"
+                    android:layout_marginEnd="32dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/rx"
+                    <TextView
+                        android:id="@+id/status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
+                        android:textColor="?attr/colorOnPrimaryContainer"
+                        tools:text="Подключено" />
+
+                    <LinearLayout
+                        android:id="@+id/speed_row"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tx"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                            android:textColor="?attr/colorOnPrimaryContainer"
+                            tools:text="▲ 12,4 МБ" />
+
+                        <TextView
+                            android:id="@+id/rx"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                            android:textColor="?attr/colorOnPrimaryContainer"
+                            tools:text="▼ 3,7 МБ" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <FrameLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_gravity="fill_horizontal"
-                    android:ellipsize="marquee"
-                    android:singleLine="true"
-                    android:textColor="@color/white"
-                    android:textSize="14sp" />
+                    android:layout_gravity="start|center_vertical"
+                    android:layout_margin="2dp">
 
-                <TextView
-                    android:id="@+id/status"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="fill_horizontal"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="@color/white"
-                    android:textSize="16sp"
-                    tools:text="@string/connection_test_available" />
+                    <io.nekohasekai.sagernet.widget.ServiceButton
+                        android:id="@+id/fab"
+                        android:layout_width="68dp"
+                        android:layout_height="68dp"
+                        android:layout_gravity="center"
+                        android:elevation="6dp"
+                        app:backgroundTint="?attr/colorPrimary"
+                        app:fabCustomSize="68dp"
+                        app:maxImageSize="30dp"
+                        app:pressedTranslationZ="4dp"
+                        app:srcCompat="@drawable/ic_service_idle"
+                        app:tint="?attr/colorOnPrimary" />
 
-            </LinearLayout>
+                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                        android:id="@+id/fabProgress"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:visibility="invisible"
+                        app:indicatorColor="?attr/colorOnPrimary"
+                        app:indicatorSize="74dp"
+                        app:trackColor="?attr/colorPrimaryContainer"
+                        app:trackCornerRadius="4dp"
+                        app:trackThickness="4dp" />
+                </FrameLayout>
+            </FrameLayout>
+        </io.nekohasekai.sagernet.widget.StatsBar></androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-        </io.nekohasekai.sagernet.widget.StatsBar>
-
-        <!-- FAB + its progress are declared AFTER the StatsBar so the airplane draws on top
-             of the bottom bar and wins touch in the overlap region. StatsBar opts into the
-             legacy BottomAppBar cradle so the centered FAB docks into the bar. -->
-        <!-- We double trackThickness as half of it will be invisible -->
-        <com.google.android.material.progressindicator.CircularProgressIndicator
-            android:id="@+id/fabProgress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:max="1"
-            android:visibility="invisible"
-            app:indicatorColor="?primaryOrTextSecondary"
-            app:layout_anchor="@+id/fab"
-            app:layout_anchorGravity="center"
-            app:layout_behavior="io.nekohasekai.sagernet.widget.FabProgressBehavior"
-            app:trackCornerRadius="@dimen/mtrl_progress_track_thickness"
-            app:trackThickness="8dp" />
-
-        <io.nekohasekai.sagernet.widget.ServiceButton
-            android:id="@+id/fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:elevation="6dp"
-            android:nextFocusDown="@+id/stats"
-            app:backgroundTint="?attr/fabColorBackground"
-            app:tint="?attr/fabStoppedColor"
-            app:layout_anchor="@id/stats"
-            app:pressedTranslationZ="6dp"
-            app:srcCompat="@drawable/ic_service_idle" />
-
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
+    <!-- 採用 sf/main 升級後的單一 M3 NavigationView 結構 -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
-        style="@style/Widget.Design.NavigationView"
-        app:insetForeground="@android:color/transparent"
-        android:layout_width="wrap_content"
+        android:layout_width="320dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
+        android:background="?attr/colorSurface"
         app:itemIconTint="@color/navigation_icon"
-        app:itemShapeAppearance="@style/ShapeAppearance.SagerNet.NavItem"
-        app:itemShapeFillColor="@color/nav_item_fill"
-        app:itemShapeInsetStart="8dp"
-        app:itemShapeInsetEnd="8dp"
-        app:itemShapeInsetTop="3dp"
-        app:itemShapeInsetBottom="3dp"
-        app:itemTextColor="@color/navigation_icon"
-        app:menu="@menu/main_drawer_menu" />
-
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/nav_view_black"
-        style="@style/Widget.Design.NavigationView"
-        app:insetForeground="@android:color/transparent"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        app:itemIconTint="@color/navigation_icon"
-        app:itemShapeAppearance="@style/ShapeAppearance.SagerNet.NavItem"
+        app:itemShapeAppearance="@style/ShapeAppearance.SagerNet.Expressive.Navigation"
         app:itemShapeFillColor="@color/navigation_item"
         app:itemShapeInsetStart="8dp"
         app:itemShapeInsetEnd="8dp"

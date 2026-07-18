@@ -72,7 +72,7 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.1")
     implementation("androidx.work:work-multiprocess:2.9.1")
 
-    implementation("com.google.android.material:material:1.12.0")
+    implementation("com.google.android.material:material:1.14.0")
     implementation("com.google.code.gson:gson:2.11.0")
 
     // QR scanning: CameraX live preview/analysis + ML Kit bundled barcode model.
@@ -99,6 +99,8 @@ dependencies {
     implementation("org.yaml:snakeyaml:2.3")
     implementation("com.jakewharton:process-phoenix:2.1.2")
     implementation("com.esotericsoftware:kryo:5.6.2")
+    implementation("com.google.guava:guava:31.0.1-android")
+    testImplementation("junit:junit:4.13.2")
 
     implementation("me.zhanghai.android.fastscroll:library:1.3.0")
 

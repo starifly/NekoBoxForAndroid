@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ui_primary">#CAC3FF</color>
+    <color name="ui_on_primary">#302B66</color>
+    <color name="ui_primary_container">#4F4296</color>
+    <color name="ui_on_primary_container">#E8E0FF</color>
+    <color name="ui_secondary">#CCC2DC</color>
+    <color name="ui_on_secondary">#332D41</color>
+    <color name="ui_secondary_container">#4A4458</color>
+    <color name="ui_on_secondary_container">#E8DEF8</color>
+    <color name="ui_tertiary">#EFB8C8</color>
+    <color name="ui_on_tertiary">#492532</color>
+    <color name="ui_tertiary_container">#633B48</color>
+    <color name="ui_on_tertiary_container">#FFD8E4</color>
+    <color name="ui_background">#141218</color>
+    <color name="ui_on_background">#E6E1E9</color>
+    <color name="ui_surface">#141218</color>
+    <color name="ui_on_surface">#E6E1E9</color>
+    <color name="ui_surface_variant">#49454F</color>
+    <color name="ui_on_surface_variant">#CAC4D0</color>
+    <color name="ui_surface_container_low">#1D1B20</color>
+    <color name="ui_surface_container">#211F26</color>
+    <color name="ui_surface_container_high">#2B2930</color>
+    <color name="ui_outline">#938F99</color>
+    <color name="ui_outline_variant">#49454F</color>
+    <color name="ui_error">#F2B8B5</color>
+    <color name="ui_on_error">#601410</color>
+    <color name="ui_error_container">#8C1D18</color>
+    <color name="ui_on_error_container">#F9DEDC</color>
+    <color name="ui_success">#81C784</color>
+    <color name="ui_warning">#FFB74D</color>
+</resources>

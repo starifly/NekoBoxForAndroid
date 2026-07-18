@@ -109,6 +109,8 @@ replace github.com/sagernet/sing-vmess => github.com/hawkff/sing-vmess v0.2.8-mo
 replace github.com/dyhkwong/sing-juicity => github.com/exclavenetwork/sing-juicity v0.1.4
 
 replace github.com/sagernet/sing-snell => github.com/reF1nd/sing-snell v0.0.0-20260713132549-9711346e2b35
+replace github.com/sagernet/wireguard-go => ../../wireguard-go
+
 
 // replace github.com/sagernet/sing-quic => github.com/matsuridayo/sing-quic v0.0.0-20241009042333-b49ce60d9b36
 // replace github.com/sagernet/sing-quic => ../../sing-quic

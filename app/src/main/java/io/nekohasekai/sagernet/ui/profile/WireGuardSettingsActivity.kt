@@ -24,6 +24,22 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
     private val peerPreSharedKey = pbm.add(PreferenceBinding(Type.Text, "peerPreSharedKey"))
     private val mtu = pbm.add(PreferenceBinding(Type.TextToInt, "mtu"))
     private val reserved = pbm.add(PreferenceBinding(Type.Text, "reserved"))
+    private val jc = pbm.add(PreferenceBinding(Type.TextToInt, "jc"))
+    private val jmin = pbm.add(PreferenceBinding(Type.TextToInt, "jmin"))
+    private val jmax = pbm.add(PreferenceBinding(Type.TextToInt, "jmax"))
+    private val s1 = pbm.add(PreferenceBinding(Type.TextToInt, "s1"))
+    private val s2 = pbm.add(PreferenceBinding(Type.TextToInt, "s2"))
+    private val s3 = pbm.add(PreferenceBinding(Type.TextToInt, "s3"))
+    private val s4 = pbm.add(PreferenceBinding(Type.TextToInt, "s4"))
+    private val h1 = pbm.add(PreferenceBinding(Type.Text, "h1"))
+    private val h2 = pbm.add(PreferenceBinding(Type.Text, "h2"))
+    private val h3 = pbm.add(PreferenceBinding(Type.Text, "h3"))
+    private val h4 = pbm.add(PreferenceBinding(Type.Text, "h4"))
+    private val i1 = pbm.add(PreferenceBinding(Type.Text, "i1"))
+    private val i2 = pbm.add(PreferenceBinding(Type.Text, "i2"))
+    private val i3 = pbm.add(PreferenceBinding(Type.Text, "i3"))
+    private val i4 = pbm.add(PreferenceBinding(Type.Text, "i4"))
+    private val i5 = pbm.add(PreferenceBinding(Type.Text, "i5"))
 
     override fun WireGuardBean.init() {
         pbm.writeToCacheAll(this)
@@ -41,5 +57,13 @@ class WireGuardSettingsActivity : ProfileSettingsActivity<WireGuardBean>() {
             .setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
         (privateKey.preference as EditTextPreference).summaryProvider = PasswordSummaryProvider
         (mtu.preference as EditTextPreference).setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        (jc.preference as EditTextPreference).setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        (jmin.preference as EditTextPreference).setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        (jmax.preference as EditTextPreference).setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        (s1.preference as EditTextPreference).setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        (s2.preference as EditTextPreference).setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        (s3.preference as EditTextPreference).setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
+        (s4.preference as EditTextPreference).setOnBindEditTextListener(EditTextPreferenceModifiers.Number)
     }
+
 }

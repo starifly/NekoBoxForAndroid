@@ -7,30 +7,53 @@
     android:orientation="vertical"
     tools:context=".ui.ConfigurationFragment">
 
-    <include
-        layout="@layout/layout_appbar"
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/group_tab"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/appBarBackgroundColor"
+        android:layout_height="wrap_content"android:background="?attr/android:colorBackground"
         android:elevation="0dp"
-        android:visibility="gone"
-        app:tabIndicatorColor="?tabIndicatorColor"
-        app:tabIndicatorFullWidth="false"
-        app:tabMode="scrollable"
-        app:tabPaddingStart="16dp"
-        app:tabRippleColor="?tabRippleColor"
-        app:tabSelectedTextColor="?tabSelectedTextColor"
-        app:tabTextColor="?tabTextColor"
-        app:tabUnboundedRipple="false" />
+        app:elevation="0dp"
+        tools:ignore="Overdraw">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/uiAppBarHeight"
+            android:background="?attr/android:colorBackground"
+            android:paddingHorizontal="4dp"
+            android:theme="?actionBarTheme"
+            android:touchscreenBlocksFocus="false"
+            app:navigationIconTint="?attr/colorOnSurface">
+
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/group_tab"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:background="@android:color/transparent"
+                android:requiresFadingEdge="horizontal"
+                android:fadingEdgeLength="16dp"
+                app:tabGravity="center"
+                app:tabIndicatorColor="?tabIndicatorColor"
+                app:tabIndicatorFullWidth="false"
+                app:tabIndicatorHeight="3dp"
+                app:tabMode="scrollable"
+                app:tabMinWidth="80dp"
+                app:tabPaddingEnd="12dp"
+                app:tabPaddingStart="12dp"
+                app:tabRippleColor="?tabRippleColor"
+                app:tabSelectedTextColor="?tabSelectedTextColor"
+                app:tabTextColor="?tabTextColor"
+                app:tabTextAppearance="@style/TextAppearance.SagerNet.Tab"
+                app:tabUnboundedRipple="false" />
+
+        </com.google.android.material.appbar.MaterialToolbar>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/group_pager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
 </LinearLayout>

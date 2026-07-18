@@ -2,32 +2,75 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:clipToPadding="false"
+    android:paddingBottom="148dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="12dp">
 
-        <!-- 本地备份部分 -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:clickable="true"
-            android:focusable="true">
+            android:focusable="true"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:padding="20dp">
 
-                <LinearLayout
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/backup_local"
+                    android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                    android:textColor="?attr/colorOnSurface" />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/backup_configurations"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:checked="true"
+                    android:text="@string/backup_groups_and_configurations"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/backup_rules"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:checked="true"
+                    android:text="@string/backup_rules"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/backup_settings"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:checked="true"
+                    android:text="@string/backup_settings"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
+                    android:layout_marginTop="8dp"
+                    android:text="@string/backup_summary"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+<!-- 保留 HEAD 新增的本地備份細項與提示 -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -64,112 +107,88 @@
                         android:textAppearance="?attr/textAppearanceBody2"
                         android:textColor="?android:attr/textColorSecondary" />
 
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="20dp"
-                    android:layout_marginVertical="8dp"
-                    android:orientation="vertical">
-
-                    <!-- 本地备份部分的按钮 -->
-                    <Button
+                    <!-- 整合 sf/main 升級後的 M3 按鈕樣式與高度 -->
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/action_share"
-                        style="@style/Widget.SagerNet.Button"
+                        style="@style/Widget.Material3.Button.TonalButton"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:cornerRadius="24dp"
-                        android:text="@string/share"
-                        android:textColor="?whiteOrTextPrimary" />
+                        android:layout_height="48dp"
+                        android:layout_marginTop="20dp"
+                        android:text="@string/share" />
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/action_export"
-                        style="@style/Widget.SagerNet.Button"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:cornerRadius="24dp"
-                        android:text="@string/action_export_file"
-                        android:textColor="?whiteOrTextPrimary" />
+                        android:layout_height="48dp"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/action_export_file" />
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/action_import_file"
-                        style="@style/Widget.SagerNet.Button"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:cornerRadius="24dp"
-                        android:text="@string/action_import_file"
-                        android:textColor="?whiteOrTextPrimary" />
+                        android:layout_height="48dp"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/action_import_file" />
 
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- WebDAV 备份部分 -->
+        <!-- 合併 HEAD 的交互屬性與 sf/main 的 M3 卡片圓角、背景、邊距規範 -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="16dp"
             android:clickable="true"
-            android:focusable="true">
+            android:focusable="true"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:padding="20dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:text="@string/backup_webdav"
+                    android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                    android:textColor="?attr/colorOnSurface" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/backup_webdav"
-                        android:textAppearance="?attr/textAppearanceHeadline6" />
-
-                </LinearLayout>
-
-                <LinearLayout
+                <!-- 採用 sf/main 清晰且升級完畢的 WebDAV M3 按鈕結構，修正 HEAD 的標籤錯位 -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/webdav_settings"
+                    style="@style/Widget.Material3.Button.TonalButton"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="20dp"
-                    android:layout_marginVertical="8dp"
-                    android:orientation="vertical">
+                    android:layout_height="48dp"
+                    android:layout_marginTop="20dp"
+                    android:text="@string/webdav_settings" />
 
-                    <!-- WebDAV 备份部分的按钮 -->
-                    <Button
-                        android:id="@+id/webdav_settings"
-                        style="@style/Widget.SagerNet.Button"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:cornerRadius="24dp"
-                        android:text="@string/webdav_settings"
-                        android:textColor="?whiteOrTextPrimary" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/backup_to_webdav"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/backup_to_webdav" />
 
-                    <Button
-                        android:id="@+id/backup_to_webdav"
-                        style="@style/Widget.SagerNet.Button"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:cornerRadius="24dp"
-                        android:text="@string/backup_to_webdav"
-                        android:textColor="?whiteOrTextPrimary" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/restore_from_webdav"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/restore_from_webdav" />
 
-                    <Button
-                        android:id="@+id/restore_from_webdav"
-                        style="@style/Widget.SagerNet.Button"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:cornerRadius="24dp"
-                        android:text="@string/restore_from_webdav"
-                        android:textColor="?whiteOrTextPrimary" />
-
-                </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
-
     </LinearLayout>
 </ScrollView>

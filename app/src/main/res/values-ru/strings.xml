@@ -78,6 +78,8 @@
 <string name="cag_ws">Настройки WebSocket</string>
 <string name="certificates">Сертификаты</string>
 <string name="chain_settings">Настройки цепочки</string>
+<string name="waterfall_settings">Настройки водопада</string>
+<string name="fastest_settings">Настройки самого быстрого</string>
 <string name="character_counter_content_description">Введено символов: %1$d из %2$d</string>
 <string name="character_counter_overflowed_content_description">Превышено ограничение на количество символов (%1$d из %2$d)</string>
 <string name="check_update_no">Обновления не найдены.</string>
@@ -85,6 +87,7 @@
 <string name="check_update_release">Проверить наличие обновлений релизнойной версии</string>
 <string name="circular_reference">Циклическая ссылка</string>
 <string name="circular_reference_sum">Маршрут не может содержать сам себя.</string>
+<string name="profile_reference_not_allowed">Профиль уже добавлен, создаёт циклическую ссылку или недопустим для этой группы.</string>
 <string name="clear_logcat">Очистить журнал</string>
 <string name="clear_profiles">Очистить</string>
 <string name="clear_profiles_message">Вы уверены, что хотите очистить эту группу?</string>
@@ -98,8 +101,8 @@
 <string name="confirm">Подтвердить</string>
 <string name="connect">Подключиться</string>
 <string name="connecting">Подключение…</string>
-<string name="connection_test_available">HTTPS-соединение установлено за %d мс</string>
-<string name="connection_test_available_http">HTTP-соединение установлено за %d мс</string>
+<string name="connection_test_available">Задержка %d мс</string>
+<string name="connection_test_available_http">Задержка %d мс</string>
 <string name="connection_test_clear_results">Очистить результаты теста</string>
 <string name="connection_test_delete_unavailable">Удалить недоступные</string>
 <string name="connection_test_domain_not_found">Домен не найден</string>
@@ -181,16 +184,16 @@
 <string name="group_added">Добавлено:
 %s</string>
 <string name="group_basic">Базовый</string>
-<string name="group_changed">Обновлено: 
+<string name="group_changed">Обновлено:
 %s</string>
 <string name="group_create">Создать группу</string>
 <string name="group_create_subscription">Создать подписку</string>
 <string name="group_default">Разгруппировано</string>
 <string name="group_delete_confirm_prompt">Вы уверены, что хотите удалить эту группу?</string>
-<string name="group_deleted">Удалено: 
+<string name="group_deleted">Удалено:
 %s</string>
 <string name="group_diff">различия (%s)</string>
-<string name="group_duplicate">Дубликат: 
+<string name="group_duplicate">Дубликат:
 %s</string>
 <string name="group_edit">Редактировать группу</string>
 <string name="group_edit_subscription">Редактировать подписку</string>
@@ -295,8 +298,8 @@
 <string name="mux_sum">Протокол мультиплексирования предназначен для уменьшения задержки соединения TCP, а не для увеличения пропускной способности. Использование мультиплексирования для просмотра видео, загрузки или проверки скорости обычно неэффективно. Если сервер не поддерживает мультиплексирование, вы не сможете получить доступ к Интернету.</string>
 <string name="mux_type">Протокол мультиплексирования</string>
 <string name="naive_insecure_concurrency">Небезопасный параллелизм</string>
-<string name="naive_insecure_concurrency_summary">Использовать N параллельных соединений для повышения отказоустойчивости в условиях ненадёжной сети. Большее число соединений увеличивает риск обнаружения туннелей и снижает безопасность. Этот проект стремится к максимальной защите от анализа трафика, следовательно, использование его небезопасным образом противоречит данной цели. 
- 
+<string name="naive_insecure_concurrency_summary">Использовать N параллельных соединений для повышения отказоустойчивости в условиях ненадёжной сети. Большее число соединений увеличивает риск обнаружения туннелей и снижает безопасность. Этот проект стремится к максимальной защите от анализа трафика, следовательно, использование его небезопасным образом противоречит данной цели.
+
 Если придётся использовать данную функцию, попробуйте N=2, чтобы проверить, решит ли это проблему. Настоятельно не рекомендуется использовать более 4 соединений.</string>
 <string name="nat_result_hint">Провести проверку NAT</string>
 <string name="nat_stun_server_hint">STUN сервер</string>
@@ -304,11 +307,14 @@
 <string name="need_restart">Перезапустите приложение для применения изменений</string>
 <string name="network">Сеть</string>
 <string name="network_change_reset_connections">Сбросить исходящие соединения при изменении сети</string>
+<string name="restart_profile_on_network_change">Перезапускать активный профиль при изменении сети</string>
 <string name="night_mode">Ночной режим</string>
 <string name="no">Нет</string>
 <string name="no_proxies_found">В ссылке не найдено прокси-серверов</string>
 <string name="no_proxies_found_in_clipboard">В буфере обмена не найдено ни одного прокси</string>
 <string name="no_proxies_found_in_file">В файле не найдено прокси-серверов</string>
+<string name="invalid_amnezia_config">Некорректная или повреждённая конфигурация Amnezia</string>
+<string name="no_amnezia_awg_profiles">В конфигурации не найдено профилей AmneziaWG</string>
 <string name="no_proxies_found_in_subscription">В подписке не найдено прокси-серверов</string>
 <string name="no_statistics">Статистики пока нет</string>
 <string name="not_connected">Не подключен</string>
@@ -356,6 +362,8 @@
 <string name="proxied_apps_summary">Настроить режим VPN для выбранных приложений</string>
 <string name="proxy_cat">Настройки сервера</string>
 <string name="proxy_chain">Прокси-цепочка</string>
+<string name="proxy_waterfall">Водопад</string>
+<string name="proxy_fastest">Самый быстрый</string>
 <string name="quick_toggle">Переключить</string>
 <string name="quick_enable">Включить</string>
 <string name="quick_disable">Выключить</string>
@@ -411,6 +419,7 @@
 <string name="service_subscription">Служба обновления подписки</string>
 <string name="service_vpn">VPN-сервис</string>
 <string name="set_panel_url">Установить URL панель</string>
+<string name="invalid_panel_url">Недопустимый URL панели. Используйте HTTPS или HTTP только для localhost.</string>
 <string name="settings">Настройки</string>
 <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (плагин Shadowsocks для Android)</string>
 <string name="shadowsocks_plugin_v2ray">V2Ray (плагин Shadowsocks для Android)</string>
@@ -427,7 +436,7 @@
 <string name="sniff_override">Результат проверки для адрес назначения</string>
 <string name="sniff_routing">Перехватывать результат для Маршрутизации</string>
 <string name="speed">%s/с</string>
-<string name="speed_detail">Прокси ：%1$s↑ %2$s↓ 
+<string name="speed_detail">Прокси ：%1$s↑ %2$s↓
 \nПрямой ：%3$s↑%4$s↓</string>
 <string name="speed_interval">Интервал обновления уведомлений о скорости</string>
 <string name="ss_cat">Настройки Shadowsocks</string>
@@ -492,6 +501,12 @@
 <string name="v7_preference_on">ВКЛ.</string>
 <string name="version_x">Версия (%s)</string>
 <string name="vpn_connected">Подключено, нажмите для проверки подключения</string>
+<string name="connection_status_connected">Подключено</string>
+<string name="backup_local">Локальная резервная копия</string>
+<string name="backup_webdav">Резервная копия WebDAV</string>
+<string name="webdav_settings">Настройки WebDAV</string>
+<string name="backup_to_webdav">Создать копию в WebDAV</string>
+<string name="restore_from_webdav">Восстановить из WebDAV</string>
 <string name="vpn_permission_denied">Отказано в разрешении на создание службы VPN</string>
 <string name="wake_reset_connections">Сбросить исходящие соединения при выходе из спящего режима</string>
 <string name="warp_generate">Создать конфигурацию</string>
@@ -505,8 +520,7 @@
 <string name="ws_max_early_data">Максимальный объём данных</string>
 <string name="ws_path">Путь к WebSocket</string>
 <string name="xtls_flow">Flow (подпротокол VLESS)</string>
-<string name="yes">Да</string>
-    <string name="action_copy">Копировать</string>
+<string name="yes">Да</string><string name="action_copy">Копировать</string>
     <string name="action_open">Открыть</string>
     <string name="layout">Макет</string>
     <string name="layout_single_column">Один столбец</string>
@@ -556,7 +570,7 @@
     <string name="filter_regex">Фильтр (регулярное выражение)</string>
     <string name="raw">Исходный</string>
     <string name="ooc_subscription_token_invalid">Неверный токен OOCv1</string>
-    <string name="ooc_missing_protocol">Для подписки требуется поддержка протокола %s, но он не найден. Неподдерживаемые профили будут проигнорированы.</string>
+    <string name="ooc_missing_protocol">Для подписки требуется поддержкаского протокола %s, но он не найден. Неподдерживаемые профили будут проигнорированы.</string>
     <string name="experimental_settings">Экспериментальные</string>
     <string name="copy_label">Копировать имя</string>
     <string name="copy_package_name">Копировать имя пакета</string>
@@ -647,4 +661,19 @@
     <string name="snell_mode">Режим</string>
     <string name="snell_reuse">Повторное использование</string>
     <string name="snell_reuse_summary">Только v4-v6</string>
+
+    <!-- UI 重構新增的 M3 相關俄語翻譯欄位 -->
+    <string name="interface_settings">Интерфейс</string>
+    <string name="ui_style">Стиль интерфейса</string>
+    <string name="ui_style_expressive">Новый</string>
+    <string name="ui_style_classic">Классический</string>
+    <string name="dynamic_colors">Динамические цвета</string>
+    <string name="dynamic_colors_summary">Использовать системную палитру Material You</string>
+    <string name="dynamic_colors_unavailable">Доступно на Android 12 и новее</string>
+    <string name="dynamic_colors_classic">Доступно в новом интерфейсе</string>
+    <string name="theme_fallback_summary">Используется, когда динамические цвета недоступны или выключены</string>
+    <string name="more_options">Дополнительные действия</string>
+    <string name="amoled_theme">Чисто черный фон (AMOLED)</string>
+    <string name="amoled_theme_summary">Использовать абсолютно черный фон в темной теме</string>
+    <string name="app_theme">Цвет акцента</string>
 </resources>

@@ -12,8 +12,7 @@ object Key {
     const val CLEAR_CACHE = "clearCache"
     const val PLUGIN_SIGNER_APPROVALS = "pluginSignerApprovals"
 
-    const val APP_EXPERT = "isExpert"
-    const val APP_THEME = "appTheme"
+    const val APP_EXPERT = "isExpert"const val APP_THEME = "appTheme"
     const val USE_SYSTEM_THEME = "useSystemTheme"
     const val NIGHT_THEME = "nightTheme"
 
@@ -23,6 +22,8 @@ object Key {
     // backward compatibility with previously persisted values.
     const val NIGHT_THEME_BEFORE_DRACULA = "nightThemeBeforeDracula"
     const val APP_LANGUAGE = "appLanguage"
+    const val DYNAMIC_COLORS = "dynamicColors"
+    const val UI_DESIGN_VERSION = "uiDesignVersion"
     const val SERVICE_MODE = "serviceMode"
     const val MODE_VPN = "vpn"
     const val MODE_PROXY = "proxy"
@@ -48,10 +49,14 @@ object Key {
     const val BYPASS_LAN_IN_CORE = "bypassLanInCore"
     const val CONCURRENT_DIAL = "concurrentDial"
 
-    const val MIXED_PORT = "mixedPort"
+    const val MIXED_PORT = "mixedPort" // migration source
+    const val SOCKS_PORT = "socksPort"
+    const val HTTP_PORT = "httpPort"
+    const val MIXED_USERNAME = "mixedUsername"
+    const val MIXED_PASSWORD = "mixedPassword"
     const val MIXED_SECRET = "mixedSecret" // storage key for the generated inbound secret
     const val CLASH_API_SECRET = "clashApiSecret" // per-install secret for the local Clash API
-    const val MIXED_USERNAME = "neko" // username presented to the authed mixed inbound
+
     const val ALLOW_ACCESS = "allowAccess"
     const val REQUIRE_PROXY_IN_VPN = "requireProxyInVPN" // keep local mixed inbound open in VPN mode
     const val PROXY_MODE_INBOUND_AUTH = "proxyModeInboundAuth" // authenticate loopback inbound in Proxy mode
@@ -67,6 +72,7 @@ object Key {
     const val CONNECTION_TEST_TIMEOUT = "connectionTestTimeout"
 
     const val NETWORK_CHANGE_RESET_CONNECTIONS = "networkChangeResetConnections"
+    const val RESTART_PROFILE_ON_NETWORK_CHANGE = "restartProfileOnNetworkChange"
     const val WAKE_RESET_CONNECTIONS = "wakeResetConnections"
     const val RULES_PROVIDER = "rulesProvider"
     const val LOG_LEVEL = "logLevel"
@@ -84,6 +90,8 @@ object Key {
     const val ACQUIRE_WAKE_LOCK = "acquireWakeLock"
     const val HIDE_FROM_RECENT_APPS = "hideFromRecentApps"
     const val SHOW_BOTTOM_BAR = "showBottomBar"
+    const val AMOLED_THEME = "amoledTheme"
+    const val APP_THEME = "appTheme"
     const val CONFIRM_PROFILE_DELETE = "confirmProfileDelete"
     const val GROUP_LAYOUT_MODE = "groupLayoutMode"
 
@@ -219,6 +227,8 @@ object Key {
     const val SUBSCRIPTION_UPDATE = "subscriptionUpdate"
     const val SUBSCRIPTION_UPDATE_WHEN_CONNECTED_ONLY = "subscriptionUpdateWhenConnectedOnly"
     const val SUBSCRIPTION_USER_AGENT = "subscriptionUserAgent"
+    const val SUBSCRIPTION_SEND_HWID = "subscriptionSendHwid"
+    const val SUBSCRIPTION_CUSTOM_HWID_PARAMS = "subscriptionCustomHwidParams"
     const val SUBSCRIPTION_AUTO_UPDATE = "subscriptionAutoUpdate"
     const val SUBSCRIPTION_AUTO_UPDATE_DELAY = "subscriptionAutoUpdateDelay"
     const val SUBSCRIPTION_FILTER_MODE = "subscriptionFilterMode"
@@ -227,7 +237,6 @@ object Key {
     const val SUBSCRIPTION_CUSTOM_DNS = "subscriptionCustomDns"
 
     //
-
     const val APP_TLS_VERSION = "appTLSVersion"
     const val ENABLE_CLASH_API = "enableClashAPI"
 

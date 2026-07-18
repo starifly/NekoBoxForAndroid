@@ -63,6 +63,8 @@ class GroupSettingsActivity(
         DataStore.subscriptionDeduplication = subscription.deduplication
         DataStore.subscriptionUpdateWhenConnectedOnly = subscription.updateWhenConnectedOnly
         DataStore.subscriptionUserAgent = subscription.customUserAgent
+        DataStore.subscriptionSendHwid = subscription.sendHwid
+        DataStore.subscriptionCustomHwidParams = subscription.customHwidParams
         DataStore.subscriptionAutoUpdate = subscription.autoUpdate
         DataStore.subscriptionAutoUpdateDelay = subscription.autoUpdateDelay
         DataStore.subscriptionFilterMode = subscription.filterMode
@@ -98,6 +100,8 @@ class GroupSettingsActivity(
                 deduplication = DataStore.subscriptionDeduplication
                 updateWhenConnectedOnly = DataStore.subscriptionUpdateWhenConnectedOnly
                 customUserAgent = DataStore.subscriptionUserAgent
+                sendHwid = DataStore.subscriptionSendHwid
+                customHwidParams = DataStore.subscriptionCustomHwidParams
                 autoUpdate = DataStore.subscriptionAutoUpdate
                 autoUpdateDelay = DataStore.subscriptionAutoUpdateDelay
                 filterMode = DataStore.subscriptionFilterMode
@@ -179,8 +183,18 @@ class GroupSettingsActivity(
             true
         }
 
+        val subscriptionSendHwid =
+            findPreference<SwitchPreferenceCompat>(Key.SUBSCRIPTION_SEND_HWID)!!
+        val subscriptionCustomHwidParams =
+            findPreference<EditTextPreference>(Key.SUBSCRIPTION_CUSTOM_HWID_PARAMS)!!
+        subscriptionCustomHwidParams.isEnabled = subscriptionSendHwid.isChecked
+        subscriptionSendHwid.setOnPreferenceChangeListener { _, newValue ->
+            subscriptionCustomHwidParams.isEnabled = (newValue as Boolean)
+            true
+        }
+
         val subscriptionAutoUpdate =
-            findPreference<SwitchPreference>(Key.SUBSCRIPTION_AUTO_UPDATE)!!
+            findPreference<SwitchPreferenceCompat>(Key.SUBSCRIPTION_AUTO_UPDATE)!!
         val subscriptionAutoUpdateDelay =
             findPreference<EditTextPreference>(Key.SUBSCRIPTION_AUTO_UPDATE_DELAY)!!
 

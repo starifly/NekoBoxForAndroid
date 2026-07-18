@@ -10,49 +10,20 @@
     <attr name="fabColorBackground" format="color" />
     <attr name="selectedColorPrimary" format="color" />
     <attr name="whiteOrTextPrimary" format="color" />
-    <!-- Text color for the protocol/type label on a profile row. Defaults to
-         the accent color; Dracula overrides it with its green. -->
-    <attr name="protocolColor" format="color" />
-    <!-- Profile name label color. Defaults to primary text; Dracula = yellow. -->
-    <attr name="profileNameColor" format="color" />
-    <!-- Service status / connect-button colors. Default to primary text so non-
-         Dracula themes are unchanged; Dracula tints connected=green, stopped=red. -->
-    <attr name="statusConnectedColor" format="color" />
-    <attr name="statusStoppedColor" format="color" />
-    <!-- "Connecting…" in-progress status text. Default on-primary; Dracula = yellow
-         (on-primary resolved to dark on Dracula's light-purple primary). -->
-    <attr name="statusConnectingColor" format="color" />
-    <!-- Connection-test failure color. Default Material red; Dracula = #ff5555. -->
-    <attr name="testFailColor" format="color" />
-    <!-- Bottom-bar speed text (arrows + rate). Default on-primary; Dracula = yellow. -->
-    <attr name="speedTextColor" format="color" />
-    <!-- Connect-FAB icon tint when Stopped. Default on-primary; Dracula = yellow
-         (red was invisible on the pink/purple FAB). Separate from the red
-         statusStoppedColor used for the status text. -->
-    <attr name="fabStoppedColor" format="color" />
-    <!-- Connect-FAB icon tint when Connected. Default = statusConnectedColor so
-         existing themes are unchanged; themes whose FAB background equals the
-         connected status color (e.g. Dark High Contrast: green icon on a green
-         FAB) override this with a contrasting color so the airplane icon stays
-         visible. Separate from statusConnectedColor used for the status text. -->
-    <attr name="fabConnectedColor" format="color" />
-    <!-- Secondary status text (the part after "Connected," / "Success:").
-         Default on-primary; Dracula = cyan. -->
-    <attr name="statusDetailColor" format="color" />
-    <!-- "Testing…" connection-test in-progress text. Default on-primary; Dracula = yellow. -->
-    <attr name="statusTestingColor" format="color" />
-    <!-- Proxy route-rule color. Default blue; Dracula = cyan. -->
-    <attr name="routeProxyColor" format="color" />
-    <!-- Selected nav-drawer item color (fill tint + icon/text). Default primary;
-         Dracula uses its accent (pink) to match the toggle-on color. -->
-    <attr name="navSelectedColor" format="color" />
-    <!-- Tonal "elevated surface" color for cards (route / group); each theme
-         variant tints toward its own primary. -->
-    <attr name="cardElevatedSurfaceColor" format="color" />
-    <!-- Background for the top app bar / toolbar and tab strips. Each theme sets
-         this to a CONCRETE @color (matching its colorPrimary for legacy themes,
-         or the dark canvas for full M3 dark themes). It must not be an attr
-         reference: android:background resolves it as a drawable and does not
-         follow attr-to-attr indirection (that crashed AppBarLayout inflation). -->
-    <attr name="appBarBackgroundColor" format="color" />
+
+    <!-- 採用 sf/main 全新重構的 M3 元件維度與結構屬性系統 -->
+    <attr name="uiAppBarHeight" format="dimension" />
+    <attr name="uiAppBarElevation" format="dimension" />
+    <attr name="uiCardElevation" format="dimension" />
+    <attr name="uiCardCornerRadius" format="dimension" />
+    <attr name="uiCardStrokeWidth" format="dimension" />
+    <attr name="uiCardStrokeColor" format="color" />
+    <attr name="uiListItemMargin" format="dimension" />
+    <attr name="uiListOuterPadding" format="dimension" />
+    <attr name="uiSurfaceBackground" format="color" />
+    <attr name="uiAppBarBackground" format="color" />
+    <attr name="uiStatsBackground" format="color" />
+    <attr name="uiStatsForeground" format="color" />
+    <attr name="uiTabBackground" format="color" />
+    <attr name="uiNavigationItemFill" format="color" />
 </resources>

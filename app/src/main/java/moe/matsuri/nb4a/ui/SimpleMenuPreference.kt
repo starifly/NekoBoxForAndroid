@@ -26,6 +26,7 @@ import android.widget.Spinner
 import androidx.core.graphics.ColorUtils
 import androidx.preference.DropDownPreference
 import androidx.preference.PreferenceViewHolder
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.ktx.getColorAttr
 
@@ -51,6 +52,19 @@ open class SimpleMenuPreference
         val mSpinner = holder.itemView.findViewById<Spinner>(R.id.spinner)
         mSpinner.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
         mSpinner.setPopupBackgroundResource(R.drawable.bg_spinner_dropdown)
+    }
+
+    override fun onClick() {
+        val selected = entryValues.indexOf(value)
+        MaterialAlertDialogBuilder(context)
+            .setTitle(title)
+            .setSingleChoiceItems(entries, selected) { dialog, which ->
+                val newValue = entryValues[which].toString()
+                if (callChangeListener(newValue)) value = newValue
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     override fun createAdapter(): ArrayAdapter<CharSequence?> {
@@ -112,7 +126,9 @@ open class SimpleMenuPreference
                     else -> middleDrawable
                 }
             } else {
-                view.background = null
+                view.setBackgroundColor(
+                    context.getColorAttr(com.google.android.material.R.attr.colorSurfaceContainer)
+                )
             }
             return view
         }

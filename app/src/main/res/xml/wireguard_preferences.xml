@@ -50,4 +50,94 @@
             app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
+    <PreferenceCategory app:title="@string/amneziawg_category">
+        <EditTextPreference
+            app:defaultValue="0"
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="jc"
+            app:title="@string/amneziawg_jc"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:defaultValue="0"
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="jmin"
+            app:title="@string/amneziawg_jmin"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:defaultValue="0"
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="jmax"
+            app:title="@string/amneziawg_jmax"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:defaultValue="0"
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="s1"
+            app:title="@string/amneziawg_s1"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:defaultValue="0"
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="s2"
+            app:title="@string/amneziawg_s2"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:defaultValue="0"
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="s3"
+            app:title="@string/amneziawg_s3"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:defaultValue="0"
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="s4"
+            app:title="@string/amneziawg_s4"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="h1"
+            app:title="@string/amneziawg_h1"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="h2"
+            app:title="@string/amneziawg_h2"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="h3"
+            app:title="@string/amneziawg_h3"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="h4"
+            app:title="@string/amneziawg_h4"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="i1"
+            app:title="@string/amneziawg_i1"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="i2"
+            app:title="@string/amneziawg_i2"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="i3"
+            app:title="@string/amneziawg_i3"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="i4"
+            app:title="@string/amneziawg_i4"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:icon="@drawable/ic_baseline_texture_24"
+            app:key="i5"
+            app:title="@string/amneziawg_i5"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
 </PreferenceScreen>

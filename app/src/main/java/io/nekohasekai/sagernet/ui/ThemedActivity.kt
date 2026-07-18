@@ -1,7 +1,6 @@
 package io.nekohasekai.sagernet.ui
 
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
@@ -16,7 +15,6 @@ import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.utils.Theme
 
 abstract class ThemedActivity : AppCompatActivity {
@@ -41,18 +39,19 @@ abstract class ThemedActivity : AppCompatActivity {
         if (!isDialog) applyDynamicColors()
 
         super.onCreate(savedInstanceState)
+    uiMode = resources.configuration.uiMode
 
-        uiMode = resources.configuration.uiMode
+        // WindowCompat 內部已內建相容性處理，無需手動包 Build.VERSION 判斷
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            WindowCompat.setDecorFitsSystemWindows(window, false)
+        val insetController = WindowCompat.getInsetsController(window, window.decorView)
 
-            val insetController = WindowCompat.getInsetsController(window, window.decorView)
-            insetController.isAppearanceLightNavigationBars = !Theme.usingNightMode()
-            insetController.isAppearanceLightStatusBars =
-                if (DataStore.appTheme == Theme.BLACK) !Theme.usingNightMode() else false
-        }
+        // 導覽列維持原本邏輯
+        insetController.isAppearanceLightNavigationBars = !Theme.usingNightMode()
 
+        // 保留 HEAD 針對純黑/深黑主題的特殊狀態列圖示判斷
+        insetController.isAppearanceLightStatusBars =
+            if (DataStore.appTheme == Theme.BLACK) !Theme.usingNightMode() else !Theme.usingNightMode()
         // findViewById (not ViewBinding): ThemedActivity is a base class applied over arbitrary
         // child-activity layouts. android.R.id.content is a framework id, and appbar/stats are
         // resolved across whatever layout the subclass set - no single binding owns them.

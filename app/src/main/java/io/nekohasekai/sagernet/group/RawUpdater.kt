@@ -24,6 +24,7 @@ import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 import io.nekohasekai.sagernet.fmt.v2ray.VMessBean
 import io.nekohasekai.sagernet.fmt.v2ray.isTLS
 import io.nekohasekai.sagernet.fmt.v2ray.setTLS
+import io.nekohasekai.sagernet.fmt.wireguard.AmneziaWireGuardImporter
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
@@ -41,8 +42,7 @@ import org.yaml.snakeyaml.error.YAMLException
 
 @Suppress("EXPERIMENTAL_API_USAGE")
 object RawUpdater : GroupUpdater() {
-
-    internal data class ReconciliationResult(
+internal data class ReconciliationResult(
         val contentChanged: Boolean,
         val orderChanged: Boolean,
     )
@@ -66,6 +66,44 @@ object RawUpdater : GroupUpdater() {
         }
 
         return ReconciliationResult(contentChanged, orderChanged)
+    }
+
+    private fun buildHwidHeaders(customParams: String?): Map<String, String> {
+        val params = if (customParams.isNullOrBlank()) {
+            mapOf(
+                "hwid" to (Settings.Secure.getString(app.contentResolver, Settings.Secure.ANDROID_ID) ?: ""),
+                "os" to "Android",
+                "osversion" to Build.VERSION.RELEASE.orEmpty(),
+                "model" to listOf(Build.MANUFACTURER, Build.MODEL)
+                    .filter { it.isNotBlank() }
+                    .joinToString(" ")
+            )
+        } else {
+            buildMap {
+                customParams.split(',').forEach { pair ->
+                    val trimmed = pair.trim()
+                    val separator = trimmed.indexOf('=')
+                    if (separator <= 0) return@forEach
+                    val key = trimmed.substring(0, separator).trim().lowercase()
+                    val value = trimmed.substring(separator + 1).trim()
+                    if (key in allowedHwidParams && value.isValidHeaderValue()) {
+                        put(key, value)
+                    }
+                }
+            }
+        }
+        return buildMap {
+            params["hwid"]?.takeIf { it.isNotBlank() }?.let { put("x-hwid", it) }
+            params["os"]?.takeIf { it.isNotBlank() }?.let { put("x-device-os", it) }
+            params["osversion"]?.takeIf { it.isNotBlank() }?.let { put("x-ver-os", it) }
+            params["model"]?.takeIf { it.isNotBlank() }?.let { put("x-device-model", it) }
+        }
+    }
+
+    private val allowedHwidParams = setOf("hwid", "os", "osversion", "model")
+
+    private fun String.isValidHeaderValue(): Boolean {
+        return isNotEmpty() && length < 1000 && none { it == '\n' || it == '\r' }
     }
 
     @SuppressLint("Recycle")
@@ -100,6 +138,12 @@ object RawUpdater : GroupUpdater() {
                 }
                 setURL(subscription.link)
                 setUserAgent(subscription.customUserAgent.takeIf { it.isNotBlank() } ?: USER_AGENT)
+                if (subscription.sendHwid == true) {
+                    val hwidHeaders = buildHwidHeaders(subscription.customHwidParams)
+                    for ((key, value) in hwidHeaders) {
+                        setHeader(key, value)
+                    }
+                }
             }.execute()
             proxies = parseRaw(Util.getStringBox(response.getContentStringLimited(10L * 1024 * 1024)))
                 ?: error(app.getString(R.string.no_proxies_found))
@@ -293,6 +337,24 @@ object RawUpdater : GroupUpdater() {
     @Suppress("UNCHECKED_CAST")
     suspend fun parseRaw(text: String, fileName: String = ""): List<AbstractBean>? {
         val proxies = mutableListOf<AbstractBean>()
+
+        try {
+            val amneziaProfiles = if (AmneziaWireGuardImporter.isAmneziaVpn(text)) {
+                AmneziaWireGuardImporter.parseVpn(text)
+            } else {
+                AmneziaWireGuardImporter.tryParseUnprefixedVpn(text)
+            }
+            if (amneziaProfiles != null) return amneziaProfiles
+        } catch (e: AmneziaWireGuardImporter.ImportException) {
+            val message = when (e.reason) {
+                AmneziaWireGuardImporter.ErrorReason.INVALID_CONTAINER ->
+                    app.getString(R.string.invalid_amnezia_config)
+
+                AmneziaWireGuardImporter.ErrorReason.NO_AWG_PROFILES ->
+                    app.getString(R.string.no_amnezia_awg_profiles)
+            }
+            throw IllegalArgumentException(message, e)
+        }
 
         if (text.contains("proxies:")) {
             // clash & meta
@@ -1032,8 +1094,7 @@ object RawUpdater : GroupUpdater() {
                 // through to the JSON/base64/plain-text branches.
                 Logs.w(e)
                 if (proxies.isNotEmpty()) return proxies
-            }
-        } else if (text.contains("[Interface]")) {
+            }} else if (text.contains("[Interface]")) {
             // amneziawg (wireguard with obfuscation params) or plain wireguard
             try {
                 val parsed = if (isAmneziaWGConf(text)) {
@@ -1043,7 +1104,13 @@ object RawUpdater : GroupUpdater() {
                 }
                 proxies.addAll(
                     parsed.map {
-                        if (fileName.isNotBlank()) it.name = fileName.removeSuffix(".conf")
+                        if (fileName.isNotBlank()) {
+                            it.name = if (fileName.endsWith(".conf", ignoreCase = true)) {
+                                fileName.dropLast(".conf".length)
+                            } else {
+                                fileName
+                            }
+                        }
                         it
                     },
                 )
@@ -1084,32 +1151,7 @@ object RawUpdater : GroupUpdater() {
     }
 
     fun parseWireGuard(conf: String): List<WireGuardBean> {
-        val ini = IniConfig.parse(conf)
-        val iface = ini["Interface"] ?: error("Missing 'Interface' selection")
-        val bean = WireGuardBean().applyDefaultValues()
-        val localAddresses = iface.getAll("Address")
-        if (localAddresses.isNullOrEmpty()) error("Empty address in 'Interface' selection")
-        bean.localAddress = localAddresses.flatMap { it.split(",") }.joinToString("\n")
-        bean.privateKey = iface["PrivateKey"]
-        bean.mtu = iface["MTU"]?.toIntOrNull()
-        val peers = ini.getAll("Peer")
-        if (peers.isNullOrEmpty()) error("Missing 'Peer' selections")
-        val beans = mutableListOf<WireGuardBean>()
-        for (peer in peers) {
-            val endpoint = peer["Endpoint"]
-            if (endpoint.isNullOrBlank() || !endpoint.contains(":")) {
-                continue
-            }
-
-            val peerBean = bean.clone()
-            peerBean.serverAddress = endpoint.substringBeforeLast(":")
-            peerBean.serverPort = endpoint.substringAfterLast(":").toIntOrNull() ?: continue
-            peerBean.peerPublicKey = peer["PublicKey"] ?: continue
-            peerBean.peerPreSharedKey = peer["PresharedKey"]
-            beans.add(peerBean.applyDefaultValues())
-        }
-        if (beans.isEmpty()) error("Empty available peer list")
-        return beans
+        return AmneziaWireGuardImporter.parseWireGuard(conf)
     }
 
     // AmneziaWG configs are WireGuard configs that also carry obfuscation keys in

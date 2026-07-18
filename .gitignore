@@ -40,6 +40,11 @@ local.properties
 /app/src/main/assets/sing-box
 /service_account_credentials.json
 /nkmr/
+jniLibs/
+/library/libcore_build/
+.idea/deploymentTargetDropDown.xml
+/nkmr
+.tmp
 
 # Submodules / external sources
 /external/

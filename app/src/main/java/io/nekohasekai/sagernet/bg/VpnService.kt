@@ -16,6 +16,7 @@ import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.ui.VpnRequestActivity
 import io.nekohasekai.sagernet.utils.Subnet
+import org.json.JSONObject
 import android.net.VpnService as BaseVpnService
 
 class VpnService :
@@ -29,6 +30,19 @@ class VpnService :
         const val FAKEDNS_VLAN4_CLIENT = "198.18.0.0"
         const val PRIVATE_VLAN6_CLIENT = "fdfe:dcba:9876::1"
         const val PRIVATE_VLAN6_ROUTER = "fdfe:dcba:9876::2"
+        private val ANDROID_DNS_PACKAGES = listOf(
+            "android",
+            "com.android.resolv",
+            "com.google.android.resolv",
+            "com.android.networkstack",
+            "com.google.android.networkstack",
+            "com.android.dnsresolver",
+            "com.android.networkstack.tethering",
+            "com.google.android.networkstack.tethering",
+            "com.android.tethering",
+            "com.google.android.tethering"
+        )
+
     }
 
     var conn: ParcelFileDescriptor? = null
@@ -52,10 +66,9 @@ class VpnService :
 
     @Suppress("EXPERIMENTAL_API_USAGE")
     override suspend fun killProcesses() {
-        runServiceTeardown(after = { super.killProcesses() }) {
-            conn?.close()
-            conn = null
-        }
+        conn?.close()
+        conn = null
+        super.killProcesses()
     }
 
     override fun onBind(intent: Intent) = when (intent.action) {
@@ -131,68 +144,73 @@ class VpnService :
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) builder.setMetered(metered)
 
         // app route
-        val packageName = packageName
-        val proxyApps = DataStore.proxyApps
-        var bypass = DataStore.bypass
-        val workaroundSYSTEM = false /* DataStore.tunImplementation == TunImplementation.SYSTEM */
-        val needBypassRootUid = workaroundSYSTEM || data.proxy!!.config.trafficMap.values.any {
-            it[0].hysteriaBean?.protocol == HysteriaBean.PROTOCOL_FAKETCP
-        }
-
-        if (proxyApps || needBypassRootUid) {
-            val individual = mutableSetOf<String>()
-            val allApps by lazy {
-                packageManager.getInstalledPackages(PackageManager.GET_PERMISSIONS).filter {
-                    when (it.packageName) {
-                        packageName -> false
-                        "android" -> true
-                        else -> it.requestedPermissions?.contains(Manifest.permission.INTERNET) == true
-                    }
-                }.map {
-                    it.packageName
-                }
+        if (!applyTunPackageRules(builder, tunOptionsJson)) {
+            val packageName = packageName
+            val proxyApps = DataStore.proxyApps
+            var bypass = DataStore.bypass
+            val workaroundSYSTEM = false /* DataStore.tunImplementation == TunImplementation.SYSTEM */
+            val needBypassRootUid = workaroundSYSTEM || data.proxy!!.config.trafficMap.values.any {
+                it[0].hysteriaBean?.protocol == HysteriaBean.PROTOCOL_FAKETCP
             }
-            if (proxyApps) {
-                individual.addAll(DataStore.individual.split('\n').filter { it.isNotBlank() })
-                if (bypass && needBypassRootUid) {
-                    val individualNew = allApps.toMutableList()
-                    individualNew.removeAll(individual)
-                    individual.clear()
-                    individual.addAll(individualNew)
+
+            if (proxyApps || needBypassRootUid) {
+                val individual = mutableSetOf<String>()
+                val allApps by lazy {
+                    packageManager.getInstalledPackages(PackageManager.GET_PERMISSIONS).filter {
+                        when (it.packageName) {
+                            packageName -> false
+                            "android" -> true
+                            else -> it.requestedPermissions?.contains(Manifest.permission.INTERNET) == true
+                        }
+                    }.map {
+                        it.packageName
+                    }
+                }
+                if (proxyApps) {
+                    individual.addAll(DataStore.individual.split('\n').filter { it.isNotBlank() })
+                    if (bypass && needBypassRootUid) {
+                        val individualNew = allApps.toMutableList()
+                        individualNew.removeAll(individual)
+                        individual.clear()
+                        individual.addAll(individualNew)
+                        bypass = false
+                    }
+                } else {
+                    individual.addAll(allApps)
                     bypass = false
                 }
-            } else {
-                individual.addAll(allApps)
-                bypass = false
-            }
 
-            val added = mutableListOf<String>()
+                val added = mutableListOf<String>()
 
-            individual.apply {
-                // Allow Matsuri itself using VPN.
-                remove(packageName)
-                if (!bypass) add(packageName)
-            }.forEach {
-                try {
-                    if (bypass) {
-                        builder.addDisallowedApplication(it)
-                    } else {
-                        builder.addAllowedApplication(it)
+                individual.apply {
+                    // Allow Matsuri itself using VPN.
+                    remove(packageName)
+                    if (!bypass) add(packageName)
+                    // Keep Android system DNS resolver traffic inside VPN in allow-list mode.
+                    if (!bypass) addAll(ANDROID_DNS_PACKAGES)
+                    // In bypass mode, force Android system UID traffic out of VPN.
+                    if (bypass) add("android")
+                }.forEach {
+                    try {
+                        if (bypass) {
+                            builder.addDisallowedApplication(it)
+                        } else {
+                            builder.addAllowedApplication(it)
+                        }
+                        added.add(it)
+                    } catch (ex: PackageManager.NameNotFoundException) {
+                        Logs.w(ex)
                     }
-                    added.add(it)
-                } catch (ex: PackageManager.NameNotFoundException) {
-                    Logs.w(ex)
+                }
+
+                if (bypass) {
+                    Logs.d("Add bypass: ${added.joinToString(", ")}")
+                } else {
+                    Logs.d("Add allow: ${added.joinToString(", ")}")
                 }
             }
-
-            if (bypass) {
-                Logs.d("Add bypass: ${added.joinToString(", ")}")
-            } else {
-                Logs.d("Add allow: ${added.joinToString(", ")}")
-            }
         }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && DataStore.appendHttpProxy) {
+if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && DataStore.appendHttpProxy) {
             if (DataStore.allowAccess) {
                 // When LAN access is enabled the mixed inbound requires authentication
                 // (see DataStore.mixedInboundNeedsAuth). Android's system HTTP proxy
@@ -206,14 +224,14 @@ class VpnService :
                 val proxyInfo = runCatching {
                     val exclusionList = parseHttpProxyBypass(DataStore.httpProxyBypass)
                     if (exclusionList.isNotEmpty()) {
-                        ProxyInfo.buildDirectProxy(LOCALHOST, DataStore.mixedPort, exclusionList)
+                        ProxyInfo.buildDirectProxy(LOCALHOST, DataStore.httpPort, exclusionList)
                     } else {
-                        ProxyInfo.buildDirectProxy(LOCALHOST, DataStore.mixedPort)
+                        ProxyInfo.buildDirectProxy(LOCALHOST, DataStore.httpPort)
                     }
                 }.getOrElse {
                     // A malformed exclusion entry must never block service start.
                     Logs.w("Invalid HTTP proxy bypass list, ignoring it", it)
-                    ProxyInfo.buildDirectProxy(LOCALHOST, DataStore.mixedPort)
+                    ProxyInfo.buildDirectProxy(LOCALHOST, DataStore.httpPort)
                 }
                 builder.setHttpProxy(proxyInfo)
             }
@@ -265,6 +283,36 @@ class VpnService :
                     ?: setUnderlyingNetworks(arrayOf(SagerNet.underlyingNetwork))
             }
         }
+
+        val includePackages = tunOptions.packageList("include_package").toMutableSet()
+        val excludePackages = tunOptions.packageList("exclude_package")
+        if (includePackages.isEmpty() && excludePackages.isEmpty()) return false
+        if (includePackages.isNotEmpty()) {
+            includePackages.add(packageName)
+        }
+
+        if (includePackages.isNotEmpty()) {
+            includePackages.forEach {
+                try {
+                    builder.addAllowedApplication(it)
+                } catch (_: PackageManager.NameNotFoundException) {
+                }
+            }
+        } else {
+            excludePackages.forEach {
+                try {
+                    builder.addDisallowedApplication(it)
+                } catch (_: PackageManager.NameNotFoundException) {
+                }
+            }
+        }
+        Logs.d("Applied tun package rules: include=${includePackages.size}, exclude=${excludePackages.size}")
+        return true
+    }
+
+    fun updateUnderlyingNetwork(builder: Builder? = null) {
+        val networks = SagerNet.underlyingNetwork?.let { arrayOf(it) }
+        builder?.setUnderlyingNetworks(networks) ?: setUnderlyingNetworks(networks)
     }
 
     override fun onRevoke() = stopRunner()

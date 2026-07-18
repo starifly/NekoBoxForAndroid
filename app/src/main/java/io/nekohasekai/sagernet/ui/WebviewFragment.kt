@@ -1,12 +1,14 @@
 package io.nekohasekai.sagernet.ui
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
 import android.view.MenuItem
 import android.view.View
 import android.webkit.*
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
 import androidx.core.net.toUri
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -19,6 +21,7 @@ import moe.matsuri.nb4a.utils.WebViewUtil
 // Fragment must have a no-argument public constructor, otherwise it will crash during data restoration
 
 class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenuItemClickListener {
+    private val defaultPanelUrl = "http://127.0.0.1:9090/ui"
 
     lateinit var mWebView: WebView
 
@@ -37,24 +40,34 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
         mWebView = binding.webview
         mWebView.settings.apply {
-            // The Clash/yacd dashboard is a JS SPA talking to the local Clash API, so JS
-            // and DOM storage are required. Everything else is locked down: the dashboard
-            // (a user-editable URL) must never be able to read the device filesystem or
-            // content providers, escalate from file:// origins, or downgrade to cleartext
-            // resources on an https page.
-            javaScriptEnabled = true
-            domStorageEnabled = true
-            allowFileAccess = false
-            allowContentAccess = false
-            @Suppress("DEPRECATION")
-            allowFileAccessFromFileURLs = false
-            @Suppress("DEPRECATION")
-            allowUniversalAccessFromFileURLs = false
-            mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
-            // No automatic JS-initiated window.open popups.
-            javaScriptCanOpenWindowsAutomatically = false
-            setSupportMultipleWindows(false)
-        }
+    // The Clash/yacd dashboard is a JS SPA talking to the local Clash API, so JS
+    // and DOM storage are required. Everything else is locked down: the dashboard
+    // (a user-editable URL) must never be able to read the device filesystem or
+    // content providers, escalate from file:// origins, or downgrade to cleartext
+    // resources on an https page.
+    javaScriptEnabled = true
+    domStorageEnabled = true
+
+    // 嚴格限制檔案與 Content Provider 存取
+    allowFileAccess = false
+    allowContentAccess = false
+    databaseEnabled = false
+
+    @Suppress("DEPRECATION")
+    allowFileAccessFromFileURLs = false
+    @Suppress("DEPRECATION")
+    allowUniversalAccessFromFileURLs = false
+
+    // 混合內容安全性與彈出視窗控制
+    mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+    javaScriptCanOpenWindowsAutomatically = false
+    setSupportMultipleWindows(false)
+
+    // 啟用 Google 安全瀏覽功能（API 26+）
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        safeBrowsingEnabled = true
+    }
+}
         mWebView.webViewClient = object : WebViewClient() {
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                 WebViewUtil.onReceivedError(view, request, error)
@@ -64,7 +77,7 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
                 super.onPageFinished(view, url)
             }
         }
-        mWebView.loadUrl(dashboardUrl())
+        mWebView.loadSafeUrl(dashboardUrl())
     }
 
     private fun dashboardUrl(): String {
@@ -100,8 +113,20 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
                 MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.set_panel_url)
                     .setView(view)
                     .setPositiveButton(android.R.string.ok) { _, _ ->
-                        DataStore.yacdURL = view.text.toString()
-                        mWebView.loadUrl(dashboardUrl())
+                val candidateUrl = view.text.toString()
+                        val safeUrl = normalizePanelUrl(candidateUrl)
+                        if (safeUrl == null) {
+                            Toast.makeText(
+                                requireContext(), R.string.invalid_panel_url, Toast.LENGTH_SHORT
+                            ).show()
+                            return@setPositiveButton
+                        }
+                        // 1. 儲存經過格式化與驗證後的安全網址
+                        DataStore.yacdURL = safeUrl
+
+                        // 2. 透過 dashboardUrl() 判斷是否需要注入本地 Secret，再經由 loadSafeUrl 載入
+                        loadSafeUrl(dashboardUrl())
+                    }
                     }
                     .setNegativeButton(android.R.string.cancel, null)
                     .show()
@@ -113,5 +138,24 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
             }
         }
         return true
+    }
+
+    private fun loadSafeUrl(url: String) {
+        val safeUrl = normalizePanelUrl(url) ?: defaultPanelUrl
+        DataStore.yacdURL = safeUrl
+        mWebView.loadUrl(safeUrl)
+    }
+
+    private fun normalizePanelUrl(rawUrl: String): String? {
+        val parsed = runCatching { Uri.parse(rawUrl.trim()) }.getOrNull() ?: return null
+        val scheme = parsed.scheme?.lowercase() ?: return null
+        if (scheme != "http" && scheme != "https") return null
+        if (scheme == "http" && !isLoopbackHost(parsed.host)) return null
+        return parsed.toString()
+    }
+
+    private fun isLoopbackHost(host: String?): Boolean {
+        val normalized = host?.trim()?.lowercase() ?: return false
+        return normalized == "127.0.0.1" || normalized == "localhost" || normalized == "[::1]" || normalized == "::1"
     }
 }

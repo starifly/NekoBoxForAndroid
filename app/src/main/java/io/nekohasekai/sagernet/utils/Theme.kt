@@ -107,125 +107,85 @@ object Theme {
 
     fun apply(context: Context) {
         context.setTheme(getTheme())
+        applyOverlays(context)
     }
 
     fun applyDialog(context: Context) {
         context.setTheme(getDialogTheme())
+        applyOverlays(context)
     }
-
-    fun getTheme(): Int {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && DataStore.useSystemTheme) {
-            getTheme(MONET)
-        } else {
-            getTheme(DataStore.appTheme)
+private fun applyOverlays(context: Context) {
+        if (!DataStore.dynamicColors) {
+            when (DataStore.appTheme) {
+                1 -> context.theme.applyStyle(R.style.ThemeOverlay_SagerNet_Accent_Blue, true)
+                2 -> context.theme.applyStyle(R.style.ThemeOverlay_SagerNet_Accent_Green, true)
+                3 -> context.theme.applyStyle(R.style.ThemeOverlay_SagerNet_Accent_Pink, true)
+            }
+        }
+        if (DataStore.amoledTheme && usingNightMode()) {
+            context.theme.applyStyle(R.style.ThemeOverlay_SagerNet_Amoled, true)
         }
     }
 
-    fun getDialogTheme(): Int {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && DataStore.useSystemTheme) {
-            getDialogTheme(MONET)
-        } else {
-            getDialogTheme(DataStore.appTheme)
-        }
-    }
-
-    fun getTheme(theme: Int): Int {
-        return when (theme) {
-            MONET -> R.style.Theme_SagerNet_Monet
-            RED -> R.style.Theme_SagerNet_Red
-            PINK -> R.style.Theme_SagerNet
-            PINK_SSR -> R.style.Theme_SagerNet_Pink_SSR
-            PURPLE -> R.style.Theme_SagerNet_Purple
-            DEEP_PURPLE -> R.style.Theme_SagerNet_DeepPurple
-            INDIGO -> R.style.Theme_SagerNet_Indigo
-            BLUE -> R.style.Theme_SagerNet_Blue
-            LIGHT_BLUE -> R.style.Theme_SagerNet_LightBlue
-            CYAN -> R.style.Theme_SagerNet_Cyan
-            TEAL -> R.style.Theme_SagerNet_Teal
-            GREEN -> R.style.Theme_SagerNet_Green
-            LIGHT_GREEN -> R.style.Theme_SagerNet_LightGreen
-            LIME -> R.style.Theme_SagerNet_Lime
-            YELLOW -> R.style.Theme_SagerNet_Yellow
-            AMBER -> R.style.Theme_SagerNet_Amber
-            ORANGE -> R.style.Theme_SagerNet_Orange
-            DEEP_ORANGE -> R.style.Theme_SagerNet_DeepOrange
-            BROWN -> R.style.Theme_SagerNet_Brown
-            GREY -> R.style.Theme_SagerNet_Grey
-            BLUE_GREY -> R.style.Theme_SagerNet_BlueGrey
-            BLACK -> R.style.Theme_SagerNet_Black
-            VERDANT_MINT -> R.style.Theme_SagerNet_VerdantMint
+    fun getTheme(): Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && DataStore.dynamicColors) {
+        R.style.Theme_SagerNet_Expressive_Dynamic
+    } else {
+        when (DataStore.appTheme) {
             DRACULA -> R.style.Theme_SagerNet_Dracula
-            DARK_HIGH_CONTRAST -> R.style.Theme_SagerNet_DarkHighContrast
             DRACULA_M3 -> R.style.Theme_SagerNet_DraculaM3
             NORD -> R.style.Theme_SagerNet_Nord
             MONOKAI -> R.style.Theme_SagerNet_Monokai
             AYU -> R.style.Theme_SagerNet_Ayu
             CATPPUCCIN -> R.style.Theme_SagerNet_Catppuccin
-            DYNAMIC -> R.style.Theme_SagerNet
-            else -> getTheme(defaultTheme())
+            BLACK -> R.style.Theme_SagerNet_Black
+            DARK_HIGH_CONTRAST -> R.style.Theme_SagerNet_DarkHighContrast
+            else -> R.style.Theme_SagerNet_Expressive
         }
     }
 
-    fun getDialogTheme(theme: Int): Int {
-        return when (theme) {
-            MONET -> R.style.Theme_SagerNet_Dialog_Monet
-            RED -> R.style.Theme_SagerNet_Dialog_Red
-            PINK -> R.style.Theme_SagerNet_Dialog
-            PINK_SSR -> R.style.Theme_SagerNet_Dialog_Pink_SSR
-            PURPLE -> R.style.Theme_SagerNet_Dialog_Purple
-            DEEP_PURPLE -> R.style.Theme_SagerNet_Dialog_DeepPurple
-            INDIGO -> R.style.Theme_SagerNet_Dialog_Indigo
-            BLUE -> R.style.Theme_SagerNet_Dialog_Blue
-            LIGHT_BLUE -> R.style.Theme_SagerNet_Dialog_LightBlue
-            CYAN -> R.style.Theme_SagerNet_Dialog_Cyan
-            TEAL -> R.style.Theme_SagerNet_Dialog_Teal
-            GREEN -> R.style.Theme_SagerNet_Dialog_Green
-            LIGHT_GREEN -> R.style.Theme_SagerNet_Dialog_LightGreen
-            LIME -> R.style.Theme_SagerNet_Dialog_Lime
-            YELLOW -> R.style.Theme_SagerNet_Dialog_Yellow
-            AMBER -> R.style.Theme_SagerNet_Dialog_Amber
-            ORANGE -> R.style.Theme_SagerNet_Dialog_Orange
-            DEEP_ORANGE -> R.style.Theme_SagerNet_Dialog_DeepOrange
-            BROWN -> R.style.Theme_SagerNet_Dialog_Brown
-            GREY -> R.style.Theme_SagerNet_Dialog_Grey
-            BLUE_GREY -> R.style.Theme_SagerNet_Dialog_BlueGrey
-            BLACK -> R.style.Theme_SagerNet_Dialog_Black
-            VERDANT_MINT -> R.style.Theme_SagerNet_Dialog_VerdantMint
-            DRACULA -> R.style.Theme_SagerNet_Dialog_Dracula
-            DARK_HIGH_CONTRAST -> R.style.Theme_SagerNet_Dialog_DarkHighContrast
-            DRACULA_M3 -> R.style.Theme_SagerNet_Dialog_DraculaM3
-            NORD -> R.style.Theme_SagerNet_Dialog_Nord
-            MONOKAI -> R.style.Theme_SagerNet_Dialog_Monokai
-            AYU -> R.style.Theme_SagerNet_Dialog_Ayu
-            CATPPUCCIN -> R.style.Theme_SagerNet_Dialog_Catppuccin
-            DYNAMIC -> R.style.Theme_SagerNet_Dialog
-            else -> getDialogTheme(defaultTheme())
+    fun getDialogTheme(): Int {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && DataStore.dynamicColors) {
+            R.style.Theme_SagerNet_Dialog_Monet // 或者是遠端對應的 M3 動態對話框樣式
+        } else {
+            when (DataStore.appTheme) {
+                DRACULA -> R.style.Theme_SagerNet_Dialog_Dracula
+                DRACULA_M3 -> R.style.Theme_SagerNet_Dialog_DraculaM3
+                NORD -> R.style.Theme_SagerNet_Dialog_Nord
+                MONOKAI -> R.style.Theme_SagerNet_Dialog_Monokai
+                AYU -> R.style.Theme_SagerNet_Dialog_Ayu
+                CATPPUCCIN -> R.style.Theme_SagerNet_Dialog_Catppuccin
+                BLACK -> R.style.Theme_SagerNet_Dialog_Black
+                DARK_HIGH_CONTRAST -> R.style.Theme_SagerNet_Dialog_DarkHighContrast
+                else -> R.style.Theme_SagerNet_Dialog // 或者是遠端定義的預設對話框樣式
+            }
         }
     }
+    fun getDialogTheme(): Int =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && DataStore.dynamicColors) {
+            R.style.Theme_SagerNet_Expressive_Dynamic_Dialog
+        } else {
+            R.style.Theme_SagerNet_Expressive_Dialog
+        }
 
     var currentNightMode = -1
+
     fun getNightMode(): Int {
-        if (currentNightMode == -1) {
-            currentNightMode = DataStore.nightTheme
-        }
+        if (currentNightMode == -1) currentNightMode = DataStore.nightTheme
         return getNightMode(currentNightMode)
     }
 
-    fun getNightMode(mode: Int): Int {
-        return when (mode) {
-            0 -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-            1 -> AppCompatDelegate.MODE_NIGHT_YES
-            2 -> AppCompatDelegate.MODE_NIGHT_NO
-            else -> AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY
-        }
+    fun getNightMode(mode: Int): Int = when (mode) {
+        0 -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+        1 -> AppCompatDelegate.MODE_NIGHT_YES
+        2 -> AppCompatDelegate.MODE_NIGHT_NO
+        else -> AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY
     }
 
-    fun usingNightMode(): Boolean {
-        return when (DataStore.nightTheme) {
-            1 -> true
-            2 -> false
-            else -> (app.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        }
+    fun usingNightMode(): Boolean = when (DataStore.nightTheme) {
+        1 -> true
+        2 -> false
+        else -> (app.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
     }
 
     fun applyNightTheme() {

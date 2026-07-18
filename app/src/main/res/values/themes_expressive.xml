@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.SagerNet.Expressive" parent="Theme.Material3Expressive.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/ui_primary</item>
+        <item name="colorOnPrimary">@color/ui_on_primary</item>
+        <item name="colorPrimaryContainer">@color/ui_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/ui_on_primary_container</item>
+        <item name="colorSecondary">@color/ui_secondary</item>
+        <item name="colorOnSecondary">@color/ui_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/ui_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/ui_on_secondary_container</item>
+        <item name="colorTertiary">@color/ui_tertiary</item>
+        <item name="colorOnTertiary">@color/ui_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/ui_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/ui_on_tertiary_container</item>
+        <item name="android:colorBackground">@color/ui_background</item>
+        <item name="colorOnBackground">@color/ui_on_background</item>
+        <item name="colorSurface">@color/ui_surface</item>
+        <item name="colorOnSurface">@color/ui_on_surface</item>
+        <item name="colorSurfaceVariant">@color/ui_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/ui_on_surface_variant</item>
+        <item name="colorSurfaceContainerLow">@color/ui_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/ui_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/ui_surface_container_high</item>
+        <item name="colorOutline">@color/ui_outline</item>
+        <item name="colorOutlineVariant">@color/ui_outline_variant</item>
+        <item name="colorError">@color/ui_error</item>
+        <item name="colorOnError">@color/ui_on_error</item>
+        <item name="colorErrorContainer">@color/ui_error_container</item>
+        <item name="colorOnErrorContainer">@color/ui_on_error_container</item>
+
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowBackground">@color/ui_background</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="windowActionModeOverlay">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.ActionBar</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog</item>
+        <item name="android:dialogTheme">@style/Theme.Material3.DayNight.Dialog</item>
+        <item name="dialogTheme">@style/Theme.Material3.DayNight.Dialog</item>
+        <item name="chipStyle">@style/Widget.MaterialComponents.Chip.Choice.SagerNet</item>
+
+        <item name="popupMenuStyle">@style/Widget.Material3.PopupMenu</item>
+        <item name="android:popupMenuStyle">@style/Widget.Material3.PopupMenu</item>
+        <item name="actionOverflowMenuStyle">@style/Widget.Material3.PopupMenu.Overflow</item>
+        <item name="popupMenuBackground">@drawable/bg_popup_menu_m3</item>
+        <item name="android:popupBackground">@drawable/bg_popup_menu_m3</item>
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay.SagerNet</item>
+
+        <item name="tabTextColor">?attr/colorOnSurfaceVariant</item>
+        <item name="tabSelectedTextColor">?attr/colorPrimary</item>
+        <item name="tabIndicatorColor">?attr/colorPrimary</item>
+        <item name="tabRippleColor">?attr/colorPrimary</item>
+        <item name="uiAppBarHeight">64dp</item>
+        <item name="uiAppBarElevation">0dp</item>
+        <item name="uiCardElevation">0dp</item>
+        <item name="uiCardCornerRadius">28dp</item>
+        <item name="uiCardStrokeWidth">0dp</item>
+        <item name="uiCardStrokeColor">@android:color/transparent</item>
+        <item name="uiListItemMargin">0dp</item>
+        <item name="uiListOuterPadding">12dp</item>
+        <item name="uiSurfaceBackground">?attr/colorSurface</item>
+        <item name="uiAppBarBackground">?attr/colorSurface</item>
+        <item name="uiStatsBackground">?attr/colorPrimaryContainer</item>
+        <item name="uiStatsForeground">?attr/colorOnPrimaryContainer</item>
+        <item name="uiTabBackground">?attr/colorSurface</item>
+        <item name="uiNavigationItemFill">?attr/colorSecondaryContainer</item>
+
+        <!-- Temporary aliases for legacy screens; new layouts use semantic M3 roles directly. -->
+        <item name="colorAccent">?attr/colorPrimary</item>
+        <item name="colorMaterial100">?attr/colorPrimaryContainer</item>
+        <item name="colorMaterial300">?attr/colorSecondaryContainer</item>
+        <item name="accentOrTextSecondary">?attr/colorPrimary</item>
+        <item name="accentOrTextPrimary">?attr/colorPrimary</item>
+        <item name="primaryOrTextSecondary">?attr/colorPrimary</item>
+        <item name="primaryOrTextPrimary">?attr/colorPrimary</item>
+        <item name="fabColorBackground">?attr/colorPrimary</item>
+        <item name="selectedColorPrimary">?attr/colorPrimary</item>
+        <item name="whiteOrTextPrimary">?attr/colorOnPrimary</item>
+    </style>
+
+    <style name="Theme.SagerNet.Expressive.Dialog" parent="Theme.SagerNet.Expressive">
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowElevation">8dp</item>
+        <item name="android:windowCloseOnTouchOutside">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:windowBackground">@drawable/bg_expressive_dialog</item>
+        <item name="uiSurfaceBackground">@android:color/transparent</item>
+        <item name="uiAppBarBackground">@android:color/transparent</item>
+        <item name="uiTabBackground">@android:color/transparent</item>
+    </style>
+
+    <style name="ShapeAppearance.SagerNet.Expressive.Navigation" parent="ShapeAppearance.Material3.Corner.Full" />
+    <style name="ShapeAppearanceOverlay.SagerNet.ConnectionPanel" parent="">
+        <item name="cornerSize">50%</item>
+    </style>
+    <style name="TextAppearance.SagerNet.Tab" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="ThemeOverlay.SagerNet.Amoled" parent="">
+        <item name="android:colorBackground">@android:color/black</item>
+        <item name="colorSurface">@android:color/black</item>
+        <item name="colorSurfaceContainerLowest">#121212</item>
+        <item name="colorSurfaceContainerLow">#161616</item>
+        <item name="colorSurfaceContainer">#1A1A1A</item>
+        <item name="colorSurfaceContainerHigh">#1F1F1F</item>
+        <item name="colorSurfaceContainerHighest">#292929</item>
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="colorSurfaceVariant">#111111</item>
+        <item name="colorBackgroundFloating">#141414</item>
+    </style>
+
+    <style name="ThemeOverlay.SagerNet.Accent.Blue" parent="">
+        <item name="colorPrimary">#0061A4</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#D1E4FF</item>
+        <item name="colorOnPrimaryContainer">#001D36</item>
+        <item name="colorSecondary">#535F70</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="colorSecondaryContainer">#D7E3F7</item>
+        <item name="colorOnSecondaryContainer">#101C2B</item>
+    </style>
+
+    <style name="ThemeOverlay.SagerNet.Accent.Green" parent="">
+        <item name="colorPrimary">#2E6B27</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#AFFF9D</item>
+        <item name="colorOnPrimaryContainer">#002202</item>
+        <item name="colorSecondary">#54634D</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="colorSecondaryContainer">#D7E8CC</item>
+        <item name="colorOnSecondaryContainer">#121F0E</item>
+    </style>
+
+    <style name="ThemeOverlay.SagerNet.Accent.Pink" parent="">
+        <item name="colorPrimary">#984061</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#FFD9E2</item>
+        <item name="colorOnPrimaryContainer">#3E001D</item>
+        <item name="colorSecondary">#74565F</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="colorSecondaryContainer">#FFD9E2</item>
+        <item name="colorOnSecondaryContainer">#2B151C</item>
+    </style>
+
+    <style name="ThemeOverlay.SagerNet.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="android:windowBackground">@drawable/bg_dialog_m3</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.Material3.Button.TextButton.Dialog</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.Material3.Button.TextButton.Dialog</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.Material3.Button.TextButton.Dialog</item>
+        <item name="android:checkedTextViewStyle">@style/Widget.Material3.CheckedTextView</item>
+    </style>
+
+    <style name="PreferenceThemeOverlay.SagerNet" parent="PreferenceThemeOverlay.v14.Material">
+        <item name="alertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog</item>
+        <item name="android:alertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.SagerNet.AlertDialog</item>
+        <item name="preferenceStyle">@style/Preference.SagerNet</item>
+        <item name="dialogPreferenceStyle">@style/Preference.SagerNet.Dialog</item>
+        <item name="editTextPreferenceStyle">@style/Preference.SagerNet.EditText</item>
+        <item name="dropdownPreferenceStyle">@style/Preference.SagerNet.DropDown</item>
+        <item name="preferenceScreenStyle">@style/Preference.SagerNet</item>
+        <item name="switchPreferenceStyle">@style/Preference.SagerNet.Switch</item>
+        <item name="switchPreferenceCompatStyle">@style/Preference.SagerNet.SwitchCompat</item>
+        <item name="checkBoxPreferenceStyle">@style/Preference.SagerNet.CheckBox</item>
+        <item name="preferenceCategoryStyle">@style/Preference.SagerNet.Category</item>
+        <item name="preferenceFragmentCompatStyle">@style/PreferenceFragment.SagerNet</item>
+        <item name="preferenceFragmentListStyle">@style/PreferenceFragmentList.SagerNet</item>
+        <item name="preferenceCategoryTitleTextColor">?attr/colorPrimary</item>
+    </style>
+
+    <style name="Preference.SagerNet" parent="Preference.Material">
+        <item name="android:layout">@layout/preference_m3</item>
+        <item name="allowDividerAbove">false</item>
+        <item name="allowDividerBelow">false</item>
+        <item name="singleLineTitle">false</item>
+    </style>
+    <style name="Preference.SagerNet.Dialog" parent="Preference.DialogPreference.Material">
+        <item name="android:layout">@layout/preference_m3</item>
+        <item name="allowDividerAbove">false</item>
+        <item name="allowDividerBelow">false</item>
+    </style>
+    <style name="Preference.SagerNet.EditText" parent="Preference.DialogPreference.EditTextPreference.Material">
+        <item name="android:layout">@layout/preference_m3</item>
+        <item name="dialogLayout">@layout/preference_dialog_edittext_m3</item>
+        <item name="allowDividerAbove">false</item>
+        <item name="allowDividerBelow">false</item>
+    </style>
+    <style name="Preference.SagerNet.DropDown" parent="Preference.DropDown.Material">
+        <item name="android:layout">@layout/preference_m3_dropdown</item>
+        <item name="allowDividerAbove">false</item>
+        <item name="allowDividerBelow">false</item>
+    </style>
+    <style name="Preference.SagerNet.Switch" parent="Preference.SwitchPreference.Material">
+        <item name="android:layout">@layout/preference_m3</item>
+        <item name="allowDividerAbove">false</item>
+        <item name="allowDividerBelow">false</item>
+    </style>
+    <style name="Preference.SagerNet.SwitchCompat" parent="Preference.SwitchPreferenceCompat.Material">
+        <item name="android:layout">@layout/preference_m3</item>
+        <item name="android:widgetLayout">@layout/preference_widget_material_switch</item>
+        <item name="allowDividerAbove">false</item>
+        <item name="allowDividerBelow">false</item>
+    </style>
+    <style name="Preference.SagerNet.CheckBox" parent="Preference.CheckBoxPreference.Material">
+        <item name="android:layout">@layout/preference_m3</item>
+        <item name="allowDividerAbove">false</item>
+        <item name="allowDividerBelow">false</item>
+    </style>
+    <style name="Preference.SagerNet.Category" parent="Preference.Category.Material">
+        <item name="android:layout">@layout/preference_category_m3</item>
+        <item name="allowDividerAbove">false</item>
+        <item name="allowDividerBelow">false</item>
+    </style>
+    <style name="PreferenceFragment.SagerNet" parent="PreferenceFragment.Material">
+        <item name="android:divider">@null</item>
+        <item name="allowDividerAfterLastItem">false</item>
+    </style>
+    <style name="PreferenceFragmentList.SagerNet" parent="PreferenceFragmentList.Material">
+        <item name="android:paddingStart">0dp</item>
+        <item name="android:paddingEnd">0dp</item>
+        <item name="android:clipToPadding">false</item>
+    </style>
+</resources>

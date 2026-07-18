@@ -16,13 +16,14 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/route_list"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingLeft="4dp"
-            android:paddingTop="4dp"
-            android:paddingRight="4dp"
-            android:paddingBottom="168dp"
-            android:scrollbarSize="0dp" />
+            android:layout_height="match_parent"android:clipToPadding="false"
+            android:padding="?attr/uiListOuterPadding"
+            android:scrollbarSize="0dp"
+            app:fastScrollAutoHide="true"
+            app:fastScrollThumbColor="?colorPrimary"
+            app:fastScrollThumbInactiveColor="?colorPrimary">
+
+        </com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView>
 
     </LinearLayout>
 
