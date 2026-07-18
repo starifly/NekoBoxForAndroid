@@ -12,11 +12,21 @@
     <string name="menu_group">分组</string>
     <string name="menu_about">关于</string>
     <string name="theme">主题</string>
+    <string name="theme_dynamic">Dynamic (Material You)</string>
+    <string name="theme_dark_high_contrast">Dark High Contrast</string>
+    <string name="theme_dracula_m3">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_monokai">Monokai</string>
+    <string name="theme_ayu">Ayu</string>
+    <string name="theme_catppuccin">Catppuccin</string>
+    <string name="theme_classic_colors">Legacy colors…</string>
+    <string name="theme_classic_color_swatch">Color theme %1$d</string>
     <string name="document">文档</string>
     <string name="group_default">未分组</string>
     <string name="quick_toggle">切换</string>
     <string name="quick_enable">启用</string>
     <string name="quick_disable">禁用</string>
+    <string name="quick_clear_cache_restart">Clear Cache &amp; Restart</string>
     <string name="tile_title">开关</string>
     <string name="menu_traffic">流量</string>
     <string name="menu_dashboard">sing-box 仪表盘</string>
@@ -40,9 +50,9 @@
     <string name="group_status_empty">空组</string>
     <string name="group_status_empty_subscription">尚未更新</string>
     <string name="group_status_proxies">%d 个代理</string>
-    <string name="group_status_proxies_subscription">%1$d 个代理 | 更新于 %2$s</string>
+    <string name="group_status_proxies_subscription">%1$d Proxies | Updated on %2$s</string>
     <string name="group_no_difference">%s: 无差异</string>
-    <string name="group_updated">%1$s: 已更新 %2$d 个代理</string>
+    <string name="group_updated">%1$s: Updated %2$d proxies</string>
     <string name="group_show_diff">差异</string>
     <string name="group_diff">差异 (%s)</string>
     <string name="group_delete_confirm_prompt">确定要删除此分组吗？</string>
@@ -59,6 +69,10 @@
     <string name="cag_route">路由设置</string>
     <string name="allow_access">允许来自局域网的连接</string>
     <string name="allow_access_sum">将入站服务器绑定到 0.0.0.0</string>
+    <string name="require_proxy_in_vpn">Keep local proxy in VPN mode</string>
+    <string name="require_proxy_in_vpn_sum">Keep the local SOCKS/HTTP proxy port open while in VPN mode. Off by default: in VPN mode the port is usually unneeded and leaving it open lets other apps reach it.</string>
+    <string name="proxy_mode_inbound_auth">Authenticate local proxy in Proxy mode</string>
+    <string name="proxy_mode_inbound_auth_sum">Require username/password on the local SOCKS/HTTP proxy when running in Proxy (non-VPN) mode. Enable to stop other apps from using it as an open relay.</string>
     <string name="inbound_settings">入站设置</string>
     <string name="general_settings">应用设置</string>
     <string name="require_http">启用 HTTP 入站</string>
@@ -71,20 +85,28 @@
     <string name="show_stop_sum">如果你不想使用快捷面板作为开关</string>
     <string name="show_direct_speed">显示直连速度</string>
     <string name="show_direct_speed_sum">同时在通知中显示未经过代理的流量速度</string>
+    <string name="security_settings">TLS 安全设置</string>
+    <string name="allow_insecure">允许不安全连接</string>
+    <string name="allow_insecure_sum">禁用证书检查。启用后，此配置与明文一样安全。</string>
+    <string name="lifetime_traffic">All-time: %1$s↑ %2$s↓</string>
     <string name="speed_detail">代理： %1$s↑ %2$s↓\n直连： %3$s↑ %4$s↓</string>
     <string name="speed">%s/s</string>
     <string name="connection_test_testing">测试中…</string>
-    <string name="connection_test_available">成功：HTTPS握手耗时%d毫秒</string>
-    <string name="connection_test_available_http">成功：HTTP握手耗时%d毫秒</string>
+    <string name="connection_test_available">Delay: %d ms</string>
+    <string name="connection_test_available_http">Delay: %d ms</string>
     <string name="connection_test_error">失败：%s</string>
     <string name="connection_test_fail">网络不可用</string>
     <string name="connection_test_error_status_code">错误代码：#%d</string>
     <string name="cag_dns">DNS设置</string>
+    <string name="remote_dns">远程DNS</string>
+    <string name="direct_dns">直连DNS</string>
     <string name="enable_dns_routing">启用DNS路由</string>
     <string name="dns_routing_message">使用直连DNS解析绕过路由中的域名。请注意
         潜在的DNS泄露风险</string>
     <string name="enable_fakedns">启用FakeDNS</string>
     <string name="fakedns_message">可能导致其他应用在代理停止后需要重启以重新连接网络</string>
+    <string name="dns_hosts">域名重写</string>
+    <string name="dns_hosts_dialog_message">每行一个。以 # 开头的行是注释。示例：\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
     <string name="port_local_dns">本地DNS端口</string>
     <string name="require_transproxy">启用透明代理入站</string>
     <string name="transproxy_mode">透明代理模式</string>
@@ -125,9 +147,12 @@
     <string name="early_data_header_name">早期数据头部名称</string>
     <string name="encryption">加密</string>
     <string name="extra_headers">额外头部</string>
+    <string name="config_type">配置类型</string>
+    <string name="edit_config">编辑配置</string>
     <!-- feature category -->
     <string name="ipv6">IPv6 路由</string>
     <string name="prefer">首选</string>
+    <string name="only">仅</string>
     <string name="metered">计费提示</string>
     <string name="metered_summary">提示系统将 VPN 视为按量计费</string>
     <string name="menu_route">路由</string>
@@ -210,15 +235,20 @@
     <string name="add_profile">添加配置</string>
     <string name="select_profile">选择配置</string>
     <string name="proxy_chain">代理链</string>
+    <string name="proxy_waterfall">Waterfall</string>
+    <string name="proxy_fastest">Fastest</string>
     <string name="custom_config">自定义配置</string>
     <string name="balancer">均衡器</string>
     <string name="balancer_settings">均衡器设置</string>
     <string name="balancer_type">类型</string>
     <string name="balancer_strategy">策略</string>
     <string name="chain_settings">链设置</string>
+    <string name="waterfall_settings">Waterfall Settings</string>
+    <string name="fastest_settings">Fastest Settings</string>
     <string name="config_settings">配置设置</string>
     <string name="circular_reference">循环引用</string>
     <string name="circular_reference_sum">路由不能包含自身。</string>
+    <string name="profile_reference_not_allowed">This profile is already added, creates a circular reference, or is not allowed in this group.</string>
     <string name="clear_profiles">清除</string>
     <string name="action_create_group">空组</string>
     <string name="action_from_link">从订阅</string>
@@ -228,6 +258,11 @@
     <string name="action_export">导出</string>
     <string name="action_import">从剪贴板导入</string>
     <string name="action_import_file">从文件导入</string>
+    <string name="scan_qr_hint">Point the camera at a QR code</string>
+    <string name="scan_toggle_torch">Toggle flashlight</string>
+    <string name="scan_torch_turn_on">Turn flashlight on</string>
+    <string name="scan_torch_turn_off">Turn flashlight off</string>
+    <string name="scan_no_qr_found">No QR code found in the selected image</string>
     <string name="action_export_msg">导出成功！</string>
     <string name="action_export_err">导出失败。</string>
     <string name="action_import_msg">导入成功！</string>
@@ -256,6 +291,7 @@
     <!-- status -->
     <string name="connecting">连接中…</string>
     <string name="vpn_connected">已连接，点击检查连接</string>
+    <string name="connection_status_connected">Connected</string>
     <string name="not_connected">未连接</string>
     <!-- subscriptions -->
     <string name="subscriptions">订阅</string>
@@ -264,12 +300,16 @@
     <string name="no_proxies_found">链接中未找到代理</string>
     <string name="no_proxies_found_in_subscription">订阅中未找到代理</string>
     <string name="no_proxies_found_in_file">文件中未找到代理</string>
+    <string name="invalid_amnezia_config">Invalid or damaged Amnezia configuration</string>
+    <string name="no_amnezia_awg_profiles">No AmneziaWG profiles found in the configuration</string>
     <string name="no_proxies_found_in_clipboard">剪贴板中未找到代理</string>
     <string name="deduplication">去重</string>
     <string name="donate">捐赠</string>
     <string name="donate_info">我喜欢钱</string>
     <string name="ignore_battery_optimizations">忽略电池优化</string>
     <string name="ignore_battery_optimizations_sum">移除一些限制</string>
+    <string name="battery_optimization_enabled">Enabled - the app can run unrestricted in the background</string>
+    <string name="battery_optimization_disabled">Disabled - tap to allow background activity</string>
     <!-- plugin -->
     <string name="plugin">插件</string>
     <string name="plugin_configure">配置…</string>
@@ -277,6 +317,15 @@
     <string name="plugin_unknown">未知插件 %s</string>
     <string name="plugin_untrusted">警告：此插件似乎并非来自已知的可信
         来源。</string>
+    <string name="plugin_signer_unreadable">unreadable</string>
+    <string name="plugin_signer_rejected">Blocked plugin package %1$s with signer %2$s. Connect again to review it.</string>
+    <string name="plugin_approval_title">Approve plugin package?</string>
+    <string name="plugin_approval_message">Package: %1$s\n\nSHA-256 certificate fingerprint(s):\n%2$s\n\nThe installed plugin’s executable code can run through the app’s plugin interface. Approve only if you trust this package.</string>
+    <string name="plugin_approval_action">Approve</string>
+    <string name="plugin_approval_success">Plugin package approved. Connect again to use it.</string>
+    <string name="plugin_approval_failed">The plugin package could not be approved.</string>
+    <string name="plugin_approval_conflict_title">Plugin package conflict</string>
+    <string name="plugin_approval_conflict_message">More than one untrusted package provides this plugin: %s\n\nRemove the conflict before approving a package.</string>
     <string name="plugin_auto_connect_unlock_only">此插件可能无法与自动连接一起使用</string>
     <string name="proxy_cat">服务器设置</string>
     <string name="ss_cat">Shadowsocks 设置</string>
@@ -288,23 +337,17 @@
     <string name="license">许可证</string>
     <string name="route_warn">在添加自定义规则前请确保已阅读文档，
         否则可能无法连接互联网。</string>
+    <string name="lines">%d 行</string>
+    <plurals name="dns_hosts_lines">
+        <item quantity="other">%d lines</item>
+    </plurals>
+    <string name="not_set">Not set</string>
     <string name="night_mode">夜间模式</string>
     <string name="language">语言</string>
     <string name="follow_system">跟随系统</string>
     <string name="enable">启用</string>
     <string name="disable">禁用</string>
     <string name="auto">自动</string>
-    <string name="ttings">TLS 安全设置</string>
-    <string name="allow_insecure">允许不安全的连接</string>
-    <string name="allow_insecure_sum">禁用证书检查. 启用后该配置安全性相当于明文</string>
-    <string name="config_type">配置类型</string>
-    <string name="edit_config">编辑配置</string>
-    <string name="lines">%d 行</string>
-    <plurals name="dns_hosts_lines">
-        <item quantity="other">%d 行</item>
-    </plurals>
-    <string name="not_set">未设置</string>
-    <string name="only">仅</string>
     <string name="enable_log">启用日志</string>
     <string name="enable_log_sum">用于调试</string>
     <string name="list">列表</string>
@@ -326,10 +369,11 @@
     <string name="connection_test_timeout_error">超时</string>
     <string name="append_http_proxy">附加HTTP代理到VPN</string>
     <string name="append_http_proxy_sum">HTTP代理将直接从（浏览器/一些支持的应用）使用，而无需经过虚拟网卡设备（Android 10+）</string>
-    <string name="http_proxy_bypass">HTTP 代理绕过列表</string>
     <string name="http_proxy_bypass_dialog_message">每行一个。以 # 开头的行是注释。示例：*zhihu.com</string>
     <string name="append_http_proxy_security_title">安全通知</string>
     <string name="append_http_proxy_security_message">启用后，此设备上的其他应用可以直接使用本地代理端口。\n\n建议：仅在信任所有已安装应用时启用此功能。</string>
+    <string name="http_proxy_bypass">HTTP 代理绕过列表</string>
+    <string name="http_proxy_bypass_sum">Hosts that skip the system HTTP proxy and connect directly when Append HTTP Proxy to VPN is on. One pattern per line, e.g. 192.168.* or 10.*. Defaults to private and loopback ranges.</string>
     <string name="enable_anyway">仍要启用</string>
     <string name="strict_route">严格路由</string>
     <string name="protocol_settings">协议设置</string>
@@ -349,6 +393,9 @@
     <string name="filter_include">包含</string>
     <string name="filter_exclude">排除</string>
     <string name="filter_regex">筛选（正则表达式）</string>
+    <string name="subscription_custom_dns">Custom resolver</string>
+    <string name="subscription_custom_dns_sum">Optional DNS used only to resolve this subscription\'s server domains. Leave empty to use the global DNS. Accepts https://, tls://, quic:// or host[:port].</string>
+    <string name="subscription_custom_dns_invalid">Invalid resolver. Use https://, tls://, quic:// or host[:port], or leave empty.</string>
     <string name="raw">原始</string>
     <string name="update_settings">更新设置</string>
     <string name="auto_update">自动更新</string>
@@ -356,9 +403,14 @@
     <string name="update_when_connected_only">仅连接时更新</string>
     <string name="update_when_connected_only_sum">防止IP地址泄漏</string>
     <string name="subscription_user_agent">用户代理</string>
+    <string name="subscription_send_hwid">Send HWID</string>
+    <string name="subscription_send_hwid_summary">Send HWID, Android version, and device model when updating this subscription</string>
+    <string name="subscription_custom_hwid_params">Custom HWID parameters</string>
+    <string name="subscription_custom_hwid_params_summary">Format: hwid=value,os=value,osVersion=value,model=value. Leave empty to use this device values; when filled, only listed values are sent.</string>
     <string name="confirm">确认</string>
     <string name="missing_plugin">缺少插件</string>
-    <string name="profile_requiring_plugin">配置文件 %1$s 需要安装 %2$s 插件，但未找到。</string>
+    <string name="profile_requiring_plugin">Profile %1$s requires the %2$s plugin to be installed, but
+        it was not found.</string>
     <string name="action_learn_more">了解更多</string>
     <string name="action_download">下载</string>
     <string name="install_from_play_store">从 Play 商店安装</string>
@@ -377,7 +429,7 @@
     <string name="server_dns_subscription_sum">可选 DNS，仅用于解析此订阅中的服务器域名。留空以使用默认行为。接受 https://、tls://、quic:// 或 host[:port]。</string>
     <string name="server_dns_invalid">自定义服务器 DNS 无效。请使用 https://、tls://、quic:// 或 host[:port]，或留空。</string>
     <string name="subscription_used">%s 已用</string>
-    <string name="subscription_traffic">%1$s 已用 / %2$s 剩余</string>
+    <string name="subscription_traffic">%1$s Used / %2$s Remaining</string>
     <string name="subscription_expire">到期: %s</string>
     <string name="subscription_import">导入订阅</string>
     <string name="subscription_import_message">确认要导入订阅 %s 吗？如果您
@@ -385,18 +437,53 @@
         被泄露。</string>
     <string name="profile_import">导入配置</string>
     <string name="profile_import_message">确认要导入配置 %s 吗？</string>
-    <string name="clear_profiles_message">确定要清空此分组吗？</string>
-    <string name="remote_dns">远程 DNS</string>
-    <string name="direct_dns">直连 DNS</string>
-    <string name="dns_hosts">域名重写</string>
-    <string name="dns_hosts_dialog_message">一行一个，# 开头代表注释。示例：\nexample.com 1.1.1.1\nwww.example.com 1.1.1.1 1.1.1.2</string>
+    <string name="clear_profiles_message">确定要清空此组吗？</string>
     <string name="apps">应用</string>
     <string name="select_apps">选择应用</string>
     <string name="apps_message">%d 个应用</string>
     <string name="hysteria_obfs">混淆密码</string>
-    <string name="hysteria2_ech_summary">高级可选功能。需要服务器提供 ECH 配置列表。配置缺失或过期时连接会失败；启用混淆时通常不需要 ECH。</string>
-    <string name="hysteria2_ech_config_hint">粘贴服务器提供的 base64 配置列表，或完整的 ECH CONFIGS PEM 块。</string>
-    <string name="hysteria2_ech_config_invalid">请先输入有效的 ECH 配置列表，再启用 ECH。</string>
+    <string name="hysteria2_obfs_type">Obfuscation Type</string>
+    <string name="hysteria2_gecko_min_packet">Gecko Min Packet Size</string>
+    <string name="hysteria2_gecko_max_packet">Gecko Max Packet Size</string>
+    <string name="hysteria2_ech_summary">Advanced and optional. Requires the server ECH config list. The connection fails if the config is missing or stale; ECH is usually unnecessary when obfuscation is enabled.</string>
+    <string name="hysteria2_ech_config_hint">Paste the base64 config list from the server, or a complete ECH CONFIGS PEM block.</string>
+    <string name="hysteria2_ech_config_invalid">Enter a valid ECH config list before enabling ECH.</string>
+    <string name="action_masterdnsvpn">MasterDnsVPN</string>
+    <string name="mdv_domains">Tunnel Domains</string>
+    <string name="mdv_encryption_method">Encryption Method</string>
+    <string name="mdv_encryption_key">Encryption Key</string>
+    <string name="mdv_resolvers">DNS Resolvers</string>
+    <string name="mdv_resilience_cat">Resolver &amp; Resilience</string>
+    <string name="mdv_balancing_strategy">Resolver Balancing Strategy</string>
+    <string name="mdv_packet_dup">Packet Duplication Count</string>
+    <string name="mdv_setup_packet_dup">Setup Packet Duplication Count</string>
+    <string name="mdv_auto_disable_timeout">Auto-disable Timeout Servers</string>
+    <string name="mdv_auto_remove_low_mtu">Auto-remove Low-MTU Servers</string>
+    <string name="mdv_base_encode">Base-encode Data</string>
+    <string name="mdv_compression_cat">Compression</string>
+    <string name="mdv_upload_compression">Upload Compression</string>
+    <string name="mdv_download_compression">Download Compression</string>
+    <string name="mdv_compression_min_size">Compression Min Size</string>
+    <string name="mdv_mtu_cat">MTU Discovery</string>
+    <string name="mdv_min_upload_mtu">Min Upload MTU</string>
+    <string name="mdv_min_download_mtu">Min Download MTU</string>
+    <string name="mdv_max_upload_mtu">Max Upload MTU</string>
+    <string name="mdv_max_download_mtu">Max Download MTU</string>
+    <string name="mdv_misc_cat">Misc</string>
+    <string name="mdv_local_dns_enabled">Local DNS Server</string>
+    <string name="mdv_local_dns_port">本地DNS端口</string>
+    <string name="mdv_log_level">日志级别</string>
+    <string name="mdv_advanced_json">Advanced JSON Override</string>
+    <string name="action_olcrtc">olcRTC</string>
+    <string name="olcrtc_carrier">Carrier</string>
+    <string name="olcrtc_room_id">Room ID / URL</string>
+    <string name="olcrtc_client_id">Client ID</string>
+    <string name="olcrtc_key_hex">Encryption Key (64 hex)</string>
+    <string name="olcrtc_transport_cat">Transport</string>
+    <string name="olcrtc_transport">Transport</string>
+    <string name="olcrtc_vp8_fps">VP8 FPS</string>
+    <string name="olcrtc_vp8_batch">VP8 Batch Size</string>
+    <string name="olcrtc_dns_server">DNS Resolver</string>
     <string name="hysteria_auth_type">认证类型</string>
     <string name="hysteria_auth_payload">认证负载</string>
     <string name="hysteria_upload_mbps">最大上传速度（Mbps）</string>
@@ -409,9 +496,9 @@
     <string name="group_order_origin">原始顺序</string>
     <string name="group_order_by_name">按名称</string>
     <string name="group_order_by_delay">按延迟</string>
-    <string name="plugin_exists_but_on_shit_system">配置 %1$s 需要 %2$s 插件，但您的
-        专有设备供应商（通常是监控资本巨头和恶意软件制造商）
-        篡改了您的 Android 系统，导致插件无法使用。</string>
+    <string name="plugin_exists_but_on_shit_system">Profile %1$s requires the %2$s plugin, but your
+        proprietary equipment vendor (usually surveillance capital giants and malware maker)
+        tampered with your Android, making the plugin unusable.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks Android 插件)</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (Shadowsocks Android 插件)</string>
     <string name="tcp_connections">%d 个 TCP 连接</string>
@@ -444,6 +531,23 @@
     <string name="wireguard_local_address">本地地址</string>
     <string name="wireguard_public_key">对端公钥</string>
     <string name="wireguard_psk">对端预共享密钥</string>
+    <string name="amneziawg_category">AmneziaWG 2.0</string>
+    <string name="amneziawg_jc">Jc (junk packets)</string>
+    <string name="amneziawg_jmin">Jmin (junk min size)</string>
+    <string name="amneziawg_jmax">Jmax (junk max size)</string>
+    <string name="amneziawg_s1">S1</string>
+    <string name="amneziawg_s2">S2</string>
+    <string name="amneziawg_s3">S3</string>
+    <string name="amneziawg_s4">S4</string>
+    <string name="amneziawg_h1">H1</string>
+    <string name="amneziawg_h2">H2</string>
+    <string name="amneziawg_h3">H3</string>
+    <string name="amneziawg_h4">H4</string>
+    <string name="amneziawg_i1">I1</string>
+    <string name="amneziawg_i2">I2</string>
+    <string name="amneziawg_i3">I3</string>
+    <string name="amneziawg_i4">I4</string>
+    <string name="amneziawg_i5">I5</string>
     <string name="warp_license">CloudFlare Warp 是一个免费的 WireGuard VPN 提供商。使用即表示同意其服务条款。</string>
     <string name="warp_generate">生成配置</string>
     <string name="generating">正在生成...</string>
@@ -489,14 +593,17 @@
     <string name="tuic_disable_sni">禁用 SNI</string>
     <string name="tuic_reduce_rtt">启用 0-RTT QUIC 握手</string>
     <string name="pinned_certchain_sha256">固定证书 SHA256</string>
-    <string name="please_update">您的应用版本过旧（%1$s）。将于 %2$s 停止工作。请
-        更新！</string>
-    <string name="please_update_force">您的应用版本过旧（%1$s）。已于 %2$s 停止工作。
-        请更新！</string>
+    <string name="please_update">Your APP is too old (%1$s). And will stop working at %2$s. Please
+        update!</string>
+    <string name="please_update_force">Your APP is too old (%1$s). And has been stopped working at %2$s.
+        Please update!</string>
     <string name="connection_test_delete_unavailable">清除不可用</string>
     <string name="move">移动</string>
     <string name="exe_prefer_provider">插件首选提供程序</string>
     <string name="create_shortcut">创建快捷方式</string>
+    <string name="create_clear_cache_shortcut_summary">Create a home screen shortcut for cache clear and restart</string>
+    <string name="shortcut_pin_requested">Shortcut request sent to launcher</string>
+    <string name="shortcut_pin_not_supported">Launcher does not support pinning shortcuts</string>
     <string name="app_tls_version">订阅最低 TLS 版本</string>
     <string name="hop_interval">端口跳跃间隔（秒）</string>
     <string name="domain_strategy_for_remote">远程域名策略</string>
@@ -509,6 +616,8 @@
     <string name="is_outbound_only">JSON 设置为出站</string>
     <string name="save">保存</string>
     <string name="set_panel_url">设置面板 URL</string>
+    <string name="action_close">Close</string>
+    <string name="invalid_panel_url">Invalid panel URL. Use HTTPS or localhost HTTP only.</string>
     <string name="enable_clash_api">启用 Clash API</string>
     <string name="log_level">日志级别</string>
     <string name="enable_clash_api_summary">在 127.0.0.1:9090 提供 Clash API 和 Yacd 面板</string>
@@ -571,12 +680,13 @@
     <string name="webdav_server_error">服务器错误</string>
     <string name="webdav_connect_failed">连接失败，错误代码：%d</string>
     <string name="webdav_create_dir_failed">创建或访问备份目录失败</string>
-    <string name="webdav_insecure_url">WebDAV 服务器地址不安全。请使用 https:// 地址；使用 http:// 会以明文传输您的凭据和备份（包含所有配置密钥）。</string>
+    <string name="webdav_insecure_url">Insecure WebDAV server URL. Use an https:// address; plain http:// would transmit your credentials and backup (which contains all profile secrets) in cleartext.</string>
     <string name="global_mode">全局模式</string>
     <string name="global_mode_summary">绕过所有路由规则，将所有流量通过当前节点代理</string>
     <string name="mux_preference">多路复用</string>
     <string name="padding">填充</string>
     <string name="network_change_reset_connections">网络变化时重置出站连接</string>
+    <string name="restart_profile_on_network_change">Restart active profile when network changes</string>
     <string name="wake_reset_connections">设备从休眠唤醒时重置出站连接</string>
     <string name="backup_in_progress">备份正在进行中</string>
     <string name="restore_in_progress">恢复正在进行中</string>
@@ -615,10 +725,23 @@
     <string name="snell_psk">预共享密钥</string>
     <string name="snell_userkey">用户密钥</string>
     <string name="snell_version">版本</string>
-    <string name="snell_network">协议</string>
-    <string name="snell_obfs_mode">Obfs 模式</string>
-    <string name="snell_obfs_host">Obfs 主机</string>
+    <string name="snell_network">网络</string>
+    <string name="snell_obfs_mode">混淆模式</string>
+    <string name="snell_obfs_host">混淆主机</string>
     <string name="snell_mode">模式</string>
     <string name="snell_reuse">复用</string>
-    <string name="snell_reuse_summary">仅适用于 v4-v6</string>
+    <string name="snell_reuse_summary">仅v4-v6</string>
+    <string name="interface_settings">Interface</string>
+    <string name="ui_style">Interface style</string>
+    <string name="ui_style_expressive">New</string>
+    <string name="ui_style_classic">Classic</string>
+    <string name="dynamic_colors">Dynamic colors</string>
+    <string name="dynamic_colors_summary">Use the system Material You palette</string>
+    <string name="dynamic_colors_unavailable">Available on Android 12 and newer</string>
+    <string name="dynamic_colors_classic">Available with the new interface</string>
+    <string name="theme_fallback_summary">Used when dynamic colors are unavailable or disabled</string>
+    <string name="more_options">More options</string>
+    <string name="amoled_theme">AMOLED Dark Theme</string>
+    <string name="amoled_theme_summary">Pure black background in dark mode</string>
+    <string name="app_theme">Accent Color</string>
 </resources>
