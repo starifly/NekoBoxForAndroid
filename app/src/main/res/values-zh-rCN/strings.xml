@@ -40,9 +40,9 @@
     <string name="group_status_empty">空组</string>
     <string name="group_status_empty_subscription">尚未更新</string>
     <string name="group_status_proxies">%d 个代理</string>
-    <string name="group_status_proxies_subscription">%d 个代理 | 更新于 %s</string>
+    <string name="group_status_proxies_subscription">%1$d 个代理 | 更新于 %2$s</string>
     <string name="group_no_difference">%s: 无差异</string>
-    <string name="group_updated">%s: 已更新 %d 个代理</string>
+    <string name="group_updated">%1$s: 已更新 %2$d 个代理</string>
     <string name="group_show_diff">差异</string>
     <string name="group_diff">差异 (%s)</string>
     <string name="group_delete_confirm_prompt">确定要删除此分组吗？</string>
@@ -358,7 +358,7 @@
     <string name="subscription_user_agent">用户代理</string>
     <string name="confirm">确认</string>
     <string name="missing_plugin">缺少插件</string>
-    <string name="profile_requiring_plugin">配置文件 %s 需要安装 %s 插件，但未找到。</string>
+    <string name="profile_requiring_plugin">配置文件 %1$s 需要安装 %2$s 插件，但未找到。</string>
     <string name="action_learn_more">了解更多</string>
     <string name="action_download">下载</string>
     <string name="install_from_play_store">从 Play 商店安装</string>
@@ -377,7 +377,7 @@
     <string name="server_dns_subscription_sum">可选 DNS，仅用于解析此订阅中的服务器域名。留空以使用默认行为。接受 https://、tls://、quic:// 或 host[:port]。</string>
     <string name="server_dns_invalid">自定义服务器 DNS 无效。请使用 https://、tls://、quic:// 或 host[:port]，或留空。</string>
     <string name="subscription_used">%s 已用</string>
-    <string name="subscription_traffic">%s 已用 / %s 剩余</string>
+    <string name="subscription_traffic">%1$s 已用 / %2$s 剩余</string>
     <string name="subscription_expire">到期: %s</string>
     <string name="subscription_import">导入订阅</string>
     <string name="subscription_import_message">确认要导入订阅 %s 吗？如果您
@@ -409,7 +409,7 @@
     <string name="group_order_origin">原始顺序</string>
     <string name="group_order_by_name">按名称</string>
     <string name="group_order_by_delay">按延迟</string>
-    <string name="plugin_exists_but_on_shit_system">配置 %s 需要 %s 插件，但您的
+    <string name="plugin_exists_but_on_shit_system">配置 %1$s 需要 %2$s 插件，但您的
         专有设备供应商（通常是监控资本巨头和恶意软件制造商）
         篡改了您的 Android 系统，导致插件无法使用。</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks Android 插件)</string>
@@ -489,9 +489,9 @@
     <string name="tuic_disable_sni">禁用 SNI</string>
     <string name="tuic_reduce_rtt">启用 0-RTT QUIC 握手</string>
     <string name="pinned_certchain_sha256">固定证书 SHA256</string>
-    <string name="please_update">您的应用版本过旧（%s）。将于 %s 停止工作。请
+    <string name="please_update">您的应用版本过旧（%1$s）。将于 %2$s 停止工作。请
         更新！</string>
-    <string name="please_update_force">您的应用版本过旧（%s）。已于 %s 停止工作。
+    <string name="please_update_force">您的应用版本过旧（%1$s）。已于 %2$s 停止工作。
         请更新！</string>
     <string name="connection_test_delete_unavailable">清除不可用</string>
     <string name="move">移动</string>

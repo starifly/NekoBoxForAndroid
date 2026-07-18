@@ -40,9 +40,9 @@
     <string name="group_status_empty">空のグループ</string>
     <string name="group_status_empty_subscription">未更新</string>
     <string name="group_status_proxies">%d プロキシ</string>
-    <string name="group_status_proxies_subscription">%d プロキシ | %s に更新</string>
+    <string name="group_status_proxies_subscription">%1$d プロキシ | %2$s に更新</string>
     <string name="group_no_difference">%s: 違いなし</string>
-    <string name="group_updated">%s: %d プロキシを更新しました</string>
+    <string name="group_updated">%1$s: %2$d プロキシを更新しました</string>
     <string name="group_show_diff">差分</string>
     <string name="group_diff">差分 (%s)</string>
     <string name="group_delete_confirm_prompt">このグループを削除してもよろしいですか？</string>
@@ -357,7 +357,7 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="subscription_user_agent">UserAgent</string>
     <string name="confirm">確認</string>
     <string name="missing_plugin">プラグイン不足</string>
-    <string name="profile_requiring_plugin">プロファイル %s は %s プラグインを必要としますが、
+    <string name="profile_requiring_plugin">プロファイル %1$s は %2$s プラグインを必要としますが、
         見つかりませんでした。</string>
     <string name="action_learn_more">詳細を見る</string>
     <string name="action_download">ダウンロード</string>
@@ -378,7 +378,7 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="server_dns_subscription_sum">このサブスクリプションでサーバードメインを解決するためにのみ使用されるオプションのDNSです。デフォルトの動作を使用するには空のままにします。https://、tls://、quic://、または host[:port] を受け付けます。</string>
     <string name="server_dns_invalid">無効なカスタムサーバーDNSです。https://、tls://、quic://、または host[:port] を使用するか、空のままにしてください。</string>
     <string name="subscription_used">%s 使用済み</string>
-    <string name="subscription_traffic">%s 使用済み / %s 残り</string>
+    <string name="subscription_traffic">%1$s 使用済み / %2$s 残り</string>
     <string name="subscription_expire">有効期限: %s</string>
     <string name="subscription_import">サブスクリプションをインポート</string>
     <string name="subscription_import_message">サブスクリプション %s をインポートしてもよろしいですか？信頼できないソースから来た場合、IPとこの動作が漏洩する可能性があります。</string>
@@ -401,7 +401,7 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="group_order_origin">元の順序</string>
     <string name="group_order_by_name">名前順</string>
     <string name="group_order_by_delay">遅延順</string>
-    <string name="plugin_exists_but_on_shit_system">プロファイル %s はプラグイン %s を必要としますが、お使いの専有機器ベンダー（通常は監視資本大手やマルウェアメーカー）がAndroidを改ざんしているため、プラグインが使用できません。</string>
+    <string name="plugin_exists_but_on_shit_system">プロファイル %1$s はプラグイン %2$s を必要としますが、お使いの専有機器ベンダー（通常は監視資本大手やマルウェアメーカー）がAndroidを改ざんしているため、プラグインが使用できません。</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks Android Plugin)</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray（Shadowsocks Androidプラグイン）</string>
     <string name="tcp_connections">%d TCP接続</string>
@@ -478,8 +478,8 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="tuic_disable_sni">SNIを無効にする</string>
     <string name="tuic_reduce_rtt">0-RTT QUICハンドシェイクを有効にする</string>
     <string name="pinned_certchain_sha256">ピン留め証明書SHA256</string>
-    <string name="please_update">アプリが古すぎます(%s)。%sに動作を停止します。アップデートしてください。</string>
-    <string name="please_update_force">アプリが古すぎます(%s)。%sに動作を停止しました。アップデートしてください。</string>
+    <string name="please_update">アプリが古すぎます(%1$s)。%2$sに動作を停止します。アップデートしてください。</string>
+    <string name="please_update_force">アプリが古すぎます(%1$s)。%2$sに動作を停止しました。アップデートしてください。</string>
     <string name="connection_test_delete_unavailable">利用不可をクリア</string>
     <string name="move">移動</string>
     <string name="exe_prefer_provider">プラグイン優先プロバイダ</string>

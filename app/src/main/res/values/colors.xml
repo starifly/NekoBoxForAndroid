@@ -510,5 +510,21 @@
     <color name="catppuccin_100">#45475A</color>
     <color name="catppuccin_300">#6C7086</color>
     <color name="card_elevated_catppuccin">#181825</color>
+    <!-- Missing attributes for themes -->
+    <color name="appBarBackgroundColor">@color/colorSurface</color>
+    <color name="cardElevatedSurfaceColor">@color/colorSurfaceContainer</color>
+    <color name="protocolColor">@color/colorPrimary</color>
+    <color name="profileNameColor">@color/colorOnSurface</color>
+    <color name="statusConnectedColor">@color/colorPrimary</color>
+    <color name="statusStoppedColor">@color/colorOnSurfaceVariant</color>
+    <color name="statusConnectingColor">@color/colorSecondary</color>
+    <color name="testFailColor">@color/colorError</color>
+    <color name="speedTextColor">@color/colorOnSurface</color>
+    <color name="fabStoppedColor">@color/colorPrimary</color>
+    <color name="fabConnectedColor">@color/colorPrimary</color>
+    <color name="statusDetailColor">@color/colorOnSurfaceVariant</color>
+    <color name="statusTestingColor">@color/colorSecondary</color>
+    <color name="routeProxyColor">@color/colorPrimary</color>
+    <color name="navSelectedColor">@color/colorPrimary</color>
 
 </resources>

@@ -40,9 +40,9 @@
     <string name="group_status_empty">Leere Gruppe</string>
     <string name="group_status_empty_subscription">Noch nicht aktualisiert</string>
     <string name="group_status_proxies">%d Proxys</string>
-    <string name="group_status_proxies_subscription">%d Proxys | Aktualisiert am %s</string>
+    <string name="group_status_proxies_subscription">%1$d Proxys | Aktualisiert am %2$s</string>
     <string name="group_no_difference">%s: Kein Unterschied</string>
-    <string name="group_updated">%s: %d Proxys aktualisiert</string>
+    <string name="group_updated">%1$s: %2$d Proxys aktualisiert</string>
     <string name="group_show_diff">Unterschied</string>
     <string name="group_diff">Unterschied (%s)</string>
     <string name="group_delete_confirm_prompt">Sind Sie sicher, dass Sie diese Gruppe entfernen möchten?</string>
@@ -358,7 +358,7 @@
     <string name="subscription_user_agent">User-Agent</string>
     <string name="confirm">Bestätigen</string>
     <string name="missing_plugin">Fehlendes Plugin</string>
-    <string name="profile_requiring_plugin">Profil %s benötigt das Plugin %s, das jedoch nicht gefunden wurde.</string>
+    <string name="profile_requiring_plugin">Profil %1$s benötigt das Plugin %2$s, das jedoch nicht gefunden wurde.</string>
     <string name="action_learn_more">MEHR ERFAHREN</string>
     <string name="action_download">HERUNTERLADEN</string>
     <string name="install_from_play_store">Aus dem Play Store installieren</string>
@@ -377,7 +377,7 @@
     <string name="server_dns_subscription_sum">Optionaler DNS, der nur zur Auflösung von Server-Domänen in diesem Abonnement verwendet wird. Leer lassen, um das Standardverhalten zu verwenden. Akzeptiert https://, tls://, quic:// oder host[:port].</string>
     <string name="server_dns_invalid">Ungültiger benutzerdefinierter Server-DNS. Verwenden Sie https://, tls://, quic:// oder host[:port], oder lassen Sie es leer.</string>
     <string name="subscription_used">%s verwendet</string>
-    <string name="subscription_traffic">%s verwendet / %s verbleibend</string>
+    <string name="subscription_traffic">%1$s verwendet / %2$s verbleibend</string>
     <string name="subscription_expire">Ablauf: %s</string>
     <string name="subscription_import">Abonnement importieren</string>
     <string name="subscription_import_message">Bestätigen Sie, dass Sie das Abonnement %s importieren möchten? Wenn Sie
@@ -402,7 +402,7 @@
     <string name="group_order_origin">Ursprung</string>
     <string name="group_order_by_name">Nach Name</string>
     <string name="group_order_by_delay">Nach Verzögerung</string>
-    <string name="plugin_exists_but_on_shit_system">Profil %s benötigt das %s-Plugin, aber Ihr
+    <string name="plugin_exists_but_on_shit_system">Profil %1$s benötigt das %2$s-Plugin, aber Ihr
         proprietärer Hardware-Anbieter (normalerweise Überwachungskapital-Riesen und Malware-Hersteller)
         hat Ihr Android manipuliert, sodass das Plugin nicht verwendet werden kann.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks Android Plugin)</string>
@@ -481,9 +481,9 @@
     <string name="tuic_disable_sni">SNI deaktivieren</string>
     <string name="tuic_reduce_rtt">0-RTT QUIC-Handshake aktivieren</string>
     <string name="pinned_certchain_sha256">SHA256 des gepinnten Zertifikats</string>
-    <string name="please_update">Ihre App ist zu alt (%s). Und wird am %s nicht mehr funktionieren. Bitte
+    <string name="please_update">Ihre App ist zu alt (%1$s). Und wird am %2$s nicht mehr funktionieren. Bitte
         aktualisieren!</string>
-    <string name="please_update_force">Ihre App ist zu alt (%s). Und funktioniert seit %s nicht mehr.
+    <string name="please_update_force">Ihre App ist zu alt (%1$s). Und funktioniert seit %2$s nicht mehr.
         Bitte aktualisieren!</string>
     <string name="connection_test_delete_unavailable">Nicht verfügbare löschen</string>
     <string name="move">Verschieben</string>

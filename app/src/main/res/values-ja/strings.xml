@@ -19,9 +19,9 @@
     <string name="group_delete_confirm_prompt">このグループを削除してもよろしいですか？</string>
     <string name="group_diff">差分 (%s)</string>
     <string name="group_show_diff">差分</string>
-    <string name="group_updated">%s：更新された %d プロキシ</string>
+    <string name="group_updated">%1$s：更新された %2$d プロキシ</string>
     <string name="group_no_difference">%s：違いなし</string>
-    <string name="group_status_proxies_subscription">%d プロキシ| %s で更新</string>
+    <string name="group_status_proxies_subscription">%1$d プロキシ| %2$s で更新</string>
     <string name="group_status_proxies">%d プロキシ</string>
     <string name="group_status_empty_subscription">まだ更新されていません</string>
     <string name="group_status_empty">空のグループ</string>
@@ -343,7 +343,7 @@
     <string name="subscription_user_agent">UserAgent</string>
     <string name="confirm">確認</string>
     <string name="missing_plugin">プラグインがありません</string>
-    <string name="profile_requiring_plugin">プロファイル %s には %s プラグインのインストールが必要ですが、見つかりませんでした。</string>
+    <string name="profile_requiring_plugin">プロファイル %1$s には %2$s プラグインのインストールが必要ですが、見つかりませんでした。</string>
     <string name="action_learn_more">詳細</string>
     <string name="action_download">ダウンロード</string>
     <string name="install_from_play_store">Play ストアからインストール</string>
@@ -358,7 +358,7 @@
     <string name="subscription_update_message">%s を更新中 …</string>
     <string name="group_filter">フィルター</string>
     <string name="subscription_used">%s 使用済み</string>
-    <string name="subscription_traffic">%s 使用済み / %s 残り</string>
+    <string name="subscription_traffic">%1$s 使用済み / %2$s 残り</string>
     <string name="subscription_expire">有効期限: %s</string>
     <string name="subscription_import">サブスクリプションをインポート</string>
     <string name="subscription_import_message">サブスクリプション %s をインポートしますか？信頼できないソースから来た場合、これにより IP とこの動作が漏洩する可能性があります。</string>
@@ -381,7 +381,7 @@
     <string name="group_order_origin">元の順</string>
     <string name="group_order_by_name">名前順</string>
     <string name="group_order_by_delay">遅延順</string>
-    <string name="plugin_exists_but_on_shit_system">プロファイル %s には %s プラグインが必要ですが、独自仕様の機器ベンダー (多くは監視資本の巨大企業やマルウェア製造者) が Android を改変したため、プラグインを使用できません。</string>
+    <string name="plugin_exists_but_on_shit_system">プロファイル %1$s には %2$s プラグインが必要ですが、独自仕様の機器ベンダー (多くは監視資本の巨大企業やマルウェア製造者) が Android を改変したため、プラグインを使用できません。</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks Android プラグイン)</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (Shadowsocks Android プラグイン)</string>
     <string name="tcp_connections">%d 個の TCP 接続</string>
@@ -455,8 +455,8 @@
     <string name="tuic_disable_sni">SNI を無効化</string>
     <string name="tuic_reduce_rtt">0-RTT QUIC ハンドシェイクを有効化</string>
     <string name="pinned_certchain_sha256">固定証明書 SHA256</string>
-    <string name="please_update">お使いのアプリは古すぎます (%s)。%s に動作を停止します。更新してください！</string>
-    <string name="please_update_force">お使いのアプリは古すぎます (%s)。%s に動作を停止しました。更新してください！</string>
+    <string name="please_update">お使いのアプリは古すぎます (%1$s)。%2$s に動作を停止します。更新してください！</string>
+    <string name="please_update_force">お使いのアプリは古すぎます (%1$s)。%2$s に動作を停止しました。更新してください！</string>
     <string name="connection_test_delete_unavailable">利用不可をクリア</string>
     <string name="move">移動</string>
     <string name="exe_prefer_provider">プラグインの優先プロバイダー</string>

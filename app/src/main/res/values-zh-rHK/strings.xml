@@ -40,9 +40,9 @@
     <string name="group_status_empty">空群組</string>
     <string name="group_status_empty_subscription">尚未更新</string>
     <string name="group_status_proxies">%d 個代理</string>
-    <string name="group_status_proxies_subscription">%d 個代理 | 更新於 %s</string>
+    <string name="group_status_proxies_subscription">%1$d 個代理 | 更新於 %2$s</string>
     <string name="group_no_difference">%s：無差異</string>
-    <string name="group_updated">%s：已更新 %d 個代理</string>
+    <string name="group_updated">%1$s：已更新 %2$d 個代理</string>
     <string name="group_show_diff">差異</string>
     <string name="group_diff">差異 (%s)</string>
     <string name="group_delete_confirm_prompt">你確定要移除這個群組嗎？</string>
@@ -360,7 +360,7 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="subscription_user_agent">UserAgent</string>
     <string name="confirm">確認</string>
     <string name="missing_plugin">缺少插件</string>
-    <string name="profile_requiring_plugin">設定檔 %s 需要安裝 %s 插件，但找不到該插件。</string>
+    <string name="profile_requiring_plugin">設定檔 %1$s 需要安裝 %2$s 插件，但找不到該插件。</string>
     <string name="action_learn_more">了解更多</string>
     <string name="action_download">下載</string>
     <string name="install_from_play_store">從 Play 商店安裝</string>
@@ -378,7 +378,7 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="server_dns_subscription_sum">可選的 DNS，僅用於解析此訂閱中的伺服器域名。留空以使用預設行為。接受 https://、tls://、quic:// 或 host[:port]。</string>
     <string name="server_dns_invalid">無效的自訂伺服器 DNS。請使用 https://、tls://、quic:// 或 host[:port]，或留空。</string>
     <string name="subscription_used">%s 已使用</string>
-    <string name="subscription_traffic">%s 已使用 / %s 剩餘</string>
+    <string name="subscription_traffic">%1$s 已使用 / %2$s 剩餘</string>
     <string name="subscription_expire">到期：%s</string>
     <string name="subscription_import">匯入訂閱</string>
     <string name="subscription_import_message">確認要匯入訂閱 %s？如果您來自不可信來源，這樣做可能導致您的 IP 和此行為洩漏。</string>
@@ -401,7 +401,7 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="group_order_origin">原始</string>
     <string name="group_order_by_name">按名稱</string>
     <string name="group_order_by_delay">按延遲</string>
-    <string name="plugin_exists_but_on_shit_system">設定檔 %s 需要 %s 插件，但你的
+    <string name="plugin_exists_but_on_shit_system">設定檔 %1$s 需要 %2$s 插件，但你的
         專有設備供應商（通常是監控資本巨頭和惡意軟件製造商）
         篡改了你的 Android，導致插件無法使用。</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks Android 插件)</string>
@@ -480,9 +480,9 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="tuic_disable_sni">停用 SNI</string>
     <string name="tuic_reduce_rtt">啟用 0-RTT QUIC 握手</string>
     <string name="pinned_certchain_sha256">釘選憑證 SHA256</string>
-    <string name="please_update">您的應用程式太舊 (%s)。將在 %s 停止運作。請
+    <string name="please_update">您的應用程式太舊 (%1$s)。將在 %2$s 停止運作。請
         更新！</string>
-    <string name="please_update_force">您的應用程式太舊 (%s)。已在 %s 停止運作。
+    <string name="please_update_force">您的應用程式太舊 (%1$s)。已在 %2$s 停止運作。
         請更新！</string>
     <string name="connection_test_delete_unavailable">清除不可用</string>
     <string name="move">移動</string>

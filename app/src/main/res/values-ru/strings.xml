@@ -211,11 +211,11 @@
 <string name="group_status_empty">Пустая группа</string>
 <string name="group_status_empty_subscription">Еще не обновлено</string>
 <string name="group_status_proxies">%d прокси</string>
-<string name="group_status_proxies_subscription">%d прокси | Обновлено %s</string>
+<string name="group_status_proxies_subscription">%1$d прокси | Обновлено %2$s</string>
 <string name="group_subscription_link">Ссылка для подписки</string>
 <string name="group_type">Тип группы</string>
 <string name="group_update">Обновить</string>
-<string name="group_updated">%s: обновлено %d прокси</string>
+<string name="group_updated">%1$s: обновлено %2$d прокси</string>
 <string name="grpc_service_name">Имя службы gRPC</string>
 <string name="header_type">Тип заголовка</string>
 <string name="hop_interval">Интервал переключения портов(второй)</string>
@@ -335,7 +335,7 @@
 <string name="plugin_auto_connect_unlock_only">Этот плагин может не работать с автоподключением</string>
 <string name="plugin_configure">Настроить…</string>
 <string name="plugin_disabled">Отключено</string>
-<string name="plugin_exists_but_on_shit_system">Профиль %s требует плагин %s, но поставщик вашего проприетарного оборудования (обычно это большие компании, занимающиеся слежкой и производители вредоносного ПО) изменил ваш Android, сделав плагин непригодным для использования.</string>
+<string name="plugin_exists_but_on_shit_system">Профиль %1$s требует плагин %2$s, но поставщик вашего проприетарного оборудования (обычно это большие компании, занимающиеся слежкой и производители вредоносного ПО) изменил ваш Android, сделав плагин непригодным для использования.</string>
 <string name="plugin_unknown">Неизвестный плагин %s</string>
 <string name="plugin_untrusted">Предупреждение: похоже, что этот плагин не из известного надежного источника.</string>
 <string name="port_http">Порт прокси HTTP</string>
@@ -350,7 +350,7 @@
 <string name="profile_import">Импортировать профиль</string>
 <string name="profile_import_message">Подтвердите, что хотите импортировать профиль %s?</string>
 <string name="profile_name">Имя профиля</string>
-<string name="profile_requiring_plugin">Профиль %s требует установки подключаемого модуля %s, но он не найден.</string>
+<string name="profile_requiring_plugin">Профиль %1$s требует установки подключаемого модуля %2$s, но он не найден.</string>
 <string name="profile_traffic_statistics">Статистика трафика профиля</string>
 <string name="profile_traffic_statistics_summary">Когда отключено, использованный трафик не будет отображаться</string>
 <string name="project">Проект</string>
@@ -457,7 +457,7 @@
 <string name="subscription_import">Импортировать подписку</string>
 <string name="subscription_import_message">Подтвердите, что хотите импортировать подписку %s? Если вы импортируете из ненадежного источника, это может привести к утечке вашего IP-адреса и такого поведения.</string>
 <string name="subscription_settings">Настройки подписки</string>
-<string name="subscription_traffic">%s Использовано / %s Осталось</string>
+<string name="subscription_traffic">%1$s Использовано / %2$s Осталось</string>
 <string name="subscription_type">Тип подписки</string>
 <string name="subscription_update">Обновление подписки</string>
 <string name="subscription_update_message">Обновление %s …</string>
@@ -592,8 +592,8 @@
     <string name="rules_geosite_url">URL geosite</string>
     <string name="rules_geoip_url">URL geoip</string>
     <string name="pinned_certchain_sha256">SHA256 закреплённого сертификата</string>
-    <string name="please_update">Ваше приложение слишком старое (%s). И перестанет работать %s. Пожалуйста, обновите!</string>
-    <string name="please_update_force">Ваше приложение слишком старое (%s). И перестало работать %s. Пожалуйста, обновите!</string>
+    <string name="please_update">Ваше приложение слишком старое (%1$s). И перестанет работать %2$s. Пожалуйста, обновите!</string>
+    <string name="please_update_force">Ваше приложение слишком старое (%1$s). И перестало работать %2$s. Пожалуйста, обновите!</string>
     <string name="exe_prefer_provider">Предпочитаемый поставщик плагина</string>
     <string name="save">Сохранить</string>
     <string name="resolve_server">Разрешать адрес сервера согласно политике IPv6</string>

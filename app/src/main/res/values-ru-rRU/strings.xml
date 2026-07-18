@@ -40,9 +40,9 @@
     <string name="group_status_empty">Пустая группа</string>
     <string name="group_status_empty_subscription">Ещё не обновлено</string>
     <string name="group_status_proxies">%d прокси</string>
-    <string name="group_status_proxies_subscription">%d прокси | Обновлено %s</string>
+    <string name="group_status_proxies_subscription">%1$d прокси | Обновлено %2$s</string>
     <string name="group_no_difference">%s: Нет различий</string>
-    <string name="group_updated">%s: Обновлено %d прокси</string>
+    <string name="group_updated">%1$s: Обновлено %2$d прокси</string>
     <string name="group_show_diff">Diff</string>
     <string name="group_diff">Diff (%s)</string>
     <string name="group_delete_confirm_prompt">Вы уверены, что хотите удалить эту группу?</string>
@@ -366,7 +366,7 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="subscription_user_agent">UserAgent</string>
     <string name="confirm">Подтвердить</string>
     <string name="missing_plugin">Отсутствует плагин</string>
-    <string name="profile_requiring_plugin">Профиль %s требует установки плагина %s, но
+    <string name="profile_requiring_plugin">Профиль %1$s требует установки плагина %2$s, но
         он не найден.</string>
     <string name="action_learn_more">УЗНАТЬ БОЛЬШЕ</string>
     <string name="action_download">СКАЧАТЬ</string>
@@ -385,7 +385,7 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="server_dns_subscription_sum">Необязательный DNS, используемый только для разрешения доменов сервера в этой подписке. Оставьте пустым для использования поведения по умолчанию. Принимает https://, tls://, quic:// или host[:port].</string>
     <string name="server_dns_invalid">Недопустимый пользовательский DNS сервера. Используйте https://, tls://, quic:// или host[:port], или оставьте пустым.</string>
     <string name="subscription_used">%s Использовано</string>
-    <string name="subscription_traffic">%s Использовано / %s Осталось</string>
+    <string name="subscription_traffic">%1$s Использовано / %2$s Осталось</string>
     <string name="subscription_expire">Срок действия: %s</string>
     <string name="subscription_import">Импорт подписки</string>
     <string name="subscription_import_message">Подтвердите импорт подписки %s? Если вы переходите из ненадёжного источника, это может привести к утечке вашего IP и данного поведения.</string>
@@ -408,7 +408,7 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="group_order_origin">Исходный</string>
     <string name="group_order_by_name">По имени</string>
     <string name="group_order_by_delay">По задержке</string>
-    <string name="plugin_exists_but_on_shit_system">Профиль %s требует плагин %s, но ваш
+    <string name="plugin_exists_but_on_shit_system">Профиль %1$s требует плагин %2$s, но ваш
         вендор проприетарного оборудования (обычно гиганты слежки и производители вредоносного ПО)
         изменил Android, сделав плагин неработоспособным.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (плагин Shadowsocks для Android)</string>
@@ -488,8 +488,8 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="tuic_disable_sni">Отключить SNI</string>
     <string name="tuic_reduce_rtt">Включить 0-RTT QUIC рукопожатие</string>
     <string name="pinned_certchain_sha256">Закрепленный сертификат SHA256</string>
-    <string name="please_update">Ваше приложение слишком старое (%s). И перестанет работать %s. Пожалуйста, обновитесь!</string>
-    <string name="please_update_force">Ваше приложение слишком старое (%s). И перестало работать %s. Пожалуйста, обновитесь!</string>
+    <string name="please_update">Ваше приложение слишком старое (%1$s). И перестанет работать %2$s. Пожалуйста, обновитесь!</string>
+    <string name="please_update_force">Ваше приложение слишком старое (%1$s). И перестало работать %2$s. Пожалуйста, обновитесь!</string>
     <string name="connection_test_delete_unavailable">Очистить недоступные</string>
     <string name="move">Переместить</string>
     <string name="exe_prefer_provider">Предпочитаемый провайдер плагинов</string>

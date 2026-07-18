@@ -40,9 +40,9 @@
     <string name="group_status_empty">Порожня група</string>
     <string name="group_status_empty_subscription">Ще не оновлено</string>
     <string name="group_status_proxies">%d проксі</string>
-    <string name="group_status_proxies_subscription">%d проксі | Оновлено %s</string>
+    <string name="group_status_proxies_subscription">%1$d проксі | Оновлено %2$s</string>
     <string name="group_no_difference">%s: Без змін</string>
-    <string name="group_updated">%s: Оновлено %d проксі</string>
+    <string name="group_updated">%1$s: Оновлено %2$d проксі</string>
     <string name="group_show_diff">Різниця</string>
     <string name="group_diff">Різниця (%s)</string>
     <string name="group_delete_confirm_prompt">Ви впевнені, що хочете видалити цю групу?</string>
@@ -367,7 +367,7 @@
     <string name="subscription_user_agent">UserAgent</string>
     <string name="confirm">Підтвердити</string>
     <string name="missing_plugin">Відсутній плагін</string>
-    <string name="profile_requiring_plugin">Профіль %s вимагає встановлення плагіна %s, але
+    <string name="profile_requiring_plugin">Профіль %1$s вимагає встановлення плагіна %2$s, але
         його не знайдено.</string>
     <string name="action_learn_more">ДІЗНАТИСЯ БІЛЬШЕ</string>
     <string name="action_download">ЗАВАНТАЖИТИ</string>
@@ -388,7 +388,7 @@
     <string name="server_dns_subscription_sum">Необов\'язковий DNS, який використовується лише для розпізнавання доменів сервера в цій підписці. Залиште порожнім, щоб використовувати поведінку за замовчуванням. Приймає https://, tls://, quic:// або host[:port].</string>
     <string name="server_dns_invalid">Недійсний власний DNS сервера. Використовуйте https://, tls://, quic:// або host[:port], або залиште порожнім.</string>
     <string name="subscription_used">Використано %s</string>
-    <string name="subscription_traffic">Використано %s / Залишилося %s</string>
+    <string name="subscription_traffic">Використано %1$s / Залишилося %2$s</string>
     <string name="subscription_expire">Термін дії: %s</string>
     <string name="subscription_import">Імпортувати підписку</string>
     <string name="subscription_import_message">Підтвердьте, що ви хочете імпортувати підписку %s? Якщо ви
@@ -413,7 +413,7 @@
     <string name="group_order_origin">Походження</string>
     <string name="group_order_by_name">За назвою</string>
     <string name="group_order_by_delay">За затримкою</string>
-    <string name="plugin_exists_but_on_shit_system">Профіль %s вимагає плагін %s, але ваш постачальник власницького обладнання (зазвичай гіганти стеження та виробники шкідливого ПЗ) підробив ваш Android, що робить плагін непридатним для використання.</string>
+    <string name="plugin_exists_but_on_shit_system">Профіль %1$s вимагає плагін %2$s, але ваш постачальник власницького обладнання (зазвичай гіганти стеження та виробники шкідливого ПЗ) підробив ваш Android, що робить плагін непридатним для використання.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks Android Plugin)</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (Shadowsocks Android Plugin)</string>
     <string name="tcp_connections">%d TCP-з\'єднань</string>
@@ -487,8 +487,8 @@
     <string name="tuic_disable_sni">Вимкнути SNI</string>
     <string name="tuic_reduce_rtt">Увімкнути 0-RTT QUIC рукостискання</string>
     <string name="pinned_certchain_sha256">Закріплений сертифікат SHA256</string>
-    <string name="please_update">Ваш додаток занадто старий (%s). Він припинить роботу %s. Будь ласка, оновіть!</string>
-    <string name="please_update_force">Ваш додаток занадто старий (%s). Він припинив роботу %s. Будь ласка, оновіть!</string>
+    <string name="please_update">Ваш додаток занадто старий (%1$s). Він припинить роботу %2$s. Будь ласка, оновіть!</string>
+    <string name="please_update_force">Ваш додаток занадто старий (%1$s). Він припинив роботу %2$s. Будь ласка, оновіть!</string>
     <string name="connection_test_delete_unavailable">Очистити недоступні</string>
     <string name="move">Перемістити</string>
     <string name="exe_prefer_provider">Бажаний постачальник плагінів</string>

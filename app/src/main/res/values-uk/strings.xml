@@ -38,9 +38,9 @@
     <string name="group_status_empty">Порожня група</string>
     <string name="group_status_empty_subscription">Ще не оновлено</string>
     <string name="group_status_proxies">%d проксі</string>
-    <string name="group_status_proxies_subscription">%d проксі | Оновлено %s</string>
+    <string name="group_status_proxies_subscription">%1$d проксі | Оновлено %2$s</string>
     <string name="group_no_difference">%s: Немає різниці</string>
-    <string name="group_updated">%s: Оновлено %d проксі</string>
+    <string name="group_updated">%1$s: Оновлено %2$d проксі</string>
     <string name="group_show_diff">Різниця</string>
     <string name="group_diff">Різниця (%s)</string>
     <string name="group_delete_confirm_prompt">Ви впевнені, що хочете видалити цю групу?</string>
@@ -350,7 +350,7 @@
     <string name="subscription_user_agent">UserAgent</string>
     <string name="confirm">Підтвердити</string>
     <string name="missing_plugin">Відсутній плагін</string>
-    <string name="profile_requiring_plugin">Профіль %s вимагає встановлення плагіна %s, але його не знайдено.</string>
+    <string name="profile_requiring_plugin">Профіль %1$s вимагає встановлення плагіна %2$s, але його не знайдено.</string>
     <string name="action_learn_more">ДІЗНАТИСЯ БІЛЬШЕ</string>
     <string name="action_download">ЗАВАНТАЖИТИ</string>
     <string name="install_from_play_store">Встановити з Play Store</string>
@@ -366,7 +366,7 @@
     <string name="subscription_update_message">Оновлення %s …</string>
     <string name="group_filter">Фільтр</string>
     <string name="subscription_used">Використано %s</string>
-    <string name="subscription_traffic">Використано %s / Залишилося %s</string>
+    <string name="subscription_traffic">Використано %1$s / Залишилося %2$s</string>
     <string name="subscription_expire">Закінчується: %s</string>
     <string name="subscription_import">Імпортувати підписку</string>
     <string name="subscription_import_message">Підтвердьте, що ви хочете імпортувати підписку %s? Якщо ви робите це з ненадійного джерела, це може призвести до витоку вашої IP-адреси та даних про цю дію.</string>
@@ -389,11 +389,11 @@
     <string name="group_order_origin">За замовчуванням</string>
     <string name="group_order_by_name">За назвою</string>
     <string name="group_order_by_delay">За затримкою</string>
-    <string name="plugin_exists_but_on_shit_system">Профіль %s вимагає плагін %s, але ваш виробник обладнання (зазвичай гіганти-капіталісти зі спостереження та виробники шкідливого ПЗ) змінив вашу систему Android, зробивши плагін непридатним для використання.</string>
+    <string name="plugin_exists_but_on_shit_system">Профіль %1$s вимагає плагін %2$s, але ваш виробник обладнання (зазвичай гіганти-капіталісти зі спостереження та виробники шкідливого ПЗ) змінив вашу систему Android, зробивши плагін непридатним для використання.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (плагін для Shadowsocks)</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (плагін для Shadowsocks)</string>
-    <string name="traffic_uplink" translatable="false">%s | %s/с ↑</string>
-    <string name="traffic_downlink" translatable="false">%s | %s/с ↓</string>
+    <string name="traffic_uplink" translatable="false">%1$s | %2$s/с ↑</string>
+    <string name="traffic_downlink" translatable="false">%1$s | %2$s/с ↓</string>
     <string name="traffic_uplink_total" translatable="false">Всього %s ↑</string>
     <string name="traffic_downlink_total" translatable="false">Всього %s ↓</string>
     <string name="tcp_connections">%d TCP-з\'єднань</string>
@@ -464,8 +464,8 @@
     <string name="tuic_congestion_controller">Контролер перевантаження</string>
     <string name="tuic_disable_sni">Вимкнути SNI</string>
     <string name="tuic_reduce_rtt">Увімкнути 0-RTT QUIC рукостискання</string>
-    <string name="please_update">Ваша програма занадто стара (%s) і перестане працювати %s. Будь ласка, оновіть її!</string>
-    <string name="please_update_force">Ваша програма занадто стара (%s) і перестала працювати %s. Будь ласка, оновіть її!</string>
+    <string name="please_update">Ваша програма занадто стара (%1$s) і перестане працювати %2$s. Будь ласка, оновіть її!</string>
+    <string name="please_update_force">Ваша програма занадто стара (%1$s) і перестала працювати %2$s. Будь ласка, оновіть її!</string>
     <string name="connection_test_delete_unavailable">Очистити недоступні</string>
     <string name="move">Перемістити</string>
     <string name="exe_prefer_provider">Пріоритетний постачальник плагіна</string>

@@ -40,9 +40,9 @@
     <string name="group_status_empty">Grupo vacío</string>
     <string name="group_status_empty_subscription">Aún no actualizado</string>
     <string name="group_status_proxies">%d Proxies</string>
-    <string name="group_status_proxies_subscription">%d Proxies | Actualizado el %s</string>
+    <string name="group_status_proxies_subscription">%1$d Proxies | Actualizado el %2$s</string>
     <string name="group_no_difference">%s: Sin diferencia</string>
-    <string name="group_updated">%s: Actualizados %d proxies</string>
+    <string name="group_updated">%1$s: Actualizados %2$d proxies</string>
     <string name="group_show_diff">Diferencia</string>
     <string name="group_diff">Diferencia (%s)</string>
     <string name="group_delete_confirm_prompt">¿Estás seguro de que quieres eliminar este grupo?</string>
@@ -359,7 +359,7 @@
     <string name="subscription_user_agent">UserAgent</string>
     <string name="confirm">Confirmar</string>
     <string name="missing_plugin">Plugin faltante</string>
-    <string name="profile_requiring_plugin">El perfil %s requiere que el plugin %s esté instalado, pero
+    <string name="profile_requiring_plugin">El perfil %1$s requiere que el plugin %2$s esté instalado, pero
         no se encontró.</string>
     <string name="action_learn_more">MÁS INFORMACIÓN</string>
     <string name="action_download">DESCARGAR</string>
@@ -380,7 +380,7 @@
     <string name="server_dns_subscription_sum">DNS opcional utilizado solo para resolver dominios de servidor en esta suscripción. Déjelo vacío para usar el comportamiento predeterminado. Acepta https://, tls://, quic:// o host[:puerto].</string>
     <string name="server_dns_invalid">DNS de servidor personalizado no válido. Use https://, tls://, quic:// o host[:puerto], o déjelo vacío.</string>
     <string name="subscription_used">%s Usado</string>
-    <string name="subscription_traffic">%s Usado / %s Restante</string>
+    <string name="subscription_traffic">%1$s Usado / %2$s Restante</string>
     <string name="subscription_expire">Vence: %s</string>
     <string name="subscription_import">Importar suscripción</string>
     <string name="subscription_import_message">¿Confirma que desea importar la suscripción %s? Si
@@ -405,7 +405,7 @@
     <string name="group_order_origin">Origen</string>
     <string name="group_order_by_name">Por nombre</string>
     <string name="group_order_by_delay">Por latencia</string>
-    <string name="plugin_exists_but_on_shit_system">El perfil %s requiere el complemento %s, pero su
+    <string name="plugin_exists_but_on_shit_system">El perfil %1$s requiere el complemento %2$s, pero su
         proveedor de equipos propietarios (generalmente gigantes del capital de vigilancia y fabricantes de malware)
         alteró su Android, haciendo que el complemento no sea utilizable.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Complemento de Android de Shadowsocks)</string>
@@ -492,8 +492,8 @@ Si debe usarlo, pruebe N=2 primero para
     <string name="tuic_disable_sni">Deshabilitar SNI</string>
     <string name="tuic_reduce_rtt">Habilitar el protocolo de enlace 0-RTT QUIC</string>
     <string name="pinned_certchain_sha256">Certificado fijado SHA256</string>
-    <string name="please_update">Tu APP es demasiado antigua (%s). Y dejará de funcionar el %s. ¡Por favor, actualiza!</string>
-    <string name="please_update_force">Tu APP es demasiado antigua (%s). Y dejó de funcionar el %s. ¡Por favor, actualiza!</string>
+    <string name="please_update">Tu APP es demasiado antigua (%1$s). Y dejará de funcionar el %2$s. ¡Por favor, actualiza!</string>
+    <string name="please_update_force">Tu APP es demasiado antigua (%1$s). Y dejó de funcionar el %2$s. ¡Por favor, actualiza!</string>
     <string name="connection_test_delete_unavailable">Limpiar no disponible</string>
     <string name="move">Mover</string>
     <string name="exe_prefer_provider">Proveedor preferido de plugin</string>

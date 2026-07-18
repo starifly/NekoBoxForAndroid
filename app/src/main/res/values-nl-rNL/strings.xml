@@ -40,9 +40,9 @@
     <string name="group_status_empty">Lege groep</string>
     <string name="group_status_empty_subscription">Nog niet bijgewerkt</string>
     <string name="group_status_proxies">%d Proxies</string>
-    <string name="group_status_proxies_subscription">%d Proxies | Bijgewerkt op %s</string>
+    <string name="group_status_proxies_subscription">%1$d Proxies | Bijgewerkt op %2$s</string>
     <string name="group_no_difference">%s: Geen verschil</string>
-    <string name="group_updated">%s: Bijgewerkt %d proxies</string>
+    <string name="group_updated">%1$s: Bijgewerkt %2$d proxies</string>
     <string name="group_show_diff">Verschil</string>
     <string name="group_diff">Verschil (%s)</string>
     <string name="group_delete_confirm_prompt">Weet u zeker dat u deze groep wilt verwijderen?</string>
@@ -366,7 +366,7 @@ Aanbeveling: Schakel dit alleen in als u alle geïnstalleerde apps vertrouwt.</s
     <string name="subscription_user_agent">UserAgent</string>
     <string name="confirm">Bevestigen</string>
     <string name="missing_plugin">Ontbrekende plugin</string>
-    <string name="profile_requiring_plugin">Profiel %s vereist dat de %s plugin is geïnstalleerd, maar
+    <string name="profile_requiring_plugin">Profiel %1$s vereist dat de %2$s plugin is geïnstalleerd, maar
         deze is niet gevonden.</string>
     <string name="action_learn_more">MEER INFORMATIE</string>
     <string name="action_download">DOWNLOADEN</string>
@@ -387,7 +387,7 @@ Aanbeveling: Schakel dit alleen in als u alle geïnstalleerde apps vertrouwt.</s
     <string name="server_dns_subscription_sum">Optionele DNS die alleen wordt gebruikt om serverdomeinen in dit abonnement op te lossen. Laat leeg om het standaardgedrag te gebruiken. Accepteert https://, tls://, quic:// of host[:poort].</string>
     <string name="server_dns_invalid">Ongeldige aangepaste server-DNS. Gebruik https://, tls://, quic:// of host[:poort], of laat leeg.</string>
     <string name="subscription_used">%s Gebruikt</string>
-    <string name="subscription_traffic">%s Gebruikt / %s Resterend</string>
+    <string name="subscription_traffic">%1$s Gebruikt / %2$s Resterend</string>
     <string name="subscription_expire">Verloopt: %s</string>
     <string name="subscription_import">Abonnement importeren</string>
     <string name="subscription_import_message">Bevestig dat u abonnement %s wilt importeren? Als u
@@ -411,7 +411,7 @@ Aanbeveling: Schakel dit alleen in als u alle geïnstalleerde apps vertrouwt.</s
     <string name="group_order_origin">Oorsprong</string>
     <string name="group_order_by_name">Op naam</string>
     <string name="group_order_by_delay">Op vertraging</string>
-    <string name="plugin_exists_but_on_shit_system">Profiel %s vereist de %s-plugin, maar uw
+    <string name="plugin_exists_but_on_shit_system">Profiel %1$s vereist de %2$s-plugin, maar uw
         leverancier van propriëtaire apparatuur (meestal surveillance-kapitaalreusen en malwaremakers)
         heeft uw Android gemanipuleerd, waardoor de plugin onbruikbaar is.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks Android-plugin)</string>
@@ -491,9 +491,9 @@ Als u dit moet gebruiken, probeer dan eerst N=2 om te zien of het uw problemen o
     <string name="tuic_disable_sni">SNI uitschakelen</string>
     <string name="tuic_reduce_rtt">0-RTT QUIC-handshake inschakelen</string>
     <string name="pinned_certchain_sha256">Pinned Certificate SHA256</string>
-    <string name="please_update">Uw APP is te oud (%s). En stopt met werken op %s.
+    <string name="please_update">Uw APP is te oud (%1$s). En stopt met werken op %2$s.
         Update alstublieft!</string>
-    <string name="please_update_force">Uw APP is te oud (%s). En is gestopt met werken op %s.
+    <string name="please_update_force">Uw APP is te oud (%1$s). En is gestopt met werken op %2$s.
         Update alstublieft!</string>
     <string name="connection_test_delete_unavailable">Wis niet beschikbaar</string>
     <string name="move">Verplaatsen</string>

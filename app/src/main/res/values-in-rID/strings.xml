@@ -40,9 +40,9 @@
     <string name="group_status_empty">Grup kosong</string>
     <string name="group_status_empty_subscription">Belum diperbarui</string>
     <string name="group_status_proxies">%d Proxy</string>
-    <string name="group_status_proxies_subscription">%d Proxy | Diperbarui pada %s</string>
+    <string name="group_status_proxies_subscription">%1$d Proxy | Diperbarui pada %2$s</string>
     <string name="group_no_difference">%s: Tidak ada perbedaan</string>
-    <string name="group_updated">%s: Memperbarui %d proxy</string>
+    <string name="group_updated">%1$s: Memperbarui %2$d proxy</string>
     <string name="group_show_diff">Diff</string>
     <string name="group_diff">Diff (%s)</string>
     <string name="group_delete_confirm_prompt">Apakah Anda yakin ingin menghapus grup ini?</string>
@@ -360,7 +360,7 @@ Rekomendasi: Hanya aktifkan ini jika Anda mempercayai semua aplikasi yang terins
     <string name="subscription_user_agent">UserAgent</string>
     <string name="confirm">Konfirmasi</string>
     <string name="missing_plugin">Plugin Hilang</string>
-    <string name="profile_requiring_plugin">Profil %s memerlukan plugin %s untuk diinstal, tetapi
+    <string name="profile_requiring_plugin">Profil %1$s memerlukan plugin %2$s untuk diinstal, tetapi
         tidak ditemukan.</string>
     <string name="action_learn_more">PELAJARI LEBIH LANJUT</string>
     <string name="action_download">UNDUH</string>
@@ -381,7 +381,7 @@ Rekomendasi: Hanya aktifkan ini jika Anda mempercayai semua aplikasi yang terins
     <string name="server_dns_subscription_sum">DNS opsional yang hanya digunakan untuk menyelesaikan domain server dalam langganan ini. Biarkan kosong untuk menggunakan perilaku default. Menerima https://, tls://, quic:// atau host[:port].</string>
     <string name="server_dns_invalid">DNS server kustom tidak valid. Gunakan https://, tls://, quic:// atau host[:port], atau biarkan kosong.</string>
     <string name="subscription_used">%s Digunakan</string>
-    <string name="subscription_traffic">%s Digunakan / %s Tersisa</string>
+    <string name="subscription_traffic">%1$s Digunakan / %2$s Tersisa</string>
     <string name="subscription_expire">Kadaluarsa: %s</string>
     <string name="subscription_import">Impor langganan</string>
     <string name="subscription_import_message">Konfirmasi Anda ingin mengimpor langganan %s? Jika Anda
@@ -406,7 +406,7 @@ Rekomendasi: Hanya aktifkan ini jika Anda mempercayai semua aplikasi yang terins
     <string name="group_order_origin">Asal</string>
     <string name="group_order_by_name">Berdasarkan Nama</string>
     <string name="group_order_by_delay">Berdasarkan Latensi</string>
-    <string name="plugin_exists_but_on_shit_system">Profil %s memerlukan plugin %s, tetapi
+    <string name="plugin_exists_but_on_shit_system">Profil %1$s memerlukan plugin %2$s, tetapi
         vendor peralatan milik Anda (biasanya raksasa modal pengawasan dan pembuat malware)
         telah merusak Android Anda, membuat plugin tidak dapat digunakan.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Plugin Android Shadowsocks)</string>
@@ -492,9 +492,9 @@ Rekomendasi: Hanya aktifkan ini jika Anda mempercayai semua aplikasi yang terins
     <string name="tuic_disable_sni">Nonaktifkan SNI</string>
     <string name="tuic_reduce_rtt">Aktifkan handshake QUIC 0-RTT</string>
     <string name="pinned_certchain_sha256">Sertifikat PIN SHA256</string>
-    <string name="please_update">Aplikasi Anda terlalu lama (%s). Dan akan berhenti bekerja pada %s. Harap
+    <string name="please_update">Aplikasi Anda terlalu lama (%1$s). Dan akan berhenti bekerja pada %2$s. Harap
         perbarui!</string>
-    <string name="please_update_force">Aplikasi Anda terlalu lama (%s). Dan telah berhenti bekerja pada %s.
+    <string name="please_update_force">Aplikasi Anda terlalu lama (%1$s). Dan telah berhenti bekerja pada %2$s.
         Harap perbarui!</string>
     <string name="connection_test_delete_unavailable">Hapus yang tidak tersedia</string>
     <string name="move">Pindahkan</string>

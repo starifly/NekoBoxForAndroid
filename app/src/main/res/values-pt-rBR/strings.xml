@@ -40,9 +40,9 @@
     <string name="group_status_empty">Grupo vazio</string>
     <string name="group_status_empty_subscription">Ainda não atualizado</string>
     <string name="group_status_proxies">%d Proxies</string>
-    <string name="group_status_proxies_subscription">%d Proxies | Atualizado em %s</string>
+    <string name="group_status_proxies_subscription">%1$d Proxies | Atualizado em %2$s</string>
     <string name="group_no_difference">%s: Sem diferença</string>
-    <string name="group_updated">%s: %d proxies atualizados</string>
+    <string name="group_updated">%1$s: %2$d proxies atualizados</string>
     <string name="group_show_diff">Diferença</string>
     <string name="group_diff">Diferença (%s)</string>
     <string name="group_delete_confirm_prompt">Tem certeza de que deseja remover este grupo?</string>
@@ -361,7 +361,7 @@
     <string name="subscription_user_agent">UserAgent</string>
     <string name="confirm">Confirmar</string>
     <string name="missing_plugin">Plugin Ausente</string>
-    <string name="profile_requiring_plugin">O perfil %s requer que o plugin %s esteja instalado, mas
+    <string name="profile_requiring_plugin">O perfil %1$s requer que o plugin %2$s esteja instalado, mas
         não foi encontrado.</string>
     <string name="action_learn_more">SAIBA MAIS</string>
     <string name="action_download">BAIXAR</string>
@@ -382,7 +382,7 @@
     <string name="server_dns_subscription_sum">DNS opcional usado apenas para resolver domínios de servidores nesta assinatura. Deixe vazio para usar o comportamento padrão. Aceita https://, tls://, quic:// ou host[:porta].</string>
     <string name="server_dns_invalid">DNS personalizado do servidor inválido. Use https://, tls://, quic:// ou host[:porta], ou deixe vazio.</string>
     <string name="subscription_used">%s Usado</string>
-    <string name="subscription_traffic">%s Usado / %s Restante</string>
+    <string name="subscription_traffic">%1$s Usado / %2$s Restante</string>
     <string name="subscription_expire">Expira em: %s</string>
     <string name="subscription_import">Importar assinatura</string>
     <string name="subscription_import_message">Confirme que deseja importar a assinatura %s? Se você
@@ -406,7 +406,7 @@
     <string name="group_order_origin">Origem</string>
     <string name="group_order_by_name">Por Nome</string>
     <string name="group_order_by_delay">Por Atraso</string>
-    <string name="plugin_exists_but_on_shit_system">O perfil %s requer o plugin %s, mas seu
+    <string name="plugin_exists_but_on_shit_system">O perfil %1$s requer o plugin %2$s, mas seu
         fornecedor de equipamento proprietário (geralmente gigantes do capital de vigilância e fabricantes de malware)
         adulterou seu Android, tornando o plugin inutilizável.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Plugin do Shadowsocks para Android)</string>
@@ -485,9 +485,9 @@ Se você precisar usar isso, tente N=2 primeiro para ver se resolve seus problem
     <string name="tuic_disable_sni">Desabilitar SNI</string>
     <string name="tuic_reduce_rtt">Habilitar handshake QUIC 0-RTT</string>
     <string name="pinned_certchain_sha256">Certificado Fixado SHA256</string>
-    <string name="please_update">Seu APP está muito desatualizado (%s). E deixará de funcionar em %s. Por favor,
+    <string name="please_update">Seu APP está muito desatualizado (%1$s). E deixará de funcionar em %2$s. Por favor,
         atualize!</string>
-    <string name="please_update_force">Seu APP está muito desatualizado (%s). E parou de funcionar em %s.
+    <string name="please_update_force">Seu APP está muito desatualizado (%1$s). E parou de funcionar em %2$s.
         Por favor, atualize!</string>
     <string name="connection_test_delete_unavailable">Limpar indisponíveis</string>
     <string name="move">Mover</string>

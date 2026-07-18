@@ -40,9 +40,9 @@
     <string name="group_status_empty">빈 그룹</string>
     <string name="group_status_empty_subscription">아직 업데이트되지 않음</string>
     <string name="group_status_proxies">%d 프록시</string>
-    <string name="group_status_proxies_subscription">%d 프록시 | %s에 업데이트됨</string>
+    <string name="group_status_proxies_subscription">%1$d 프록시 | %2$s에 업데이트됨</string>
     <string name="group_no_difference">%s: 차이 없음</string>
-    <string name="group_updated">%s: %d개의 프록시 업데이트됨</string>
+    <string name="group_updated">%1$s: %2$d개의 프록시 업데이트됨</string>
     <string name="group_show_diff">차이</string>
     <string name="group_diff">차이 (%s)</string>
     <string name="group_delete_confirm_prompt">이 그룹을 삭제하시겠습니까?</string>
@@ -353,7 +353,7 @@
     <string name="subscription_user_agent">UserAgent</string>
     <string name="confirm">확인</string>
     <string name="missing_plugin">플러그인 누락</string>
-    <string name="profile_requiring_plugin">프로필 %s에는 %s 플러그인이 필요하지만 찾을 수 없습니다.</string>
+    <string name="profile_requiring_plugin">프로필 %1$s에는 %2$s 플러그인이 필요하지만 찾을 수 없습니다.</string>
     <string name="action_learn_more">자세히 알아보기</string>
     <string name="action_download">다운로드</string>
     <string name="install_from_play_store">Play 스토어에서 설치</string>
@@ -371,7 +371,7 @@
     <string name="server_dns_subscription_sum">이 구독에서 서버 도메인을 확인하는 데만 사용되는 선택적 DNS입니다. 기본 동작을 사용하려면 비워 둡니다. https://, tls://, quic:// 또는 host[:port] 형식을 허용합니다.</string>
     <string name="server_dns_invalid">잘못된 사용자 지정 서버 DNS입니다. https://, tls://, quic:// 또는 host[:port]를 사용하거나 비워 두세요.</string>
     <string name="subscription_used">%s 사용됨</string>
-    <string name="subscription_traffic">%s 사용됨 / %s 남음</string>
+    <string name="subscription_traffic">%1$s 사용됨 / %2$s 남음</string>
     <string name="subscription_expire">만료: %s</string>
     <string name="subscription_import">구독 가져오기</string>
     <string name="subscription_import_message">구독 %s을(를) 가져오시겠습니까? 신뢰할 수 없는 출처에서 오는 경우 이 작업을 수행하면 IP 및 이 동작이 유출될 수 있습니다.</string>
@@ -394,7 +394,7 @@
     <string name="group_order_origin">원본</string>
     <string name="group_order_by_name">이름 순</string>
     <string name="group_order_by_delay">지연 시간 순</string>
-    <string name="plugin_exists_but_on_shit_system">프로필 %s에는 %s 플러그인이 필요하지만, 사용자의 독점 장비 공급업체(일반적으로 감시 자본 거대 기업 및 악성 소프트웨어 제조업체)가 Android를 조작하여 플러그인을 사용할 수 없게 만들었습니다.</string>
+    <string name="plugin_exists_but_on_shit_system">프로필 %1$s에는 %2$s 플러그인이 필요하지만, 사용자의 독점 장비 공급업체(일반적으로 감시 자본 거대 기업 및 악성 소프트웨어 제조업체)가 Android를 조작하여 플러그인을 사용할 수 없게 만들었습니다.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks 안드로이드 플러그인)</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (Shadowsocks 안드로이드 플러그인)</string>
     <string name="tcp_connections">%d TCP 연결</string>
@@ -470,9 +470,9 @@
     <string name="tuic_disable_sni">SNI 비활성화</string>
     <string name="tuic_reduce_rtt">0-RTT QUIC 핸드셰이크 활성화</string>
     <string name="pinned_certchain_sha256">고정 인증서 SHA256</string>
-    <string name="please_update">앱이 너무 오래되었습니다(%s). %s에 작동이 중지됩니다.
+    <string name="please_update">앱이 너무 오래되었습니다(%1$s). %2$s에 작동이 중지됩니다.
         업데이트해 주세요!</string>
-    <string name="please_update_force">앱이 너무 오래되었습니다(%s). %s에 작동이 중지되었습니다.
+    <string name="please_update_force">앱이 너무 오래되었습니다(%1$s). %2$s에 작동이 중지되었습니다.
         업데이트해 주세요!</string>
     <string name="connection_test_delete_unavailable">사용 불가 지우기</string>
     <string name="move">이동</string>

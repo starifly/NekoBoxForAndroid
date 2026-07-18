@@ -39,9 +39,9 @@
     <string name="group_status_empty">空分組</string>
     <string name="group_status_empty_subscription">尚未更新</string>
     <string name="group_status_proxies">%d 個代理</string>
-    <string name="group_status_proxies_subscription">%d 個代理 | 更新於 %s</string>
+    <string name="group_status_proxies_subscription">%1$d 個代理 | 更新於 %2$s</string>
     <string name="group_no_difference">%s: 無差異</string>
-    <string name="group_updated">%s：已更新 %d 個代理</string>
+    <string name="group_updated">%1$s：已更新 %2$d 個代理</string>
     <string name="group_show_diff">差異</string>
     <string name="group_diff">差異 (%s)</string>
     <string name="group_delete_confirm_prompt">您確定要移除此分組嗎？</string>
@@ -357,7 +357,7 @@
     <string name="subscription_user_agent">使用者代理</string>
     <string name="confirm">確認</string>
     <string name="missing_plugin">缺失外掛程式</string>
-    <string name="profile_requiring_plugin">設定檔 %s 需要安裝 %s 外掛程式，但
+    <string name="profile_requiring_plugin">設定檔 %1$s 需要安裝 %2$s 外掛程式，但
         找不到該外掛程式。</string>
     <string name="action_learn_more">深入了解</string>
     <string name="action_download">下載</string>
@@ -377,7 +377,7 @@
     <string name="server_dns_subscription_sum">可選的 DNS 設定，僅用於解析此訂閱中的伺服器網域名稱。留空則使用預設行為。接受 https://、tls://、quic:// 以及 host[:port]。</string>
     <string name="server_dns_invalid">自訂伺服器 DNS 不正確。請使用 https://、tls://、quic:// 或 host[:port] 或留空。</string>
     <string name="subscription_used">已用 %s</string>
-    <string name="subscription_traffic">已使用 %s / 剩餘 %s</string>
+    <string name="subscription_traffic">已使用 %1$s / 剩餘 %2$s</string>
     <string name="subscription_expire">到期：%s</string>
     <string name="subscription_import">匯入訂閱</string>
     <string name="subscription_import_message">確認要匯入訂閱 %s？如果您來自不受信任的來源，這樣做可能會導致您的 IP 和此行為被洩露。</string>
@@ -400,7 +400,7 @@
     <string name="group_order_origin">原始</string>
     <string name="group_order_by_name">按名稱</string>
     <string name="group_order_by_delay">按延遲</string>
-    <string name="plugin_exists_but_on_shit_system">設定檔 %s 需要 %s 外掛程式，但您的
+    <string name="plugin_exists_but_on_shit_system">設定檔 %1$s 需要 %2$s 外掛程式，但您的
         專有設備供應商（通常是監控資本巨頭和惡意軟體製造商）
         篡改了您的 Android，使該外掛程式無法使用。</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks Android 外掛程式)</string>
@@ -479,9 +479,9 @@
     <string name="tuic_disable_sni">停用 SNI</string>
     <string name="tuic_reduce_rtt">啓用 0-RTT QUIC 握手</string>
     <string name="pinned_certchain_sha256">固定憑證 SHA256</string>
-    <string name="please_update">您的 APP 版本過舊 (%s)。將在 %s 停止運作。請
+    <string name="please_update">您的 APP 版本過舊 (%1$s)。將在 %2$s 停止運作。請
         更新！</string>
-    <string name="please_update_force">您的 APP 版本過舊 (%s)。已在 %s 停止運作。
+    <string name="please_update_force">您的 APP 版本過舊 (%1$s)。已在 %2$s 停止運作。
         請更新！</string>
     <string name="connection_test_delete_unavailable">清除不可用的</string>
     <string name="move">移動</string>

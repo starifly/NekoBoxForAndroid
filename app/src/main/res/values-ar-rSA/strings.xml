@@ -40,9 +40,9 @@
     <string name="group_status_empty">مجموعة فارغة</string>
     <string name="group_status_empty_subscription">لم يتم التحديث بعد</string>
     <string name="group_status_proxies">%d بروكسي</string>
-    <string name="group_status_proxies_subscription">%d بروكسي | تم التحديث في %s</string>
+    <string name="group_status_proxies_subscription">%1$d بروكسي | تم التحديث في %2$s</string>
     <string name="group_no_difference">%s: لا فرق</string>
-    <string name="group_updated">%s: تم تحديث %d وكيلاً</string>
+    <string name="group_updated">%1$s: تم تحديث %2$d وكيلاً</string>
     <string name="group_show_diff">الفرق</string>
     <string name="group_diff">الفرق (%s)</string>
     <string name="group_delete_confirm_prompt">هل أنت متأكد من رغبتك في إزالة هذه المجموعة؟</string>
@@ -364,7 +364,7 @@
     <string name="subscription_user_agent">وكيل المستخدم</string>
     <string name="confirm">تأكيد</string>
     <string name="missing_plugin">المكون الإضافي المفقود</string>
-    <string name="profile_requiring_plugin">الملف الشخصي %s يتطلب تثبيت البرنامج المساعد %s، لكن لم يتم العثور عليه.</string>
+    <string name="profile_requiring_plugin">الملف الشخصي %1$s يتطلب تثبيت البرنامج المساعد %2$s، لكن لم يتم العثور عليه.</string>
     <string name="action_learn_more">معرفة المزيد</string>
     <string name="action_download">تحميل</string>
     <string name="install_from_play_store">التثبيت من متجر Play</string>
@@ -382,7 +382,7 @@
     <string name="server_dns_subscription_sum">DNS اختياري يُستخدم فقط لحل نطاقات الخادم في هذه الاشتراك. اتركه فارغًا لاستخدام السلوك الافتراضي. يقبل https://, tls://, quic:// أو host[:port].</string>
     <string name="server_dns_invalid">DNS خادم مخصص غير صالح. استخدم https://, tls://, quic:// أو host[:port]، أو اتركه فارغًا.</string>
     <string name="subscription_used">%s مستخدم</string>
-    <string name="subscription_traffic">%s مستخدم / %s متبقي</string>
+    <string name="subscription_traffic">%1$s مستخدم / %2$s متبقي</string>
     <string name="subscription_expire">تاريخ الانتهاء: %s</string>
     <string name="subscription_import">استيراد اشتراك</string>
     <string name="subscription_import_message">هل تريد تأكيد استيراد الاشتراك %s؟ إذا كنت قادمًا من مصدر غير موثوق، فقد يؤدي ذلك إلى تسرب عنوان IP وسلوكك.</string>
@@ -405,7 +405,7 @@
     <string name="group_order_origin">الأصل</string>
     <string name="group_order_by_name">حسب الاسم</string>
     <string name="group_order_by_delay">حسب التأخير</string>
-    <string name="plugin_exists_but_on_shit_system">الملف الشخصي %s يحتاج إلى المكون الإضافي %s، لكن بائع المعدات المملوكة (عادةً عمالقة رأس المال المراقبة وصانع البرامج الضارة) عبث بنظام Android الخاص بك، مما جعل المكون الإضافي غير قابل للاستخدام.</string>
+    <string name="plugin_exists_but_on_shit_system">الملف الشخصي %1$s يحتاج إلى المكون الإضافي %2$s، لكن بائع المعدات المملوكة (عادةً عمالقة رأس المال المراقبة وصانع البرامج الضارة) عبث بنظام Android الخاص بك، مما جعل المكون الإضافي غير قابل للاستخدام.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (مكون Shadowsocks الإضافي لنظام Android)</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (مكون Shadowsocks الإضافي لنظام Android)</string>
     <string name="tcp_connections">اتصالات TCP %d</string>
@@ -487,8 +487,8 @@
     <string name="tuic_disable_sni">تعطيل SNI</string>
     <string name="tuic_reduce_rtt">تمكين مصافحة QUIC 0-RTT</string>
     <string name="pinned_certchain_sha256">شهادة SHA256 المثبتة</string>
-    <string name="please_update">تطبيقك قديم جدًا (%s). وسيتوقف عن العمل في %s. يرجى التحديث!</string>
-    <string name="please_update_force">تطبيقك قديم جدًا (%s). وقد توقف عن العمل في %s. يرجى التحديث!</string>
+    <string name="please_update">تطبيقك قديم جدًا (%1$s). وسيتوقف عن العمل في %2$s. يرجى التحديث!</string>
+    <string name="please_update_force">تطبيقك قديم جدًا (%1$s). وقد توقف عن العمل في %2$s. يرجى التحديث!</string>
     <string name="connection_test_delete_unavailable">مسح غير المتاح</string>
     <string name="move">نقل</string>
     <string name="exe_prefer_provider">المزود المفضل للإضافة</string>

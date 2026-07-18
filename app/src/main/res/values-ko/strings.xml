@@ -38,9 +38,9 @@
     <string name="group_status_empty">빈 그룹</string>
     <string name="group_status_empty_subscription">아직 업데이트되지 않음</string>
     <string name="group_status_proxies">프록시 %d개</string>
-    <string name="group_status_proxies_subscription">프록시 %d개 | %s에 업데이트됨</string>
+    <string name="group_status_proxies_subscription">프록시 %1$d개 | %2$s에 업데이트됨</string>
     <string name="group_no_difference">%s: 차이 없음</string>
-    <string name="group_updated">%s: 프록시 %d개 업데이트됨</string>
+    <string name="group_updated">%1$s: 프록시 %2$d개 업데이트됨</string>
     <string name="group_show_diff">차이</string>
     <string name="group_diff">차이 (%s)</string>
     <string name="group_delete_confirm_prompt">이 그룹을 삭제하시겠습니까?</string>
@@ -337,7 +337,7 @@
     <string name="subscription_user_agent">UserAgent</string>
     <string name="confirm">확인</string>
     <string name="missing_plugin">플러그인 누락</string>
-    <string name="profile_requiring_plugin">프로파일 %s에는 %s 플러그인 설치가 필요하지만 찾을 수 없습니다.</string>
+    <string name="profile_requiring_plugin">프로파일 %1$s에는 %2$s 플러그인 설치가 필요하지만 찾을 수 없습니다.</string>
     <string name="action_learn_more">자세히 보기</string>
     <string name="action_download">다운로드</string>
     <string name="install_from_play_store">Play 스토어에서 설치</string>
@@ -352,7 +352,7 @@
     <string name="subscription_update_message">%s 업데이트 중 …</string>
     <string name="group_filter">필터</string>
     <string name="subscription_used">%s 사용됨</string>
-    <string name="subscription_traffic">%s 사용됨 / %s 남음</string>
+    <string name="subscription_traffic">%1$s 사용됨 / %2$s 남음</string>
     <string name="subscription_expire">만료: %s</string>
     <string name="subscription_import">구독 가져오기</string>
     <string name="subscription_import_message">구독 %s을(를) 가져오시겠습니까? 신뢰할 수 없는 출처에서 온 경우 IP와 이 동작이 유출될 수 있습니다.</string>
@@ -375,7 +375,7 @@
     <string name="group_order_origin">원래 순서</string>
     <string name="group_order_by_name">이름순</string>
     <string name="group_order_by_delay">지연순</string>
-    <string name="plugin_exists_but_on_shit_system">프로파일 %s에는 %s 플러그인이 필요하지만, 독점 장비 공급업체(보통 감시 자본 대기업과 멀웨어 제작자)가 Android를 변조하여 플러그인을 사용할 수 없습니다.</string>
+    <string name="plugin_exists_but_on_shit_system">프로파일 %1$s에는 %2$s 플러그인이 필요하지만, 독점 장비 공급업체(보통 감시 자본 대기업과 멀웨어 제작자)가 Android를 변조하여 플러그인을 사용할 수 없습니다.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks Android 플러그인)</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (Shadowsocks Android 플러그인)</string>
     <string name="tcp_connections">TCP 연결 %d개</string>
@@ -449,8 +449,8 @@
     <string name="tuic_disable_sni">SNI 비활성화</string>
     <string name="tuic_reduce_rtt">0-RTT QUIC 핸드셰이크 활성화</string>
     <string name="pinned_certchain_sha256">고정된 인증서 SHA256</string>
-    <string name="please_update">앱이 너무 오래되었습니다 (%s). %s에 작동이 중지됩니다. 업데이트하세요!</string>
-    <string name="please_update_force">앱이 너무 오래되었습니다 (%s). %s에 작동이 중지되었습니다. 업데이트하세요!</string>
+    <string name="please_update">앱이 너무 오래되었습니다 (%1$s). %2$s에 작동이 중지됩니다. 업데이트하세요!</string>
+    <string name="please_update_force">앱이 너무 오래되었습니다 (%1$s). %2$s에 작동이 중지되었습니다. 업데이트하세요!</string>
     <string name="connection_test_delete_unavailable">사용 불가 항목 지우기</string>
     <string name="move">이동</string>
     <string name="exe_prefer_provider">플러그인 선호 공급자</string>

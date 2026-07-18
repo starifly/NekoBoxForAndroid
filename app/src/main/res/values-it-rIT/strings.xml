@@ -40,9 +40,9 @@
     <string name="group_status_empty">Gruppo vuoto</string>
     <string name="group_status_empty_subscription">Non ancora aggiornato</string>
     <string name="group_status_proxies">%d Proxy</string>
-    <string name="group_status_proxies_subscription">%d Proxy | Aggiornato il %s</string>
+    <string name="group_status_proxies_subscription">%1$d Proxy | Aggiornato il %2$s</string>
     <string name="group_no_difference">%s: Nessuna differenza</string>
-    <string name="group_updated">%s: %d proxy aggiornati</string>
+    <string name="group_updated">%1$s: %2$d proxy aggiornati</string>
     <string name="group_show_diff">Differenza</string>
     <string name="group_diff">Differenza (%s)</string>
     <string name="group_delete_confirm_prompt">Sei sicuro di voler rimuovere questo gruppo?</string>
@@ -363,7 +363,7 @@ Raccomandazione: abilita solo se ti fidi di tutte le app installate.</string>
     <string name="subscription_user_agent">UserAgent</string>
     <string name="confirm">Conferma</string>
     <string name="missing_plugin">Plugin mancante</string>
-    <string name="profile_requiring_plugin">Il profilo %s richiede il plugin %s per essere installato, ma
+    <string name="profile_requiring_plugin">Il profilo %1$s richiede il plugin %2$s per essere installato, ma
         non è stato trovato.</string>
     <string name="action_learn_more">SCOPRI DI PIÙ</string>
     <string name="action_download">SCARICA</string>
@@ -383,7 +383,7 @@ Raccomandazione: abilita solo se ti fidi di tutte le app installate.</string>
     <string name="server_dns_subscription_sum">DNS opzionale utilizzato solo per risolvere i domini del server in questo abbonamento. Lascia vuoto per utilizzare il comportamento predefinito. Accetta https://, tls://, quic:// o host[:porta].</string>
     <string name="server_dns_invalid">DNS personalizzato del server non valido. Usa https://, tls://, quic:// o host[:porta], oppure lascia vuoto.</string>
     <string name="subscription_used">%s Utilizzato</string>
-    <string name="subscription_traffic">%s Utilizzato / %s Rimanente</string>
+    <string name="subscription_traffic">%1$s Utilizzato / %2$s Rimanente</string>
     <string name="subscription_expire">Scadenza: %s</string>
     <string name="subscription_import">Importa abbonamento</string>
     <string name="subscription_import_message">Confermi di voler importare l\'abbonamento %s? Se provieni da una fonte non attendibile, ciò potrebbe causare la fuga del tuo IP e di questo comportamento.</string>
@@ -406,7 +406,7 @@ Raccomandazione: abilita solo se ti fidi di tutte le app installate.</string>
     <string name="group_order_origin">Origine</string>
     <string name="group_order_by_name">Per nome</string>
     <string name="group_order_by_delay">Per ritardo</string>
-    <string name="plugin_exists_but_on_shit_system">Il profilo %s richiede il plugin %s, ma il tuo
+    <string name="plugin_exists_but_on_shit_system">Il profilo %1$s richiede il plugin %2$s, ma il tuo
         fornitore di apparecchiature proprietarie (di solito giganti del capitale di sorveglianza e produttori di malware)
         ha manomesso il tuo Android, rendendo il plugin inutilizzabile.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Plugin Android per Shadowsocks)</string>
@@ -492,8 +492,8 @@ Raccomandazione: abilita solo se ti fidi di tutte le app installate.</string>
     <string name="tuic_disable_sni">Disabilita SNI</string>
     <string name="tuic_reduce_rtt">Abilita handshake QUIC 0-RTT</string>
     <string name="pinned_certchain_sha256">SHA256 del certificato fissato</string>
-    <string name="please_update">La tua APP è troppo vecchia (%s). E smetterà di funzionare il %s. Per favore, aggiorna!</string>
-    <string name="please_update_force">La tua APP è troppo vecchia (%s). E ha smesso di funzionare il %s. Per favore, aggiorna!</string>
+    <string name="please_update">La tua APP è troppo vecchia (%1$s). E smetterà di funzionare il %2$s. Per favore, aggiorna!</string>
+    <string name="please_update_force">La tua APP è troppo vecchia (%1$s). E ha smesso di funzionare il %2$s. Per favore, aggiorna!</string>
     <string name="connection_test_delete_unavailable">Cancella non disponibili</string>
     <string name="move">Sposta</string>
     <string name="exe_prefer_provider">Provider preferito del plugin</string>
