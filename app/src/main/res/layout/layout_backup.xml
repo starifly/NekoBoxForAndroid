@@ -14,6 +14,7 @@
         android:paddingHorizontal="16dp"
         android:paddingTop="12dp">
 
+        <!-- 本地備份卡片 -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -70,72 +71,36 @@
                     android:text="@string/backup_summary"
                     android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
                     android:textColor="?attr/colorOnSurfaceVariant" />
-<!-- 保留 HEAD 新增的本地備份細項與提示 -->
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/backup_local"
-                        android:textAppearance="?attr/textAppearanceHeadline6" />
 
-                    <com.google.android.material.checkbox.MaterialCheckBox
-                        android:id="@+id/backup_configurations"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:checked="true"
-                        android:text="@string/backup_groups_and_configurations" />
+                <!-- M3 按鈕 -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/action_share"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="20dp"
+                    android:text="@string/share" />
 
-                    <com.google.android.material.checkbox.MaterialCheckBox
-                        android:id="@+id/backup_rules"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:checked="true"
-                        android:text="@string/backup_rules" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/action_export"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/action_export_file" />
 
-                    <com.google.android.material.checkbox.MaterialCheckBox
-                        android:id="@+id/backup_settings"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:checked="true"
-                        android:text="@string/backup_settings" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/action_import_file"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/action_import_file" />
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/backup_summary"
-                        android:textAppearance="?attr/textAppearanceBody2"
-                        android:textColor="?android:attr/textColorSecondary" />
-
-                    <!-- 整合 sf/main 升級後的 M3 按鈕樣式與高度 -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/action_share"
-                        style="@style/Widget.Material3.Button.TonalButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="20dp"
-                        android:text="@string/share" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/action_export"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/action_export_file" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/action_import_file"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/action_import_file" />
-
-                </LinearLayout>
+            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- 合併 HEAD 的交互屬性與 sf/main 的 M3 卡片圓角、背景、邊距規範 -->
+        <!-- WebDAV 卡片 -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -162,7 +127,6 @@
                     android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
                     android:textColor="?attr/colorOnSurface" />
 
-                <!-- 採用 sf/main 清晰且升級完畢的 WebDAV M3 按鈕結構，修正 HEAD 的標籤錯位 -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/webdav_settings"
                     style="@style/Widget.Material3.Button.TonalButton"
@@ -189,5 +153,6 @@
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
     </LinearLayout>
 </ScrollView>
