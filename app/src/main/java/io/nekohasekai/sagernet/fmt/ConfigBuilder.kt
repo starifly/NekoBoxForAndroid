@@ -1062,9 +1062,11 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
                         }
 
                         -2L -> {
-                            userDNSRuleList += makeDnsRuleObj().apply {
-                                server = "dns-block"
-                                disable_cache = true
+                            if (shouldAddDnsRule) {
+                                userDNSRuleList += makeDnsRuleObj().apply {
+                                    server = "dns-block"
+                                    disable_cache = true
+                                }
                             }
 
                             if (rule_set != null && rulesetTags.isNotEmpty()) {
