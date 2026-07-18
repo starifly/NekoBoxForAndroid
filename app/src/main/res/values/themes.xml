@@ -98,12 +98,12 @@
         <item name="cardBackgroundColor">?attr/cardElevatedSurfaceColor</item>
     </style>
 
-    <style name="ShapeAppearanceOverlay.SagerNet.Dialog">
+    <style name="ShapeAppearanceOverlay.SagerNet.Dialog" parent="ShapeAppearance.Material3.LargeComponent">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">@dimen/dialog_corner_radius</item>
     </style>
 
-    <style name="ShapeAppearanceOverlay.SagerNet.Input">
+    <style name="ShapeAppearanceOverlay.SagerNet.Input" parent="ShapeAppearance.Material3.LargeComponent">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">@dimen/input_corner_radius</item>
     </style>
@@ -131,7 +131,7 @@
         <item name="android:popupAnimationStyle">@style/PopupMenuAnimation</item>
     </style>
 
-    <style name="ShapeAppearanceOverlay.SagerNet.BottomSheet">
+    <style name="ShapeAppearanceOverlay.SagerNet.BottomSheet" parent="ShapeAppearance.Material3.LargeComponent">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSizeTopLeft">@dimen/dialog_corner_radius</item>
         <item name="cornerSizeTopRight">@dimen/dialog_corner_radius</item>
@@ -145,7 +145,7 @@
         <item name="bottomSheetStyle">@style/Widget.SagerNet.BottomSheet</item>
     </style>
 
-    <style name="ShapeAppearanceOverlay.SagerNet.Button">
+    <style name="ShapeAppearanceOverlay.SagerNet.Button" parent="ShapeAppearance.Material3.SmallComponent">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">@dimen/button_corner_radius</item>
     </style>

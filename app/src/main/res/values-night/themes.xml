@@ -12,7 +12,7 @@
       Selecting Dracula also forces night mode on (SettingsPreferenceFragment),
       which is what brings these overrides into effect.
     -->
-    <style name="Theme.SagerNet">
+    <style name="Theme.SagerNet" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Missing attributes for night theme -->
         <item name="appBarBackgroundColor">@color/colorSurface</item>
         <item name="cardElevatedSurfaceColor">@color/colorSurfaceContainer</item>
