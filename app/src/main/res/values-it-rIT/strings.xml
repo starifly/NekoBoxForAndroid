@@ -12,11 +12,21 @@
     <string name="menu_group">Gruppo</string>
     <string name="menu_about">Informazioni</string>
     <string name="theme">Tema</string>
+    <string name="theme_dynamic">Dynamic (Material You)</string>
+    <string name="theme_dark_high_contrast">Dark High Contrast</string>
+    <string name="theme_dracula_m3">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_monokai">Monokai</string>
+    <string name="theme_ayu">Ayu</string>
+    <string name="theme_catppuccin">Catppuccin</string>
+    <string name="theme_classic_colors">Legacy colors…</string>
+    <string name="theme_classic_color_swatch">Color theme %1$d</string>
     <string name="document">Documento</string>
     <string name="group_default">Non raggruppato</string>
     <string name="quick_toggle">Attiva/Disattiva</string>
     <string name="quick_enable">Abilita</string>
     <string name="quick_disable">Disabilita</string>
+    <string name="quick_clear_cache_restart">Clear Cache &amp; Restart</string>
     <string name="tile_title">Commutatore</string>
     <string name="menu_traffic">Traffico</string>
     <string name="menu_dashboard">Dashboard sing-box</string>
@@ -40,9 +50,9 @@
     <string name="group_status_empty">Gruppo vuoto</string>
     <string name="group_status_empty_subscription">Non ancora aggiornato</string>
     <string name="group_status_proxies">%d Proxy</string>
-    <string name="group_status_proxies_subscription">%1$d Proxy | Aggiornato il %2$s</string>
+    <string name="group_status_proxies_subscription">%1$d Proxies | Updated on %2$s</string>
     <string name="group_no_difference">%s: Nessuna differenza</string>
-    <string name="group_updated">%1$s: %2$d proxy aggiornati</string>
+    <string name="group_updated">%1$s: Updated %2$d proxies</string>
     <string name="group_show_diff">Differenza</string>
     <string name="group_diff">Differenza (%s)</string>
     <string name="group_delete_confirm_prompt">Sei sicuro di voler rimuovere questo gruppo?</string>
@@ -59,6 +69,10 @@
     <string name="cag_route">Impostazioni route</string>
     <string name="allow_access">Consenti connessioni dalla LAN</string>
     <string name="allow_access_sum">Associa i server in entrata a 0.0.0.0</string>
+    <string name="require_proxy_in_vpn">Keep local proxy in VPN mode</string>
+    <string name="require_proxy_in_vpn_sum">Keep the local SOCKS/HTTP proxy port open while in VPN mode. Off by default: in VPN mode the port is usually unneeded and leaving it open lets other apps reach it.</string>
+    <string name="proxy_mode_inbound_auth">Authenticate local proxy in Proxy mode</string>
+    <string name="proxy_mode_inbound_auth_sum">Require username/password on the local SOCKS/HTTP proxy when running in Proxy (non-VPN) mode. Enable to stop other apps from using it as an open relay.</string>
     <string name="inbound_settings">Impostazioni in entrata</string>
     <string name="general_settings">Impostazioni app</string>
     <string name="require_http">Abilita HTTP inbound</string>
@@ -74,11 +88,12 @@
     <string name="security_settings">Impostazioni di sicurezza TLS</string>
     <string name="allow_insecure">Consenti non sicuro</string>
     <string name="allow_insecure_sum">Disabilita la verifica del certificato. Quando abilitata, questa configurazione è sicura come testo in chiaro</string>
+    <string name="lifetime_traffic">All-time: %1$s↑ %2$s↓</string>
     <string name="speed_detail">Proxy： %1$s↑ %2$s↓\nDiretto： %3$s↑ %4$s↓</string>
     <string name="speed">%s/s</string>
     <string name="connection_test_testing">Test in corso…</string>
-    <string name="connection_test_available">Riuscito: handshake HTTPS ha richiesto %dms</string>
-    <string name="connection_test_available_http">Riuscito: handshake HTTP ha richiesto %dms</string>
+    <string name="connection_test_available">Delay: %d ms</string>
+    <string name="connection_test_available_http">Delay: %d ms</string>
     <string name="connection_test_error">Fallito: %s</string>
     <string name="connection_test_fail">Internet non disponibile</string>
     <string name="connection_test_error_status_code">Codice errore: #%d</string>
@@ -222,15 +237,20 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="add_profile">Aggiungi profilo</string>
     <string name="select_profile">Seleziona profilo</string>
     <string name="proxy_chain">Catena Proxy</string>
+    <string name="proxy_waterfall">Waterfall</string>
+    <string name="proxy_fastest">Fastest</string>
     <string name="custom_config">Configurazione personalizzata</string>
     <string name="balancer">Bilanciatore</string>
     <string name="balancer_settings">Impostazioni bilanciatore</string>
     <string name="balancer_type">Tipo</string>
     <string name="balancer_strategy">Strategia</string>
     <string name="chain_settings">Impostazioni catena</string>
+    <string name="waterfall_settings">Waterfall Settings</string>
+    <string name="fastest_settings">Fastest Settings</string>
     <string name="config_settings">Impostazioni configurazione</string>
     <string name="circular_reference">Riferimento circolare</string>
     <string name="circular_reference_sum">Il percorso non può contenere se stesso.</string>
+    <string name="profile_reference_not_allowed">This profile is already added, creates a circular reference, or is not allowed in this group.</string>
     <string name="clear_profiles">Cancella</string>
     <string name="action_create_group">Gruppo vuoto</string>
     <string name="action_from_link">Da abbonamento</string>
@@ -240,6 +260,11 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="action_export">Esporta</string>
     <string name="action_import">Importa dagli appunti</string>
     <string name="action_import_file">Importa da file</string>
+    <string name="scan_qr_hint">Point the camera at a QR code</string>
+    <string name="scan_toggle_torch">Toggle flashlight</string>
+    <string name="scan_torch_turn_on">Turn flashlight on</string>
+    <string name="scan_torch_turn_off">Turn flashlight off</string>
+    <string name="scan_no_qr_found">No QR code found in the selected image</string>
     <string name="action_export_msg">Esportazione riuscita!</string>
     <string name="action_export_err">Esportazione fallita.</string>
     <string name="action_import_msg">Importazione riuscita!</string>
@@ -269,6 +294,7 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <!-- status -->
     <string name="connecting">Connessione in corso…</string>
     <string name="vpn_connected">Connesso, tocca per verificare la connessione</string>
+    <string name="connection_status_connected">Connected</string>
     <string name="not_connected">Non connesso</string>
     <!-- subscriptions -->
     <string name="subscriptions">Sottoscrizioni</string>
@@ -277,12 +303,16 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="no_proxies_found">Nessun proxy trovato nel link</string>
     <string name="no_proxies_found_in_subscription">Nessun proxy trovato nell\'abbonamento</string>
     <string name="no_proxies_found_in_file">Nessun proxy trovato nel file</string>
+    <string name="invalid_amnezia_config">Invalid or damaged Amnezia configuration</string>
+    <string name="no_amnezia_awg_profiles">No AmneziaWG profiles found in the configuration</string>
     <string name="no_proxies_found_in_clipboard">Nessun proxy trovato negli appunti</string>
     <string name="deduplication">Deduplicazione</string>
     <string name="donate">Dona</string>
     <string name="donate_info">Amo i soldi</string>
     <string name="ignore_battery_optimizations">Ignora ottimizzazioni batteria</string>
     <string name="ignore_battery_optimizations_sum">Rimuovi alcune restrizioni</string>
+    <string name="battery_optimization_enabled">Enabled - the app can run unrestricted in the background</string>
+    <string name="battery_optimization_disabled">Disabled - tap to allow background activity</string>
     <!-- plugin -->
     <string name="plugin">Plugin</string>
     <string name="plugin_configure">Configura…</string>
@@ -290,6 +320,15 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="plugin_unknown">Plugin %s sconosciuto</string>
     <string name="plugin_untrusted">Attenzione: questo plugin non sembra provenire da una fonte fidata
         conosciuta.</string>
+    <string name="plugin_signer_unreadable">unreadable</string>
+    <string name="plugin_signer_rejected">Blocked plugin package %1$s with signer %2$s. Connect again to review it.</string>
+    <string name="plugin_approval_title">Approve plugin package?</string>
+    <string name="plugin_approval_message">Package: %1$s\n\nSHA-256 certificate fingerprint(s):\n%2$s\n\nThe installed plugin’s executable code can run through the app’s plugin interface. Approve only if you trust this package.</string>
+    <string name="plugin_approval_action">Approve</string>
+    <string name="plugin_approval_success">Plugin package approved. Connect again to use it.</string>
+    <string name="plugin_approval_failed">The plugin package could not be approved.</string>
+    <string name="plugin_approval_conflict_title">Plugin package conflict</string>
+    <string name="plugin_approval_conflict_message">More than one untrusted package provides this plugin: %s\n\nRemove the conflict before approving a package.</string>
     <string name="plugin_auto_connect_unlock_only">Questo plugin potrebbe non funzionare con Auto Connect</string>
     <string name="proxy_cat">Impostazioni server</string>
     <string name="ss_cat">Impostazioni Shadowsocks</string>
@@ -302,6 +341,11 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="route_warn">Assicurati di aver letto la documentazione prima di aggiungere regole personalizzate,
         altrimenti potresti non riuscire a connetterti a Internet.</string>
     <string name="lines">%d righe</string>
+    <plurals name="dns_hosts_lines">
+        <item quantity="one">%d line</item>
+        <item quantity="other">%d lines</item>
+    </plurals>
+    <string name="not_set">Not set</string>
     <string name="night_mode">Modalità notte</string>
     <string name="language">Linguaggio</string>
     <string name="follow_system">Segui sistema</string>
@@ -329,12 +373,13 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="connection_test_timeout_error">Timeout</string>
     <string name="append_http_proxy">Aggiungi proxy HTTP alla VPN</string>
     <string name="append_http_proxy_sum">Il proxy HTTP verrà utilizzato direttamente dal browser / alcune app supportate, senza passare attraverso il dispositivo NIC virtuale (Android 10+)</string>
-    <string name="http_proxy_bypass">Elenco di esclusione proxy HTTP</string>
     <string name="http_proxy_bypass_dialog_message">Uno per riga. Le righe che iniziano con # sono commenti. Esempio: *zhihu.com</string>
     <string name="append_http_proxy_security_title">Avviso di sicurezza</string>
     <string name="append_http_proxy_security_message">Quando abilitato, altre app su questo dispositivo possono utilizzare direttamente la porta proxy locale.
 
 Raccomandazione: abilita solo se ti fidi di tutte le app installate.</string>
+    <string name="http_proxy_bypass">Elenco di esclusione proxy HTTP</string>
+    <string name="http_proxy_bypass_sum">Hosts that skip the system HTTP proxy and connect directly when Append HTTP Proxy to VPN is on. One pattern per line, e.g. 192.168.* or 10.*. Defaults to private and loopback ranges.</string>
     <string name="enable_anyway">Abilita comunque</string>
     <string name="strict_route">Route stretto</string>
     <string name="protocol_settings">Impostazioni protocollo</string>
@@ -354,6 +399,9 @@ Raccomandazione: abilita solo se ti fidi di tutte le app installate.</string>
     <string name="filter_include">Includi</string>
     <string name="filter_exclude">Escludi</string>
     <string name="filter_regex">Filtro (Regex)</string>
+    <string name="subscription_custom_dns">Custom resolver</string>
+    <string name="subscription_custom_dns_sum">Optional DNS used only to resolve this subscription\'s server domains. Leave empty to use the global DNS. Accepts https://, tls://, quic:// or host[:port].</string>
+    <string name="subscription_custom_dns_invalid">Invalid resolver. Use https://, tls://, quic:// or host[:port], or leave empty.</string>
     <string name="raw">Raw</string>
     <string name="update_settings">Impostazioni aggiornamento</string>
     <string name="auto_update">Aggiornamento automatico</string>
@@ -361,10 +409,14 @@ Raccomandazione: abilita solo se ti fidi di tutte le app installate.</string>
     <string name="update_when_connected_only">Aggiorna solo quando connesso</string>
     <string name="update_when_connected_only_sum">Previeni perdita indirizzo IP</string>
     <string name="subscription_user_agent">UserAgent</string>
+    <string name="subscription_send_hwid">Send HWID</string>
+    <string name="subscription_send_hwid_summary">Send HWID, Android version, and device model when updating this subscription</string>
+    <string name="subscription_custom_hwid_params">Custom HWID parameters</string>
+    <string name="subscription_custom_hwid_params_summary">Format: hwid=value,os=value,osVersion=value,model=value. Leave empty to use this device values; when filled, only listed values are sent.</string>
     <string name="confirm">Conferma</string>
     <string name="missing_plugin">Plugin mancante</string>
-    <string name="profile_requiring_plugin">Il profilo %1$s richiede il plugin %2$s per essere installato, ma
-        non è stato trovato.</string>
+    <string name="profile_requiring_plugin">Profile %1$s requires the %2$s plugin to be installed, but
+        it was not found.</string>
     <string name="action_learn_more">SCOPRI DI PIÙ</string>
     <string name="action_download">SCARICA</string>
     <string name="install_from_play_store">Installa da Play Store</string>
@@ -383,7 +435,7 @@ Raccomandazione: abilita solo se ti fidi di tutte le app installate.</string>
     <string name="server_dns_subscription_sum">DNS opzionale utilizzato solo per risolvere i domini del server in questo abbonamento. Lascia vuoto per utilizzare il comportamento predefinito. Accetta https://, tls://, quic:// o host[:porta].</string>
     <string name="server_dns_invalid">DNS personalizzato del server non valido. Usa https://, tls://, quic:// o host[:porta], oppure lascia vuoto.</string>
     <string name="subscription_used">%s Utilizzato</string>
-    <string name="subscription_traffic">%1$s Utilizzato / %2$s Rimanente</string>
+    <string name="subscription_traffic">%1$s Used / %2$s Remaining</string>
     <string name="subscription_expire">Scadenza: %s</string>
     <string name="subscription_import">Importa abbonamento</string>
     <string name="subscription_import_message">Confermi di voler importare l\'abbonamento %s? Se provieni da una fonte non attendibile, ciò potrebbe causare la fuga del tuo IP e di questo comportamento.</string>
@@ -394,6 +446,48 @@ Raccomandazione: abilita solo se ti fidi di tutte le app installate.</string>
     <string name="select_apps">Seleziona applicazioni</string>
     <string name="apps_message">%d Applicazioni</string>
     <string name="hysteria_obfs">Password di offuscamento</string>
+    <string name="hysteria2_obfs_type">Obfuscation Type</string>
+    <string name="hysteria2_gecko_min_packet">Gecko Min Packet Size</string>
+    <string name="hysteria2_gecko_max_packet">Gecko Max Packet Size</string>
+    <string name="hysteria2_ech_summary">Advanced and optional. Requires the server ECH config list. The connection fails if the config is missing or stale; ECH is usually unnecessary when obfuscation is enabled.</string>
+    <string name="hysteria2_ech_config_hint">Paste the base64 config list from the server, or a complete ECH CONFIGS PEM block.</string>
+    <string name="hysteria2_ech_config_invalid">Enter a valid ECH config list before enabling ECH.</string>
+    <string name="action_masterdnsvpn">MasterDnsVPN</string>
+    <string name="mdv_domains">Tunnel Domains</string>
+    <string name="mdv_encryption_method">Encryption Method</string>
+    <string name="mdv_encryption_key">Encryption Key</string>
+    <string name="mdv_resolvers">DNS Resolvers</string>
+    <string name="mdv_resilience_cat">Resolver &amp; Resilience</string>
+    <string name="mdv_balancing_strategy">Resolver Balancing Strategy</string>
+    <string name="mdv_packet_dup">Packet Duplication Count</string>
+    <string name="mdv_setup_packet_dup">Setup Packet Duplication Count</string>
+    <string name="mdv_auto_disable_timeout">Auto-disable Timeout Servers</string>
+    <string name="mdv_auto_remove_low_mtu">Auto-remove Low-MTU Servers</string>
+    <string name="mdv_base_encode">Base-encode Data</string>
+    <string name="mdv_compression_cat">Compression</string>
+    <string name="mdv_upload_compression">Upload Compression</string>
+    <string name="mdv_download_compression">Download Compression</string>
+    <string name="mdv_compression_min_size">Compression Min Size</string>
+    <string name="mdv_mtu_cat">MTU Discovery</string>
+    <string name="mdv_min_upload_mtu">Min Upload MTU</string>
+    <string name="mdv_min_download_mtu">Min Download MTU</string>
+    <string name="mdv_max_upload_mtu">Max Upload MTU</string>
+    <string name="mdv_max_download_mtu">Max Download MTU</string>
+    <string name="mdv_misc_cat">Misc</string>
+    <string name="mdv_local_dns_enabled">Local DNS Server</string>
+    <string name="mdv_local_dns_port">Porta DNS locale</string>
+    <string name="mdv_log_level">Livello di log</string>
+    <string name="mdv_advanced_json">Advanced JSON Override</string>
+    <string name="action_olcrtc">olcRTC</string>
+    <string name="olcrtc_carrier">Carrier</string>
+    <string name="olcrtc_room_id">Room ID / URL</string>
+    <string name="olcrtc_client_id">Client ID</string>
+    <string name="olcrtc_key_hex">Encryption Key (64 hex)</string>
+    <string name="olcrtc_transport_cat">Transport</string>
+    <string name="olcrtc_transport">Transport</string>
+    <string name="olcrtc_vp8_fps">VP8 FPS</string>
+    <string name="olcrtc_vp8_batch">VP8 Batch Size</string>
+    <string name="olcrtc_dns_server">DNS Resolver</string>
     <string name="hysteria_auth_type">Tipo di autenticazione</string>
     <string name="hysteria_auth_payload">Payload di autenticazione</string>
     <string name="hysteria_upload_mbps">Velocità massima di upload (in Mbps)</string>
@@ -406,9 +500,9 @@ Raccomandazione: abilita solo se ti fidi di tutte le app installate.</string>
     <string name="group_order_origin">Origine</string>
     <string name="group_order_by_name">Per nome</string>
     <string name="group_order_by_delay">Per ritardo</string>
-    <string name="plugin_exists_but_on_shit_system">Il profilo %1$s richiede il plugin %2$s, ma il tuo
-        fornitore di apparecchiature proprietarie (di solito giganti del capitale di sorveglianza e produttori di malware)
-        ha manomesso il tuo Android, rendendo il plugin inutilizzabile.</string>
+    <string name="plugin_exists_but_on_shit_system">Profile %1$s requires the %2$s plugin, but your
+        proprietary equipment vendor (usually surveillance capital giants and malware maker)
+        tampered with your Android, making the plugin unusable.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Plugin Android per Shadowsocks)</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (Plugin Android per Shadowsocks)</string>
     <string name="tcp_connections">%d connessioni TCP</string>
@@ -441,6 +535,23 @@ Raccomandazione: abilita solo se ti fidi di tutte le app installate.</string>
     <string name="wireguard_local_address">Indirizzo locale</string>
     <string name="wireguard_public_key">Chiave pubblica del peer</string>
     <string name="wireguard_psk">Chiave pre-condivisa del peer</string>
+    <string name="amneziawg_category">AmneziaWG 2.0</string>
+    <string name="amneziawg_jc">Jc (junk packets)</string>
+    <string name="amneziawg_jmin">Jmin (junk min size)</string>
+    <string name="amneziawg_jmax">Jmax (junk max size)</string>
+    <string name="amneziawg_s1">S1</string>
+    <string name="amneziawg_s2">S2</string>
+    <string name="amneziawg_s3">S3</string>
+    <string name="amneziawg_s4">S4</string>
+    <string name="amneziawg_h1">H1</string>
+    <string name="amneziawg_h2">H2</string>
+    <string name="amneziawg_h3">H3</string>
+    <string name="amneziawg_h4">H4</string>
+    <string name="amneziawg_i1">I1</string>
+    <string name="amneziawg_i2">I2</string>
+    <string name="amneziawg_i3">I3</string>
+    <string name="amneziawg_i4">I4</string>
+    <string name="amneziawg_i5">I5</string>
     <string name="warp_license">CloudFlare Warp è un provider VPN WireGuard gratuito. Usandolo,
         accetti i termini di servizio.</string>
     <string name="warp_generate">Genera configurazione</string>
@@ -492,12 +603,17 @@ Raccomandazione: abilita solo se ti fidi di tutte le app installate.</string>
     <string name="tuic_disable_sni">Disabilita SNI</string>
     <string name="tuic_reduce_rtt">Abilita handshake QUIC 0-RTT</string>
     <string name="pinned_certchain_sha256">SHA256 del certificato fissato</string>
-    <string name="please_update">La tua APP è troppo vecchia (%1$s). E smetterà di funzionare il %2$s. Per favore, aggiorna!</string>
-    <string name="please_update_force">La tua APP è troppo vecchia (%1$s). E ha smesso di funzionare il %2$s. Per favore, aggiorna!</string>
+    <string name="please_update">Your APP is too old (%1$s). And will stop working at %2$s. Please
+        update!</string>
+    <string name="please_update_force">Your APP is too old (%1$s). And has been stopped working at %2$s.
+        Please update!</string>
     <string name="connection_test_delete_unavailable">Cancella non disponibili</string>
     <string name="move">Sposta</string>
     <string name="exe_prefer_provider">Provider preferito del plugin</string>
     <string name="create_shortcut">Crea scorciatoia</string>
+    <string name="create_clear_cache_shortcut_summary">Create a home screen shortcut for cache clear and restart</string>
+    <string name="shortcut_pin_requested">Shortcut request sent to launcher</string>
+    <string name="shortcut_pin_not_supported">Launcher does not support pinning shortcuts</string>
     <string name="app_tls_version">Versione TLS minima della sottoscrizione</string>
     <string name="hop_interval">Intervallo port hopping (secondi)</string>
     <string name="domain_strategy_for_remote">Strategia di dominio per remoto</string>
@@ -510,6 +626,8 @@ Raccomandazione: abilita solo se ti fidi di tutte le app installate.</string>
     <string name="is_outbound_only">Il JSON impostato è outbound</string>
     <string name="save">Salva</string>
     <string name="set_panel_url">Imposta URL del pannello</string>
+    <string name="action_close">Close</string>
+    <string name="invalid_panel_url">Invalid panel URL. Use HTTPS or localhost HTTP only.</string>
     <string name="enable_clash_api">Abilita Clash API</string>
     <string name="log_level">Livello di log</string>
     <string name="enable_clash_api_summary">Fornisce Clash API e dashboard yacd su 127.0.0.1:9090</string>
@@ -572,11 +690,13 @@ Raccomandazione: abilita solo se ti fidi di tutte le app installate.</string>
     <string name="webdav_server_error">Errore del server</string>
     <string name="webdav_connect_failed">Connessione fallita con codice: %d</string>
     <string name="webdav_create_dir_failed">Impossibile creare o accedere alla directory di backup</string>
+    <string name="webdav_insecure_url">Insecure WebDAV server URL. Use an https:// address; plain http:// would transmit your credentials and backup (which contains all profile secrets) in cleartext.</string>
     <string name="global_mode">Modalità globale</string>
     <string name="global_mode_summary">Ignora tutte le regole di routing e proxy tutto il traffico attraverso il nodo corrente</string>
     <string name="mux_preference">Multiplex</string>
     <string name="padding">Padding</string>
     <string name="network_change_reset_connections">Reimposta le connessioni in uscita quando la rete cambia</string>
+    <string name="restart_profile_on_network_change">Restart active profile when network changes</string>
     <string name="wake_reset_connections">Reimposta le connessioni in uscita quando il dispositivo si riattiva</string>
     <string name="backup_in_progress">Backup già in corso</string>
     <string name="restore_in_progress">Ripristino già in corso</string>
@@ -612,11 +732,26 @@ Raccomandazione: abilita solo se ti fidi di tutte le app installate.</string>
     <string name="open_app_settings">Apri Impostazioni di sistema</string>
     <!-- Snell Protocol -->
     <string name="action_snell">Snell</string>
-    <string name="snell_psk">PSK</string>
+    <string name="snell_psk">Chiave pre-condivisa</string>
+    <string name="snell_userkey">Chiave utente</string>
     <string name="snell_version">Versione</string>
-    <string name="snell_network">Protocollo</string>
+    <string name="snell_network">Rete</string>
     <string name="snell_obfs_mode">Modalità Obfs</string>
     <string name="snell_obfs_host">Host Obfs</string>
+    <string name="snell_mode">Modalità</string>
     <string name="snell_reuse">Riutilizzo</string>
-    <string name="snell_reuse_summary">solo v4/v5</string>
+    <string name="snell_reuse_summary">solo v4-v6</string>
+    <string name="interface_settings">Interface</string>
+    <string name="ui_style">Interface style</string>
+    <string name="ui_style_expressive">New</string>
+    <string name="ui_style_classic">Classic</string>
+    <string name="dynamic_colors">Dynamic colors</string>
+    <string name="dynamic_colors_summary">Use the system Material You palette</string>
+    <string name="dynamic_colors_unavailable">Available on Android 12 and newer</string>
+    <string name="dynamic_colors_classic">Available with the new interface</string>
+    <string name="theme_fallback_summary">Used when dynamic colors are unavailable or disabled</string>
+    <string name="more_options">More options</string>
+    <string name="amoled_theme">AMOLED Dark Theme</string>
+    <string name="amoled_theme_summary">Pure black background in dark mode</string>
+    <string name="app_theme">Accent Color</string>
 </resources>
