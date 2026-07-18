@@ -10,7 +10,8 @@
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"android:background="?attr/android:colorBackground"
+        android:layout_height="wrap_content"
+        android:background="?attr/android:colorBackground"
         android:elevation="0dp"
         app:elevation="0dp"
         tools:ignore="Overdraw">
