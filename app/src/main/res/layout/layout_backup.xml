@@ -133,7 +133,6 @@
                         android:text="@string/action_import_file" />
 
                 </LinearLayout>
-            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <!-- 合併 HEAD 的交互屬性與 sf/main 的 M3 卡片圓角、背景、邊距規範 -->
