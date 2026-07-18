@@ -22,9 +22,7 @@
             android:clipToPadding="false"
             android:padding="?attr/uiListOuterPadding"
             android:scrollbarSize="0dp"
-            app:fastScrollAutoHide="true"
-            app:fastScrollThumbColor="?colorPrimary"
-            app:fastScrollThumbInactiveColor="?colorPrimary">
+            >
 
             <!-- 💡 欠落していたパーツ：高速スクロール用のヘルパーコンポーネント -->
             <me.zhanghai.android.fastscroll.FastScroller

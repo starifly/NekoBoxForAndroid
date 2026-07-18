@@ -23,10 +23,6 @@
         android:overScrollMode="never"
         android:padding="?attr/uiListOuterPadding"
         android:scrollbarSize="0dp"
-        app:fastScrollAutoHide="true"
-        app:fastScrollPopupTextColor="?colorPrimary"
-        app:fastScrollThumbColor="?colorPrimary"
-        app:fastScrollThumbInactiveColor="?colorPrimary"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
 </LinearLayout>
