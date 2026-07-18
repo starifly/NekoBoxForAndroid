@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <resources>
     <attr name="colorMaterial100" format="color" />
     <attr name="colorMaterial300" format="color" />
@@ -11,7 +10,25 @@
     <attr name="selectedColorPrimary" format="color" />
     <attr name="whiteOrTextPrimary" format="color" />
 
-    <!-- 採用 sf/main 全新重構的 M3 元件維度與結構屬性系統 -->
+    <!-- 補上 themes.xml 中缺失的自定義屬性聲明 -->
+    <attr name="appBarBackgroundColor" format="color" />
+    <attr name="cardElevatedSurfaceColor" format="color" />
+    <attr name="protocolColor" format="color" />
+    <attr name="profileNameColor" format="color" />
+    <attr name="statusConnectedColor" format="color" />
+    <attr name="statusStoppedColor" format="color" />
+    <attr name="statusConnectingColor" format="color" />
+    <attr name="testFailColor" format="color" />
+    <attr name="speedTextColor" format="color" />
+    <attr name="fabStoppedColor" format="color" />
+    <attr name="fabConnectedColor" format="color" />
+    <attr name="statusDetailColor" format="color" />
+    <attr name="statusTestingColor" format="color" />
+    <attr name="routeProxyColor" format="color" />
+    <attr name="navSelectedColor" format="color" />
+    <attr name="itemShapeFillColor" format="color" />
+
+    <!-- 採用 sf/main 全新重模 M3 元件維度與結構屬性系統 -->
     <attr name="uiAppBarHeight" format="dimension" />
     <attr name="uiAppBarElevation" format="dimension" />
     <attr name="uiCardElevation" format="dimension" />
