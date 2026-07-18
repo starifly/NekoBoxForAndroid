@@ -41,7 +41,7 @@ https://matsuridayo.github.io
 * Trojan
 * VLESS
 * AnyTLS/AnyReality
-* Snell 1/2/3/4/5
+* Snell 1/2/3/4/5/6
 * ShadowTLS
 * TUIC
 * Juicity
