@@ -14,8 +14,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <!-- 開きタグを FastScrollRecyclerView に変更 -->
-        <com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
+        <!-- 互換性のある標準の RecyclerView を使用 -->
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/route_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -26,7 +26,14 @@
             app:fastScrollThumbColor="?colorPrimary"
             app:fastScrollThumbInactiveColor="?colorPrimary">
 
-        <!-- 閉じタグも完全に一致させる -->
-        </com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView>
+            <!-- 💡 欠落していたパーツ：高速スクロール用のヘルパーコンポーネント -->
+            <me.zhanghai.android.fastscroll.FastScroller
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="end" />
+
+        </androidx.recyclerview.widget.RecyclerView>
 
     </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

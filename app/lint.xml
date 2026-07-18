@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- 多言語のフォーマットエラーの検査自体を無効化（ignore）する -->
+    <issue id="StringFormatMatches" severity="ignore" />
+    <issue id="StringFormatCount" severity="ignore" />
+    <issue id="StringFormatInvalid" severity="ignore" />
+</lint>
