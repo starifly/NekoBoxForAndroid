@@ -1,7 +1,7 @@
 <resources>
-    <!-- Compatibility names retained for manifest entries and external integrations. -->
-    <style name="Theme.SagerNet" parent="Theme.SagerNet.Expressive" />
-    <style name="Theme.SagerNet.Dialog" parent="Theme.SagerNet.Expressive.Dialog">
+    <!-- 使用標準的 M3 代替丟失的 Expressive 基礎主題 -->
+    <style name="Theme.SagerNet" parent="Theme.Material3.DayNight.NoActionBar" />
+    <style name="Theme.SagerNet.Dialog" parent="Theme.Material3.DayNight.Dialog">
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
     </style>
 
