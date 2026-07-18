@@ -31,13 +31,10 @@ popd >/dev/null
 
 #### wireguard-go (amneziawg-go mirror) ####
 if [ ! -d "wireguard-go" ]; then
-  git clone --no-checkout https://github.com/amnezia-vpn/amneziawg-go.git wireguard-go
+  git clone --no-checkout https://github.com/sagernet/wireguard-go.git wireguard-go
 fi
 pushd wireguard-go >/dev/null
 git checkout "$COMMIT_WIREGUARD_GO"
-# 保持 import path 与 sing-box 期望的 github.com/sagernet/wireguard-go 一致
-sed -i '1s|^module .*|module github.com/sagernet/wireguard-go|' go.mod
-grep -rl 'github.com/amnezia-vpn/amneziawg-go/' . | xargs sed -i 's|github.com/amnezia-vpn/amneziawg-go/|github.com/sagernet/wireguard-go/|g'
 popd >/dev/null
 
 popd >/dev/null
