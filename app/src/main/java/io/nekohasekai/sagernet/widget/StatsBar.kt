@@ -16,6 +16,7 @@ import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.ui.MainActivity
+import kotlin.math.abs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -27,6 +28,7 @@ class StatsBar @JvmOverloads constructor(
 ) : BottomAppBar(context, attrs, defStyleAttr) {
     companion object {
         private const val INITIAL_HIDE_DELAY_MS = 100L
+        private const val SCROLL_TOGGLE_THRESHOLD_DP = 8f
     }
 
     private enum class Transition {
@@ -45,7 +47,20 @@ class StatsBar @JvmOverloads constructor(
     private var pendingTransition: Transition? = Transition.HideImmediate
     private var transitionJob: Job? = null
 
+    private var scrollHidden = false
+    private var scrollDirection = 0 // 1 = hide (dy>0), -1 = show (dy<0), 0 = none
+    private var scrollAccumulatedDy = 0
+    private val scrollToggleThresholdPx =
+        (SCROLL_TOGGLE_THRESHOLD_DP * resources.displayMetrics.density).toInt().coerceAtLeast(8)
+
     var useExternalScrollDriver = false
+        set(value) {
+            if (field == value) return
+            field = value
+            syncScrollHiddenFromView()
+            resetScrollDriverState()
+            updateHideOnScroll()
+        }
 
     var allowShow = false
         set(value) {
@@ -113,16 +128,46 @@ class StatsBar @JvmOverloads constructor(
     }
 
     private fun updateHideOnScroll() {
-        hideOnScroll = allowShow && currentState == BaseService.State.Connected
+        hideOnScroll =
+            !useExternalScrollDriver && allowShow && currentState == BaseService.State.Connected
     }
 
     private fun shouldShow(): Boolean {
         return allowShow && currentState == BaseService.State.Connected
     }
 
+    private fun resetScrollDriverState() {
+        scrollDirection = 0
+        scrollAccumulatedDy = 0
+    }
+
+    private fun syncScrollHiddenFromView() {
+        if (!isLaidOut || height <= 0) return
+        scrollHidden = translationY >= height / 2f
+    }
+
     fun onListScrolled(dy: Int) {
         if (!useExternalScrollDriver || !shouldShow() || dy == 0) return
-        if (dy > 0) performHide() else performShow()
+
+        val direction = if (dy > 0) 1 else -1
+        if (direction != scrollDirection) {
+            scrollDirection = direction
+            scrollAccumulatedDy = 0
+        }
+        scrollAccumulatedDy += dy
+
+        val wantHidden = scrollAccumulatedDy > 0
+        if (wantHidden == scrollHidden) {
+            if (abs(scrollAccumulatedDy) > scrollToggleThresholdPx) {
+                scrollAccumulatedDy = direction * scrollToggleThresholdPx
+            }
+            return
+        }
+        if (abs(scrollAccumulatedDy) < scrollToggleThresholdPx) return
+
+        scrollHidden = wantHidden
+        scrollAccumulatedDy = 0
+        if (wantHidden) performHide() else performShow()
     }
 
     fun syncMainControls(
@@ -166,6 +211,8 @@ class StatsBar @JvmOverloads constructor(
 
     private fun commitVisible(animated: Boolean) {
         alpha = 1f
+        scrollHidden = false
+        resetScrollDriverState()
         if (animated) {
             performShow()
         } else {
@@ -177,6 +224,8 @@ class StatsBar @JvmOverloads constructor(
 
     private fun commitHidden(animated: Boolean) {
         alpha = 1f
+        scrollHidden = true
+        resetScrollDriverState()
         if (!animated) {
             syncHiddenPosition()
             return
