@@ -12,11 +12,21 @@
     <string name="menu_group">Група</string>
     <string name="menu_about">Пра праграму</string>
     <string name="theme">Тэма</string>
+    <string name="theme_dynamic">Dynamic (Material You)</string>
+    <string name="theme_dark_high_contrast">Dark High Contrast</string>
+    <string name="theme_dracula_m3">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_monokai">Monokai</string>
+    <string name="theme_ayu">Ayu</string>
+    <string name="theme_catppuccin">Catppuccin</string>
+    <string name="theme_classic_colors">Legacy colors…</string>
+    <string name="theme_classic_color_swatch">Color theme %1$d</string>
     <string name="document">Дакумент</string>
     <string name="group_default">Без групы</string>
     <string name="quick_toggle">Пераключыць</string>
     <string name="quick_enable">Уключыць</string>
     <string name="quick_disable">Выключыць</string>
+    <string name="quick_clear_cache_restart">Clear Cache &amp; Restart</string>
     <string name="tile_title">Пераключальнік</string>
     <string name="menu_traffic">Трафік</string>
     <string name="menu_dashboard">Панэль кіравання sing-box</string>
@@ -40,9 +50,9 @@
     <string name="group_status_empty">Пустая група</string>
     <string name="group_status_empty_subscription">Яшчэ не абноўлена</string>
     <string name="group_status_proxies">%d проксі</string>
-    <string name="group_status_proxies_subscription">%1$d проксі | Абноўлена %2$s</string>
+    <string name="group_status_proxies_subscription">%1$d Proxies | Updated on %2$s</string>
     <string name="group_no_difference">%s: Няма розніцы</string>
-    <string name="group_updated">%1$s: Абноўлена %2$d проксі</string>
+    <string name="group_updated">%1$s: Updated %2$d proxies</string>
     <string name="group_show_diff">Розніца</string>
     <string name="group_diff">Розніца (%s)</string>
     <string name="group_delete_confirm_prompt">Вы ўпэўнены, што хочаце выдаліць гэтую групу?</string>
@@ -59,6 +69,10 @@
     <string name="cag_route">Налады маршрутызацыі</string>
     <string name="allow_access">Дазволіць злучэнні з LAN</string>
     <string name="allow_access_sum">Прывязаць уваходныя серверы да 0.0.0.0</string>
+    <string name="require_proxy_in_vpn">Keep local proxy in VPN mode</string>
+    <string name="require_proxy_in_vpn_sum">Keep the local SOCKS/HTTP proxy port open while in VPN mode. Off by default: in VPN mode the port is usually unneeded and leaving it open lets other apps reach it.</string>
+    <string name="proxy_mode_inbound_auth">Authenticate local proxy in Proxy mode</string>
+    <string name="proxy_mode_inbound_auth_sum">Require username/password on the local SOCKS/HTTP proxy when running in Proxy (non-VPN) mode. Enable to stop other apps from using it as an open relay.</string>
     <string name="inbound_settings">Налады ўваходных злучэнняў</string>
     <string name="general_settings">Налады праграмы</string>
     <string name="require_http">Уключыць HTTP уваходны</string>
@@ -74,11 +88,12 @@
     <string name="security_settings">Налады бяспекі TLS</string>
     <string name="allow_insecure">Дазволіць небяспечнае</string>
     <string name="allow_insecure_sum">Адключыць праверку сертыфікатаў. Пры ўключэнні гэтая канфігурацыя настолькі ж бяспечная, як звычайны тэкст</string>
+    <string name="lifetime_traffic">All-time: %1$s↑ %2$s↓</string>
     <string name="speed_detail">Проксі: %1$s↑ %2$s↓\nПрамы: %3$s↑ %4$s↓</string>
     <string name="speed">%s/с</string>
     <string name="connection_test_testing">Тэставанне…</string>
-    <string name="connection_test_available">Поспех: HTTPS рукапаціск заняў %dms</string>
-    <string name="connection_test_available_http">Поспех: HTTP рукапаціск заняў %dms</string>
+    <string name="connection_test_available">Delay: %d ms</string>
+    <string name="connection_test_available_http">Delay: %d ms</string>
     <string name="connection_test_error">Памылка: %s</string>
     <string name="connection_test_fail">Інтэрнэт недаступны</string>
     <string name="connection_test_error_status_code">Код памылкі: #%d</string>
@@ -215,15 +230,20 @@
     <string name="add_profile">Дадаць профіль</string>
     <string name="select_profile">Абраць профіль</string>
     <string name="proxy_chain">Проксі-ланцуг</string>
+    <string name="proxy_waterfall">Waterfall</string>
+    <string name="proxy_fastest">Fastest</string>
     <string name="custom_config">Уласная канфігурацыя</string>
     <string name="balancer">Балансавальнік</string>
     <string name="balancer_settings">Налады балансавальніка</string>
     <string name="balancer_type">Тып</string>
     <string name="balancer_strategy">Стратэгія</string>
     <string name="chain_settings">Налады ланцуга</string>
+    <string name="waterfall_settings">Waterfall Settings</string>
+    <string name="fastest_settings">Fastest Settings</string>
     <string name="config_settings">Налады канфігурацыі</string>
     <string name="circular_reference">Зацыкленая спасылка</string>
     <string name="circular_reference_sum">Маршрут не можа ўтрымліваць сябе.</string>
+    <string name="profile_reference_not_allowed">This profile is already added, creates a circular reference, or is not allowed in this group.</string>
     <string name="clear_profiles">Ачысціць</string>
     <string name="action_create_group">Пустая група</string>
     <string name="action_from_link">З падпіскі</string>
@@ -233,6 +253,11 @@
     <string name="action_export">Экспартаваць</string>
     <string name="action_import">Імпартаваць з буфера абмену</string>
     <string name="action_import_file">Імпартаваць з файла</string>
+    <string name="scan_qr_hint">Point the camera at a QR code</string>
+    <string name="scan_toggle_torch">Toggle flashlight</string>
+    <string name="scan_torch_turn_on">Turn flashlight on</string>
+    <string name="scan_torch_turn_off">Turn flashlight off</string>
+    <string name="scan_no_qr_found">No QR code found in the selected image</string>
     <string name="action_export_msg">Поспешна экспартавана!</string>
     <string name="action_export_err">Не атрымалася экспартаваць.</string>
     <string name="action_import_msg">Імпарт паспяховы!</string>
@@ -266,6 +291,7 @@
     <!-- status -->
     <string name="connecting">Злучэнне…</string>
     <string name="vpn_connected">Падключана, націсніце, каб праверыць злучэнне</string>
+    <string name="connection_status_connected">Connected</string>
     <string name="not_connected">Не падключана</string>
     <!-- subscriptions -->
     <string name="subscriptions">Падпіскі</string>
@@ -274,12 +300,16 @@
     <string name="no_proxies_found">Проксі не знойдзены ў спасылцы</string>
     <string name="no_proxies_found_in_subscription">Проксі не знойдзены ў падпісцы</string>
     <string name="no_proxies_found_in_file">Проксі не знойдзены ў файле</string>
+    <string name="invalid_amnezia_config">Invalid or damaged Amnezia configuration</string>
+    <string name="no_amnezia_awg_profiles">No AmneziaWG profiles found in the configuration</string>
     <string name="no_proxies_found_in_clipboard">Проксі не знойдзены ў буферы абмену</string>
     <string name="deduplication">Дэдуплікацыя</string>
     <string name="donate">Ахвяраваць</string>
     <string name="donate_info">Я люблю грошы</string>
     <string name="ignore_battery_optimizations">Ігнараваць аптымізацыю батарэі</string>
     <string name="ignore_battery_optimizations_sum">Зняць некаторыя абмежаванні</string>
+    <string name="battery_optimization_enabled">Enabled - the app can run unrestricted in the background</string>
+    <string name="battery_optimization_disabled">Disabled - tap to allow background activity</string>
     <!-- plugin -->
     <string name="plugin">Плагін</string>
     <string name="plugin_configure">Наладзіць…</string>
@@ -287,6 +317,15 @@
     <string name="plugin_unknown">Невядомы плагін %s</string>
     <string name="plugin_untrusted">Папярэджанне: Гэты плагін, здаецца, не паходзіць з вядомай даверанай крыніцы.
         </string>
+    <string name="plugin_signer_unreadable">unreadable</string>
+    <string name="plugin_signer_rejected">Blocked plugin package %1$s with signer %2$s. Connect again to review it.</string>
+    <string name="plugin_approval_title">Approve plugin package?</string>
+    <string name="plugin_approval_message">Package: %1$s\n\nSHA-256 certificate fingerprint(s):\n%2$s\n\nThe installed plugin’s executable code can run through the app’s plugin interface. Approve only if you trust this package.</string>
+    <string name="plugin_approval_action">Approve</string>
+    <string name="plugin_approval_success">Plugin package approved. Connect again to use it.</string>
+    <string name="plugin_approval_failed">The plugin package could not be approved.</string>
+    <string name="plugin_approval_conflict_title">Plugin package conflict</string>
+    <string name="plugin_approval_conflict_message">More than one untrusted package provides this plugin: %s\n\nRemove the conflict before approving a package.</string>
     <string name="plugin_auto_connect_unlock_only">Гэты плагін можа не працаваць з Auto Connect</string>
     <string name="proxy_cat">Налады сервера</string>
     <string name="ss_cat">Налады Shadowsocks</string>
@@ -298,6 +337,13 @@
     <string name="license">Ліцэнзія</string>
     <string name="route_warn">Пераканайцеся, што вы прачыталі дакументацыю перад даданнем уласных правілаў, інакш вы можаце страціць магчымасць падключэння да Інтэрнэту.</string>
     <string name="lines">%d ліній</string>
+    <plurals name="dns_hosts_lines">
+        <item quantity="one">%d line</item>
+        <item quantity="few">%d lines</item>
+        <item quantity="many">%d lines</item>
+        <item quantity="other">%d lines</item>
+    </plurals>
+    <string name="not_set">Not set</string>
     <string name="night_mode">Начны рэжым</string>
     <string name="language">Мова</string>
     <string name="follow_system">Следаваць сістэме</string>
@@ -325,10 +371,11 @@
     <string name="connection_test_timeout_error">Час чакання выйшаў</string>
     <string name="append_http_proxy">Далучыць HTTP проксі да VPN</string>
     <string name="append_http_proxy_sum">HTTP проксі будзе выкарыстоўвацца непасрэдна з (браўзера/ некаторых падтрымліваемых дадаткаў), без праходжання праз віртуальную сеткавую прыладу (Android 10+)</string>
-    <string name="http_proxy_bypass">Спіс абыходу HTTP проксі</string>
     <string name="http_proxy_bypass_dialog_message">Адна на радок. Радкі, якія пачынаюцца з #, з\'яўляюцца каментарамі. Прыклад: *zhihu.com</string>
     <string name="append_http_proxy_security_title">Заўвага па бяспецы</string>
     <string name="append_http_proxy_security_message">Калі ўключана, іншыя праграмы на гэтай прыладзе могуць непасрэдна выкарыстоўваць лакальны проксі-порт.\n\nРэкамендацыя: Уключайце гэта толькі калі давяраеце ўсім усталяваным праграмам.</string>
+    <string name="http_proxy_bypass">Спіс абыходу HTTP проксі</string>
+    <string name="http_proxy_bypass_sum">Hosts that skip the system HTTP proxy and connect directly when Append HTTP Proxy to VPN is on. One pattern per line, e.g. 192.168.* or 10.*. Defaults to private and loopback ranges.</string>
     <string name="enable_anyway">Уключыць усё роўна</string>
     <string name="strict_route">Строгі маршрут</string>
     <string name="protocol_settings">Наладкі пратаколу</string>
@@ -348,6 +395,9 @@
     <string name="filter_include">Уключыць</string>
     <string name="filter_exclude">Выключыць</string>
     <string name="filter_regex">Фільтр (Regex)</string>
+    <string name="subscription_custom_dns">Custom resolver</string>
+    <string name="subscription_custom_dns_sum">Optional DNS used only to resolve this subscription\'s server domains. Leave empty to use the global DNS. Accepts https://, tls://, quic:// or host[:port].</string>
+    <string name="subscription_custom_dns_invalid">Invalid resolver. Use https://, tls://, quic:// or host[:port], or leave empty.</string>
     <string name="raw">Сыры</string>
     <string name="update_settings">Налады абнаўлення</string>
     <string name="auto_update">Аўтаматычнае абнаўленне</string>
@@ -355,9 +405,14 @@
     <string name="update_when_connected_only">Абнаўляць толькі пры падключэнні</string>
     <string name="update_when_connected_only_sum">Прадухіліць уцечку IP-адрасу</string>
     <string name="subscription_user_agent">UserAgent</string>
+    <string name="subscription_send_hwid">Send HWID</string>
+    <string name="subscription_send_hwid_summary">Send HWID, Android version, and device model when updating this subscription</string>
+    <string name="subscription_custom_hwid_params">Custom HWID parameters</string>
+    <string name="subscription_custom_hwid_params_summary">Format: hwid=value,os=value,osVersion=value,model=value. Leave empty to use this device values; when filled, only listed values are sent.</string>
     <string name="confirm">Пацвердзіць</string>
     <string name="missing_plugin">Адсутны плагін</string>
-    <string name="profile_requiring_plugin">Профіль %1$s патрабуе ўстаноўкі плагіна %2$s, але ён не знойдзены.</string>
+    <string name="profile_requiring_plugin">Profile %1$s requires the %2$s plugin to be installed, but
+        it was not found.</string>
     <string name="action_learn_more">ДАВЕДАЦЦА БОЛЬШ</string>
     <string name="action_download">ЗАГРУЗІЦЬ</string>
     <string name="install_from_play_store">Усталяваць з Play Store</string>
@@ -375,7 +430,7 @@
     <string name="server_dns_subscription_sum">Неабавязковы DNS, які выкарыстоўваецца толькі для распазнавання даменаў сервера ў гэтай падпісцы. Пакіньце пустым для выкарыстання стандартнага паводзінаў. Прымае https://, tls://, quic:// або host[:port].</string>
     <string name="server_dns_invalid">Няправільны ўласны DNS сервера. Выкарыстоўвайце https://, tls://, quic:// або host[:port], ці пакіньце пустым.</string>
     <string name="subscription_used">%s Выкарыстана</string>
-    <string name="subscription_traffic">%1$s Выкарыстана / %2$s Засталося</string>
+    <string name="subscription_traffic">%1$s Used / %2$s Remaining</string>
     <string name="subscription_expire">Тэрмін дзеяння: %s</string>
     <string name="subscription_import">Імпартаваць падпіску</string>
     <string name="subscription_import_message">Пацвердзіце, што жадаеце імпартаваць падпіску %s? Калі вы\n        з ненадзейнай крыніцы, гэта можа прывесці да ўцечкі вашага IP і гэтых\n        дзеянняў.</string>
@@ -386,6 +441,48 @@
     <string name="select_apps">Выберыце дадаткі</string>
     <string name="apps_message">%d дадаткаў</string>
     <string name="hysteria_obfs">Пароль абфускацыі</string>
+    <string name="hysteria2_obfs_type">Obfuscation Type</string>
+    <string name="hysteria2_gecko_min_packet">Gecko Min Packet Size</string>
+    <string name="hysteria2_gecko_max_packet">Gecko Max Packet Size</string>
+    <string name="hysteria2_ech_summary">Advanced and optional. Requires the server ECH config list. The connection fails if the config is missing or stale; ECH is usually unnecessary when obfuscation is enabled.</string>
+    <string name="hysteria2_ech_config_hint">Paste the base64 config list from the server, or a complete ECH CONFIGS PEM block.</string>
+    <string name="hysteria2_ech_config_invalid">Enter a valid ECH config list before enabling ECH.</string>
+    <string name="action_masterdnsvpn">MasterDnsVPN</string>
+    <string name="mdv_domains">Tunnel Domains</string>
+    <string name="mdv_encryption_method">Encryption Method</string>
+    <string name="mdv_encryption_key">Encryption Key</string>
+    <string name="mdv_resolvers">DNS Resolvers</string>
+    <string name="mdv_resilience_cat">Resolver &amp; Resilience</string>
+    <string name="mdv_balancing_strategy">Resolver Balancing Strategy</string>
+    <string name="mdv_packet_dup">Packet Duplication Count</string>
+    <string name="mdv_setup_packet_dup">Setup Packet Duplication Count</string>
+    <string name="mdv_auto_disable_timeout">Auto-disable Timeout Servers</string>
+    <string name="mdv_auto_remove_low_mtu">Auto-remove Low-MTU Servers</string>
+    <string name="mdv_base_encode">Base-encode Data</string>
+    <string name="mdv_compression_cat">Compression</string>
+    <string name="mdv_upload_compression">Upload Compression</string>
+    <string name="mdv_download_compression">Download Compression</string>
+    <string name="mdv_compression_min_size">Compression Min Size</string>
+    <string name="mdv_mtu_cat">MTU Discovery</string>
+    <string name="mdv_min_upload_mtu">Min Upload MTU</string>
+    <string name="mdv_min_download_mtu">Min Download MTU</string>
+    <string name="mdv_max_upload_mtu">Max Upload MTU</string>
+    <string name="mdv_max_download_mtu">Max Download MTU</string>
+    <string name="mdv_misc_cat">Misc</string>
+    <string name="mdv_local_dns_enabled">Local DNS Server</string>
+    <string name="mdv_local_dns_port">Лакальны порт DNS</string>
+    <string name="mdv_log_level">Узровень лагавання</string>
+    <string name="mdv_advanced_json">Advanced JSON Override</string>
+    <string name="action_olcrtc">olcRTC</string>
+    <string name="olcrtc_carrier">Carrier</string>
+    <string name="olcrtc_room_id">Room ID / URL</string>
+    <string name="olcrtc_client_id">Client ID</string>
+    <string name="olcrtc_key_hex">Encryption Key (64 hex)</string>
+    <string name="olcrtc_transport_cat">Transport</string>
+    <string name="olcrtc_transport">Transport</string>
+    <string name="olcrtc_vp8_fps">VP8 FPS</string>
+    <string name="olcrtc_vp8_batch">VP8 Batch Size</string>
+    <string name="olcrtc_dns_server">DNS Resolver</string>
     <string name="hysteria_auth_type">Тып аўтэнтыфікацыі</string>
     <string name="hysteria_auth_payload">Карысная нагрузка аўтэнтыфікацыі</string>
     <string name="hysteria_upload_mbps">Максімальная хуткасць адпраўкі (Mbps)</string>
@@ -398,7 +495,9 @@
     <string name="group_order_origin">Зыходны</string>
     <string name="group_order_by_name">Па імені</string>
     <string name="group_order_by_delay">Па затрымцы</string>
-    <string name="plugin_exists_but_on_shit_system">Профіль %1$s патрабуе плагін %2$s, але ваш пастаўшчык прапрыетарнага абсталявання (звычайна гіганты сачэння і стваральнікі шкоднасных праграм) змяніў ваш Android, зрабіўшы плагін непрыдатным.</string>
+    <string name="plugin_exists_but_on_shit_system">Profile %1$s requires the %2$s plugin, but your
+        proprietary equipment vendor (usually surveillance capital giants and malware maker)
+        tampered with your Android, making the plugin unusable.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (плагін Shadowsocks для Android)</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (плагін Shadowsocks для Android)</string>
     <string name="tcp_connections">%d TCP-злучэнняў</string>
@@ -431,6 +530,23 @@
     <string name="wireguard_local_address">Лакальны адрас</string>
     <string name="wireguard_public_key">Публічны ключ піра</string>
     <string name="wireguard_psk">Перадсумесны ключ піра</string>
+    <string name="amneziawg_category">AmneziaWG 2.0</string>
+    <string name="amneziawg_jc">Jc (junk packets)</string>
+    <string name="amneziawg_jmin">Jmin (junk min size)</string>
+    <string name="amneziawg_jmax">Jmax (junk max size)</string>
+    <string name="amneziawg_s1">S1</string>
+    <string name="amneziawg_s2">S2</string>
+    <string name="amneziawg_s3">S3</string>
+    <string name="amneziawg_s4">S4</string>
+    <string name="amneziawg_h1">H1</string>
+    <string name="amneziawg_h2">H2</string>
+    <string name="amneziawg_h3">H3</string>
+    <string name="amneziawg_h4">H4</string>
+    <string name="amneziawg_i1">I1</string>
+    <string name="amneziawg_i2">I2</string>
+    <string name="amneziawg_i3">I3</string>
+    <string name="amneziawg_i4">I4</string>
+    <string name="amneziawg_i5">I5</string>
     <string name="warp_license">CloudFlare Warp - гэта бясплатны WireGuard VPN правайдар. Выкарыстоўваючы яго, вы
         згаджаецеся з умовамі выкарыстання.</string>
     <string name="warp_generate">Стварыць канфігурацыю</string>
@@ -475,12 +591,17 @@
     <string name="tuic_disable_sni">Адключыць SNI</string>
     <string name="tuic_reduce_rtt">Уключыць 0-RTT QUIC рукапацісканне</string>
     <string name="pinned_certchain_sha256">Замацаваны сертыфікат SHA256</string>
-    <string name="please_update">Ваша праграма занадта старая (%1$s). І перастане працаваць у %2$s. Калі ласка, абнавіце!</string>
-    <string name="please_update_force">Ваша праграма занадта старая (%1$s). І ўжо перастала працаваць у %2$s. Калі ласка, абнавіце!</string>
+    <string name="please_update">Your APP is too old (%1$s). And will stop working at %2$s. Please
+        update!</string>
+    <string name="please_update_force">Your APP is too old (%1$s). And has been stopped working at %2$s.
+        Please update!</string>
     <string name="connection_test_delete_unavailable">Ачысціць недаступныя</string>
     <string name="move">Перамясціць</string>
     <string name="exe_prefer_provider">Прадпачытальны пастаўшчык плагінаў</string>
     <string name="create_shortcut">Стварыць ярлык</string>
+    <string name="create_clear_cache_shortcut_summary">Create a home screen shortcut for cache clear and restart</string>
+    <string name="shortcut_pin_requested">Shortcut request sent to launcher</string>
+    <string name="shortcut_pin_not_supported">Launcher does not support pinning shortcuts</string>
     <string name="app_tls_version">Мінімальная версія TLS для падпіскі</string>
     <string name="hop_interval">Інтэрвал пераключэння порта (секунды)</string>
     <string name="domain_strategy_for_remote">Стратэгія даменаў для аддаленых</string>
@@ -493,6 +614,8 @@
     <string name="is_outbound_only">JSON-набор з\'яўляецца выходным</string>
     <string name="save">Захаваць</string>
     <string name="set_panel_url">Усталяваць URL панэлі</string>
+    <string name="action_close">Close</string>
+    <string name="invalid_panel_url">Invalid panel URL. Use HTTPS or localhost HTTP only.</string>
     <string name="enable_clash_api">Уключыць Clash API</string>
     <string name="log_level">Узровень лагавання</string>
     <string name="enable_clash_api_summary">Прадастаўленне clash API і yacd dashboard на 127.0.0.1:9090</string>
@@ -555,11 +678,13 @@
     <string name="webdav_server_error">Памылка сервера</string>
     <string name="webdav_connect_failed">Злучэнне не ўдалося з кодам: %d</string>
     <string name="webdav_create_dir_failed">Не ўдалося стварыць або атрымаць доступ да дырэкторыі рэзервовых копій</string>
+    <string name="webdav_insecure_url">Insecure WebDAV server URL. Use an https:// address; plain http:// would transmit your credentials and backup (which contains all profile secrets) in cleartext.</string>
     <string name="global_mode">Глабальны рэжым</string>
     <string name="global_mode_summary">Абыходзіць усе правілы маршрутызацыі і праксіраваць увесь трафік праз бягучы вузел</string>
     <string name="mux_preference">Мультыплекс</string>
     <string name="padding">Запаўненне</string>
     <string name="network_change_reset_connections">Скінуць выходныя злучэнні пры змене сеткі</string>
+    <string name="restart_profile_on_network_change">Restart active profile when network changes</string>
     <string name="wake_reset_connections">Скінуць выходныя злучэнні пры абуджэнні прылады са сну</string>
     <string name="backup_in_progress">Рэзервовае капіраванне ўжо выконваецца</string>
     <string name="restore_in_progress">Аднаўленне ўжо выконваецца</string>
@@ -595,11 +720,26 @@
     <string name="open_app_settings">Адкрыць сістэмныя налады</string>
     <!-- Snell Protocol -->
     <string name="action_snell">Snell</string>
-    <string name="snell_psk">Ключ</string>
+    <string name="snell_psk">Папярэдне распаўсюджаны ключ</string>
+    <string name="snell_userkey">Ключ карыстальніка</string>
     <string name="snell_version">Версія</string>
-    <string name="snell_network">Пратакол</string>
-    <string name="snell_obfs_mode">Рэжым Obfs</string>
-    <string name="snell_obfs_host">Хост Obfs</string>
+    <string name="snell_network">Сетка</string>
+    <string name="snell_obfs_mode">Рэжым абфускацыі</string>
+    <string name="snell_obfs_host">Хост абфускацыі</string>
+    <string name="snell_mode">Рэжым</string>
     <string name="snell_reuse">Паўторна выкарыстоўваць</string>
-    <string name="snell_reuse_summary">толькі v4/v5</string>
+    <string name="snell_reuse_summary">толькі v4-v6</string>
+    <string name="interface_settings">Interface</string>
+    <string name="ui_style">Interface style</string>
+    <string name="ui_style_expressive">New</string>
+    <string name="ui_style_classic">Classic</string>
+    <string name="dynamic_colors">Dynamic colors</string>
+    <string name="dynamic_colors_summary">Use the system Material You palette</string>
+    <string name="dynamic_colors_unavailable">Available on Android 12 and newer</string>
+    <string name="dynamic_colors_classic">Available with the new interface</string>
+    <string name="theme_fallback_summary">Used when dynamic colors are unavailable or disabled</string>
+    <string name="more_options">More options</string>
+    <string name="amoled_theme">AMOLED Dark Theme</string>
+    <string name="amoled_theme_summary">Pure black background in dark mode</string>
+    <string name="app_theme">Accent Color</string>
 </resources>
