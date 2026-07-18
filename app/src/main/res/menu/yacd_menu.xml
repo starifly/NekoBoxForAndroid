@@ -5,5 +5,5 @@
         android:title="@string/set_panel_url" />
     <item
         android:id="@+id/close"
-        android:title="@string/mal_close" />
+        android:title="@string/action_close" />
 </menu>

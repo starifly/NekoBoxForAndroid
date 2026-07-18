@@ -7,12 +7,12 @@ enum class PluginEntry(
     val pluginId: String,
     val displayName: String,
     val packageName: String, // for play and f-droid page
-    val downloadSource: DownloadSource = DownloadSource()
+    val downloadSource: DownloadSource = DownloadSource(),
 ) {
     TrojanGo(
         "trojan-go-plugin",
         SagerNet.application.getString(R.string.action_trojan_go),
-        "io.nekohasekai.sagernet.plugin.trojan_go"
+        "io.nekohasekai.sagernet.plugin.trojan_go",
     ),
     MieruProxy(
         "mieru-plugin",
@@ -21,8 +21,8 @@ enum class PluginEntry(
         DownloadSource(
             playStore = false,
             fdroid = false,
-            downloadLink = "https://github.com/MatsuriDayo/plugins/releases?q=mieru"
-        )
+            downloadLink = "https://github.com/MatsuriDayo/plugins/releases?q=mieru",
+        ),
     ),
     NaiveProxy(
         "naive-plugin",
@@ -31,8 +31,8 @@ enum class PluginEntry(
         DownloadSource(
             playStore = false,
             fdroid = false,
-            downloadLink = "https://github.com/MatsuriDayo/plugins/releases?q=naive"
-        )
+            downloadLink = "https://github.com/MatsuriDayo/plugins/releases?q=naive",
+        ),
     ),
     Hysteria(
         "hysteria-plugin",
@@ -41,15 +41,15 @@ enum class PluginEntry(
         DownloadSource(
             playStore = false,
             fdroid = false,
-            downloadLink = "https://github.com/MatsuriDayo/plugins/releases?q=Hysteria"
-        )
+            downloadLink = "https://github.com/MatsuriDayo/plugins/releases?q=Hysteria",
+        ),
     ),
     ;
 
     data class DownloadSource(
         val playStore: Boolean = true,
         val fdroid: Boolean = true,
-        val downloadLink: String = "https://matsuridayo.github.io/"
+        val downloadLink: String = "https://matsuridayo.github.io/",
     )
 
     companion object {
@@ -62,7 +62,5 @@ enum class PluginEntry(
             }
             return null
         }
-
     }
-
 }

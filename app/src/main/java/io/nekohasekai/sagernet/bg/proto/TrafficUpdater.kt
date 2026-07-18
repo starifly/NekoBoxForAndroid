@@ -17,6 +17,11 @@ class TrafficUpdater(
         var lastUpdate: Long = 0,
         var ignore: Boolean = false,
         var hasTrafficDelta: Boolean = false,
+        // How much of THIS session's cumulative delta (rx - rxBase / tx - txBase) has already
+        // been added to the persistent lifetime columns. Advancing it on every flush makes
+        // lifetime accumulation idempotent across re-entrant persist()/applySelect calls.
+        var lifetimeFlushedRx: Long = 0,
+        var lifetimeFlushedTx: Long = 0,
     )
 
     private fun updateOne(item: TrafficLooperData): TrafficLooperData {
@@ -25,9 +30,10 @@ class TrafficUpdater(
         val interval = now - item.lastUpdate
         item.lastUpdate = now
         if (interval <= 0) {
-            item.rxRate = 0
-            item.txRate = 0
-            return TrafficLooperData(tag = item.tag)
+            return item.apply {
+                rxRate = 0
+                txRate = 0
+            }
         }
 
         // query

@@ -1,0 +1,665 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Night-only surface overrides.
+
+      Other themes intentionally inherit the Material DayNight defaults, so we do
+      NOT redeclare them here. Only the Dracula theme paints a full custom canvas:
+      the official #282a36 background, #343746 surface, and #f8f8f2 foreground.
+
+      In day mode the Dracula style (values/themes.xml) keeps the standard light
+      surfaces, so accents stay readable even if the user is not in dark mode.
+      Selecting Dracula also forces night mode on (SettingsPreferenceFragment),
+      which is what brings these overrides into effect.
+    -->
+    <style name="Theme.SagerNet.Dracula" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/color_dracula</item>
+        <item name="appBarBackgroundColor">@color/color_dracula</item>
+        <item name="colorPrimaryDark">@color/color_dracula_dark</item>
+        <item name="colorAccent">@color/color_dracula_accent</item>
+        <item name="colorMaterial100">@color/color_dracula_100</item>
+        <item name="colorMaterial300">@color/color_dracula_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_dracula</item>
+
+        <!-- True Dracula dark canvas. -->
+        <item name="colorSurface">@color/dracula_surface</item>
+        <item name="colorOnSurface">@color/dracula_on_surface</item>
+        <item name="android:colorBackground">@color/dracula_background</item>
+        <item name="colorOnBackground">@color/dracula_on_surface</item>
+        <item name="android:windowBackground">@color/dracula_background</item>
+        <!-- M3 container/variant roles on the dark canvas (the base defaults point
+             at the light color_dracula_100 tint, which clashes with light-on-dark
+             text in night mode). -->
+        <item name="colorPrimaryContainer">@color/color_dracula_container</item>
+        <item name="colorOnPrimaryContainer">@color/dracula_on_surface</item>
+        <item name="colorSecondaryContainer">@color/color_dracula_container</item>
+        <item name="colorOnSecondaryContainer">@color/dracula_on_surface</item>
+        <item name="colorTertiaryContainer">@color/color_dracula_container</item>
+        <item name="colorOnTertiaryContainer">@color/dracula_on_surface</item>
+        <item name="colorSurfaceVariant">@color/color_dracula_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/dracula_on_surface</item>
+        <item name="colorOutline">@color/color_dracula_outline</item>
+        <!-- Night is Dracula's active code path (it forces night mode on), so the
+             semantic color overrides must live here too, not only day. -->
+        <item name="protocolColor">@color/color_dracula_green</item>
+        <item name="profileNameColor">@color/color_dracula_yellow</item>
+        <item name="statusConnectedColor">@color/color_dracula_green</item>
+        <item name="statusStoppedColor">@color/color_dracula_red</item>
+        <item name="statusConnectingColor">@color/color_dracula_yellow</item>
+        <item name="testFailColor">@color/color_dracula_red</item>
+        <item name="speedTextColor">@color/color_dracula_cyan</item>
+        <item name="fabStoppedColor">@color/color_dracula_cyan</item>
+        <item name="statusDetailColor">@color/color_dracula_cyan</item>
+        <item name="statusTestingColor">@color/color_dracula_yellow</item>
+        <item name="routeProxyColor">@color/color_dracula_cyan</item>
+        <item name="navSelectedColor">?attr/colorAccent</item>
+    </style>
+
+    <style name="Theme.SagerNet.Dialog.Dracula" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/color_dracula</item>
+        <item name="appBarBackgroundColor">@color/color_dracula</item>
+        <item name="colorPrimaryDark">@color/color_dracula_dark</item>
+        <item name="colorAccent">@color/color_dracula_accent</item>
+        <item name="colorMaterial100">@color/color_dracula_100</item>
+        <item name="colorMaterial300">@color/color_dracula_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_dracula</item>
+
+        <item name="colorSurface">@color/dracula_surface</item>
+        <item name="colorOnSurface">@color/dracula_on_surface</item>
+        <item name="android:colorBackground">@color/dracula_background</item>
+        <item name="colorOnBackground">@color/dracula_on_surface</item>
+        <item name="colorPrimaryContainer">@color/color_dracula_container</item>
+        <item name="colorOnPrimaryContainer">@color/dracula_on_surface</item>
+        <item name="colorSecondaryContainer">@color/color_dracula_container</item>
+        <item name="colorOnSecondaryContainer">@color/dracula_on_surface</item>
+        <item name="colorTertiaryContainer">@color/color_dracula_container</item>
+        <item name="colorOnTertiaryContainer">@color/dracula_on_surface</item>
+        <item name="colorSurfaceVariant">@color/color_dracula_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/dracula_on_surface</item>
+        <item name="colorOutline">@color/color_dracula_outline</item>
+        <item name="protocolColor">@color/color_dracula_green</item>
+        <item name="profileNameColor">@color/color_dracula_yellow</item>
+        <item name="statusConnectedColor">@color/color_dracula_green</item>
+        <item name="statusStoppedColor">@color/color_dracula_red</item>
+        <item name="statusConnectingColor">@color/color_dracula_yellow</item>
+        <item name="testFailColor">@color/color_dracula_red</item>
+        <item name="speedTextColor">@color/color_dracula_cyan</item>
+        <item name="fabStoppedColor">@color/color_dracula_cyan</item>
+        <item name="statusDetailColor">@color/color_dracula_cyan</item>
+        <item name="statusTestingColor">@color/color_dracula_yellow</item>
+        <item name="routeProxyColor">@color/color_dracula_cyan</item>
+    </style>
+
+    <!-- Dark High Contrast (OLED) night variant. Night is this theme's active path
+         (it forces night mode on), so the full canvas + M3 roles are repeated here
+         to match the day style declared in values/themes.xml. -->
+    <style name="Theme.SagerNet.DarkHighContrast" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/dhc_primary</item>
+        <item name="appBarBackgroundColor">@color/dhc_background</item>
+        <item name="colorPrimaryDark">@color/dhc_primary_dark</item>
+        <item name="colorAccent">@color/dhc_primary</item>
+        <item name="colorOnPrimary">@color/dhc_on_primary</item>
+        <item name="colorMaterial100">@color/dhc_100</item>
+        <item name="colorMaterial300">@color/dhc_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_dhc</item>
+
+        <item name="colorSurface">@color/dhc_surface</item>
+        <item name="colorOnSurface">@color/dhc_on_surface</item>
+        <item name="android:colorBackground">@color/dhc_background</item>
+        <item name="colorOnBackground">@color/dhc_on_surface</item>
+        <item name="android:windowBackground">@color/dhc_background</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar.DarkHighContrast</item>
+        <item name="android:statusBarColor">@color/dhc_background</item>
+        <item name="android:navigationBarColor">@color/dhc_background</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
+        <item name="tabTextColor">@color/dhc_on_surface_variant</item>
+        <item name="tabSelectedTextColor">@color/dhc_primary</item>
+        <item name="tabIndicatorColor">@color/dhc_primary</item>
+        <item name="colorPrimaryContainer">@color/dhc_container</item>
+        <item name="colorOnPrimaryContainer">@color/dhc_on_surface</item>
+        <item name="colorSecondary">@color/dhc_primary</item>
+        <item name="colorSecondaryContainer">@color/dhc_container</item>
+        <item name="colorOnSecondaryContainer">@color/dhc_on_surface</item>
+        <item name="colorTertiary">@color/dhc_blue</item>
+        <item name="colorTertiaryContainer">@color/dhc_container</item>
+        <item name="colorOnTertiaryContainer">@color/dhc_on_surface</item>
+        <item name="colorSurfaceVariant">@color/dhc_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/dhc_on_surface_variant</item>
+        <item name="colorOutline">@color/dhc_outline</item>
+        <item name="colorOutlineVariant">@color/dhc_outline_variant</item>
+        <item name="accentOrTextSecondary">@color/dhc_primary</item>
+        <item name="accentOrTextPrimary">@color/dhc_primary</item>
+        <item name="primaryOrTextSecondary">@color/dhc_primary</item>
+        <item name="primaryOrTextPrimary">@color/dhc_primary</item>
+        <item name="protocolColor">@color/dhc_green</item>
+        <item name="profileNameColor">@color/dhc_on_surface</item>
+        <item name="statusConnectedColor">@color/dhc_green</item>
+        <item name="statusStoppedColor">@color/dhc_red</item>
+        <item name="statusConnectingColor">@color/dhc_yellow</item>
+        <item name="testFailColor">@color/dhc_red</item>
+        <item name="speedTextColor">@color/dhc_on_surface_variant</item>
+        <item name="fabStoppedColor">@color/dhc_on_primary</item>
+        <item name="fabConnectedColor">@color/dhc_on_primary</item>
+        <item name="statusDetailColor">@color/dhc_on_surface_variant</item>
+        <item name="statusTestingColor">@color/dhc_yellow</item>
+        <item name="routeProxyColor">@color/dhc_blue</item>
+        <item name="navSelectedColor">?attr/colorPrimary</item>
+    </style>
+
+    <style name="Theme.SagerNet.DraculaM3" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/draculam3_primary</item>
+        <item name="appBarBackgroundColor">@color/draculam3_background</item>
+        <item name="colorPrimaryDark">@color/draculam3_primary_dark</item>
+        <item name="colorAccent">@color/draculam3_accent</item>
+        <item name="colorOnPrimary">@color/draculam3_on_primary</item>
+        <item name="colorMaterial100">@color/draculam3_100</item>
+        <item name="colorMaterial300">@color/draculam3_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_draculam3</item>
+
+        <item name="colorSurface">@color/draculam3_surface</item>
+        <item name="colorOnSurface">@color/draculam3_on_surface</item>
+        <item name="android:colorBackground">@color/draculam3_background</item>
+        <item name="colorOnBackground">@color/draculam3_on_surface</item>
+        <item name="android:windowBackground">@color/draculam3_background</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar.DraculaM3</item>
+        <item name="android:statusBarColor">@color/draculam3_background</item>
+        <item name="android:navigationBarColor">@color/draculam3_background</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
+        <item name="tabTextColor">@color/draculam3_on_surface_variant</item>
+        <item name="tabSelectedTextColor">@color/draculam3_primary</item>
+        <item name="tabIndicatorColor">@color/draculam3_primary</item>
+
+        <item name="colorPrimaryContainer">@color/draculam3_container</item>
+        <item name="colorOnPrimaryContainer">@color/draculam3_on_surface</item>
+        <item name="colorSecondary">@color/draculam3_accent</item>
+        <item name="colorSecondaryContainer">@color/draculam3_container</item>
+        <item name="colorOnSecondaryContainer">@color/draculam3_on_surface</item>
+        <item name="colorTertiary">@color/draculam3_blue</item>
+        <item name="colorTertiaryContainer">@color/draculam3_container</item>
+        <item name="colorOnTertiaryContainer">@color/draculam3_on_surface</item>
+        <item name="colorSurfaceVariant">@color/draculam3_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/draculam3_on_surface_variant</item>
+        <item name="colorOutline">@color/draculam3_outline</item>
+        <item name="colorOutlineVariant">@color/draculam3_outline_variant</item>
+        <item name="accentOrTextSecondary">@color/draculam3_accent</item>
+        <item name="accentOrTextPrimary">@color/draculam3_accent</item>
+        <item name="primaryOrTextSecondary">@color/draculam3_primary</item>
+        <item name="primaryOrTextPrimary">@color/draculam3_primary</item>
+        <item name="protocolColor">@color/draculam3_green</item>
+        <item name="profileNameColor">@color/draculam3_yellow</item>
+        <item name="statusConnectedColor">@color/draculam3_green</item>
+        <item name="statusStoppedColor">@color/draculam3_red</item>
+        <item name="statusConnectingColor">@color/draculam3_yellow</item>
+        <item name="testFailColor">@color/draculam3_red</item>
+        <item name="speedTextColor">@color/draculam3_accent</item>
+        <item name="fabStoppedColor">@color/draculam3_on_primary</item>
+        <item name="fabConnectedColor">@color/draculam3_on_primary</item>
+        <item name="statusDetailColor">@color/draculam3_accent</item>
+        <item name="statusTestingColor">@color/draculam3_yellow</item>
+        <item name="routeProxyColor">@color/draculam3_blue</item>
+        <item name="navSelectedColor">?attr/colorPrimary</item>
+    </style>
+
+    <style name="Theme.SagerNet.Nord" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/nord_primary</item>
+        <item name="appBarBackgroundColor">@color/nord_background</item>
+        <item name="colorPrimaryDark">@color/nord_primary_dark</item>
+        <item name="colorAccent">@color/nord_accent</item>
+        <item name="colorOnPrimary">@color/nord_on_primary</item>
+        <item name="colorMaterial100">@color/nord_100</item>
+        <item name="colorMaterial300">@color/nord_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_nord</item>
+
+        <item name="colorSurface">@color/nord_surface</item>
+        <item name="colorOnSurface">@color/nord_on_surface</item>
+        <item name="android:colorBackground">@color/nord_background</item>
+        <item name="colorOnBackground">@color/nord_on_surface</item>
+        <item name="android:windowBackground">@color/nord_background</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar.Nord</item>
+        <item name="android:statusBarColor">@color/nord_background</item>
+        <item name="android:navigationBarColor">@color/nord_background</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
+        <item name="tabTextColor">@color/nord_on_surface_variant</item>
+        <item name="tabSelectedTextColor">@color/nord_primary</item>
+        <item name="tabIndicatorColor">@color/nord_primary</item>
+
+        <item name="colorPrimaryContainer">@color/nord_container</item>
+        <item name="colorOnPrimaryContainer">@color/nord_on_surface</item>
+        <item name="colorSecondary">@color/nord_accent</item>
+        <item name="colorSecondaryContainer">@color/nord_container</item>
+        <item name="colorOnSecondaryContainer">@color/nord_on_surface</item>
+        <item name="colorTertiary">@color/nord_blue</item>
+        <item name="colorTertiaryContainer">@color/nord_container</item>
+        <item name="colorOnTertiaryContainer">@color/nord_on_surface</item>
+        <item name="colorSurfaceVariant">@color/nord_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/nord_on_surface_variant</item>
+        <item name="colorOutline">@color/nord_outline</item>
+        <item name="colorOutlineVariant">@color/nord_outline_variant</item>
+        <item name="accentOrTextSecondary">@color/nord_accent</item>
+        <item name="accentOrTextPrimary">@color/nord_accent</item>
+        <item name="primaryOrTextSecondary">@color/nord_primary</item>
+        <item name="primaryOrTextPrimary">@color/nord_primary</item>
+        <item name="protocolColor">@color/nord_green</item>
+        <item name="profileNameColor">@color/nord_on_surface</item>
+        <item name="statusConnectedColor">@color/nord_green</item>
+        <item name="statusStoppedColor">@color/nord_red</item>
+        <item name="statusConnectingColor">@color/nord_yellow</item>
+        <item name="testFailColor">@color/nord_red</item>
+        <item name="speedTextColor">@color/nord_accent</item>
+        <item name="fabStoppedColor">@color/nord_on_primary</item>
+        <item name="fabConnectedColor">@color/nord_on_primary</item>
+        <item name="statusDetailColor">@color/nord_accent</item>
+        <item name="statusTestingColor">@color/nord_yellow</item>
+        <item name="routeProxyColor">@color/nord_blue</item>
+        <item name="navSelectedColor">?attr/colorPrimary</item>
+    </style>
+
+    <style name="Theme.SagerNet.Monokai" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/monokai_primary</item>
+        <item name="appBarBackgroundColor">@color/monokai_background</item>
+        <item name="colorPrimaryDark">@color/monokai_primary_dark</item>
+        <item name="colorAccent">@color/monokai_accent</item>
+        <item name="colorOnPrimary">@color/monokai_on_primary</item>
+        <item name="colorMaterial100">@color/monokai_100</item>
+        <item name="colorMaterial300">@color/monokai_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_monokai</item>
+
+        <item name="colorSurface">@color/monokai_surface</item>
+        <item name="colorOnSurface">@color/monokai_on_surface</item>
+        <item name="android:colorBackground">@color/monokai_background</item>
+        <item name="colorOnBackground">@color/monokai_on_surface</item>
+        <item name="android:windowBackground">@color/monokai_background</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar.Monokai</item>
+        <item name="android:statusBarColor">@color/monokai_background</item>
+        <item name="android:navigationBarColor">@color/monokai_background</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
+        <item name="tabTextColor">@color/monokai_on_surface_variant</item>
+        <item name="tabSelectedTextColor">@color/monokai_primary</item>
+        <item name="tabIndicatorColor">@color/monokai_primary</item>
+
+        <item name="colorPrimaryContainer">@color/monokai_container</item>
+        <item name="colorOnPrimaryContainer">@color/monokai_on_surface</item>
+        <item name="colorSecondary">@color/monokai_accent</item>
+        <item name="colorSecondaryContainer">@color/monokai_container</item>
+        <item name="colorOnSecondaryContainer">@color/monokai_on_surface</item>
+        <item name="colorTertiary">@color/monokai_blue</item>
+        <item name="colorTertiaryContainer">@color/monokai_container</item>
+        <item name="colorOnTertiaryContainer">@color/monokai_on_surface</item>
+        <item name="colorSurfaceVariant">@color/monokai_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/monokai_on_surface_variant</item>
+        <item name="colorOutline">@color/monokai_outline</item>
+        <item name="colorOutlineVariant">@color/monokai_outline_variant</item>
+        <item name="accentOrTextSecondary">@color/monokai_accent</item>
+        <item name="accentOrTextPrimary">@color/monokai_accent</item>
+        <item name="primaryOrTextSecondary">@color/monokai_primary</item>
+        <item name="primaryOrTextPrimary">@color/monokai_primary</item>
+        <item name="protocolColor">@color/monokai_green</item>
+        <item name="profileNameColor">@color/monokai_on_surface</item>
+        <item name="statusConnectedColor">@color/monokai_green</item>
+        <item name="statusStoppedColor">@color/monokai_red</item>
+        <item name="statusConnectingColor">@color/monokai_yellow</item>
+        <item name="testFailColor">@color/monokai_red</item>
+        <item name="speedTextColor">@color/monokai_accent</item>
+        <item name="fabStoppedColor">@color/monokai_on_primary</item>
+        <item name="fabConnectedColor">@color/monokai_on_primary</item>
+        <item name="statusDetailColor">@color/monokai_accent</item>
+        <item name="statusTestingColor">@color/monokai_yellow</item>
+        <item name="routeProxyColor">@color/monokai_blue</item>
+        <item name="navSelectedColor">?attr/colorPrimary</item>
+    </style>
+
+    <style name="Theme.SagerNet.Ayu" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/ayu_primary</item>
+        <item name="appBarBackgroundColor">@color/ayu_background</item>
+        <item name="colorPrimaryDark">@color/ayu_primary_dark</item>
+        <item name="colorAccent">@color/ayu_accent</item>
+        <item name="colorOnPrimary">@color/ayu_on_primary</item>
+        <item name="colorMaterial100">@color/ayu_100</item>
+        <item name="colorMaterial300">@color/ayu_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_ayu</item>
+
+        <item name="colorSurface">@color/ayu_surface</item>
+        <item name="colorOnSurface">@color/ayu_on_surface</item>
+        <item name="android:colorBackground">@color/ayu_background</item>
+        <item name="colorOnBackground">@color/ayu_on_surface</item>
+        <item name="android:windowBackground">@color/ayu_background</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar.Ayu</item>
+        <item name="android:statusBarColor">@color/ayu_background</item>
+        <item name="android:navigationBarColor">@color/ayu_background</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
+        <item name="tabTextColor">@color/ayu_on_surface_variant</item>
+        <item name="tabSelectedTextColor">@color/ayu_primary</item>
+        <item name="tabIndicatorColor">@color/ayu_primary</item>
+
+        <item name="colorPrimaryContainer">@color/ayu_container</item>
+        <item name="colorOnPrimaryContainer">@color/ayu_on_surface</item>
+        <item name="colorSecondary">@color/ayu_accent</item>
+        <item name="colorSecondaryContainer">@color/ayu_container</item>
+        <item name="colorOnSecondaryContainer">@color/ayu_on_surface</item>
+        <item name="colorTertiary">@color/ayu_blue</item>
+        <item name="colorTertiaryContainer">@color/ayu_container</item>
+        <item name="colorOnTertiaryContainer">@color/ayu_on_surface</item>
+        <item name="colorSurfaceVariant">@color/ayu_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/ayu_on_surface_variant</item>
+        <item name="colorOutline">@color/ayu_outline</item>
+        <item name="colorOutlineVariant">@color/ayu_outline_variant</item>
+        <item name="accentOrTextSecondary">@color/ayu_accent</item>
+        <item name="accentOrTextPrimary">@color/ayu_accent</item>
+        <item name="primaryOrTextSecondary">@color/ayu_primary</item>
+        <item name="primaryOrTextPrimary">@color/ayu_primary</item>
+        <item name="protocolColor">@color/ayu_green</item>
+        <item name="profileNameColor">@color/ayu_on_surface</item>
+        <item name="statusConnectedColor">@color/ayu_green</item>
+        <item name="statusStoppedColor">@color/ayu_red</item>
+        <item name="statusConnectingColor">@color/ayu_yellow</item>
+        <item name="testFailColor">@color/ayu_red</item>
+        <item name="speedTextColor">@color/ayu_accent</item>
+        <item name="fabStoppedColor">@color/ayu_on_primary</item>
+        <item name="fabConnectedColor">@color/ayu_on_primary</item>
+        <item name="statusDetailColor">@color/ayu_accent</item>
+        <item name="statusTestingColor">@color/ayu_yellow</item>
+        <item name="routeProxyColor">@color/ayu_blue</item>
+        <item name="navSelectedColor">?attr/colorPrimary</item>
+    </style>
+
+    <style name="Theme.SagerNet.Catppuccin" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/catppuccin_primary</item>
+        <item name="appBarBackgroundColor">@color/catppuccin_background</item>
+        <item name="colorPrimaryDark">@color/catppuccin_primary_dark</item>
+        <item name="colorAccent">@color/catppuccin_accent</item>
+        <item name="colorOnPrimary">@color/catppuccin_on_primary</item>
+        <item name="colorMaterial100">@color/catppuccin_100</item>
+        <item name="colorMaterial300">@color/catppuccin_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_catppuccin</item>
+
+        <item name="colorSurface">@color/catppuccin_surface</item>
+        <item name="colorOnSurface">@color/catppuccin_on_surface</item>
+        <item name="android:colorBackground">@color/catppuccin_background</item>
+        <item name="colorOnBackground">@color/catppuccin_on_surface</item>
+        <item name="android:windowBackground">@color/catppuccin_background</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar.Catppuccin</item>
+        <item name="android:statusBarColor">@color/catppuccin_background</item>
+        <item name="android:navigationBarColor">@color/catppuccin_background</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
+        <item name="tabTextColor">@color/catppuccin_on_surface_variant</item>
+        <item name="tabSelectedTextColor">@color/catppuccin_primary</item>
+        <item name="tabIndicatorColor">@color/catppuccin_primary</item>
+
+        <item name="colorPrimaryContainer">@color/catppuccin_container</item>
+        <item name="colorOnPrimaryContainer">@color/catppuccin_on_surface</item>
+        <item name="colorSecondary">@color/catppuccin_accent</item>
+        <item name="colorSecondaryContainer">@color/catppuccin_container</item>
+        <item name="colorOnSecondaryContainer">@color/catppuccin_on_surface</item>
+        <item name="colorTertiary">@color/catppuccin_blue</item>
+        <item name="colorTertiaryContainer">@color/catppuccin_container</item>
+        <item name="colorOnTertiaryContainer">@color/catppuccin_on_surface</item>
+        <item name="colorSurfaceVariant">@color/catppuccin_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/catppuccin_on_surface_variant</item>
+        <item name="colorOutline">@color/catppuccin_outline</item>
+        <item name="colorOutlineVariant">@color/catppuccin_outline_variant</item>
+        <item name="accentOrTextSecondary">@color/catppuccin_accent</item>
+        <item name="accentOrTextPrimary">@color/catppuccin_accent</item>
+        <item name="primaryOrTextSecondary">@color/catppuccin_primary</item>
+        <item name="primaryOrTextPrimary">@color/catppuccin_primary</item>
+        <item name="protocolColor">@color/catppuccin_green</item>
+        <item name="profileNameColor">@color/catppuccin_on_surface</item>
+        <item name="statusConnectedColor">@color/catppuccin_green</item>
+        <item name="statusStoppedColor">@color/catppuccin_red</item>
+        <item name="statusConnectingColor">@color/catppuccin_yellow</item>
+        <item name="testFailColor">@color/catppuccin_red</item>
+        <item name="speedTextColor">@color/catppuccin_accent</item>
+        <item name="fabStoppedColor">@color/catppuccin_on_primary</item>
+        <item name="fabConnectedColor">@color/catppuccin_on_primary</item>
+        <item name="statusDetailColor">@color/catppuccin_accent</item>
+        <item name="statusTestingColor">@color/catppuccin_yellow</item>
+        <item name="routeProxyColor">@color/catppuccin_blue</item>
+        <item name="navSelectedColor">?attr/colorPrimary</item>
+    </style>
+
+
+    <style name="Theme.SagerNet.Dialog.DarkHighContrast" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/dhc_primary</item>
+        <item name="appBarBackgroundColor">@color/dhc_background</item>
+        <item name="colorPrimaryDark">@color/dhc_primary_dark</item>
+        <item name="colorAccent">@color/dhc_primary</item>
+        <item name="colorOnPrimary">@color/dhc_on_primary</item>
+        <item name="colorMaterial100">@color/dhc_100</item>
+        <item name="colorMaterial300">@color/dhc_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_dhc</item>
+
+        <item name="colorSurface">@color/dhc_surface</item>
+        <item name="colorOnSurface">@color/dhc_on_surface</item>
+        <item name="android:colorBackground">@color/dhc_background</item>
+        <item name="colorOnBackground">@color/dhc_on_surface</item>
+        <item name="colorPrimaryContainer">@color/dhc_container</item>
+        <item name="colorOnPrimaryContainer">@color/dhc_on_surface</item>
+        <item name="colorSecondary">@color/dhc_primary</item>
+        <item name="colorSecondaryContainer">@color/dhc_container</item>
+        <item name="colorOnSecondaryContainer">@color/dhc_on_surface</item>
+        <item name="colorTertiary">@color/dhc_blue</item>
+        <item name="colorTertiaryContainer">@color/dhc_container</item>
+        <item name="colorOnTertiaryContainer">@color/dhc_on_surface</item>
+        <item name="colorSurfaceVariant">@color/dhc_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/dhc_on_surface_variant</item>
+        <item name="colorOutline">@color/dhc_outline</item>
+        <item name="colorOutlineVariant">@color/dhc_outline_variant</item>
+        <item name="protocolColor">@color/dhc_green</item>
+        <item name="profileNameColor">@color/dhc_on_surface</item>
+        <item name="statusConnectedColor">@color/dhc_green</item>
+        <item name="statusStoppedColor">@color/dhc_red</item>
+        <item name="statusConnectingColor">@color/dhc_yellow</item>
+        <item name="testFailColor">@color/dhc_red</item>
+        <item name="speedTextColor">@color/dhc_on_surface_variant</item>
+        <item name="fabStoppedColor">@color/dhc_on_primary</item>
+        <item name="fabConnectedColor">@color/dhc_on_primary</item>
+        <item name="statusDetailColor">@color/dhc_on_surface_variant</item>
+        <item name="statusTestingColor">@color/dhc_yellow</item>
+        <item name="routeProxyColor">@color/dhc_blue</item>
+    </style>
+
+    <style name="Theme.SagerNet.Dialog.DraculaM3" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/draculam3_primary</item>
+        <item name="appBarBackgroundColor">@color/draculam3_background</item>
+        <item name="colorPrimaryDark">@color/draculam3_primary_dark</item>
+        <item name="colorAccent">@color/draculam3_accent</item>
+        <item name="colorOnPrimary">@color/draculam3_on_primary</item>
+        <item name="colorMaterial100">@color/draculam3_100</item>
+        <item name="colorMaterial300">@color/draculam3_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_draculam3</item>
+
+        <item name="colorSurface">@color/draculam3_surface</item>
+        <item name="colorOnSurface">@color/draculam3_on_surface</item>
+        <item name="android:colorBackground">@color/draculam3_background</item>
+        <item name="colorOnBackground">@color/draculam3_on_surface</item>
+
+        <item name="colorPrimaryContainer">@color/draculam3_container</item>
+        <item name="colorOnPrimaryContainer">@color/draculam3_on_surface</item>
+        <item name="colorSecondary">@color/draculam3_accent</item>
+        <item name="colorSecondaryContainer">@color/draculam3_container</item>
+        <item name="colorOnSecondaryContainer">@color/draculam3_on_surface</item>
+        <item name="colorTertiary">@color/draculam3_blue</item>
+        <item name="colorTertiaryContainer">@color/draculam3_container</item>
+        <item name="colorOnTertiaryContainer">@color/draculam3_on_surface</item>
+        <item name="colorSurfaceVariant">@color/draculam3_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/draculam3_on_surface_variant</item>
+        <item name="colorOutline">@color/draculam3_outline</item>
+        <item name="colorOutlineVariant">@color/draculam3_outline_variant</item>
+        <item name="protocolColor">@color/draculam3_green</item>
+        <item name="profileNameColor">@color/draculam3_yellow</item>
+        <item name="statusConnectedColor">@color/draculam3_green</item>
+        <item name="statusStoppedColor">@color/draculam3_red</item>
+        <item name="statusConnectingColor">@color/draculam3_yellow</item>
+        <item name="testFailColor">@color/draculam3_red</item>
+        <item name="speedTextColor">@color/draculam3_accent</item>
+        <item name="fabStoppedColor">@color/draculam3_on_primary</item>
+        <item name="fabConnectedColor">@color/draculam3_on_primary</item>
+        <item name="statusDetailColor">@color/draculam3_accent</item>
+        <item name="statusTestingColor">@color/draculam3_yellow</item>
+        <item name="routeProxyColor">@color/draculam3_blue</item>
+    </style>
+
+    <style name="Theme.SagerNet.Dialog.Nord" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/nord_primary</item>
+        <item name="appBarBackgroundColor">@color/nord_background</item>
+        <item name="colorPrimaryDark">@color/nord_primary_dark</item>
+        <item name="colorAccent">@color/nord_accent</item>
+        <item name="colorOnPrimary">@color/nord_on_primary</item>
+        <item name="colorMaterial100">@color/nord_100</item>
+        <item name="colorMaterial300">@color/nord_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_nord</item>
+
+        <item name="colorSurface">@color/nord_surface</item>
+        <item name="colorOnSurface">@color/nord_on_surface</item>
+        <item name="android:colorBackground">@color/nord_background</item>
+        <item name="colorOnBackground">@color/nord_on_surface</item>
+
+        <item name="colorPrimaryContainer">@color/nord_container</item>
+        <item name="colorOnPrimaryContainer">@color/nord_on_surface</item>
+        <item name="colorSecondary">@color/nord_accent</item>
+        <item name="colorSecondaryContainer">@color/nord_container</item>
+        <item name="colorOnSecondaryContainer">@color/nord_on_surface</item>
+        <item name="colorTertiary">@color/nord_blue</item>
+        <item name="colorTertiaryContainer">@color/nord_container</item>
+        <item name="colorOnTertiaryContainer">@color/nord_on_surface</item>
+        <item name="colorSurfaceVariant">@color/nord_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/nord_on_surface_variant</item>
+        <item name="colorOutline">@color/nord_outline</item>
+        <item name="colorOutlineVariant">@color/nord_outline_variant</item>
+        <item name="protocolColor">@color/nord_green</item>
+        <item name="profileNameColor">@color/nord_on_surface</item>
+        <item name="statusConnectedColor">@color/nord_green</item>
+        <item name="statusStoppedColor">@color/nord_red</item>
+        <item name="statusConnectingColor">@color/nord_yellow</item>
+        <item name="testFailColor">@color/nord_red</item>
+        <item name="speedTextColor">@color/nord_accent</item>
+        <item name="fabStoppedColor">@color/nord_on_primary</item>
+        <item name="fabConnectedColor">@color/nord_on_primary</item>
+        <item name="statusDetailColor">@color/nord_accent</item>
+        <item name="statusTestingColor">@color/nord_yellow</item>
+        <item name="routeProxyColor">@color/nord_blue</item>
+    </style>
+
+    <style name="Theme.SagerNet.Dialog.Monokai" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/monokai_primary</item>
+        <item name="appBarBackgroundColor">@color/monokai_background</item>
+        <item name="colorPrimaryDark">@color/monokai_primary_dark</item>
+        <item name="colorAccent">@color/monokai_accent</item>
+        <item name="colorOnPrimary">@color/monokai_on_primary</item>
+        <item name="colorMaterial100">@color/monokai_100</item>
+        <item name="colorMaterial300">@color/monokai_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_monokai</item>
+
+        <item name="colorSurface">@color/monokai_surface</item>
+        <item name="colorOnSurface">@color/monokai_on_surface</item>
+        <item name="android:colorBackground">@color/monokai_background</item>
+        <item name="colorOnBackground">@color/monokai_on_surface</item>
+
+        <item name="colorPrimaryContainer">@color/monokai_container</item>
+        <item name="colorOnPrimaryContainer">@color/monokai_on_surface</item>
+        <item name="colorSecondary">@color/monokai_accent</item>
+        <item name="colorSecondaryContainer">@color/monokai_container</item>
+        <item name="colorOnSecondaryContainer">@color/monokai_on_surface</item>
+        <item name="colorTertiary">@color/monokai_blue</item>
+        <item name="colorTertiaryContainer">@color/monokai_container</item>
+        <item name="colorOnTertiaryContainer">@color/monokai_on_surface</item>
+        <item name="colorSurfaceVariant">@color/monokai_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/monokai_on_surface_variant</item>
+        <item name="colorOutline">@color/monokai_outline</item>
+        <item name="colorOutlineVariant">@color/monokai_outline_variant</item>
+        <item name="protocolColor">@color/monokai_green</item>
+        <item name="profileNameColor">@color/monokai_on_surface</item>
+        <item name="statusConnectedColor">@color/monokai_green</item>
+        <item name="statusStoppedColor">@color/monokai_red</item>
+        <item name="statusConnectingColor">@color/monokai_yellow</item>
+        <item name="testFailColor">@color/monokai_red</item>
+        <item name="speedTextColor">@color/monokai_accent</item>
+        <item name="fabStoppedColor">@color/monokai_on_primary</item>
+        <item name="fabConnectedColor">@color/monokai_on_primary</item>
+        <item name="statusDetailColor">@color/monokai_accent</item>
+        <item name="statusTestingColor">@color/monokai_yellow</item>
+        <item name="routeProxyColor">@color/monokai_blue</item>
+    </style>
+
+    <style name="Theme.SagerNet.Dialog.Ayu" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/ayu_primary</item>
+        <item name="appBarBackgroundColor">@color/ayu_background</item>
+        <item name="colorPrimaryDark">@color/ayu_primary_dark</item>
+        <item name="colorAccent">@color/ayu_accent</item>
+        <item name="colorOnPrimary">@color/ayu_on_primary</item>
+        <item name="colorMaterial100">@color/ayu_100</item>
+        <item name="colorMaterial300">@color/ayu_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_ayu</item>
+
+        <item name="colorSurface">@color/ayu_surface</item>
+        <item name="colorOnSurface">@color/ayu_on_surface</item>
+        <item name="android:colorBackground">@color/ayu_background</item>
+        <item name="colorOnBackground">@color/ayu_on_surface</item>
+
+        <item name="colorPrimaryContainer">@color/ayu_container</item>
+        <item name="colorOnPrimaryContainer">@color/ayu_on_surface</item>
+        <item name="colorSecondary">@color/ayu_accent</item>
+        <item name="colorSecondaryContainer">@color/ayu_container</item>
+        <item name="colorOnSecondaryContainer">@color/ayu_on_surface</item>
+        <item name="colorTertiary">@color/ayu_blue</item>
+        <item name="colorTertiaryContainer">@color/ayu_container</item>
+        <item name="colorOnTertiaryContainer">@color/ayu_on_surface</item>
+        <item name="colorSurfaceVariant">@color/ayu_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/ayu_on_surface_variant</item>
+        <item name="colorOutline">@color/ayu_outline</item>
+        <item name="colorOutlineVariant">@color/ayu_outline_variant</item>
+        <item name="protocolColor">@color/ayu_green</item>
+        <item name="profileNameColor">@color/ayu_on_surface</item>
+        <item name="statusConnectedColor">@color/ayu_green</item>
+        <item name="statusStoppedColor">@color/ayu_red</item>
+        <item name="statusConnectingColor">@color/ayu_yellow</item>
+        <item name="testFailColor">@color/ayu_red</item>
+        <item name="speedTextColor">@color/ayu_accent</item>
+        <item name="fabStoppedColor">@color/ayu_on_primary</item>
+        <item name="fabConnectedColor">@color/ayu_on_primary</item>
+        <item name="statusDetailColor">@color/ayu_accent</item>
+        <item name="statusTestingColor">@color/ayu_yellow</item>
+        <item name="routeProxyColor">@color/ayu_blue</item>
+    </style>
+
+    <style name="Theme.SagerNet.Dialog.Catppuccin" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/catppuccin_primary</item>
+        <item name="appBarBackgroundColor">@color/catppuccin_background</item>
+        <item name="colorPrimaryDark">@color/catppuccin_primary_dark</item>
+        <item name="colorAccent">@color/catppuccin_accent</item>
+        <item name="colorOnPrimary">@color/catppuccin_on_primary</item>
+        <item name="colorMaterial100">@color/catppuccin_100</item>
+        <item name="colorMaterial300">@color/catppuccin_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_catppuccin</item>
+
+        <item name="colorSurface">@color/catppuccin_surface</item>
+        <item name="colorOnSurface">@color/catppuccin_on_surface</item>
+        <item name="android:colorBackground">@color/catppuccin_background</item>
+        <item name="colorOnBackground">@color/catppuccin_on_surface</item>
+
+        <item name="colorPrimaryContainer">@color/catppuccin_container</item>
+        <item name="colorOnPrimaryContainer">@color/catppuccin_on_surface</item>
+        <item name="colorSecondary">@color/catppuccin_accent</item>
+        <item name="colorSecondaryContainer">@color/catppuccin_container</item>
+        <item name="colorOnSecondaryContainer">@color/catppuccin_on_surface</item>
+        <item name="colorTertiary">@color/catppuccin_blue</item>
+        <item name="colorTertiaryContainer">@color/catppuccin_container</item>
+        <item name="colorOnTertiaryContainer">@color/catppuccin_on_surface</item>
+        <item name="colorSurfaceVariant">@color/catppuccin_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/catppuccin_on_surface_variant</item>
+        <item name="colorOutline">@color/catppuccin_outline</item>
+        <item name="colorOutlineVariant">@color/catppuccin_outline_variant</item>
+        <item name="protocolColor">@color/catppuccin_green</item>
+        <item name="profileNameColor">@color/catppuccin_on_surface</item>
+        <item name="statusConnectedColor">@color/catppuccin_green</item>
+        <item name="statusStoppedColor">@color/catppuccin_red</item>
+        <item name="statusConnectingColor">@color/catppuccin_yellow</item>
+        <item name="testFailColor">@color/catppuccin_red</item>
+        <item name="speedTextColor">@color/catppuccin_accent</item>
+        <item name="fabStoppedColor">@color/catppuccin_on_primary</item>
+        <item name="fabConnectedColor">@color/catppuccin_on_primary</item>
+        <item name="statusDetailColor">@color/catppuccin_accent</item>
+        <item name="statusTestingColor">@color/catppuccin_yellow</item>
+        <item name="routeProxyColor">@color/catppuccin_blue</item>
+    </style>
+
+</resources>

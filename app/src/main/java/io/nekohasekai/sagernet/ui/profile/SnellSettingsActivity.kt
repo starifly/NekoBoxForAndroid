@@ -39,10 +39,7 @@ class SnellSettingsActivity : ProfileSettingsActivity<SnellBean>() {
         pbm.fromCacheAll(this)
     }
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    override fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.snell_preferences)
 
         findPreference<EditTextPreference>(Key.SERVER_PORT)!!.apply {
@@ -109,22 +106,4 @@ class SnellSettingsActivity : ProfileSettingsActivity<SnellBean>() {
             obfsModePref.setEntryValues(R.array.snell_obfs_modes_value)
         }
     }
-
-    private fun updateVersionFields(
-        version: Int,
-        userKeyPref: EditTextPreference,
-        obfsModePref: SimpleMenuPreference,
-        obfsHostPref: EditTextPreference,
-        modePref: SimpleMenuPreference,
-    ) {
-        userKeyPref.isVisible = version >= 4
-        val isV6 = version == 6
-        obfsModePref.isVisible = !isV6
-        obfsHostPref.isVisible = !isV6
-        modePref.isVisible = isV6
-        if (isV6 && modePref.value.isNullOrBlank()) {
-            modePref.value = "default"
-        }
-    }
-
 }

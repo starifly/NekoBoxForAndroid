@@ -3,9 +3,12 @@ package io.nekohasekai.sagernet.ui
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.preference.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -18,9 +21,6 @@ import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.utils.AppLocale
 import io.nekohasekai.sagernet.utils.Theme
 import moe.matsuri.nb4a.ui.*
-import android.os.Handler
-import android.os.Looper
-import android.widget.Toast
 import java.io.File
 
 class SettingsPreferenceFragment : PreferenceFragmentCompat() {
@@ -28,7 +28,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
     private lateinit var isProxyApps: SwitchPreference
 
     private lateinit var globalCustomConfig: EditConfigPreference
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -41,38 +40,68 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         true
     }
 
+    private fun sanitizeDnsPreferenceValue(value: String): String {
+        return value.lines().joinToString("\n") { line ->
+            line.filterNot { it.isISOControl() }.trim()
+        }
+    }
+
+    private fun dnsReloadListener(
+        preference: EditTextPreference,
+        newValue: Any?,
+        preprocess: (String) -> String = { it },
+    ): Boolean {
+        val rawValue = newValue as? String ?: return reloadListener.onPreferenceChange(preference, newValue)
+        val sanitizedValue = sanitizeDnsPreferenceValue(preprocess(rawValue))
+        if (sanitizedValue != rawValue) {
+            preference.text = sanitizedValue
+            needReload()
+            return false
+        }
+        needReload()
+        return true
+    }
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         preferenceManager.preferenceDataStore = DataStore.configurationStore
         DataStore.initGlobal()
         addPreferencesFromResource(R.xml.global_preferences)
 
-        val appTheme = findPreference<ColorPickerPreference>(Key.APP_THEME)!!
-        val useSystemTheme = findPreference<SwitchPreference>(Key.USE_SYSTEM_THEME)!!
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            useSystemTheme.isVisible = false
-        } else {
-            useSystemTheme.setOnPreferenceChangeListener { _, newValue ->
-                val enabled = newValue as Boolean
-                appTheme.isEnabled = !enabled
-                if (DataStore.serviceState.started) {
-                    SagerNet.reloadService()
-                }
-                val theme = if (enabled) Theme.getTheme(Theme.MONET) else Theme.getTheme(DataStore.appTheme)
-                app.setTheme(theme)
-                requireActivity().apply {
-                    setTheme(theme)
-                    ActivityCompat.recreate(this)
-                }
-                true
-            }
-            appTheme.isEnabled = !DataStore.useSystemTheme
-        }
-
+        val appTheme = findPreference<ThemePickerPreference>(Key.APP_THEME)!!
+        val nightTheme = findPreference<SimpleMenuPreference>(Key.NIGHT_THEME)!!
         appTheme.setOnPreferenceChangeListener { _, newTheme ->
             if (DataStore.serviceState.started) {
                 SagerNet.reloadService()
             }
-            val theme = Theme.getTheme(newTheme as Int)
+            val themeId = newTheme as Int
+            val previousTheme = DataStore.appTheme // still the old value at this point
+            // Dark-only themes (Dracula, Dark High Contrast) only look right in
+            // night mode: force it on so their dark canvas (values-night) takes
+            // effect instead of a washed-out light surface. Remember the prior
+            // night-mode setting so it can be restored when leaving such a theme.
+            val enteringDarkOnly = themeId in Theme.DARK_ONLY_THEMES
+            val leavingDarkOnly = previousTheme in Theme.DARK_ONLY_THEMES
+            if (enteringDarkOnly) {
+                if (!leavingDarkOnly && DataStore.nightTheme != 1) {
+                    DataStore.nightThemeBeforeDracula = DataStore.nightTheme
+                    Theme.currentNightMode = 1
+                    // nightTheme.value persists to configurationStore (same key as
+                    // DataStore.nightTheme) and refreshes the picker, so no separate
+                    // DataStore.nightTheme write is needed.
+                    nightTheme.value = "1"
+                    Theme.applyNightTheme()
+                }
+            } else if (leavingDarkOnly) {
+                // Leaving a dark-only theme: restore the night-mode setting we forced on.
+                val restore = DataStore.nightThemeBeforeDracula
+                if (restore != -1) {
+                    DataStore.nightThemeBeforeDracula = -1
+                    Theme.currentNightMode = restore
+                    nightTheme.value = restore.toString()
+                    Theme.applyNightTheme()
+                }
+            }
+            val theme = Theme.getTheme(themeId)
             app.setTheme(theme)
             requireActivity().apply {
                 setTheme(theme)
@@ -81,9 +110,11 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             true
         }
 
-        val nightTheme = findPreference<SimpleMenuPreference>(Key.NIGHT_THEME)!!
         nightTheme.setOnPreferenceChangeListener { _, newTheme ->
             Theme.currentNightMode = (newTheme as String).toInt()
+            // A manual night-mode change takes precedence: drop any pending
+            // dark-only-theme restore so we don't override the user's choice later.
+            DataStore.nightThemeBeforeDracula = -1
             Theme.applyNightTheme()
             true
         }
@@ -222,6 +253,19 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         httpProxyBypass.onPreferenceChangeListener = reloadListener
         dnsHosts.onPreferenceChangeListener = reloadListener
         strictRoute.onPreferenceChangeListener = reloadListener
+        httpProxyBypass.setOnBindEditTextListener { editText ->
+            editText.inputType = EditorInfo.TYPE_CLASS_TEXT or
+                EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE or
+                EditorInfo.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            editText.minLines = 4
+            editText.maxLines = 12
+            editText.setHorizontallyScrolling(false)
+        }
+        // Pre-fill with the stored value (or the default when unset) so opening
+        // the dialog and tapping OK doesn't overwrite the list with an empty
+        // string. Persist the default once so it survives untouched edits.
+        httpProxyBypass.text = DataStore.httpProxyBypass
+        httpProxyBypass.onPreferenceChangeListener = reloadListener
         showDirectSpeed.onPreferenceChangeListener = reloadListener
         trafficSniffing.onPreferenceChangeListener = reloadListener
         bypassLan.onPreferenceChangeListener = reloadListener
@@ -232,8 +276,40 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         concurrentDial.onPreferenceChangeListener = reloadListener
 
         enableFakeDns.onPreferenceChangeListener = reloadListener
-        remoteDns.onPreferenceChangeListener = reloadListener
-        directDns.onPreferenceChangeListener = reloadListener
+        dnsHosts.setOnBindEditTextListener { editText ->
+            editText.inputType = EditorInfo.TYPE_CLASS_TEXT or
+                EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE or
+                EditorInfo.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            editText.minLines = 4
+            editText.maxLines = 12
+            editText.setHorizontallyScrolling(false)
+        }
+        // Concise summary: the hosts list can be long and multiline, so show a line
+        // count instead of dumping the raw value into the preference row. Comment
+        // lines are excluded so the number reflects entries, not text lines.
+        dnsHosts.summaryProvider = Preference.SummaryProvider<EditTextPreference> { preference ->
+            val count = preference.text.orEmpty()
+                .lineSequence()
+                .map { it.trim() }
+                .count { it.isNotEmpty() && !it.startsWith("#") }
+            if (count == 0) {
+                preference.context.getString(R.string.not_set)
+            } else {
+                preference.context.resources.getQuantityString(R.plurals.dns_hosts_lines, count, count)
+            }
+        }
+        dnsHosts.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+            // Tabs are valid separators in pasted hosts entries; convert them to
+            // spaces first so the control-character sanitization does not merge
+            // the domain and address tokens together.
+            dnsReloadListener(dnsHosts, newValue) { it.replace('\t', ' ') }
+        }
+        remoteDns.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+            dnsReloadListener(remoteDns, newValue)
+        }
+        directDns.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+            dnsReloadListener(directDns, newValue)
+        }
         enableDnsRouting.onPreferenceChangeListener = reloadListener
 
         ipv6Mode.onPreferenceChangeListener = reloadListener
@@ -250,7 +326,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
         enableTLSFragment.onPreferenceChangeListener = reloadListener
 
-        // 恢复默认设置功能
+        // reset to default settings feature
         val resetSettings = findPreference<Preference>("resetSettings")!!
         resetSettings.setOnPreferenceClickListener {
             MaterialAlertDialogBuilder(requireContext()).apply {
@@ -258,14 +334,30 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 setMessage(R.string.reset_settings_message)
                 setNegativeButton(R.string.no, null)
                 setPositiveButton(R.string.yes) { _, _ ->
-                    DataStore.configurationStore.reset()
-                    triggerFullRestart(requireContext())
+                    // reset() clears the snapshot synchronously but commits the DB wipe on the
+                    // ordered disk executor; await it before restarting so the rebirth can't race
+                    // ahead of the commit and leave old settings on disk.
+                    runOnDefaultDispatcher {
+                        var ok = false
+                        try {
+                            DataStore.configurationStore.reset()
+                            DataStore.configurationStore.awaitWrites()
+                            ok = true
+                        } catch (e: Exception) {
+                            Logs.w(e)
+                        }
+                        onMainDispatcher {
+                            // Only restart if the DB wipe actually committed; otherwise a rebirth
+                            // could race ahead of the commit and leave old settings on disk.
+                            if (ok && isAdded) triggerFullRestart(requireContext())
+                        }
+                    }
                 }
             }.show()
             true
         }
 
-        // 清理缓存功能
+        // clear cache feature
         val clearCache = findPreference<Preference>(Key.CLEAR_CACHE)!!
         clearCache.setOnPreferenceClickListener {
             MaterialAlertDialogBuilder(requireContext()).apply {
@@ -295,20 +387,24 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         try {
             val cacheDir = SagerNet.application.cacheDir
             clearDirFiles(cacheDir, skipFiles = setOf("neko.log"))
-            
+
             val parentDir = cacheDir.parentFile
             val relativeCache = File(parentDir, "cache")
             if (relativeCache.exists() && relativeCache.isDirectory) {
                 clearDirFiles(relativeCache)
             }
-            
+
             Toast.makeText(requireContext(), R.string.clear_cache_success, Toast.LENGTH_SHORT).show()
-            
+
             Handler(Looper.getMainLooper()).postDelayed({
                 needReload()
             }, 500)
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), getString(R.string.clear_cache_failed, e.message), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.clear_cache_failed, e.message),
+                Toast.LENGTH_SHORT,
+            ).show()
             e.printStackTrace()
         }
     }
@@ -316,10 +412,10 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
     private fun clearDirFiles(dir: File, skipFiles: Set<String> = emptySet()): Boolean {
         if (dir.isDirectory) {
             val children = dir.list() ?: return true
-            
+
             for (child in children) {
                 val childFile = File(dir, child)
-                
+
                 if (child == "neko.log") {
                     try {
                         childFile.writeText("")
@@ -328,42 +424,20 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                         e.printStackTrace()
                     }
                 }
-                
+
                 if (child in skipFiles) {
                     continue
                 }
-                
+
                 if (childFile.isDirectory) {
                     clearDirFiles(childFile, skipFiles)
                 } else {
                     childFile.delete()
                 }
             }
-            
+
             return true
         }
         return false
     }
-
-    class ListSummaryProvider(
-        private val maxLines: Int,
-    ) : Preference.SummaryProvider<EditTextPreference> {
-
-        override fun provideSummary(preference: EditTextPreference): CharSequence {
-            val lines = preference.text.orEmpty()
-                .lineSequence()
-                .filter { it.isNotBlank() }
-                .toList()
-            if (lines.isEmpty()) {
-                return preference.context.getString(androidx.preference.R.string.not_set)
-            }
-            return if (lines.size > maxLines) {
-                lines.take(maxLines).joinToString("\n", postfix = "\n...")
-            } else {
-                lines.joinToString("\n")
-            }
-        }
-
-    }
-
 }

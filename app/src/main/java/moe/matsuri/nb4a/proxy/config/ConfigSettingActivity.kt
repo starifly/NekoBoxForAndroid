@@ -40,10 +40,7 @@ class ConfigSettingActivity :
 
     private lateinit var editConfigPreference: EditConfigPreference
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    override fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.config_preferences)
 
         editConfigPreference = findPreference(Key.SERVER_CONFIG)!!
@@ -56,5 +53,4 @@ class ConfigSettingActivity :
             editConfigPreference.notifyChanged()
         }
     }
-
 }

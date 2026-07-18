@@ -2,21 +2,23 @@ package io.nekohasekai.sagernet.ui.profile
 
 import android.annotation.SuppressLint
 import android.content.DialogInterface
+import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.ViewGroup.MarginLayoutParams
-import android.widget.LinearLayout
+import androidx.activity.addCallback
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
-import androidx.core.widget.addTextChangedListener
-import com.blacksquircle.ui.editorkit.insert
-import com.blacksquircle.ui.language.json.JsonLanguage
 import com.github.shadowsocks.plugin.Empty
 import com.github.shadowsocks.plugin.fragment.AlertDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.rosemoe.sora.event.ContentChangeEvent
+import io.github.rosemoe.sora.langs.textmate.TextMateLanguage
+import io.github.rosemoe.sora.widget.subscribeAlways
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
@@ -25,8 +27,8 @@ import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.toStringPretty
 import io.nekohasekai.sagernet.ui.ThemedActivity
+import io.nekohasekai.sagernet.utils.Theme
 import io.nekohasekai.sagernet.widget.ListListener
-import moe.matsuri.nb4a.ui.ExtendedKeyboard
 import org.json.JSONObject
 
 class ConfigEditActivity : ThemedActivity() {
@@ -53,6 +55,14 @@ class ConfigEditActivity : ThemedActivity() {
     @SuppressLint("InlinedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        onBackPressedDispatcher.addCallback(this) {
+            if (dirty) {
+                UnsavedChangesDialogFragment().apply { key() }
+                    .show(supportFragmentManager, null)
+            } else {
+                finish()
+            }
+        }
 
         intent?.extras?.apply {
             getString("key")?.let { key = it }
@@ -62,22 +72,33 @@ class ConfigEditActivity : ThemedActivity() {
         binding = LayoutEditConfigBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setSupportActionBar(findViewById(R.id.toolbar))
+        // The appbar is included WITHOUT an android:id on the <include> so the included
+        // AppBarLayout keeps its own R.id.appbar, which ThemedActivity uses to apply the top
+        // status-bar inset as padding (otherwise the toolbar draws under the status bar).
+        setSupportActionBar(findViewById<Toolbar>(R.id.toolbar))
         supportActionBar?.apply {
             setTitle(R.string.config_settings)
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.ic_navigation_close)
         }
 
+        // sora-editor: load the TextMate engine (JSON grammar + themes) once, then wire the
+        // editor up with the JSON language and a color scheme that follows the app night mode.
+        TextMateSetup.ensureInitialized(this)
         binding.editor.apply {
-            language = JsonLanguage()
-            setHorizontallyScrolling(true)
-            if (useConfigStore) {
-                setTextContent(DataStore.configurationStore.getString(key) ?: "")
+            typefaceText = Typeface.MONOSPACE
+            isWordwrap = false
+            TextMateSetup.applyTheme(this, Theme.usingNightMode())
+            setEditorLanguage(TextMateLanguage.create(TextMateSetup.SCOPE_JSON, true))
+
+            val content = if (useConfigStore) {
+                DataStore.configurationStore.getString(key)
             } else {
-                setTextContent(DataStore.profileCacheStore.getString(key) ?: "")
-            }
-            addTextChangedListener {
+                DataStore.profileCacheStore.getString(key)
+            } ?: ""
+            setText(content)
+
+            subscribeAlways<ContentChangeEvent> {
                 if (!dirty) {
                     dirty = true
                     DataStore.dirty = true
@@ -87,41 +108,41 @@ class ConfigEditActivity : ThemedActivity() {
 
         binding.actionTab.setOnClickListener {
             try {
-                binding.editor.insert(binding.editor.tab())
-            } catch (e: Exception) {
+                binding.editor.insertText("\t", 1)
+            } catch (_: Exception) {
             }
         }
         binding.actionUndo.setOnClickListener {
             try {
-                binding.editor.undo()
+                if (binding.editor.canUndo()) binding.editor.undo()
             } catch (_: Exception) {
             }
         }
         binding.actionRedo.setOnClickListener {
             try {
-                binding.editor.redo()
+                if (binding.editor.canRedo()) binding.editor.redo()
             } catch (_: Exception) {
             }
         }
         binding.actionFormat.setOnClickListener {
             formatText()?.let {
-                binding.editor.setTextContent(it)
+                binding.editor.setText(it)
             }
         }
 
-        val extendedKeyboard = findViewById<ExtendedKeyboard>(R.id.extended_keyboard)
-        extendedKeyboard.setKeyListener { char ->
-            try {
-                binding.editor.insert(char)
-            } catch (e: Exception) {
+        binding.extendedKeyboard.apply {
+            setKeyListener { char ->
+                try {
+                    binding.editor.insertText(char, char.length)
+                } catch (_: Exception) {
+                }
             }
+            setHasFixedSize(true)
+            submitList("{},:_\"".map { it.toString() })
+            setBackgroundColor(getColorAttr(R.attr.primaryOrTextPrimary))
         }
-        extendedKeyboard.setHasFixedSize(true)
-        extendedKeyboard.submitList("{},:_\"".map { it.toString() })
-        extendedKeyboard.setBackgroundColor(getColorAttr(R.attr.primaryOrTextPrimary))
 
-        val keyboardContainer = findViewById<LinearLayout>(R.id.keyboard_container)
-        ViewCompat.setOnApplyWindowInsetsListener(keyboardContainer) { v, windowInsets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.keyboardContainer) { v, windowInsets ->
             val imeInsets = windowInsets.getInsets(WindowInsetsCompat.Type.ime())
             val systemBarInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             val imeVisible = windowInsets.isVisible(WindowInsetsCompat.Type.ime())
@@ -138,6 +159,12 @@ class ConfigEditActivity : ThemedActivity() {
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root, ListListener)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // sora-editor requires release() to free its background worker thread/resources.
+        if (::binding.isInitialized) binding.editor.release()
     }
 
     fun formatText(): String? {
@@ -165,13 +192,10 @@ class ConfigEditActivity : ThemedActivity() {
         }
     }
 
-    override fun onBackPressed() {
-        if (dirty) UnsavedChangesDialogFragment().apply { key() }
-            .show(supportFragmentManager, null) else super.onBackPressed()
-    }
-
     override fun onSupportNavigateUp(): Boolean {
-        if (!super.onSupportNavigateUp()) finish()
+        // Route the action-bar up button through the back dispatcher so it honors the
+        // unsaved-changes guard instead of finishing directly (avoids data loss).
+        onBackPressedDispatcher.onBackPressed()
         return true
     }
 

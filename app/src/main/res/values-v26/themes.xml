@@ -1,7 +1,25 @@
 <resources>
     <!-- Base application theme for API 26+ -->
-    <style name="Theme.SagerNet" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="actionBarStyle">@style/Widget.MaterialComponents.ActionBar.Solid</item>
+    <style name="Theme.SagerNet" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="actionBarStyle">@style/Widget.Material3.ActionBar.Solid</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar</item>
+        <item name="floatingActionButtonStyle">@style/Widget.SagerNet.FloatingActionButton</item>
+        <!-- Default nav-drawer selected-item fill; satisfies the
+             ?itemShapeFillColor self-reference in @color/navigation_item. -->
+        <item name="itemShapeFillColor">?colorPrimary</item>
+        <!-- Protocol/type label color; defaults to accent, Dracula overrides green. -->
+        <item name="protocolColor">?attr/accentOrTextSecondary</item>
+        <item name="profileNameColor">?android:attr/textColorPrimary</item>
+        <item name="statusConnectedColor">?attr/colorOnPrimary</item>
+        <item name="statusStoppedColor">?attr/colorOnPrimary</item>
+        <item name="statusConnectingColor">?attr/colorOnPrimary</item>
+        <item name="testFailColor">@color/material_red_500</item>
+        <item name="speedTextColor">?attr/colorOnPrimary</item>
+        <item name="fabStoppedColor">?attr/colorOnPrimary</item>
+        <item name="statusDetailColor">?attr/colorOnPrimary</item>
+        <item name="statusTestingColor">?attr/colorOnPrimary</item>
+        <item name="routeProxyColor">@color/color_route_proxy</item>
+        <item name="navSelectedColor">?attr/colorPrimary</item>
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
         <item name="colorButtonNormal">?colorAccent</item>
         <item name="android:navigationBarColor">?colorPrimaryDark</item>
@@ -9,11 +27,31 @@
         <item name="colorPrimary">@color/material_pink_500</item>
         <item name="colorPrimaryDark">@color/material_pink_700</item>
         <item name="colorAccent">@color/material_pink_accent_200</item>
+        <item name="colorOnPrimary">@color/white</item>
 
         <item name="colorMaterial100">@color/material_pink_100</item>
         <item name="colorMaterial300">@color/material_pink_300</item>
 
         <item name="cardElevatedSurfaceColor">@color/card_elevated_pink</item>
+
+        <!-- Material 3 color roles. Derived from each theme's own palette so the
+             hand-picked themes keep their look while M3 widgets resolve a real role
+             instead of falling back to the library's generated grayscale tones.
+             Special themes override these explicitly. -->
+        <item name="colorPrimaryContainer">?attr/colorMaterial100</item>
+        <item name="colorOnPrimaryContainer">?android:attr/textColorPrimary</item>
+        <item name="colorSecondary">?colorAccent</item>
+        <item name="colorOnSecondary">?attr/colorOnPrimary</item>
+        <item name="colorSecondaryContainer">?attr/colorMaterial100</item>
+        <item name="colorOnSecondaryContainer">?android:attr/textColorPrimary</item>
+        <item name="colorTertiary">?colorAccent</item>
+        <item name="colorOnTertiary">?attr/colorOnPrimary</item>
+        <item name="colorTertiaryContainer">?attr/colorMaterial100</item>
+        <item name="colorOnTertiaryContainer">?android:attr/textColorPrimary</item>
+        <item name="colorSurfaceVariant">?attr/colorSurface</item>
+        <item name="colorOnSurfaceVariant">?android:attr/textColorSecondary</item>
+        <item name="colorOutline">@color/m3_outline</item>
+        <item name="colorOutlineVariant">@color/card_stroke</item>
 
         <item name="accentOrTextSecondary">?colorAccent</item>
         <item name="accentOrTextPrimary">?colorAccent</item>
@@ -35,10 +73,10 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
 
-        <item name="chipStyle">@style/Widget.MaterialComponents.Chip.Choice.SagerNet</item>
+        <item name="chipStyle">@style/Widget.SagerNet.Chip.Choice</item>
 
         <item name="itemShapeAppearance">
-            @style/ShapeAppearance.MaterialComponents.MediumComponent
+            @style/ShapeAppearance.Material3.MediumComponent
         </item>
 
         <item name="alertDialogTheme">
@@ -46,7 +84,7 @@
         </item>
 
         <item name="materialAlertDialogTheme">
-            @style/ThemeOverlay.MaterialComponents.MaterialAlertDialog.SagerNet
+            @style/ThemeOverlay.SagerNet.MaterialAlertDialog
         </item>
 
         <item name="materialCardViewStyle">@style/Widget.SagerNet.CardView</item>

@@ -82,11 +82,15 @@ class TileService : BaseTileService(), SagerConnection.Callback {
 
     private fun toggle() {
         val service = connection.service
-        if (service == null) tapPending =
-            true else BaseService.State.values()[service.state].let { state ->
-            when {
-                state.canStop -> SagerNet.stopService()
-                state == BaseService.State.Stopped -> SagerNet.startService()
+        if (service == null) {
+            tapPending =
+                true
+        } else {
+            BaseService.State.values()[service.state].let { state ->
+                when {
+                    state.canStop -> SagerNet.stopService()
+                    state == BaseService.State.Stopped -> SagerNet.startService()
+                }
             }
         }
     }

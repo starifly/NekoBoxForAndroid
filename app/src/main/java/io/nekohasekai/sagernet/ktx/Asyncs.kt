@@ -19,11 +19,9 @@ fun Fragment.runOnLifecycleDispatcher(block: suspend CoroutineScope.() -> Unit) 
 suspend fun <T> onDefaultDispatcher(block: suspend CoroutineScope.() -> T) =
     withContext(Dispatchers.Default, block = block)
 
-fun runOnIoDispatcher(block: suspend CoroutineScope.() -> Unit) =
-    GlobalScope.launch(Dispatchers.IO, block = block)
+fun runOnIoDispatcher(block: suspend CoroutineScope.() -> Unit) = GlobalScope.launch(Dispatchers.IO, block = block)
 
-suspend fun <T> onIoDispatcher(block: suspend CoroutineScope.() -> T) =
-    withContext(Dispatchers.IO, block = block)
+suspend fun <T> onIoDispatcher(block: suspend CoroutineScope.() -> T) = withContext(Dispatchers.IO, block = block)
 
 fun runOnMainDispatcher(block: suspend CoroutineScope.() -> Unit) =
     GlobalScope.launch(Dispatchers.Main.immediate, block = block)

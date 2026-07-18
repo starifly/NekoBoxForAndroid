@@ -46,10 +46,7 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
         allowInsecure = DataStore.serverAllowInsecure
     }
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    override fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.tuic_preferences)
 
         val disableSNI = findPreference<SwitchPreference>(Key.SERVER_DISABLE_SNI)!!
@@ -64,5 +61,4 @@ class TuicSettingsActivity : ProfileSettingsActivity<TuicBean>() {
             summaryProvider = PasswordSummaryProvider
         }
     }
-
 }

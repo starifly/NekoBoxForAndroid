@@ -27,21 +27,20 @@ abstract class GroupUpdater {
         proxyGroup: ProxyGroup,
         subscription: SubscriptionBean,
         userInterface: GroupManager.Interface?,
-        byUser: Boolean
+        byUser: Boolean,
     )
 
     data class Progress(
-        var max: Int
+        var max: Int,
     ) {
-        var progress by AtomicInteger()
+        private val counter = AtomicInteger()
+        val progress get() = counter.get()
+        fun increment() = counter.incrementAndGet()
     }
 
-    protected suspend fun forceResolve(
-        profiles: List<AbstractBean>, groupId: Long?
-    ) {
+    protected suspend fun forceResolve(profiles: List<AbstractBean>, groupId: Long?) {
         val ipv6Mode = DataStore.ipv6Mode
         val lookupPool = newFixedThreadPoolContext(5, "DNS Lookup")
-        val lookupJobs = mutableListOf<Job>()
         val progress = Progress(profiles.size)
         if (groupId != null) {
             GroupUpdater.progress[groupId] = progress
@@ -49,49 +48,52 @@ abstract class GroupUpdater {
         }
         val ipv6First = ipv6Mode >= IPv6Mode.PREFER
 
-        for (profile in profiles) {
-            when (profile) {
-                // SNI rewrite unsupported
-                is NaiveBean -> continue
-            }
-
-            if (profile.serverAddress.isIpAddress()) continue
-
-            lookupJobs.add(GlobalScope.launch(lookupPool) {
-                try {
-                    val results = if (
-                        SagerNet.underlyingNetwork != null &&
-                        DataStore.enableFakeDns &&
-                        DataStore.serviceState.started &&
-                        DataStore.serviceMode == Key.MODE_VPN
-                    ) {
-                        // FakeDNS
-                        SagerNet.underlyingNetwork!!
-                            .getAllByName(profile.serverAddress)
-                            .filterNotNull()
-                    } else {
-                        // System DNS is enough (when VPN connected, it uses v2ray-core)
-                        InetAddress.getAllByName(profile.serverAddress).filterNotNull()
+        try {
+            coroutineScope {
+                for (profile in profiles) {
+                    when (profile) {
+                        // SNI rewrite unsupported
+                        is NaiveBean -> continue
                     }
-                    if (results.isEmpty()) error("empty response")
-                    rewriteAddress(profile, results, ipv6First)
-                } catch (e: Exception) {
-                    Logs.d("Lookup ${profile.serverAddress} failed: ${e.readableMessage}", e)
-                }
-                if (groupId != null) {
-                    progress.progress++
-                    GroupManager.postReload(groupId)
-                }
-            })
-        }
 
-        lookupJobs.joinAll()
-        lookupPool.close()
+                    if (profile.serverAddress.isIpAddress()) continue
+
+                    launch(lookupPool) {
+                        try {
+                            val results = if (
+                                SagerNet.underlyingNetwork != null &&
+                                DataStore.enableFakeDns &&
+                                DataStore.serviceState.started &&
+                                DataStore.serviceMode == Key.MODE_VPN
+                            ) {
+                                // FakeDNS
+                                SagerNet.underlyingNetwork!!
+                                    .getAllByName(profile.serverAddress)
+                                    .filterNotNull()
+                            } else {
+                                // System DNS is enough (when VPN connected, it uses v2ray-core)
+                                InetAddress.getAllByName(profile.serverAddress).filterNotNull()
+                            }
+                            if (results.isEmpty()) error("empty response")
+                            rewriteAddress(profile, results, ipv6First)
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            Logs.d("Lookup ${profile.serverAddress} failed: ${e.readableMessage}", e)
+                        }
+                        if (groupId != null) {
+                            progress.increment()
+                            GroupManager.postReload(groupId)
+                        }
+                    }
+                }
+            } // coroutineScope joins all children here
+        } finally {
+            lookupPool.close()
+        }
     }
 
-    protected fun rewriteAddress(
-        bean: AbstractBean, addresses: List<InetAddress>, ipv6First: Boolean
-    ) {
+    protected fun rewriteAddress(bean: AbstractBean, addresses: List<InetAddress>, ipv6First: Boolean) {
         val address = addresses.sortedBy { (it is Inet4Address) xor ipv6First }[0].hostAddress
 
         with(bean) {
@@ -132,17 +134,27 @@ abstract class GroupUpdater {
 
         suspend fun executeUpdate(proxyGroup: ProxyGroup, byUser: Boolean): Boolean {
             return coroutineScope {
-                if (!updating.add(proxyGroup.id)) cancel()
+                if (!updating.add(proxyGroup.id)) {
+                    // already updating this group in another run; skip quietly
+                    return@coroutineScope false
+                }
                 GroupManager.postReload(proxyGroup.id)
 
                 val subscription = proxyGroup.subscription!!
                 val connected = DataStore.serviceState.connected
                 val userInterface = GroupManager.userInterface
 
-                if (byUser && (subscription.link?.startsWith("http://") == true || subscription.updateWhenConnectedOnly) && !connected) {
-                    if (userInterface == null || !userInterface.confirm(app.getString(R.string.update_subscription_warning))) {
+                if (byUser && (
+                        subscription.link?.startsWith(
+                            "http://",
+                        ) == true || subscription.updateWhenConnectedOnly
+                        ) && !connected
+                ) {
+                    if (userInterface == null || !userInterface.confirm(
+                            app.getString(R.string.update_subscription_warning),
+                        )
+                    ) {
                         finishUpdate(proxyGroup)
-                        cancel()
                         return@coroutineScope true
                     }
                 }
@@ -150,6 +162,9 @@ abstract class GroupUpdater {
                 try {
                     RawUpdater.doUpdate(proxyGroup, subscription, userInterface, byUser)
                     true
+                } catch (e: CancellationException) {
+                    finishUpdate(proxyGroup)
+                    throw e
                 } catch (e: Throwable) {
                     Logs.w(e)
                     userInterface?.onUpdateFailure(proxyGroup, e.readableMessage)
@@ -159,13 +174,10 @@ abstract class GroupUpdater {
             }
         }
 
-
         suspend fun finishUpdate(proxyGroup: ProxyGroup) {
             updating.remove(proxyGroup.id)
             progress.remove(proxyGroup.id)
             GroupManager.postUpdate(proxyGroup)
         }
-
     }
-
 }

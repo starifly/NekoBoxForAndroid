@@ -1,9 +1,9 @@
 package moe.matsuri.nb4a
 
-import io.nekohasekai.sagernet.database.DataStore
-import moe.matsuri.nb4a.SingBoxOptions.RuleSet
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.database.DataStore
+import moe.matsuri.nb4a.SingBoxOptions.RuleSet
 import kotlin.Exception
 
 object SingBoxOptionsUtil {
@@ -27,7 +27,6 @@ object SingBoxOptionsUtil {
             }
         }
     }
-
 }
 
 fun SingBoxOptions.DNSRule_DefaultOptions.makeSingBoxRule(list: List<String>) {
@@ -77,21 +76,25 @@ fun generateRuleSet(ruleSetString: List<String>, ruleSet: MutableList<RuleSet>) 
     ruleSetString.forEach {
         when {
             it.startsWith("geoip:") -> {
-                ruleSet.add(RuleSet().apply {
-                    type = "local"
-                    tag = it
-                    format = "binary"
-                    path = it
-                })
+                ruleSet.add(
+                    RuleSet().apply {
+                        type = "local"
+                        tag = it
+                        format = "binary"
+                        path = it
+                    },
+                )
             }
 
             it.startsWith("geosite:") -> {
-                ruleSet.add(RuleSet().apply {
-                    type = "local"
-                    tag = it
-                    format = "binary"
-                    path = it
-                })
+                ruleSet.add(
+                    RuleSet().apply {
+                        type = "local"
+                        tag = it
+                        format = "binary"
+                        path = it
+                    },
+                )
             }
         }
     }
@@ -170,11 +173,11 @@ fun SingBoxOptions.Rule_DefaultOptions.checkEmpty(): Boolean {
 fun processRulesetUrl(origUrl: String): Pair<String, Boolean> {
     return when {
         origUrl.startsWith("rsip:") -> {
-            // IP类型ruleset
+            // IP-type ruleset
             Pair(origUrl.substring(5), true)
         }
         origUrl.startsWith("rssite:") -> {
-            // 域名类型ruleset
+            // domain-type ruleset
             Pair(origUrl.substring(7), false)
         }
         else -> {
@@ -186,15 +189,17 @@ fun processRulesetUrl(origUrl: String): Pair<String, Boolean> {
 fun generateRemoteRuleSet(url: String, ruleSets: MutableList<RuleSet>, updateInterval: String): String {
     val hashCode = kotlin.math.abs(url.hashCode())
     val tag = "ruleset-$hashCode"
-    
-    // 添加到规则集列表
-    ruleSets.add(RuleSet().apply {
-        type = "remote"
-        this.tag = tag
-        format = "binary"
-        this.url = url
-        update_interval = updateInterval
-    })
-    
+
+    // add to the rule set list
+    ruleSets.add(
+        RuleSet().apply {
+            type = "remote"
+            this.tag = tag
+            format = "binary"
+            this.url = url
+            update_interval = updateInterval
+        },
+    )
+
     return tag
 }

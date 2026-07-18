@@ -4,14 +4,13 @@ import io.nekohasekai.sagernet.IPv6Mode
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.LOCALHOST
 import io.nekohasekai.sagernet.ktx.*
-import moe.matsuri.nb4a.Protocols
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.json.JSONArray
 import org.json.JSONObject
 
 fun parseTrojanGo(server: String): TrojanGoBean {
     val link = server.replace("trojan-go://", "https://").toHttpUrlOrNull() ?: error(
-        "invalid trojan-link link $server"
+        "invalid trojan-link link $server",
     )
     return TrojanGoBean().apply {
         serverAddress = link.host
@@ -88,45 +87,60 @@ fun TrojanGoBean.buildTrojanGoConfig(port: Int): String {
         put("local_port", port)
         put("remote_addr", finalAddress)
         put("remote_port", finalPort)
-        put("password", JSONArray().apply {
-            put(password)
-        })
+        put(
+            "password",
+            JSONArray().apply {
+                put(password)
+            },
+        )
         put("log_level", if (DataStore.logLevel > 0) 0 else 2)
 //        if (Protocols.shouldEnableMux("trojan-go")) put("mux", JSONObject().apply {
 //            put("enabled", true)
 //            put("concurrency", DataStore.muxConcurrency)
 //        })
-        put("tcp", JSONObject().apply {
-            put("prefer_ipv4", DataStore.ipv6Mode <= IPv6Mode.ENABLE)
-        })
+        put(
+            "tcp",
+            JSONObject().apply {
+                put("prefer_ipv4", DataStore.ipv6Mode <= IPv6Mode.ENABLE)
+            },
+        )
 
         when (type) {
             "original" -> {
             }
-            "ws" -> put("websocket", JSONObject().apply {
-                put("enabled", true)
-                put("host", host)
-                put("path", path)
-            })
+            "ws" -> put(
+                "websocket",
+                JSONObject().apply {
+                    put("enabled", true)
+                    put("host", host)
+                    put("path", path)
+                },
+            )
         }
 
         if (sni.isBlank() && finalAddress == LOCALHOST && !serverAddress.isIpAddress()) {
             sni = serverAddress
         }
 
-        put("ssl", JSONObject().apply {
-            if (sni.isNotBlank()) put("sni", sni)
-            if (allowInsecure) put("verify", false)
-        })
+        put(
+            "ssl",
+            JSONObject().apply {
+                if (sni.isNotBlank()) put("sni", sni)
+                if (allowInsecure) put("verify", false)
+            },
+        )
 
         when {
             encryption == "none" -> {
             }
-            encryption.startsWith("ss;") -> put("shadowsocks", JSONObject().apply {
-                put("enabled", true)
-                put("method", encryption.substringAfter(";").substringBefore(":"))
-                put("password", encryption.substringAfter(":"))
-            })
+            encryption.startsWith("ss;") -> put(
+                "shadowsocks",
+                JSONObject().apply {
+                    put("enabled", true)
+                    put("method", encryption.substringAfter(";").substringBefore(":"))
+                    put("password", encryption.substringAfter(":"))
+                },
+            )
         }
     }.toStringPretty()
 }

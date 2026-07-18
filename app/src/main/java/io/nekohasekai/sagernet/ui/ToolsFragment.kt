@@ -35,5 +35,4 @@ class ToolsFragment : ToolbarFragment(R.layout.layout_tools) {
 
         override fun createFragment(position: Int) = tools[position]
     }
-
 }

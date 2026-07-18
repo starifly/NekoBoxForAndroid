@@ -5,6 +5,11 @@
     <!-- 卡片默认细边框：约 12% 白 -->
     <color name="card_stroke">#29FFFFFF</color>
 
+    <!-- M3 colorOutline (night): neutral light-gray for borders/dividers on dark surfaces.
+         This is the strong colorOutline role (M3 dark #938F99); the subtler
+         colorOutlineVariant maps to card_stroke (12% white) instead. -->
+    <color name="m3_outline">#938F99</color>
+
     <!-- 路由规则类型颜色（夜间，稍浅） -->
     <color name="color_route_block">#EF5350</color>   <!-- 屏蔽：浅红 -->
     <color name="color_route_direct">#66BB6A</color>  <!-- 直连：浅绿 -->
@@ -12,6 +17,7 @@
     <color name="color_route_config">#AB47BC</color>  <!-- 配置：浅紫 -->
 
     <!-- 立体卡片色调提升表面色（深色，#121212 底 + 各 primary 11% 染色） -->
+    <!-- Elevated-card tonal surface colors (dark: #121212 base + ~11% primary tint). -->
     <color name="card_elevated_pink">#2A131B</color>
     <color name="card_elevated_pink_ssr">#2C1D21</color>
     <color name="card_elevated_amber">#2C2511</color>
@@ -34,4 +40,9 @@
     <color name="card_elevated_yellow">#2C2A17</color>
     <color name="card_elevated_black">#151515</color>
     <color name="card_elevated_verdant_mint">#10241C</color>
+    <!-- Dracula dark surfaces (official palette). -->
+    <color name="card_elevated_dracula">#343746</color>
+    <color name="dracula_background">#282A36</color>
+    <color name="dracula_surface">#343746</color>
+    <color name="dracula_on_surface">#F8F8F2</color>
 </resources>

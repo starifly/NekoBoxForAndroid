@@ -6,54 +6,135 @@ on:
         description: "Release Tag"
         required: true
       publish:
-        description: "Publish: If want ignore"
+        description: "Publish the completed release"
         required: false
+        type: boolean
+        default: false
+env:
+  MIERU_VERSION: v3.34.1
+  MDVPN_REF: android-vpnservice-protect-hook
+  MDVPN_COMMIT: d481d72d4b86783a87d536c214d2c68cc4e9320e
+  NAIVE_VERSION: v149.0.7827.114-1
+  OLCRTC_REPO: https://github.com/hawkff/olcrtc.git
+  OLCRTC_COMMIT: ad5cc1e3d60b657b15ccd26f8db91395bf9630d0
+permissions:
+  contents: read
 jobs:
   libcore:
     name: Native Build (LibCore)
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-nekoyay
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - name: Golang Status
         run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
       - name: Libcore Status
         run: git ls-files libcore | xargs cat | sha1sum > libcore_status
       - name: LibCore Cache
         id: cache
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             app/libs/libcore.aar
           key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
       - name: Install Golang
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
-          go-version: ^1.25
+          go-version: '1.26.4'
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./run lib core
-  build:
-    name: Build OSS APK
-    runs-on: ubuntu-latest
-    needs:
-      - libcore
+      - name: Verify 16 KB ELF alignment
+        run: bash ./scripts/verify-elf-alignment.sh app/libs/libcore.aar
+      - name: Upload LibCore
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1
+        with:
+          name: libcore-aar-release
+          path: app/libs/libcore.aar
+          retention-days: 1
+          if-no-files-found: error
+  sidecars:
+    name: Native Build (Sidecars)
+    runs-on: namespace-profile-nekoyay
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
-      - name: Golang Status
-        run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
-      - name: Libcore Status
-        run: git ls-files libcore | xargs cat | sha1sum > libcore_status
-      - name: LibCore Cache
-        uses: actions/cache@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - name: Sidecars Status
+        run: |
+          git ls-files -s -- \
+            buildScript/lib/mieru.sh \
+            buildScript/lib/masterdnsvpn.sh \
+            buildScript/lib/naive.sh \
+            buildScript/lib/olcrtc.sh \
+            buildScript/lib/olcrtc-src/main.go \
+            buildScript/lib/olcrtc-src/main_test.go \
+            buildScript/lib/olcrtc-src/go.mod \
+            buildScript/init/env.sh \
+            buildScript/init/env_ndk.sh \
+            | sha1sum > sidecars_status
+      - name: Sidecars Cache
+        id: cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
-            app/libs/libcore.aar
-          key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
+            app/executableSo
+          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.MDVPN_COMMIT }}-${{ env.NAIVE_VERSION }}-${{ env.OLCRTC_COMMIT }}-sidecars
+      - name: Install Golang
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: '1.26.4'
+      - name: Mieru Build
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ./run lib mieru
+      - name: MasterDnsVPN Build
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ./run lib masterdnsvpn
+      - name: Naive Download
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ./run lib naive
+      - name: olcRTC Build
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ./run lib olcrtc
+      - name: Upload Sidecars
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1
+        with:
+          name: sidecars-so-release
+          path: app/executableSo
+          retention-days: 1
+          if-no-files-found: error
+  build:
+    name: Build OSS APK
+    runs-on: namespace-profile-nekoyay
+    needs:
+      - libcore
+      - sidecars
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - name: Download LibCore
+        uses: namespace-actions/download-artifact@5c070f7d7ebdc47682b04aa736c76e46ff5f6e1e # v1
+        with:
+          name: libcore-aar-release
+          path: app/libs
+      - name: Download Sidecars
+        uses: namespace-actions/download-artifact@5c070f7d7ebdc47682b04aa736c76e46ff5f6e1e # v1
+        with:
+          name: sidecars-so-release
+          path: app/executableSo
+      - name: Verify Sidecar Artifacts
+        run: |
+          for abi in arm64-v8a armeabi-v7a x86 x86_64; do
+            for so in libmieru.so libmasterdnsvpn.so libnaive.so libolcrtc.so; do
+              if [ ! -f "app/executableSo/$abi/$so" ]; then
+                echo "Error: missing app/executableSo/$abi/$so (sidecar artifact missing)" >&2
+                exit 1
+              fi
+            done
+          done
       - name: Gradle cache
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ~/.gradle
           key: gradle-oss-${{ hashFiles('**/*.gradle.kts') }}
@@ -65,32 +146,94 @@ jobs:
           echo "ndk.dir=${ANDROID_HOME}/ndk/25.0.8775105" >> local.properties
           export LOCAL_PROPERTIES="${{ secrets.LOCAL_PROPERTIES }}"
           ./run init action gradle
-          KEYSTORE_PASS="${{ secrets.KEYSTORE_PASS }}" ALIAS_NAME="${{ secrets.ALIAS_NAME }}" ALIAS_PASS="${{ secrets.ALIAS_PASS}}" ./gradlew app:assembleOssRelease
-          APK=$(find app/build/outputs/apk -name '*arm64-v8a*.apk')
-          APK=$(dirname $APK)
+          # release.keystore is not committed; decode it from the KEYSTORE_B64 secret.
+          if [ -n "${{ secrets.KEYSTORE_B64 }}" ]; then
+            echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > release.keystore
+          fi
+          KEYSTORE_PASS="${{ secrets.KEYSTORE_PASS }}" ALIAS_NAME="${{ secrets.ALIAS_NAME }}" ALIAS_PASS="${{ secrets.ALIAS_PASS }}" ./gradlew app:assembleOssRelease
+          APK=$(find app/build/outputs/renamed_apks -name '*arm64-v8a*.apk' | head -n 1)
+          if [ -z "$APK" ]; then
+            echo "Error: no arm64-v8a APK found under app/build/outputs/renamed_apks" >&2
+            exit 1
+          fi
+          APK=$(dirname "$APK")
           echo "APK=$APK" >> $GITHUB_ENV
       - uses: actions/upload-artifact@v7
+      - name: Generate APK checksums
+        env:
+          APK: ${{ env.APK }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          APK_FILES=("$APK"/*.apk)
+          if [ "${#APK_FILES[@]}" -eq 0 ]; then
+            echo "Error: no release APKs found in $APK" >&2
+            exit 1
+          fi
+          (
+            cd "$APK"
+            sha256sum ./*.apk > SHA256SUMS
+          )
+      - uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1
         with:
           name: APKs
           path: ${{ env.APK }}
+      - name: Publish arm64 release APK to Namespace workspace store
+        env:
+          APK: ${{ env.APK }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          APK_FILES=("$APK"/*arm64-v8a*.apk)
+          if [ "${#APK_FILES[@]}" -ne 1 ]; then
+            echo "Error: expected one arm64-v8a release APK, found ${#APK_FILES[@]}" >&2
+            exit 1
+          fi
+          APK_FILE="${APK_FILES[0]}"
+          REF="${GITHUB_REF_NAME//\//-}"
+          DEST_DIR="nekobox-release/${REF}/${GITHUB_RUN_ID}"
+          DEST="$DEST_DIR/$(basename "$APK_FILE")"
+          ARM64_SUMS=$(mktemp)
+          (cd "$APK" && sha256sum "./$(basename "$APK_FILE")") > "$ARM64_SUMS"
+          nsc artifact upload "$APK_FILE" "$DEST"
+          nsc artifact upload "$ARM64_SUMS" "$DEST_DIR/SHA256SUMS"
+          echo "Uploaded to Namespace workspace store: $DEST"
+          echo "Uploaded checksums to Namespace workspace store: $DEST_DIR/SHA256SUMS"
   publish:
     name: Publish Release
-    if: github.event.inputs.publish != 'y'
-    runs-on: ubuntu-latest
+    if: ${{ inputs.publish == true }}
+    runs-on: namespace-profile-nekoyay
+    permissions:
+      contents: write
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - name: Donwload Artifacts
-        uses: actions/download-artifact@v5
+        uses: namespace-actions/download-artifact@5c070f7d7ebdc47682b04aa736c76e46ff5f6e1e # v1
         with:
           name: APKs
           path: artifacts
       - name: Release
         run: |
+          set -euo pipefail
           wget -O ghr.tar.gz https://github.com/tcnksm/ghr/releases/download/v0.13.0/ghr_v0.13.0_linux_amd64.tar.gz
           tar -xvf ghr.tar.gz
           mv ghr*linux_amd64/ghr .
+          shopt -s globstar nullglob
+          CHECKSUM_FILES=(artifacts/**/SHA256SUMS)
+          if [ "${#CHECKSUM_FILES[@]}" -ne 1 ]; then
+            echo "Error: expected one SHA256SUMS file, found ${#CHECKSUM_FILES[@]}" >&2
+            exit 1
+          fi
+          CHECKSUM_DIR=$(dirname "${CHECKSUM_FILES[0]}")
+          (cd "$CHECKSUM_DIR" && sha256sum --check SHA256SUMS)
+          APK_FILES=(artifacts/**/*.apk)
+          if [ "${#APK_FILES[@]}" -eq 0 ]; then
+            echo "Error: no release APKs found in artifacts" >&2
+            exit 1
+          fi
           mkdir apks
-          find artifacts -name "*.apk" -exec cp {} apks \;
+          RELEASE_FILES=("${APK_FILES[@]}" "${CHECKSUM_FILES[@]}")
+          cp "${RELEASE_FILES[@]}" apks/
           ./ghr -delete -t "${{ github.token }}" -n "${{ github.event.inputs.tag }}" "${{ github.event.inputs.tag }}" apks

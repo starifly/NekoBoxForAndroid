@@ -22,6 +22,21 @@ import io.nekohasekai.sagernet.ktx.stringToInt
 import io.nekohasekai.sagernet.ktx.stringToIntIfExists
 import moe.matsuri.nb4a.TempDatabase
 
+// Default exclusion patterns for the system HTTP proxy (appendHttpProxy).
+// These are Android ProxyInfo host/suffix patterns (NOT CIDRs): private and
+// loopback ranges so LAN hosts connect directly while proxied traffic flows.
+val DEFAULT_HTTP_PROXY_BYPASS = listOf(
+    "localhost",
+    "127.*",
+    "10.*",
+    "172.16.*", "172.17.*", "172.18.*", "172.19.*",
+    "172.20.*", "172.21.*", "172.22.*", "172.23.*",
+    "172.24.*", "172.25.*", "172.26.*", "172.27.*",
+    "172.28.*", "172.29.*", "172.30.*", "172.31.*",
+    "192.168.*",
+    "169.254.*",
+).joinToString("\n")
+
 object DataStore : OnPreferenceDataStoreChangeListener {
 
     // share service state in main & bg process
@@ -31,7 +46,11 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     @Volatile
     var mixedInboundAuthed: Boolean = false
 
-    val configurationStore = RoomPreferenceDataStore(PublicDatabase.kvPairDao)
+    val configurationStore = RoomPreferenceDataStore(
+        PublicDatabase.kvPairDao,
+        cached = true,
+        database = PublicDatabase.database,
+    )
     val profileCacheStore = RoomPreferenceDataStore(TempDatabase.profileCacheDao)
 
     // last used, but may not be running
@@ -47,6 +66,12 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     // main
 
     var runningTest = false
+
+    val pluginSignerApprovals: Set<String>
+        get() = configurationStore.getStringSet(Key.PLUGIN_SIGNER_APPROVALS).orEmpty()
+
+    suspend fun approvePluginSigner(identity: String) =
+        configurationStore.addToStringSetDurable(Key.PLUGIN_SIGNER_APPROVALS, setOf(identity))
 
     fun currentGroupId(): Long {
         val currentSelected = configurationStore.getLong(Key.PROFILE_GROUP, -1)
@@ -85,7 +110,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         val current = currentGroup()
         if (current.type == GroupType.BASIC) return current.id
         val groups = SagerDatabase.groupDao.allGroups()
-        return groups.find { it.type == GroupType.BASIC }!!.id
+        groups.find { it.type == GroupType.BASIC }?.let { return it.id }
+        return SagerDatabase.groupDao.createGroup(ProxyGroup(ungrouped = true))
     }
 
     var appTLSVersion by configurationStore.string(Key.APP_TLS_VERSION)
@@ -104,27 +130,37 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var appTheme by configurationStore.int(Key.APP_THEME)
     var useSystemTheme by configurationStore.boolean(Key.USE_SYSTEM_THEME)
     var nightTheme by configurationStore.stringToInt(Key.NIGHT_THEME)
+
+    // -1 = not set (no dark-only-theme override active). Otherwise holds the
+    // night-mode value to restore when leaving a dark-only theme (Dracula or
+    // Dark High Contrast). Key name kept for backward compatibility.
+    var nightThemeBeforeDracula by configurationStore.int(Key.NIGHT_THEME_BEFORE_DRACULA) { -1 }
     var appLanguage by configurationStore.string(Key.APP_LANGUAGE) { "" }
     var serviceMode by configurationStore.string(Key.SERVICE_MODE) { Key.MODE_VPN }
 
     var trafficSniffing by configurationStore.stringToInt(Key.TRAFFIC_SNIFFING) { 1 }
     var resolveDestination by configurationStore.boolean(Key.RESOLVE_DESTINATION)
 
-    var mtu by configurationStore.stringToInt(Key.MTU) { 9000 }
+    var mtu by configurationStore.stringToInt(Key.MTU) { 1500 }
 
     var bypassLan by configurationStore.boolean(Key.BYPASS_LAN)
     var bypassLanInCore by configurationStore.boolean(Key.BYPASS_LAN_IN_CORE)
     var concurrentDial by configurationStore.boolean(Key.CONCURRENT_DIAL)
 
     var allowAccess by configurationStore.boolean(Key.ALLOW_ACCESS)
-    var speedInterval by configurationStore.stringToInt(Key.SPEED_INTERVAL)
+
+    // Default must match global_preferences.xml (1000ms). Without a non-zero code
+    // default, a fresh install that never opens Settings reads 0, which disables the
+    // TrafficLooper stats loop entirely (TrafficLooper.loop() returns on delayMs == 0),
+    // so the dashboard up/down speeds stay blank. "0" remains a valid user choice (Off).
+    var speedInterval by configurationStore.stringToInt(Key.SPEED_INTERVAL) { 1000 }
     var showGroupInNotification by configurationStore.boolean("showGroupInNotification")
 
     var globalCustomConfig by configurationStore.string(Key.GLOBAL_CUSTOM_CONFIG) { "" }
 
-    var remoteDns by configurationStore.string(Key.REMOTE_DNS) { "https://dns.google/dns-query" }
-    var directDns by configurationStore.string(Key.DIRECT_DNS) { "https://223.5.5.5/dns-query" }
-    var enableDnsRouting by configurationStore.boolean(Key.ENABLE_DNS_ROUTING) { true }
+    var remoteDns by configurationStore.string(Key.REMOTE_DNS) { "https://dns.quad9.net/dns-query" }
+    var directDns by configurationStore.string(Key.DIRECT_DNS) { "https://1.1.1.1/dns-query" }
+    var enableDnsRouting by configurationStore.boolean(Key.ENABLE_DNS_ROUTING) { false }
     var enableFakeDns by configurationStore.boolean(Key.ENABLE_FAKEDNS) { true }
 
     var rulesProvider by configurationStore.stringToInt(Key.RULES_PROVIDER)
@@ -133,9 +169,15 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var acquireWakeLock by configurationStore.boolean(Key.ACQUIRE_WAKE_LOCK)
     var hideFromRecentApps by configurationStore.boolean(Key.HIDE_FROM_RECENT_APPS)
 
-    var rulesGeositeUrl by configurationStore.string(Key.RULES_GEOSITE_URL) { "https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db" }
-    var rulesGeoipUrl by configurationStore.string(Key.RULES_GEOIP_URL) { "https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db" }
-    var rulesUpdateInterval by configurationStore.string(Key.RULES_UPDATE_INTERVAL) { "0" } // 默认为0，不自动更新
+    var rulesGeositeUrl by configurationStore.string(Key.RULES_GEOSITE_URL) {
+        "https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db"
+    }
+    var rulesGeoipUrl by configurationStore.string(Key.RULES_GEOIP_URL) {
+        "https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db"
+    }
+    var rulesUpdateInterval by configurationStore.string(Key.RULES_UPDATE_INTERVAL) {
+        "0"
+    } // defaults to 0, no automatic update
 
     // hopefully hashCode = mHandle doesn't change, currently this is true from KitKat to Nougat
     private val userIndex by lazy { Binder.getCallingUserHandle().hashCode() }
@@ -149,13 +191,45 @@ object DataStore : OnPreferenceDataStoreChangeListener {
             return s
         }
 
+    val clashApiSecret: String
+        @Synchronized get() {
+            var s = configurationStore.getString(Key.CLASH_API_SECRET)
+            if (s.isNullOrEmpty()) {
+                s = java.util.UUID.randomUUID().toString().replace("-", "")
+                configurationStore.putString(Key.CLASH_API_SECRET, s)
+            }
+            return s
+        }
+
     var mixedPort: Int
         get() = getLocalPort(Key.MIXED_PORT, 2080)
         set(value) = saveLocalPort(Key.MIXED_PORT, value)
 
     val mixedInboundNeedsAuth: Boolean
-        get() = serviceMode == Key.MODE_VPN &&
-            !(appendHttpProxy && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+        get() =
+            // When the inbound is exposed to the LAN (bind 0.0.0.0 via allowAccess),
+            // authentication is mandatory so the proxy is never an open relay. This
+            // holds in both VPN and Proxy service modes and overrides appendHttpProxy.
+            allowAccess ||
+                // Loopback-only inbound: keep the prior behavior. In VPN mode the
+                // inbound is authenticated, except when appendHttpProxy is active on
+                // Android Q+ (the system HTTP proxy cannot supply credentials).
+                (
+                    serviceMode == Key.MODE_VPN &&
+                        !(appendHttpProxy && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+                    ) ||
+                // Proxy service mode loopback inbound: optionally authenticate too
+                // (issue #1197 residual gap). Off by default to preserve the
+                // "open localhost proxy" use case; users opt in for hardening.
+                (serviceMode == Key.MODE_PROXY && proxyModeInboundAuth)
+
+    // Keep the local mixed (SOCKS/HTTP) inbound open in VPN mode. Default false: in
+    // TUN mode the local proxy port is usually unnecessary, and closing it removes the
+    // local port-scan attack surface entirely (PR #1154 / issue #1197).
+    var requireProxyInVPN by configurationStore.boolean(Key.REQUIRE_PROXY_IN_VPN)
+
+    // Authenticate the loopback mixed inbound in Proxy service mode (issue #1197).
+    var proxyModeInboundAuth by configurationStore.boolean(Key.PROXY_MODE_INBOUND_AUTH)
 
     val mixedInboundUser: String get() = if (mixedInboundAuthed) Key.MIXED_USERNAME else ""
     val mixedInboundPass: String get() = if (mixedInboundAuthed) mixedSecret else ""
@@ -165,7 +239,6 @@ object DataStore : OnPreferenceDataStoreChangeListener {
             mixedPort = mixedPort
         }
     }
-
 
     private fun getLocalPort(key: String, default: Int): Int {
         return parsePort(configurationStore.getString(key), default + userIndex)
@@ -186,7 +259,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     val persistAcrossReboot by configurationStore.boolean(Key.PERSIST_ACROSS_REBOOT) { false }
 
     var appendHttpProxy by configurationStore.boolean(Key.APPEND_HTTP_PROXY)
-    var httpProxyBypass by configurationStore.string(Key.HTTP_PROXY_BYPASS) { "" }
+    var httpProxyBypass by configurationStore.string(Key.HTTP_PROXY_BYPASS) { DEFAULT_HTTP_PROXY_BYPASS }
     var dnsHosts by configurationStore.string(Key.DNS_HOSTS) { "" }
     var strictRoute by configurationStore.boolean(Key.STRICT_ROUTE) { true }
     var connectionTestURL by configurationStore.string(Key.CONNECTION_TEST_URL) { CONNECTION_TEST_URL }
@@ -247,6 +320,44 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var serverDisableMtuDiscovery by profileCacheStore.boolean(Key.SERVER_DISABLE_MTU_DISCOVERY)
     var serverHopInterval by profileCacheStore.stringToInt(Key.SERVER_HOP_INTERVAL) { 10 }
 
+    var serverHy2ObfsType by profileCacheStore.stringToInt(Key.SERVER_HY2_OBFS_TYPE)
+    var serverHy2GeckoMinPacket by profileCacheStore.stringToInt(Key.SERVER_HY2_GECKO_MIN_PACKET) { 512 }
+    var serverHy2GeckoMaxPacket by profileCacheStore.stringToInt(Key.SERVER_HY2_GECKO_MAX_PACKET) { 1200 }
+    var serverHy2EchEnabled by profileCacheStore.boolean(Key.SERVER_HY2_ECH_ENABLED)
+    var serverHy2EchConfig by profileCacheStore.string(Key.SERVER_HY2_ECH_CONFIG)
+
+    // MasterDnsVPN
+    var mdvDomains by profileCacheStore.string(Key.MDV_DOMAINS)
+    var mdvEncryptionMethod by profileCacheStore.stringToInt(Key.MDV_ENCRYPTION_METHOD) { 0 }
+    var mdvEncryptionKey by profileCacheStore.string(Key.MDV_ENCRYPTION_KEY)
+    var mdvResolvers by profileCacheStore.string(Key.MDV_RESOLVERS)
+    var mdvBalancingStrategy by profileCacheStore.stringToInt(Key.MDV_BALANCING_STRATEGY) { 3 }
+    var mdvPacketDup by profileCacheStore.stringToInt(Key.MDV_PACKET_DUP) { 3 }
+    var mdvSetupPacketDup by profileCacheStore.stringToInt(Key.MDV_SETUP_PACKET_DUP) { 4 }
+    var mdvAutoDisableTimeout by profileCacheStore.boolean(Key.MDV_AUTO_DISABLE_TIMEOUT)
+    var mdvAutoRemoveLowMtu by profileCacheStore.boolean(Key.MDV_AUTO_REMOVE_LOW_MTU)
+    var mdvBaseEncode by profileCacheStore.boolean(Key.MDV_BASE_ENCODE)
+    var mdvUploadCompression by profileCacheStore.stringToInt(Key.MDV_UPLOAD_COMPRESSION) { 0 }
+    var mdvDownloadCompression by profileCacheStore.stringToInt(Key.MDV_DOWNLOAD_COMPRESSION) { 0 }
+    var mdvCompressionMinSize by profileCacheStore.stringToInt(Key.MDV_COMPRESSION_MIN_SIZE) { 120 }
+    var mdvMinUploadMtu by profileCacheStore.stringToInt(Key.MDV_MIN_UPLOAD_MTU) { 38 }
+    var mdvMinDownloadMtu by profileCacheStore.stringToInt(Key.MDV_MIN_DOWNLOAD_MTU) { 200 }
+    var mdvMaxUploadMtu by profileCacheStore.stringToInt(Key.MDV_MAX_UPLOAD_MTU) { 150 }
+    var mdvMaxDownloadMtu by profileCacheStore.stringToInt(Key.MDV_MAX_DOWNLOAD_MTU) { 4000 }
+    var mdvLocalDnsEnabled by profileCacheStore.boolean(Key.MDV_LOCAL_DNS_ENABLED)
+    var mdvLocalDnsPort by profileCacheStore.stringToInt(Key.MDV_LOCAL_DNS_PORT) { 53 }
+    var mdvLogLevel by profileCacheStore.string(Key.MDV_LOG_LEVEL) { "INFO" }
+    var mdvAdvancedJson by profileCacheStore.string(Key.MDV_ADVANCED_JSON)
+
+    var olcrtcCarrier by profileCacheStore.string(Key.OLCRTC_CARRIER) { "jitsi" }
+    var olcrtcRoomId by profileCacheStore.string(Key.OLCRTC_ROOM_ID)
+    var olcrtcClientId by profileCacheStore.string(Key.OLCRTC_CLIENT_ID)
+    var olcrtcKeyHex by profileCacheStore.string(Key.OLCRTC_KEY_HEX)
+    var olcrtcTransport by profileCacheStore.string(Key.OLCRTC_TRANSPORT) { "vp8channel" }
+    var olcrtcVp8Fps by profileCacheStore.stringToInt(Key.OLCRTC_VP8_FPS) { 30 }
+    var olcrtcVp8Batch by profileCacheStore.stringToInt(Key.OLCRTC_VP8_BATCH) { 8 }
+    var olcrtcDnsServer by profileCacheStore.string(Key.OLCRTC_DNS_SERVER) { "" }
+
     var protocolVersion by profileCacheStore.stringToInt(Key.PROTOCOL_VERSION) { 2 } // default is SOCKS5
 
     var serverProtocolInt by profileCacheStore.stringToInt(Key.SERVER_PROTOCOL)
@@ -298,6 +409,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var subscriptionFilterMode by profileCacheStore.stringToInt(Key.SUBSCRIPTION_FILTER_MODE) { 0 }
     var subscriptionFilterRegex by profileCacheStore.string(Key.SUBSCRIPTION_FILTER_REGEX)
     var subscriptionServerDns by profileCacheStore.string(Key.SUBSCRIPTION_SERVER_DNS)
+    var subscriptionCustomDns by profileCacheStore.string(Key.SUBSCRIPTION_CUSTOM_DNS)
 
     var rulesFirstCreate by profileCacheStore.boolean("rulesFirstCreate")
 
@@ -316,7 +428,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         set(value) = configurationStore.putString("webdavPassword", value)
 
     var webdavPath: String?
-        get() = configurationStore.getString("webdavPath") ?: "NekoBox"  // 设置默认值
+        get() = configurationStore.getString("webdavPath") ?: "NekoBox" // set default value
         set(value) = configurationStore.putString("webdavPath", value)
 
     var globalMode by configurationStore.boolean(Key.GLOBAL_MODE)

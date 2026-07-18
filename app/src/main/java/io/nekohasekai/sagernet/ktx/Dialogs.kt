@@ -18,7 +18,7 @@ fun Fragment.alert(text: String) = requireContext().alert(text)
 
 fun AlertDialog.tryToShow() {
     try {
-        val activity = context as Activity
+        val activity = context.unwrap<Activity>()
         if (!activity.isFinishing) {
             show()
         }

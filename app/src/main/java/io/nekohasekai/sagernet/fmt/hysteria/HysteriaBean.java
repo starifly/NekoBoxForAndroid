@@ -46,6 +46,19 @@ public class HysteriaBean extends AbstractBean {
     public static final int PROTOCOL_WECHAT_VIDEO = 2;
     public Integer protocol;
 
+    // Hysteria2 obfuscation type (HY2 only). The shared `obfuscation` field holds the password.
+    public static final int OBFS_NONE = 0;
+    public static final int OBFS_SALAMANDER = 1;
+    public static final int OBFS_GECKO = 2;
+    public Integer hysteria2ObfsType;
+    // Gecko obfs packet-size bounds (HY2 + Gecko only).
+    public Integer geckoMinPacketSize;
+    public Integer geckoMaxPacketSize;
+
+    // Hysteria 2 ECH is explicit and fail-closed. Existing profiles keep it disabled.
+    public Boolean enableECH;
+    public String echConfig;
+
     @Override
     public boolean canMapping() {
         return protocol != PROTOCOL_FAKETCP;
@@ -60,6 +73,14 @@ public class HysteriaBean extends AbstractBean {
         if (authPayload == null) authPayload = "";
         if (protocol == null) protocol = PROTOCOL_UDP;
         if (obfuscation == null) obfuscation = "";
+        if (hysteria2ObfsType == null) {
+            // Backward compat: pre-Gecko HY2 profiles with a password used Salamander.
+            hysteria2ObfsType = obfuscation.isEmpty() ? OBFS_NONE : OBFS_SALAMANDER;
+        }
+        if (geckoMinPacketSize == null) geckoMinPacketSize = 512;
+        if (geckoMaxPacketSize == null) geckoMaxPacketSize = 1200;
+        if (enableECH == null) enableECH = false;
+        if (echConfig == null) echConfig = "";
         if (sni == null) sni = "";
         if (alpn == null) alpn = "";
         if (caText == null) caText = "";
@@ -82,7 +103,7 @@ public class HysteriaBean extends AbstractBean {
 
     @Override
     public void serialize(ByteBufferOutput output) {
-        output.writeInt(7);
+        output.writeInt(9);
         super.serialize(output);
 
         output.writeInt(protocolVersion);
@@ -104,6 +125,13 @@ public class HysteriaBean extends AbstractBean {
         output.writeBoolean(disableMtuDiscovery);
         output.writeInt(hopInterval);
         output.writeString(serverPorts);
+
+        output.writeInt(hysteria2ObfsType);
+        output.writeInt(geckoMinPacketSize);
+        output.writeInt(geckoMaxPacketSize);
+
+        output.writeBoolean(Boolean.TRUE.equals(enableECH));
+        output.writeString(echConfig);
     }
 
     @Override
@@ -148,6 +176,20 @@ public class HysteriaBean extends AbstractBean {
                 serverPorts = serverPort.toString();
             }
         }
+        if (version >= 8) {
+            hysteria2ObfsType = input.readInt();
+            geckoMinPacketSize = input.readInt();
+            geckoMaxPacketSize = input.readInt();
+        }
+        if (version >= 9) {
+            enableECH = input.readBoolean();
+            echConfig = input.readString();
+        } else {
+            enableECH = false;
+            echConfig = "";
+        }
+        // For version < 8, hysteria2ObfsType/gecko* stay null and are derived in
+        // initializeDefaultValues() (Salamander when an obfuscation password exists).
     }
 
     @Override

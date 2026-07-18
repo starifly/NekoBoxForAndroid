@@ -18,6 +18,8 @@ object MessageStore {
     fun showMessage(message: String) {
         val activity = currentActivity?.get() ?: return
         try {
+            // findViewById (not ViewBinding): android.R.id.content is a framework id on the
+            // current activity's decor view; there is no app layout binding to use here.
             val rootView = activity.window.decorView.findViewById<View>(android.R.id.content)
             snackbar?.dismiss()
             snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG)
@@ -38,4 +40,4 @@ object MessageStore {
     fun showMessage(activity: Activity, @StringRes resId: Int, vararg formatArgs: Any) {
         showMessage(activity.getString(resId, *formatArgs))
     }
-} 
+}

@@ -6,52 +6,131 @@ on:
       - main
     paths:
       - 'nb4a.properties'
+env:
+  MIERU_VERSION: v3.34.1
+  MDVPN_REF: android-vpnservice-protect-hook
+  MDVPN_COMMIT: d481d72d4b86783a87d536c214d2c68cc4e9320e
+  NAIVE_VERSION: v149.0.7827.114-1
+  OLCRTC_REPO: https://github.com/hawkff/olcrtc.git
+  OLCRTC_COMMIT: ad5cc1e3d60b657b15ccd26f8db91395bf9630d0
+permissions:
+  contents: read
 jobs:
   libcore:
     name: Native Build (LibCore)
-    runs-on: ubuntu-latest
+    runs-on: namespace-profile-nekoyay
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - name: Golang Status
         run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
       - name: Libcore Status
         run: git ls-files libcore | xargs cat | sha1sum > libcore_status
       - name: LibCore Cache
         id: cache
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             app/libs/libcore.aar
           key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
       - name: Install Golang
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
-          go-version: ^1.25
+          go-version: '1.26.4'
       - name: Native Build
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./run lib core
-  build:
-    name: Build OSS APK
-    runs-on: ubuntu-latest
-    needs:
-      - libcore
+      - name: Verify 16 KB ELF alignment
+        run: bash ./scripts/verify-elf-alignment.sh app/libs/libcore.aar
+      - name: Upload LibCore
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1
+        with:
+          name: libcore-aar-build
+          path: app/libs/libcore.aar
+          retention-days: 1
+          if-no-files-found: error
+  sidecars:
+    name: Native Build (Sidecars)
+    runs-on: namespace-profile-nekoyay
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
-      - name: Golang Status
-        run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
-      - name: Libcore Status
-        run: git ls-files libcore | xargs cat | sha1sum > libcore_status
-      - name: LibCore Cache
-        uses: actions/cache@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - name: Sidecars Status
+        run: |
+          git ls-files -s -- \
+            buildScript/lib/mieru.sh \
+            buildScript/lib/masterdnsvpn.sh \
+            buildScript/lib/naive.sh \
+            buildScript/lib/olcrtc.sh \
+            buildScript/lib/olcrtc-src/main.go \
+            buildScript/lib/olcrtc-src/main_test.go \
+            buildScript/lib/olcrtc-src/go.mod \
+            buildScript/init/env.sh \
+            buildScript/init/env_ndk.sh \
+            | sha1sum > sidecars_status
+      - name: Sidecars Cache
+        id: cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
-            app/libs/libcore.aar
-          key: ${{ hashFiles('.github/workflows/*', 'golang_status', 'libcore_status') }}
+            app/executableSo
+          key: ${{ hashFiles('.github/workflows/*', 'sidecars_status') }}-${{ env.MIERU_VERSION }}-${{ env.MDVPN_COMMIT }}-${{ env.NAIVE_VERSION }}-${{ env.OLCRTC_COMMIT }}-sidecars
+      - name: Install Golang
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: '1.26.4'
+      - name: Mieru Build
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ./run lib mieru
+      - name: MasterDnsVPN Build
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ./run lib masterdnsvpn
+      - name: Naive Download
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ./run lib naive
+      - name: olcRTC Build
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: ./run lib olcrtc
+      - name: Upload Sidecars
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1
+        with:
+          name: sidecars-so-build
+          path: app/executableSo
+          retention-days: 1
+          if-no-files-found: error
+  build:
+    name: Build OSS APK
+    runs-on: namespace-profile-nekoyay
+    needs:
+      - libcore
+      - sidecars
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - name: Download LibCore
+        uses: namespace-actions/download-artifact@5c070f7d7ebdc47682b04aa736c76e46ff5f6e1e # v1
+        with:
+          name: libcore-aar-build
+          path: app/libs
+      - name: Download Sidecars
+        uses: namespace-actions/download-artifact@5c070f7d7ebdc47682b04aa736c76e46ff5f6e1e # v1
+        with:
+          name: sidecars-so-build
+          path: app/executableSo
+      - name: Verify Sidecar Artifacts
+        run: |
+          for abi in arm64-v8a armeabi-v7a x86 x86_64; do
+            for so in libmieru.so libmasterdnsvpn.so libnaive.so libolcrtc.so; do
+              if [ ! -f "app/executableSo/$abi/$so" ]; then
+                echo "Error: missing app/executableSo/$abi/$so (sidecar artifact missing)" >&2
+                exit 1
+              fi
+            done
+          done
       - name: Gradle cache
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ~/.gradle
           key: gradle-oss-${{ hashFiles('**/*.gradle.kts') }}

@@ -6,7 +6,9 @@ import android.os.Build
 import android.util.Log
 import com.jakewharton.processphoenix.ProcessPhoenix
 import io.nekohasekai.sagernet.BuildConfig
+import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.SagerNet
+import io.nekohasekai.sagernet.database.preference.KeyValuePair
 import io.nekohasekai.sagernet.database.preference.PublicDatabase
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
@@ -17,6 +19,24 @@ import java.io.InputStreamReader
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
+
+private val diagnosticSettingKeys = listOf(
+    Key.APP_THEME,
+    Key.NIGHT_THEME,
+    Key.SERVICE_MODE,
+    Key.METERED_NETWORK,
+    Key.SPEED_INTERVAL,
+    Key.SHOW_DIRECT_SPEED,
+    Key.LOG_LEVEL,
+    Key.PROFILE_TRAFFIC_STATISTICS,
+)
+
+internal fun formatDiagnosticSettings(rows: Collection<KeyValuePair>): List<String> {
+    val rowsByKey = rows.associateBy(KeyValuePair::key)
+    return diagnosticSettingKeys.mapNotNull { key ->
+        rowsByKey[key]?.let { "$key: $it" }
+    }
+}
 
 object CrashHandler : Thread.UncaughtExceptionHandler {
 
@@ -35,9 +55,12 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
         } catch (e: Exception) {
         }
 
-        ProcessPhoenix.triggerRebirth(app, Intent(app, BlankActivity::class.java).apply {
-            putExtra("sendLog", "NB4A Crash")
-        })
+        ProcessPhoenix.triggerRebirth(
+            app,
+            Intent(app, BlankActivity::class.java).apply {
+                putExtra("sendLog", "NB4A Crash")
+            },
+        )
     }
 
     fun formatThrowable(throwable: Throwable): String {
@@ -96,15 +119,14 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
             Build.SUPPORTED_ABIS.filter { it.isNotBlank() }.joinToString(", ")
         }\n\n"
 
-
+        report += "Settings: \n"
         try {
-            report += "Settings: \n"
-            for (pair in PublicDatabase.kvPairDao.all()) {
+            for (line in formatDiagnosticSettings(PublicDatabase.kvPairDao.all())) {
                 report += "\n"
-                report += pair.key + ": " + pair.toString()
+                report += line
             }
-        } catch (e: Exception) {
-            report += "Export settings failed: " + formatThrowable(e)
+        } catch (_: Exception) {
+            report += "Settings unavailable"
         }
 
         report += "\n\n"
@@ -137,21 +159,24 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
                 if (matcher.matches()) {
                     key = matcher.group(1)
                     value = matcher.group(2)
-                    if (key != null && value != null && !key.isEmpty() && !value.isEmpty()) systemProperties[key] =
-                        value
+                    if (key != null && value != null && !key.isEmpty() && !value.isEmpty()) {
+                        systemProperties[key] =
+                            value
+                    }
                 }
             }
             bufferedReader.close()
             process.destroy()
         } catch (e: IOException) {
             Logs.e(
-                "Failed to get run \"/system/bin/getprop\" to get system properties.", e
+                "Failed to get run \"/system/bin/getprop\" to get system properties.",
+                e,
             )
         }
 
-        //for (String key : systemProperties.stringPropertyNames()) {
+        // for (String key : systemProperties.stringPropertyNames()) {
         //    Logger.logVerbose(key + ": " +  systemProperties.get(key));
-        //}
+        // }
         return systemProperties
     }
 
@@ -170,5 +195,4 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
         df.timeZone = TimeZone.getTimeZone("UTC")
         return df.format(Date())
     }
-
 }

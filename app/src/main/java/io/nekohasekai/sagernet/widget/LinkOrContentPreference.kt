@@ -18,16 +18,19 @@ constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = TypedArrayUtils.getAttr(
-        context, R.attr.editTextPreferenceStyle,
-        android.R.attr.editTextPreferenceStyle
+        context,
+        R.attr.editTextPreferenceStyle,
+        android.R.attr.editTextPreferenceStyle,
     ),
-    defStyleRes: Int = 0
+    defStyleRes: Int = 0,
 ) : EditTextPreference(context, attrs, defStyleAttr, defStyleRes) {
 
     init {
         dialogLayoutResource = R.layout.layout_urltest_preference_dialog
 
         setOnBindEditTextListener {
+            // findViewById (not ViewBinding): the dialog view is supplied by the AndroidX
+            // EditTextPreference bind callback (it.rootView), not an app layout binding.
             val linkLayout = it.rootView.findViewById<TextInputLayout>(R.id.input_layout)
             fun validate() {
                 val link = it.text
@@ -55,7 +58,6 @@ constructor(
                     linkLayout.error = e.readableMessage
                     linkLayout.isErrorEnabled = true
                 }
-
             }
             validate()
             it.addTextChangedListener {
@@ -63,5 +65,4 @@ constructor(
             }
         }
     }
-
 }

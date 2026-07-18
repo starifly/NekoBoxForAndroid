@@ -2,7 +2,6 @@ package moe.matsuri.nb4a
 
 import android.content.Context
 import io.nekohasekai.sagernet.R
-import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_NEKO
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.getColorAttr
@@ -13,39 +12,32 @@ object Protocols {
 
     // Deduplication
 
-    class Deduplication(
-        val bean: AbstractBean, val type: String
-    ) {
+    class Deduplication(val bean: AbstractBean) {
 
-        fun hash(): String {
-            if (bean is ConfigBean) {
-                return bean.config
-            }
-            return bean.serverAddress + bean.serverPort + type
-        }
+        // Callers build these wrappers after parsing and do not mutate their beans while the
+        // wrappers are in a set. Cache the serialization-backed hash so HashSet probes do not
+        // serialize the same bean repeatedly.
+        private val comparisonHash = if (bean is ConfigBean) bean.config?.hashCode() ?: 0 else bean.hashCode()
 
-        override fun hashCode(): Int {
-            return hash().toByteArray().contentHashCode()
-        }
+        override fun hashCode() = 31 * bean.javaClass.hashCode() + comparisonHash
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-
-            other as Deduplication
-
-            return hash() == other.hash()
+            if (other !is Deduplication) return false
+            if (bean is ConfigBean && other.bean is ConfigBean) {
+                return bean.config == other.bean.config
+            }
+            if (bean.javaClass != other.bean.javaClass) return false
+            // AbstractBean equality serializes without the display name. Both dedup callers run
+            // serially; they must not compare the same mutable beans concurrently.
+            return bean == other.bean
         }
-
     }
 
     // Display
 
     fun Context.getProtocolColor(type: Int): Int {
-        return when (type) {
-            TYPE_NEKO -> getColorAttr(android.R.attr.textColorPrimary)
-            else -> getColorAttr(R.attr.accentOrTextSecondary)
-        }
+        return getColorAttr(R.attr.protocolColor)
     }
 
     // Test
@@ -64,5 +56,4 @@ object Protocols {
             else -> msg
         }
     }
-
 }

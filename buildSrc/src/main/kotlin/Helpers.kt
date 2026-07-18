@@ -1,16 +1,26 @@
+import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.dsl.ApplicationExtension
-import com.android.build.gradle.AbstractAppExtension
-import com.android.build.gradle.internal.api.BaseVariantOutputImpl
+import com.android.build.api.variant.ApplicationAndroidComponentsExtension
+import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.getByName
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
+import org.gradle.kotlin.dsl.register
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.Base64
 import java.util.Properties
-import kotlin.system.exitProcess
 
 private val Project.android get() = extensions.getByName<ApplicationExtension>("android")
+private val Project.androidComponents
+    get() = extensions.getByName<ApplicationAndroidComponentsExtension>("androidComponents")
 
 private lateinit var metadata: Properties
 private lateinit var localProperties: Properties
@@ -30,7 +40,6 @@ fun Project.requireLocalProperties(): Properties {
 
         val base64 = System.getenv("LOCAL_PROPERTIES")
         if (!base64.isNullOrBlank()) {
-
             localProperties.load(Base64.getDecoder().decode(base64).inputStream())
         } else if (project.rootProject.file("local.properties").exists()) {
             localProperties.load(rootProject.file("local.properties").inputStream())
@@ -41,8 +50,8 @@ fun Project.requireLocalProperties(): Properties {
 
 fun Project.setupCommon() {
     android.apply {
-        buildToolsVersion = "35.0.1"
-        compileSdk = 35
+        buildToolsVersion = "36.0.0"
+        compileSdk = 36
         defaultConfig {
             minSdk = 21
             targetSdk = 35
@@ -53,17 +62,15 @@ fun Project.setupCommon() {
             }
         }
         compileOptions {
-            sourceCompatibility = JavaVersion.VERSION_1_8
-            targetCompatibility = JavaVersion.VERSION_1_8
-        }
-        (android as ExtensionAware).extensions.getByName<KotlinJvmOptions>("kotlinOptions").apply {
-            jvmTarget = JavaVersion.VERSION_1_8.toString()
+            sourceCompatibility = JavaVersion.VERSION_17
+            targetCompatibility = JavaVersion.VERSION_17
         }
         lint {
             showAll = true
             checkAllWarnings = true
             checkReleaseBuilds = true
             warningsAsErrors = true
+            baseline = project.file("lint-baseline.xml")
             textOutput = project.file("build/lint.txt")
             htmlOutput = project.file("build/lint.html")
         }
@@ -80,33 +87,44 @@ fun Project.setupCommon() {
                     "org/**",
                     "**/*.java",
                     "**/*.proto",
-                    "okhttp3/**"
-                )
+                    "okhttp3/**",
+                ),
             )
         }
-        (this as? AbstractAppExtension)?.apply {
-            buildTypes {
-                getByName("release") {
-                    isShrinkResources = true
-                    if (System.getenv("nkmr_minify") == "0") {
-                        isShrinkResources = false
-                        isMinifyEnabled = false
-                    }
+        // Under AGP 9's new DSL the build types below are configured directly on
+        // ApplicationExtension (no AbstractAppExtension cast needed). APK output renaming is no
+        // longer done here via the removed applicationVariants/BaseVariantOutputImpl API; it is
+        // handled by the RenameApkTask wired in setupApp() through androidComponents.onVariants.
+        buildTypes {
+            getByName("release") {
+                isShrinkResources = true
+                if (System.getenv("nkmr_minify") == "0") {
+                    isShrinkResources = false
+                    isMinifyEnabled = false
                 }
-                getByName("debug") {
-                    applicationIdSuffix = "debug"
-                    debuggable(true)
-                    jniDebuggable(true)
-                }
+                // Plan 027 Stage 3: release keeps the current main-thread-DB allowance until
+                // debug has run StrictMode-clean for a full cycle; then this flips to false and
+                // the allowMainThreadQueries() call is deleted.
+                buildConfigField("boolean", "ALLOW_MAIN_THREAD_DB", "true")
             }
-            applicationVariants.forEach { variant ->
-                variant.outputs.forEach {
-                    it as BaseVariantOutputImpl
-                    it.outputFileName = it.outputFileName.replace(
-                        "app", "${project.name}-" + variant.versionName
-                    ).replace("-release", "").replace("-oss", "")
-                }
+            getByName("debug") {
+                applicationIdSuffix = "debug"
+                isDebuggable = true
+                isJniDebuggable = true
+                // Debug ships with the allowance OFF so StrictMode + a main-thread DAO access
+                // surfaces as a crash-free IllegalStateException the operator can catch on device.
+                buildConfigField("boolean", "ALLOW_MAIN_THREAD_DB", "false")
             }
+        }
+    }
+
+    // Kotlin JVM target. Configured via the compilerOptions DSL on the Kotlin compile tasks
+    // (a project-level call, hence outside the android.apply { } block above); the legacy
+    // `kotlinOptions { jvmTarget = ... }` / KotlinJvmOptions API was removed (turned into a
+    // hard error) in Kotlin 2.3.
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 }
@@ -118,12 +136,22 @@ fun Project.setupAppCommon() {
     val keystorePwd = lp.getProperty("KEYSTORE_PASS") ?: System.getenv("KEYSTORE_PASS")
     val alias = lp.getProperty("ALIAS_NAME") ?: System.getenv("ALIAS_NAME")
     val pwd = lp.getProperty("ALIAS_PASS") ?: System.getenv("ALIAS_PASS")
+    // release.keystore is intentionally NOT committed (gitignored). CI decodes it from
+    // the KEYSTORE_B64 secret before the release build. Only wire up release signing when
+    // the keystore file is actually present and a (non-blank) password is provided;
+    // otherwise skip it so debug / PR / keyless builds don't fail. Empty-string env vars
+    // (unset GitHub secrets expand to "") count as absent.
+    val releaseKeystore = rootProject.file("release.keystore")
+    val canSign = releaseKeystore.exists() &&
+        !keystorePwd.isNullOrBlank() &&
+        !alias.isNullOrBlank() &&
+        !pwd.isNullOrBlank()
 
     android.apply {
-        if (keystorePwd != null) {
+        if (canSign) {
             signingConfigs {
                 create("release") {
-                    storeFile = rootProject.file("release.keystore")
+                    storeFile = releaseKeystore
                     storePassword = keystorePwd
                     keyAlias = alias
                     keyPassword = pwd
@@ -150,18 +178,18 @@ fun Project.setupApp() {
             versionCode = verCode
             versionName = verName
             buildConfigField("String", "PRE_VERSION_NAME", "\"\"")
+            // Runner for instrumented (androidTest) tests, e.g. the Room migration test.
+            testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         }
     }
     setupAppCommon()
 
     android.apply {
-        this as AbstractAppExtension
-
         buildTypes {
             getByName("release") {
                 proguardFiles(
                     getDefaultProguardFile("proguard-android-optimize.txt"),
-                    file("proguard-rules.pro")
+                    file("proguard-rules.pro"),
                 )
             }
         }
@@ -185,36 +213,76 @@ fun Project.setupApp() {
                 buildConfigField(
                     "String",
                     "PRE_VERSION_NAME",
-                    "\"${requireMetadata().getProperty("PRE_VERSION_NAME")}\""
+                    "\"${requireMetadata().getProperty("PRE_VERSION_NAME")}\"",
                 )
             }
         }
 
-        applicationVariants.all {
-            outputs.all {
-                this as BaseVariantOutputImpl
-                val isPreview = outputFileName.contains("-preview")
-                outputFileName = if (isPreview) {
-                    outputFileName.replace(
-                        project.name,
-                        "NekoBox-" + requireMetadata().getProperty("PRE_VERSION_NAME")
-                    ).replace("-preview", "")
-                } else {
-                    outputFileName.replace(project.name, "NekoBox-$versionName")
-                        .replace("-release", "")
-                        .replace("-oss", "")
-                }
-            }
-        }
-
         for (abi in listOf("Arm64", "Arm", "X64", "X86")) {
-            tasks.create("assemble" + abi + "FdroidRelease") {
+            tasks.register("assemble" + abi + "FdroidRelease") {
                 dependsOn("assembleFdroidRelease")
             }
         }
 
         sourceSets.getByName("main").apply {
-            jniLibs.srcDir("executableSo")
+            jniLibs.directories.add("executableSo")
         }
+    }
+
+    // APK output renaming. The legacy applicationVariants/BaseVariantOutputImpl API was removed in
+    // AGP 9 (new DSL). Instead we react to artifact creation and copy the produced APKs into
+    // build/outputs/renamed_apks/<variant> with friendly NekoBox-<version>[-<abi>].apk names.
+    // The preview flavor uses PRE_VERSION_NAME to match the previous behaviour.
+    val previewVersionName = requireMetadata().getProperty("PRE_VERSION_NAME")
+    androidComponents.onVariants { variant ->
+        val shortcutResourcesTask = tasks.register<GenerateShortcutResourcesTask>(
+            "generate${variant.name.replaceFirstChar { it.uppercase() }}ShortcutResources",
+        ) {
+            val effectivePackageName = if (variant.buildType == "debug") "$pkgName.debug" else pkgName
+            targetPackage.set(effectivePackageName)
+            outputDirectory.set(
+                layout.buildDirectory.dir("generated/shortcutResources/${variant.name}"),
+            )
+        }
+        variant.sources.res?.addGeneratedSourceDirectory(
+            shortcutResourcesTask,
+            GenerateShortcutResourcesTask::outputDirectory,
+        )
+
+        val isPreview = variant.flavorName == "preview" ||
+            variant.productFlavors.any { (_, flavor) -> flavor == "preview" }
+        val version = if (isPreview) previewVersionName else verName
+        val renameTask = tasks.register<RenameApkTask>(
+            "renameApksFor${variant.name.replaceFirstChar { it.uppercase() }}",
+        ) {
+            output.set(layout.buildDirectory.dir("outputs/renamed_apks/${variant.name}"))
+            builtArtifactsLoader.set(variant.artifacts.getBuiltArtifactsLoader())
+            baseName.set("NekoBox-$version")
+        }
+        variant.artifacts.use(renameTask)
+            .wiredWith { it.input }
+            .toListenTo(SingleArtifact.APK)
+    }
+}
+
+@CacheableTask
+abstract class GenerateShortcutResourcesTask : DefaultTask() {
+    @get:Input
+    abstract val targetPackage: Property<String>
+
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
+
+    @TaskAction
+    fun generate() {
+        val xmlDirectory = outputDirectory.dir("xml").get().asFile.apply { mkdirs() }
+        xmlDirectory.resolve("shortcuts.xml").writeText(renderShortcuts(targetPackage.get()))
+    }
+
+    private fun renderShortcuts(packageName: String): String {
+        val template = checkNotNull(javaClass.getResourceAsStream("/shortcuts-template.xml")) {
+            "shortcuts-template.xml resource not found"
+        }.bufferedReader().use { it.readText() }
+        return template.replace("{{TARGET_PACKAGE}}", packageName)
     }
 }

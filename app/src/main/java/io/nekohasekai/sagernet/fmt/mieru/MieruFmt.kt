@@ -24,31 +24,46 @@ import org.json.JSONObject
 
 fun MieruBean.buildMieruConfig(port: Int): String {
     val serverInfo = JSONArray().apply {
-        put(JSONObject().apply {
-            put("ipAddress", finalAddress)
-            put("portBindings", JSONArray().apply {
-                put(JSONObject().apply {
-                    put("port", finalPort)
-                    put("protocol", protocol)
-                })
-            })
-        })
+        put(
+            JSONObject().apply {
+                put("ipAddress", finalAddress)
+                put(
+                    "portBindings",
+                    JSONArray().apply {
+                        put(
+                            JSONObject().apply {
+                                put("port", finalPort)
+                                put("protocol", protocol)
+                            },
+                        )
+                    },
+                )
+            },
+        )
     }
     return JSONObject().apply {
         put("activeProfile", "default")
         put("socks5Port", port)
         // TODO: follow NekoBox logging level.
         put("loggingLevel", "INFO")
-        put("profiles", JSONArray().apply {
-            put(JSONObject().apply {
-                put("profileName", "default")
-                put("user", JSONObject().apply {
-                    put("name", username)
-                    put("password", password)
-                })
-                put("servers", serverInfo)
-                put("mtu", mtu)
-            })
-        })
+        put(
+            "profiles",
+            JSONArray().apply {
+                put(
+                    JSONObject().apply {
+                        put("profileName", "default")
+                        put(
+                            "user",
+                            JSONObject().apply {
+                                put("name", username)
+                                put("password", password)
+                            },
+                        )
+                        put("servers", serverInfo)
+                        put("mtu", mtu)
+                    },
+                )
+            },
+        )
     }.toStringPretty()
 }

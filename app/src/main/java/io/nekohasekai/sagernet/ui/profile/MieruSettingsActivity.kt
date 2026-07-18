@@ -54,10 +54,7 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
         mtu = DataStore.serverMTU
     }
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    ) {
+    override fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.mieru_preferences)
         findPreference<EditTextPreference>(Key.SERVER_PORT)!!.apply {
             setOnBindEditTextListener(EditTextPreferenceModifiers.Port)
@@ -73,5 +70,4 @@ class MieruSettingsActivity : ProfileSettingsActivity<MieruBean>() {
             true
         }
     }
-
 }

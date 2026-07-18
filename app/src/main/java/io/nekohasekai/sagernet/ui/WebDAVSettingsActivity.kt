@@ -1,47 +1,37 @@
 package io.nekohasekai.sagernet.ui
 
 import android.os.Bundle
-import android.view.MenuItem
 import android.text.InputType
-import androidx.annotation.StringRes
-import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.PreferenceDataStore
+import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.databinding.LayoutWebdavSettingsBinding
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.ktx.snackbar
-import kotlinx.coroutines.launch
 import okhttp3.Credentials
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.net.URL
-import com.google.android.material.snackbar.Snackbar
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 class WebDAVSettingsActivity : ThemedActivity() {
-    
-    private lateinit var toolbar: Toolbar
+
+    private lateinit var binding: LayoutWebdavSettingsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        setContentView(R.layout.layout_webdav_settings)
-        toolbar = findViewById(R.id.toolbar)
-        setSupportActionBar(toolbar)
+
+        binding = LayoutWebdavSettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.apply {
             setTitle(R.string.webdav_settings)
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.ic_navigation_close)
         }
-        
+
         supportFragmentManager.beginTransaction()
             .replace(R.id.settings, WebDAVSettingsFragment())
             .commit()
@@ -54,7 +44,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
 
     class WebDAVSettingsFragment : PreferenceFragmentCompat(), PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
         private var lastClickTime = 0L
-        private val DEBOUNCE_TIME = 1000L  // 1秒内不允许重复点击
+        private val DEBOUNCE_TIME = 1000L // no repeated clicks allowed within 1 second
         private var isFragmentAlive = true
 
         private fun isClickAllowed(): Boolean {
@@ -74,7 +64,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             preferenceManager.preferenceDataStore = DataStore.configurationStore
             addPreferencesFromResource(R.xml.webdav_preferences)
-            
+
             findPreference<EditTextPreference>("webdavServer")?.apply {
                 setOnBindEditTextListener { editText ->
                     editText.setSingleLine()
@@ -82,7 +72,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                 }
                 summaryProvider = EditTextPreference.SimpleSummaryProvider.getInstance()
             }
-            
+
             findPreference<EditTextPreference>("webdavUsername")?.apply {
                 setOnBindEditTextListener { editText ->
                     editText.setSingleLine()
@@ -90,17 +80,17 @@ class WebDAVSettingsActivity : ThemedActivity() {
                 }
                 summaryProvider = EditTextPreference.SimpleSummaryProvider.getInstance()
             }
-            
+
             findPreference<EditTextPreference>("webdavPassword")?.apply {
                 setOnBindEditTextListener { editText ->
                     editText.setSingleLine()
                     editText.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
                     editText.setSelection(editText.text.length)
                 }
-                // 使用与其他密码字段一致的隐藏摘要样式
+                // use the hidden summary style consistent with other password fields
                 summaryProvider = GroupSettingsActivity.PasswordSummaryProvider
             }
-            
+
             findPreference<EditTextPreference>("webdavPath")?.apply {
                 setOnBindEditTextListener { editText ->
                     editText.setSingleLine()
@@ -108,7 +98,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                 }
                 summaryProvider = EditTextPreference.SimpleSummaryProvider.getInstance()
             }
-            
+
             findPreference<Preference>("webdavTest")?.setOnPreferenceClickListener {
                 if (isClickAllowed()) {
                     testWebDAV()
@@ -127,21 +117,23 @@ class WebDAVSettingsActivity : ThemedActivity() {
                         throw Exception(getString(R.string.webdav_server_empty))
                     }
 
-                    val url = URL(server)
+                    // Reject plain http:// - the test sends Basic-auth credentials.
+                    val secureUrl = WebDAVSecurity.requireSecureUrl(server)
+
                     val client = OkHttpClient.Builder()
                         .connectTimeout(10, TimeUnit.SECONDS)
                         .readTimeout(10, TimeUnit.SECONDS)
                         .writeTimeout(10, TimeUnit.SECONDS)
                         .build()
 
-                    // 首先测试连接和认证
+                    // first test connection and authentication
                     val authRequest = Request.Builder()
-                        .url(url)
+                        .url(secureUrl)
                         .method("PROPFIND", null)
                         .apply {
                             val credentials = Credentials.basic(
                                 DataStore.webdavUsername ?: "",
-                                DataStore.webdavPassword ?: ""
+                                DataStore.webdavPassword ?: "",
                             )
                             header("Authorization", credentials)
                             header("Depth", "0")
@@ -149,7 +141,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                         .build()
 
                     val response = client.newCall(authRequest).execute()
-                    
+
                     when (response.code) {
                         401 -> throw Exception(getString(R.string.webdav_auth_error))
                         403 -> throw Exception(getString(R.string.webdav_permission_denied))
@@ -161,13 +153,10 @@ class WebDAVSettingsActivity : ThemedActivity() {
                         throw Exception(getString(R.string.webdav_connect_failed, response.code))
                     }
 
-                    // 如果认证成功，再测试目录操作
+                    // if authentication succeeds, then test directory operations
                     val path = (DataStore.webdavPath ?: "").trim('/')
                     if (path.isNotBlank()) {
-                        val baseHttpUrl = server.toHttpUrlOrNull()
-                            ?: throw Exception(getString(R.string.webdav_server_not_found))
-
-                        val dirUrl = baseHttpUrl.newBuilder().apply {
+                        val dirUrl = secureUrl.newBuilder().apply {
                             path.split('/').filter { it.isNotEmpty() }.forEach { segment ->
                                 addPathSegment(segment)
                             }
@@ -179,14 +168,14 @@ class WebDAVSettingsActivity : ThemedActivity() {
                             .apply {
                                 val credentials = Credentials.basic(
                                     DataStore.webdavUsername ?: "",
-                                    DataStore.webdavPassword ?: ""
+                                    DataStore.webdavPassword ?: "",
                                 )
                                 header("Authorization", credentials)
                             }
                             .build()
 
                         val dirResponse = client.newCall(dirRequest).execute()
-                        if (!dirResponse.isSuccessful && dirResponse.code != 405) {  // 405 表示目录已存在
+                        if (!dirResponse.isSuccessful && dirResponse.code != 405) { // 405 means the directory already exists
                             throw Exception(getString(R.string.webdav_create_dir_failed))
                         }
                     }
@@ -196,7 +185,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                         Snackbar.make(
                             requireView(),
                             getString(R.string.webdav_test_success),
-                            Snackbar.LENGTH_SHORT
+                            Snackbar.LENGTH_SHORT,
                         ).show()
                     }
                 } catch (e: Exception) {
@@ -205,7 +194,7 @@ class WebDAVSettingsActivity : ThemedActivity() {
                         Snackbar.make(
                             requireView(),
                             getString(R.string.webdav_test_failed, e.message),
-                            Snackbar.LENGTH_SHORT
+                            Snackbar.LENGTH_SHORT,
                         ).show()
                     }
                 }

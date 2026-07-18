@@ -5,42 +5,32 @@ package io.nekohasekai.sagernet.ktx
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
-import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Resources
+import android.graphics.Color
 import android.os.Build
 import android.system.Os
 import android.system.OsConstants
 import android.util.TypedValue
 import android.view.View
-import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.preference.Preference
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
-import com.jakewharton.processphoenix.ProcessPhoenix
 import io.nekohasekai.sagernet.BuildConfig
-import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
-import io.nekohasekai.sagernet.aidl.ISagerNetService
-import io.nekohasekai.sagernet.bg.BaseService
-import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.database.DataStore
-import io.nekohasekai.sagernet.ui.MainActivity
-import io.nekohasekai.sagernet.ui.ThemedActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import moe.matsuri.nb4a.utils.NGUtil
@@ -62,6 +52,21 @@ import kotlin.reflect.KProperty0
 
 fun String?.blankAsNull(): String? = if (isNullOrBlank()) null else this
 
+/**
+ * Resolve the hosting object of type [T] (e.g. the Activity / LifecycleOwner) from a View's
+ * Context. Material 3 themes wrap the view context in a ContextThemeWrapper, so a direct
+ * `context as Activity` cast throws ClassCastException; walk the ContextWrapper.baseContext
+ * chain instead.
+ */
+inline fun <reified T> Context.unwrap(): T {
+    var ctx: Context? = this
+    while (ctx != null) {
+        if (ctx is T) return ctx
+        ctx = (ctx as? android.content.ContextWrapper)?.baseContext
+    }
+    error("Could not unwrap ${T::class.java.simpleName} from context")
+}
+
 inline fun <T> Iterable<T>.forEachTry(action: (T) -> Unit) {
     var result: Exception? = null
     for (element in this) try {
@@ -81,10 +86,14 @@ val Throwable.readableMessage
  * https://android.googlesource.com/platform/prebuilts/runtime/+/94fec32/appcompat/hiddenapi-light-greylist.txt#9466
  */
 
-private val socketGetFileDescriptor = Socket::class.java.getDeclaredMethod("getFileDescriptor\$")
+private val socketGetFileDescriptor by lazy {
+    Socket::class.java.getDeclaredMethod("getFileDescriptor\$")
+}
 val Socket.fileDescriptor get() = socketGetFileDescriptor.invoke(this) as FileDescriptor
 
-private val getInt = FileDescriptor::class.java.getDeclaredMethod("getInt$")
+private val getInt by lazy {
+    FileDescriptor::class.java.getDeclaredMethod("getInt$")
+}
 val FileDescriptor.int get() = getInt.invoke(this) as Int
 
 suspend fun <T> HttpURLConnection.useCancellable(block: suspend HttpURLConnection.() -> T): T {
@@ -107,24 +116,32 @@ fun parsePort(str: String?, default: Int, min: Int = 1025): Int {
     return if (value < min || value > 65535) default else value
 }
 
-fun broadcastReceiver(callback: (Context, Intent) -> Unit): BroadcastReceiver =
-    object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) = callback(context, intent)
-    }
+fun broadcastReceiver(callback: (Context, Intent) -> Unit): BroadcastReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) = callback(context, intent)
+}
 
-fun Context.listenForPackageChanges(onetime: Boolean = true, callback: () -> Unit) =
-    object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            callback()
-            if (onetime) context.unregisterReceiver(this)
-        }
-    }.apply {
-        registerReceiver(this, IntentFilter().apply {
+/** Like [broadcastReceiver], but the callback also receives the receiver so it can use goAsync(). */
+fun broadcastReceiverWithSelf(
+    callback: (receiver: BroadcastReceiver, context: Context, intent: Intent) -> Unit,
+): BroadcastReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) = callback(this, context, intent)
+}
+
+fun Context.listenForPackageChanges(onetime: Boolean = true, callback: () -> Unit) = object : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        callback()
+        if (onetime) context.unregisterReceiver(this)
+    }
+}.apply {
+    registerReceiver(
+        this,
+        IntentFilter().apply {
             addAction(Intent.ACTION_PACKAGE_ADDED)
             addAction(Intent.ACTION_PACKAGE_REMOVED)
             addDataScheme("package")
-        })
-    }
+        },
+    )
+}
 
 /**
  * Based on: https://stackoverflow.com/a/26348729/2245107
@@ -151,9 +168,14 @@ private val parseNumericAddress by lazy {
 
 fun String?.parseNumericAddress(): InetAddress? =
     Os.inet_pton(OsConstants.AF_INET, this) ?: Os.inet_pton(OsConstants.AF_INET6, this)?.let {
-        if (Build.VERSION.SDK_INT >= 29) it else parseNumericAddress.invoke(
-            null, this
-        ) as InetAddress
+        if (Build.VERSION.SDK_INT >= 29) {
+            it
+        } else {
+            parseNumericAddress.invoke(
+                null,
+                this,
+            ) as InetAddress
+        }
     }
 
 @JvmOverloads
@@ -175,8 +197,10 @@ fun String.unUrlSafe(): String {
 }
 
 fun RecyclerView.scrollTo(index: Int, force: Boolean = false) {
-    if (force) post {
-        scrollToPosition(index)
+    if (force) {
+        post {
+            scrollToPosition(index)
+        }
     }
     postDelayed({
         try {
@@ -214,79 +238,27 @@ fun View.crossFadeFrom(other: View) {
     }).duration = shortAnimTime
 }
 
-
-fun Fragment.snackbar(textId: Int) = (requireActivity() as MainActivity).snackbar(textId)
-fun Fragment.snackbar(text: CharSequence) = (requireActivity() as MainActivity).snackbar(text)
-
-fun ThemedActivity.startFilesForResult(
-    launcher: ActivityResultLauncher<String>, input: String
-) {
-    try {
-        return launcher.launch(input)
-    } catch (_: ActivityNotFoundException) {
-    } catch (_: SecurityException) {
-    }
-    snackbar(getString(R.string.file_manager_missing)).show()
-}
-
-fun Fragment.startFilesForResult(
-    launcher: ActivityResultLauncher<String>, input: String
-) {
-    try {
-        return launcher.launch(input)
-    } catch (_: ActivityNotFoundException) {
-    } catch (_: SecurityException) {
-    }
-    (requireActivity() as ThemedActivity).snackbar(getString(R.string.file_manager_missing)).show()
-}
-
-fun Fragment.needReload() {
-    if (DataStore.serviceState.started) {
-        snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {
-            SagerNet.reloadService()
-        }.show()
-    }
-}
-
-fun Fragment.needRestart() {
-    snackbar(R.string.need_restart).setAction(R.string.apply) {
-        triggerFullRestart(requireContext())
-    }.show()
-}
-
-fun triggerFullRestart(ctx: Context) {
-    runOnDefaultDispatcher {
-        SagerNet.stopService()
-        delay(500)
-        SagerConnection.restartingApp = true
-        val connection = SagerConnection(SagerConnection.CONNECTION_ID_RESTART_BG)
-        connection.connect(ctx, RestartCallback {
-            ProcessPhoenix.triggerRebirth(ctx, Intent(ctx, MainActivity::class.java))
-        })
-    }
-}
-
-private class RestartCallback(val callback: () -> Unit) : SagerConnection.Callback {
-    override fun stateChanged(
-        state: BaseService.State,
-        profileName: String?,
-        msg: String?
-    ) {
-    }
-
-    override fun onServiceConnected(service: ISagerNetService) {
-        callback()
-    }
-}
-
 fun Context.getColour(@ColorRes colorRes: Int): Int {
     return ContextCompat.getColor(this, colorRes)
 }
 
 fun Context.getColorAttr(@AttrRes resId: Int): Int {
-    return ContextCompat.getColor(this, TypedValue().also {
-        theme.resolveAttribute(resId, it, true)
-    }.resourceId)
+    val tv = TypedValue()
+    // resolveRefs = true follows ?attr chains (e.g. statusConnectingColor -> colorOnPrimary).
+    // The result is either a color-resource reference (resourceId != 0) or a literal color
+    // value (resourceId == 0); ContextCompat.getColor(0) would throw on the latter.
+    theme.resolveAttribute(resId, tv, true)
+    if (tv.resourceId != 0) {
+        return ContextCompat.getColor(this, tv.resourceId)
+    }
+    // No backing resource: the attr resolved directly to a literal value. Use it only
+    // when it is actually a color (e.g. ?attr/colorOnPrimary defined as a literal);
+    // otherwise fall back to a safe default rather than returning a garbage int.
+    return if (tv.type in TypedValue.TYPE_FIRST_COLOR_INT..TypedValue.TYPE_LAST_COLOR_INT) {
+        tv.data
+    } else {
+        Color.TRANSPARENT
+    }
 }
 
 val isExpert: Boolean by lazy { BuildConfig.DEBUG || DataStore.isExpert }
@@ -309,13 +281,10 @@ fun <T> Continuation<T>.tryResumeWithException(exception: Throwable) {
 }
 
 operator fun <F> KProperty0<F>.getValue(thisRef: Any?, property: KProperty<*>): F = get()
-operator fun <F> KMutableProperty0<F>.setValue(
-    thisRef: Any?, property: KProperty<*>, value: F
-) = set(value)
+operator fun <F> KMutableProperty0<F>.setValue(thisRef: Any?, property: KProperty<*>, value: F) = set(value)
 
 operator fun AtomicBoolean.getValue(thisRef: Any?, property: KProperty<*>): Boolean = get()
-operator fun AtomicBoolean.setValue(thisRef: Any?, property: KProperty<*>, value: Boolean) =
-    set(value)
+operator fun AtomicBoolean.setValue(thisRef: Any?, property: KProperty<*>, value: Boolean) = set(value)
 
 operator fun AtomicInteger.getValue(thisRef: Any?, property: KProperty<*>): Int = get()
 operator fun AtomicInteger.setValue(thisRef: Any?, property: KProperty<*>, value: Int) = set(value)
@@ -324,20 +293,13 @@ operator fun AtomicLong.getValue(thisRef: Any?, property: KProperty<*>): Long = 
 operator fun AtomicLong.setValue(thisRef: Any?, property: KProperty<*>, value: Long) = set(value)
 
 operator fun <T> AtomicReference<T>.getValue(thisRef: Any?, property: KProperty<*>): T = get()
-operator fun <T> AtomicReference<T>.setValue(thisRef: Any?, property: KProperty<*>, value: T) =
-    set(value)
+operator fun <T> AtomicReference<T>.setValue(thisRef: Any?, property: KProperty<*>, value: T) = set(value)
 
 operator fun <K, V> Map<K, V>.getValue(thisRef: K, property: KProperty<*>) = get(thisRef)
 operator fun <K, V> MutableMap<K, V>.setValue(thisRef: K, property: KProperty<*>, value: V?) {
-
     if (value != null) {
-
         put(thisRef, value)
-
     } else {
-
         remove(thisRef)
-
     }
-
 }

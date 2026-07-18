@@ -1,58 +1,71 @@
-# NekoBox for Android
+<div align="center">
 
-[![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
-[![Releases](https://img.shields.io/github/v/release/MatsuriDayo/NekoBoxForAndroid)](https://github.com/MatsuriDayo/NekoBoxForAndroid/releases)
-[![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-orange.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Contributors](https://img.shields.io/github/contributors/starifly/NekoBoxForAndroid)](https://github.com/starifly/NekoBoxForAndroid/graphs/contributors)
+# 🐱 NekoBox for Android 🐱
 
-## 免责声明
+**One app, every modern proxy. Built on sing-box.**
 
-> 免责声明：本项目仅用于技术研究与代码学习之目的，不提供任何形式的网络代理服务。请勿将本项目用于违反当地法律法规的任何活动。请勿在生产环境中使用本项目，使用者应自行承担使用本项目可能带来的全部风险。若您下载或引用本项目，请在 24 小时内自行删除相关内容，并避免长期存储、分享或传播本项目的任何部分。**作者保留随时修改、更新或移除本项目及其内容的权利，恕不另行通知。**
-> 
-> Disclaimer: This project is intended solely for technical research and code learning purposes and does not provide any form of network proxy service. Please do not use this project for any activities that violate local laws and regulations. Do not use this project in production environments. Users are fully responsible for any risks that may arise from using this project. If you download or reference this project, please delete all related content within 24 hours and avoid long-term storage, distribution, or dissemination of any part of this project. **The author reserves the right to modify, update, or remove any part of this project or its contents at any time without prior notice.**
+[![API](https://img.shields.io/badge/Android-5.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](https://android-arsenal.com/api?level=21)
+[![License](https://img.shields.io/badge/License-GPL--3.0-0A7BBB?style=flat-square)](https://www.gnu.org/licenses/gpl-3.0)
 
-## 下载 / Downloads
+</div>
 
-[![GitHub All Releases](https://img.shields.io/github/downloads/Matsuridayo/NekoBoxForAndroid/total?label=downloads-total&logo=github&style=flat-square)](https://github.com/starifly/NekoBoxForAndroid/releases)
+<br>
 
-[GitHub Releases 下载](https://github.com/starifly/NekoBoxForAndroid/releases)
+## ⚠️ Disclaimer
 
-**Google Play 版本自 2024 年 5 月起已被第三方控制，为非开源版本，请不要下载。**
+> This project is intended solely for technical research and code learning purposes and does not provide any form of network proxy service. Please do not use this project for any activity that violates local laws and regulations, and do not use it in production environments. Users are fully responsible for any risks that may arise from using this project. If you download or reference this project, please delete all related content within 24 hours and avoid long-term storage, distribution, or dissemination of any part of it. **The author reserves the right to modify, update, or remove any part of this project or its contents at any time without prior notice.**
 
-**The Google Play version has been controlled by a third party since May 2024 and is a non-open
-source version. Please do not download it.**
+<br>
 
-## 更新日志 & Telegram 发布频道 / Changelog & Telegram Channel
+## 📥 Downloads
 
-https://t.me/Matsuridayo
+> 🛑 **Note:** The Google Play build has been controlled by a third party since May 2024 and is closed-source. Please don't install it.
 
-## 项目主页 & 文档 / Homepage & Documents
+Grab the latest signed APK from the [**Releases**](https://github.com/hawkff/NekoBoxForAndroid/releases) page.
 
-https://matsuridayo.github.io
+<br>
 
-## 支持的代理协议 / Supported Proxy Protocols
+## 🚀 Protocols
 
-* SOCKS (4/4a/5)
-* HTTP(S)
-* SSH
-* Shadowsocks
-* ShadowsocksR
-* VMess
-* Trojan
-* VLESS
-* AnyTLS/AnyReality
-* Snell 1/2/3/4/5/6
-* ShadowTLS
-* TUIC
-* Juicity
-* Hysteria 1/2
-* WireGuard
-* Trojan-Go (trojan-go-plugin)
-* NaïveProxy (naive-plugin)
-* Mieru (mieru-plugin)
+### 🧩 Core
+
+`SOCKS 4/4a/5` · `HTTP(S)` · `SSH` · `Shadowsocks` · `ShadowsocksR` · `VMess` · `VLESS` · `Trojan`
+
+### 🔐 Modern TLS & multiplexing
+
+`AnyTLS` · `ShadowTLS` · `Snell 1–5` · `VLESS-XHTTP` · `VLESS-Reality`
+
+XHTTP / Reality config examples are below.
+
+### ⚡ QUIC & high-speed
+
+`TUIC` · `Juicity` · `Hysteria 2`
+
+The Hysteria 2 client supports the new Gecko (experimental) obfuscation.
+
+### 🛡️ WireGuard family
+
+`WireGuard` · `AmneziaWG`
+
+### 🌐 Obfuscated transports
+
+- `NaïveProxy` (Bundled)
+- `Mieru` (Bundled)
 
 <details>
-<summary>XHTTP Extra TLS配置示例</summary>
+<summary><b>🕰️ Legacy protocols</b> (kept for compatibility)</summary>
+
+<br>
+
+- `Hysteria 1` - native over UDP; an external sidecar covers the rare faketcp transport
+- `Trojan-Go` - requires the separate `trojan-go-plugin` companion
+
+</details>
+
+<br>
+
+<details>
+<summary>XHTTP - TLS configuration example</summary>
 
 <pre><code class="language-json">
 {
@@ -127,7 +140,7 @@ https://matsuridayo.github.io
 </details>
 
 <details>
-<summary>XHTTP Extra Reality配置示例</summary>
+<summary>XHTTP - Reality configuration example</summary>
 
 <pre><code class="language-json">
 {
@@ -205,41 +218,14 @@ https://matsuridayo.github.io
 </code></pre>
 </details>
 
-请到[这里](https://matsuridayo.github.io/nb4a-plugin/)下载插件以获得完整的代理支持.
+<br>
 
-Please visit [here](https://matsuridayo.github.io/nb4a-plugin/) to download plugins for full proxy
-supports.
+## 🔗 Subscriptions
 
-## 支持的订阅格式 / Supported Subscription Format
+Imports the common formats: Shadowsocks, ClashMeta, v2rayN, and sing-box outbounds.
+Only nodes are parsed; routing rules and other non-node fields are ignored.
 
-* 一些广泛使用的格式 (如 Shadowsocks, ClashMeta 和 v2rayN)
-* sing-box 出站
-
-仅支持解析出站，即节点。分流规则等信息会被忽略。
-
-* Some widely used formats (like Shadowsocks, ClashMeta and v2rayN)
-* sing-box outbound
-
-Only resolving outbound, i.e. nodes, is supported. Information such as diversion rules are ignored.
-
-## 捐助 / Donate
-
-<details>
-
-如果这个项目对您有帮助, 可以通过捐赠的方式帮助我们维持这个项目.
-
-捐赠满等额 50 USD 可以在「[捐赠榜](https://mtrdnt.pages.dev/donation_list)」显示头像, 如果您未被添加到这里,
-欢迎联系我们补充.
-
-Donations of 50 USD or more can display your avatar on
-the [Donation List](https://mtrdnt.pages.dev/donation_list). If you are not added here, please
-contact us to add it.
-
-USDT TRC20
-
-`TFVcx36pVLuCWLbWiMdT5KP2PsfQ2SJVEZ`
-
-</details>
+<br>
 
 ## Credits
 

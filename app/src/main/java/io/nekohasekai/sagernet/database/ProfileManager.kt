@@ -11,12 +11,14 @@ import java.io.IOException
 import java.sql.SQLException
 import java.util.*
 
-
 object ProfileManager {
 
     interface Listener {
         suspend fun onAdd(profile: ProxyEntity)
-        suspend fun onUpdated(data: List<TrafficData>)
+        suspend fun onUpdated(data: TrafficData)
+        suspend fun onUpdated(data: List<TrafficData>) {
+            data.forEach { onUpdated(it) }
+        }
         suspend fun onUpdated(profile: ProxyEntity, noTraffic: Boolean)
         suspend fun onRemoved(groupId: Long, profileId: Long)
     }
@@ -97,6 +99,16 @@ object ProfileManager {
         }
     }
 
+    /**
+     * Batch-persist profiles WITHOUT firing per-profile onUpdated listener rounds.
+     * For callers that follow up with GroupManager.postReload(groupId), which
+     * re-renders the whole group anyway (e.g. connection-test finalization).
+     */
+    suspend fun updateProfileQuietly(profiles: List<ProxyEntity>) {
+        if (profiles.isEmpty()) return
+        SagerDatabase.proxyDao.updateProxy(profiles)
+    }
+
     suspend fun updateTraffic(profileId: Long, rx: Long, tx: Long) {
         SagerDatabase.proxyDao.updateTraffic(profileId, rx, tx)
     }
@@ -105,11 +117,26 @@ object ProfileManager {
         if (profileIds.isNotEmpty()) {
             SagerDatabase.proxyDao.resetTraffic(profileIds)
         }
+    // Add a per-session DELTA (never absolute) into the profile's lifetime columns (schema v12).
+    suspend fun addLifetimeTraffic(profileId: Long, rxDelta: Long, txDelta: Long) {
+        SagerDatabase.proxyDao.addLifetimeTraffic(profileId, rxDelta, txDelta)
     }
 
     suspend fun deleteProfile2(groupId: Long, profileId: Long) {
         if (SagerDatabase.proxyDao.deleteById(profileId) == 0) return
         if (DataStore.selectedProxy == profileId) {
+            DataStore.selectedProxy = 0L
+        }
+    }
+
+    suspend fun deleteProfiles(profiles: List<ProxyEntity>) {
+        if (profiles.isEmpty()) return
+        val ids = profiles.map { it.id }
+        var deleted = 0
+        SagerDatabase.instance.runInTransaction {
+            ids.chunked(500).forEach { deleted += SagerDatabase.proxyDao.deleteByIds(it) }
+        }
+        if (deleted > 0 && DataStore.selectedProxy in ids) {
             DataStore.selectedProxy = 0L
         }
     }
@@ -164,6 +191,10 @@ object ProfileManager {
         iterator { onUpdated(data) }
     }
 
+    suspend fun postUpdate(data: List<TrafficData>) {
+        iterator { onUpdated(data) }
+    }
+
     suspend fun createRule(rule: RuleEntity, post: Boolean = true): RuleEntity {
         rule.userOrder = SagerDatabase.rulesDao.nextOrder() ?: 1
         rule.id = SagerDatabase.rulesDao.createRule(rule)
@@ -201,19 +232,19 @@ object ProfileManager {
                     name = app.getString(R.string.route_opt_block_quic),
                     port = "443",
                     network = "udp",
-                    outbound = -2
-                )
+                    outbound = -2,
+                ),
             )
             createRule(
                 RuleEntity(
                     name = app.getString(R.string.route_opt_block_ads),
                     domains = "geosite:category-ads-all",
-                    outbound = -2
-                )
+                    outbound = -2,
+                ),
             )
             val fuckedCountry = mutableListOf("cn:中国")
             if (Locale.getDefault().country != Locale.CHINA.country) {
-                // 非中文用户
+                // non-Chinese users
                 fuckedCountry += "ir:Iran"
                 fuckedCountry += "ru:Russia"
             }
@@ -221,30 +252,34 @@ object ProfileManager {
                 val country = c.substringBefore(":")
                 val displayCountry = c.substringAfter(":")
                 //
-                if (country == "cn") createRule(
-                    RuleEntity(
-                        name = app.getString(R.string.route_play_store, displayCountry),
-                        domains = "domain:googleapis.cn\ndomain:xn--ngstr-lra8j.com\ndomain:xn--ngstr-cn-8za9o.com",
-                    ), false
-                )
+                if (country == "cn") {
+                    createRule(
+                        RuleEntity(
+                            name = app.getString(R.string.route_play_store, displayCountry),
+                            domains = "domain:googleapis.cn\ndomain:xn--ngstr-lra8j.com\ndomain:xn--ngstr-cn-8za9o.com",
+                        ),
+                        false,
+                    )
+                }
                 createRule(
                     RuleEntity(
                         name = app.getString(R.string.route_bypass_domain, displayCountry),
                         domains = "geosite:$country",
-                        outbound = -1
-                    ), false
+                        outbound = -1,
+                    ),
+                    false,
                 )
                 createRule(
                     RuleEntity(
                         name = app.getString(R.string.route_bypass_ip, displayCountry),
                         ip = "geoip:$country",
-                        outbound = -1
-                    ), false
+                        outbound = -1,
+                    ),
+                    false,
                 )
             }
             rules = SagerDatabase.rulesDao.allRules()
         }
         return rules
     }
-
 }

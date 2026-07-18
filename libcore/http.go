@@ -17,9 +17,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/sagernet/quic-go"
@@ -30,6 +30,17 @@ import (
 )
 
 var errFailConnectSocks5 = errors.New("fail connect socks5")
+
+const (
+	defaultHTTPTimeout     = 120 * time.Second
+	defaultHTTPDialTimeout = 30 * time.Second
+	// defaultHTTPRequestTimeout bounds the whole request including body reads,
+	// so GetContentLimited/WriteToLimited cannot block forever on a stalled body.
+	// It is generous enough for large rule-asset downloads over slow links.
+	defaultHTTPRequestTimeout = 10 * time.Minute
+	defaultHTTPStringLimit    = 10 * 1024 * 1024
+	defaultHTTPFileLimit      = 256 * 1024 * 1024
+)
 
 type HTTPClient interface {
 	RestrictedTLS()
@@ -57,8 +68,11 @@ type HTTPRequest interface {
 type HTTPResponse interface {
 	GetHeader(string) *StringBox
 	GetContent() ([]byte, error)
+	GetContentLimited(limit int64) ([]byte, error)
 	GetContentString() (*StringBox, error)
+	GetContentStringLimited(limit int64) (*StringBox, error)
 	WriteTo(path string) error
+	WriteToLimited(path string, limit int64) error
 }
 
 var (
@@ -77,9 +91,15 @@ type httpClient struct {
 
 func NewHttpClient() HTTPClient {
 	client := new(httpClient)
+	dialer := &net.Dialer{Timeout: defaultHTTPDialTimeout}
 	client.h1h2Client.Transport = &client.h1h2Transport
+	client.h1h2Transport.DialContext = dialer.DialContext
 	client.h1h2Transport.TLSClientConfig = &client.tls
+	client.h1h2Transport.TLSHandshakeTimeout = defaultHTTPTimeout
+	client.h1h2Transport.ResponseHeaderTimeout = defaultHTTPTimeout
 	client.h1h2Transport.DisableKeepAlives = true
+	// Bound the full request (including body read) so callers cannot hang forever.
+	client.h1h2Client.Timeout = defaultHTTPRequestTimeout
 	return client
 }
 
@@ -115,7 +135,7 @@ func (c *httpClient) PinnedSHA256(sumHex string) {
 }
 
 func (c *httpClient) TrySocks5(port int32, username string, password string) {
-	dialer := new(net.Dialer)
+	dialer := &net.Dialer{Timeout: defaultHTTPDialTimeout}
 	c.h1h2Transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
 		for {
 			socksConn, err := dialer.DialContext(ctx, "tcp", "127.0.0.1:"+strconv.Itoa(int(port)))
@@ -227,54 +247,194 @@ func (r *httpRequest) Execute() (HTTPResponse, error) {
 	return httpResp, nil
 }
 
-type requestFunc func() (response *http.Response, err error)
+type requestFunc func(context.Context) (response *http.Response, err error)
+
+type labeledRequestFunc struct {
+	label   string
+	request requestFunc
+}
+
+var errEmptyHTTPResponse = errors.New("empty response")
+
+type indexedHTTPResponse struct {
+	index    int
+	response *http.Response
+}
+
+type cancelOnCloseBody struct {
+	io.ReadCloser
+	cancel context.CancelFunc
+}
+
+func (b *cancelOnCloseBody) Close() error {
+	err := b.ReadCloser.Close()
+	b.cancel()
+	return err
+}
+
+func raceHTTPRequests(ctx context.Context, funcs []labeledRequestFunc) (*http.Response, error) {
+	successCh := make(chan indexedHTTPResponse)
+	doneCh := make(chan struct{}, len(funcs))
+	workerCancels := make([]context.CancelFunc, len(funcs))
+	var finalErr error
+	var mu sync.Mutex
+
+	addError := func(err error) {
+		mu.Lock()
+		finalErr = errors.Join(finalErr, err)
+		mu.Unlock()
+	}
+	resultError := func() error {
+		mu.Lock()
+		defer mu.Unlock()
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return errors.Join(finalErr, ctxErr)
+		}
+		if finalErr == nil {
+			return errEmptyHTTPResponse
+		}
+		return finalErr
+	}
+
+	for index, f := range funcs {
+		workerCtx, workerCancel := context.WithCancel(context.WithoutCancel(ctx))
+		workerCancels[index] = workerCancel
+		go func(index int, f labeledRequestFunc, requestCtx context.Context, cancel context.CancelFunc) {
+			cancelOnExit := true
+			defer func() {
+				if cancelOnExit {
+					cancel()
+				}
+				doneCh <- struct{}{}
+			}()
+			defer device.DeferPanicToError("http", func(err error) {
+				addError(fmt.Errorf("%s: %w", f.label, err))
+				log.Println(err)
+			})
+
+			rsp, err := f.request(requestCtx)
+			if rsp == nil || err != nil {
+				if err == nil {
+					err = errEmptyHTTPResponse
+				}
+				addError(fmt.Errorf("%s: %w", f.label, err))
+				if rsp != nil && rsp.Body != nil {
+					rsp.Body.Close()
+				}
+				return
+			}
+
+			if rsp.StatusCode != http.StatusOK {
+				hr := &httpResponse{Response: rsp}
+				addError(fmt.Errorf("%s: %s", f.label, hr.errorString()))
+				return
+			}
+
+			select {
+			case successCh <- indexedHTTPResponse{index: index, response: rsp}:
+				// The response body owns the winning request context until Close.
+				cancelOnExit = false
+			case <-requestCtx.Done():
+				if rsp.Body != nil {
+					rsp.Body.Close()
+				}
+			}
+		}(index, f, workerCtx, workerCancel)
+	}
+
+	completed := 0
+	cancelAndWait := func(winner int) {
+		for index, cancel := range workerCancels {
+			if index != winner {
+				cancel()
+			}
+		}
+		for completed < len(funcs) {
+			<-doneCh
+			completed++
+		}
+	}
+
+	for completed < len(funcs) {
+		select {
+		case result := <-successCh:
+			if ctx.Err() != nil {
+				workerCancels[result.index]()
+				if result.response.Body != nil {
+					result.response.Body.Close()
+				}
+				cancelAndWait(-1)
+				return nil, resultError()
+			}
+			cancelAndWait(result.index)
+			if result.response.Body == nil {
+				workerCancels[result.index]()
+			} else {
+				result.response.Body = &cancelOnCloseBody{
+					ReadCloser: result.response.Body,
+					cancel:     workerCancels[result.index],
+				}
+			}
+			return result.response, nil
+		case <-doneCh:
+			completed++
+			if completed == len(funcs) {
+				return nil, resultError()
+			}
+		case <-ctx.Done():
+			cancelAndWait(-1)
+			return nil, resultError()
+		}
+	}
+	return nil, resultError()
+}
 
 func (r *httpRequest) doH3Direct() (HTTPResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	successCh := make(chan *http.Response, 1)
-	var finalErr error
-	var failedCount atomic.Uint32
-	var successCount atomic.Uint32
-	var mu sync.Mutex
-
-	funcs := []requestFunc{
-		// Http(s) With Ech
-		func() (response *http.Response, err error) {
-			request := r.request.Clone(context.Background())
-			echClient := &http.Client{
-				Transport: &http.Transport{
-					DialTLSContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-						var d net.Dialer
-						c, err := d.DialContext(ctx, network, addr)
-						if err != nil {
-							return c, err
-						}
-						domain := addr
-						if host, _, _ := net.SplitHostPort(addr); host != "" {
-							domain = host
-						}
-						echTls := ech.NewECHClientConfig(domain, &r.tls, gLocalDNSTransport)
-						return echTls.Client(ctx, c)
+	funcs := []labeledRequestFunc{
+		{
+			label: "http(s)",
+			request: func(ctx context.Context) (response *http.Response, err error) {
+				request := r.request.Clone(ctx)
+				echClient := &http.Client{
+					Timeout: defaultHTTPRequestTimeout,
+					Transport: &http.Transport{
+						DialTLSContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+							var d net.Dialer
+							c, err := d.DialContext(ctx, network, addr)
+							if err != nil {
+								return c, err
+							}
+							domain := addr
+							if host, _, _ := net.SplitHostPort(addr); host != "" {
+								domain = host
+							}
+							echTls := ech.NewECHClientConfig(domain, &r.tls, gLocalDNSTransport)
+							return echTls.Client(ctx, c)
+						},
+						DisableKeepAlives: true,
 					},
-					DisableKeepAlives: true,
-				},
-			}
-			return echClient.Do(request)
+				}
+				return echClient.Do(request)
+			},
 		},
-		// H3 HTTPS
-		func() (response *http.Response, err error) {
-			request := r.request.Clone(context.Background())
-			h3Client := &http.Client{
-				Transport: &http3.Transport{
-					TLSClientConfig: r.tls.Clone(),
-					QUICConfig: &quic.Config{
-						MaxIdleTimeout: time.Second,
+		{
+			label: "h3",
+			request: func(ctx context.Context) (response *http.Response, err error) {
+				request := r.request.Clone(ctx)
+				h3Client := &http.Client{
+					Timeout: defaultHTTPRequestTimeout,
+					Transport: &http3.Transport{
+						TLSClientConfig: r.tls.Clone(),
+						QUICConfig: &quic.Config{
+							MaxIdleTimeout: time.Second,
+						},
 					},
-				},
-			}
-			return h3Client.Do(request)
+				}
+				return h3Client.Do(request)
+			},
 		},
 	}
 
@@ -282,72 +442,20 @@ func (r *httpRequest) doH3Direct() (HTTPResponse, error) {
 		funcs = funcs[:1]
 	}
 
-	for i, f := range funcs {
-		go func(f requestFunc) {
-			defer device.DeferPanicToError("http", func(err error) { log.Println(err) })
-			defer func() {
-				if successCount.Load() == 0 {
-					if failedCount.Add(1) >= uint32(len(funcs)) {
-						// 全部失败了
-						cancel()
-					}
-				}
-			}()
-
-			var t string
-			switch i {
-			case 0:
-				t = "http(s)"
-			case 1:
-				t = "h3"
-			}
-
-			// 执行HTTP请求
-			rsp, err := f()
-			if rsp == nil || err != nil {
-				mu.Lock()
-				finalErr = errors.Join(finalErr, fmt.Errorf("%s: %w", t, err))
-				mu.Unlock()
-				if rsp != nil && rsp.Body != nil {
-					rsp.Body.Close()
-				}
-				return
-			}
-
-			// 处理 HTTP 状态码
-			if rsp.StatusCode != http.StatusOK {
-				hr := &httpResponse{Response: rsp}
-				err = fmt.Errorf("%s: %s", t, hr.errorString())
-				mu.Lock()
-				finalErr = errors.Join(finalErr, err)
-				mu.Unlock()
-				return
-			}
-
-			select {
-			case successCh <- rsp:
-				// 第一个成功的请求，不要关闭 body
-				successCount.Add(1)
-			default:
-				rsp.Body.Close()
-			}
-		}(f)
+	result, err := raceHTTPRequests(ctx, funcs)
+	if err != nil {
+		return nil, err
 	}
-
-	select {
-	case result := <-successCh:
-		return &httpResponse{Response: result}, nil
-	case <-ctx.Done():
-		return nil, finalErr
-	}
+	return &httpResponse{Response: result}, nil
 }
 
 type httpResponse struct {
 	*http.Response
 
-	getContentOnce sync.Once
-	content        []byte
-	contentError   error
+	contentMu    sync.Mutex
+	contentRead  bool
+	content      []byte
+	contentError error
 }
 
 func (h *httpResponse) errorString() string {
@@ -366,15 +474,33 @@ func (h *httpResponse) GetHeader(key string) *StringBox {
 }
 
 func (h *httpResponse) GetContent() ([]byte, error) {
-	h.getContentOnce.Do(func() {
-		defer h.Body.Close()
-		h.content, h.contentError = io.ReadAll(h.Body)
-	})
+	return h.GetContentLimited(defaultHTTPStringLimit)
+}
+
+func (h *httpResponse) GetContentLimited(limit int64) ([]byte, error) {
+	h.contentMu.Lock()
+	defer h.contentMu.Unlock()
+	if h.contentRead {
+		if h.contentError != nil {
+			return nil, h.contentError
+		}
+		if int64(len(h.content)) > limit {
+			return nil, fmt.Errorf("HTTP response body exceeds %d bytes", limit)
+		}
+		return h.content, nil
+	}
+	defer h.Body.Close()
+	h.contentRead = true
+	h.content, h.contentError = readAllLimited(h.Body, limit)
 	return h.content, h.contentError
 }
 
 func (h *httpResponse) GetContentString() (*StringBox, error) {
-	content, err := h.getContentString()
+	return h.GetContentStringLimited(defaultHTTPStringLimit)
+}
+
+func (h *httpResponse) GetContentStringLimited(limit int64) (*StringBox, error) {
+	content, err := h.getContentStringLimited(limit)
 	if err != nil {
 		return nil, err
 	}
@@ -382,7 +508,11 @@ func (h *httpResponse) GetContentString() (*StringBox, error) {
 }
 
 func (h *httpResponse) getContentString() (string, error) {
-	content, err := h.GetContent()
+	return h.getContentStringLimited(defaultHTTPStringLimit)
+}
+
+func (h *httpResponse) getContentStringLimited(limit int64) (string, error) {
+	content, err := h.GetContentLimited(limit)
 	if err != nil {
 		return "", err
 	}
@@ -390,12 +520,61 @@ func (h *httpResponse) getContentString() (string, error) {
 }
 
 func (h *httpResponse) WriteTo(path string) error {
+	return h.WriteToLimited(path, defaultHTTPFileLimit)
+}
+
+func (h *httpResponse) WriteToLimited(path string, limit int64) (err error) {
 	defer h.Body.Close()
-	file, err := os.Create(path)
+	dir, base := filepath.Split(path)
+	if dir == "" {
+		dir = "."
+	}
+	file, err := os.CreateTemp(dir, base+".*.tmp")
 	if err != nil {
 		return err
 	}
-	defer file.Close()
-	_, err = io.Copy(file, h.Body)
+	tmpPath := file.Name()
+	defer func() {
+		if err != nil {
+			_ = os.Remove(tmpPath)
+		}
+	}()
+	defer func() {
+		if closeErr := file.Close(); err == nil {
+			err = closeErr
+		}
+		if err == nil {
+			err = os.Rename(tmpPath, path)
+		}
+	}()
+	_, err = copyLimited(file, h.Body, limit)
 	return err
+}
+
+func readAllLimited(reader io.Reader, limit int64) ([]byte, error) {
+	if limit < 0 {
+		return nil, fmt.Errorf("invalid HTTP response limit %d", limit)
+	}
+	content, err := io.ReadAll(io.LimitReader(reader, limit+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(content)) > limit {
+		return nil, fmt.Errorf("HTTP response body exceeds %d bytes", limit)
+	}
+	return content, nil
+}
+
+func copyLimited(dst io.Writer, src io.Reader, limit int64) (int64, error) {
+	if limit < 0 {
+		return 0, fmt.Errorf("invalid HTTP response limit %d", limit)
+	}
+	written, err := io.Copy(dst, io.LimitReader(src, limit+1))
+	if err != nil {
+		return written, err
+	}
+	if written > limit {
+		return written, fmt.Errorf("stream exceeds %d bytes", limit)
+	}
+	return written, nil
 }

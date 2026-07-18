@@ -59,7 +59,7 @@ object LocalResolverImpl : LocalDNSTransport {
             DnsResolver.FLAG_NO_RETRY,
             Dispatchers.IO.asExecutor(),
             signal,
-            callback
+            callback,
         )
     }
 
@@ -111,7 +111,7 @@ object LocalResolverImpl : LocalDNSTransport {
                     DnsResolver.FLAG_NO_RETRY,
                     Dispatchers.IO.asExecutor(),
                     signal,
-                    callback
+                    callback,
                 )
             } else {
                 DnsResolver.getInstance().query(
@@ -120,12 +120,12 @@ object LocalResolverImpl : LocalDNSTransport {
                     DnsResolver.FLAG_NO_RETRY,
                     Dispatchers.IO.asExecutor(),
                     signal,
-                    callback
+                    callback,
                 )
             }
         } else {
             runOnIoDispatcher {
-                // 老版本系统，继续用阻塞的 InetAddress
+                // older system version, continue using the blocking InetAddress
                 try {
                     val u = SagerNet.underlyingNetwork
                     val answer = try {
@@ -147,5 +147,4 @@ object LocalResolverImpl : LocalDNSTransport {
             }
         }
     }
-
 }

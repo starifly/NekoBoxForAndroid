@@ -18,7 +18,8 @@ import io.nekohasekai.sagernet.ui.VpnRequestActivity
 import io.nekohasekai.sagernet.utils.Subnet
 import android.net.VpnService as BaseVpnService
 
-class VpnService : BaseVpnService(),
+class VpnService :
+    BaseVpnService(),
     BaseService.Interface {
 
     companion object {
@@ -28,7 +29,6 @@ class VpnService : BaseVpnService(),
         const val FAKEDNS_VLAN4_CLIENT = "198.18.0.0"
         const val PRIVATE_VLAN6_CLIENT = "fdfe:dcba:9876::1"
         const val PRIVATE_VLAN6_ROUTER = "fdfe:dcba:9876::2"
-
     }
 
     var conn: ParcelFileDescriptor? = null
@@ -51,10 +51,11 @@ class VpnService : BaseVpnService(),
     }
 
     @Suppress("EXPERIMENTAL_API_USAGE")
-    override fun killProcesses() {
-        conn?.close()
-        conn = null
-        super.killProcesses()
+    override suspend fun killProcesses() {
+        runServiceTeardown(after = { super.killProcesses() }) {
+            conn?.close()
+            conn = null
+        }
     }
 
     override fun onBind(intent: Intent) = when (intent.action) {
@@ -64,24 +65,27 @@ class VpnService : BaseVpnService(),
 
     override val data = BaseService.Data(this)
     override val tag = "SagerNetVpnService"
-    override fun createNotification(profileName: String) =
-        ServiceNotification(this, profileName, "service-vpn")
+    override fun createNotification(profileName: String) = ServiceNotification(this, profileName, "service-vpn")
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (DataStore.serviceMode == Key.MODE_VPN) {
             if (prepare(this) != null) {
                 startActivity(
                     Intent(
-                        this, VpnRequestActivity::class.java
-                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        this,
+                        VpnRequestActivity::class.java,
+                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                 )
-            } else return super<BaseService.Interface>.onStartCommand(intent, flags, startId)
+            } else {
+                return super<BaseService.Interface>.onStartCommand(intent, flags, startId)
+            }
         }
         stopRunner()
         return Service.START_NOT_STICKY
     }
 
-    inner class NullConnectionException : NullPointerException(),
+    inner class NullConnectionException :
+        NullPointerException(),
         BaseService.ExpectedException {
         override fun getLocalizedMessage() = getString(R.string.reboot_required)
     }
@@ -189,15 +193,30 @@ class VpnService : BaseVpnService(),
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && DataStore.appendHttpProxy) {
-            builder.setHttpProxy(
-                ProxyInfo.buildDirectProxy(
-                    LOCALHOST,
-                    DataStore.mixedPort,
-                    DataStore.httpProxyBypass.lines().mapNotNull { line ->
-                        line.trim().takeIf { it.isNotBlank() && !it.startsWith("#") }
-                    },
+            if (DataStore.allowAccess) {
+                // When LAN access is enabled the mixed inbound requires authentication
+                // (see DataStore.mixedInboundNeedsAuth). Android's system HTTP proxy
+                // cannot supply credentials, so registering it here would just fail.
+                // Skip it instead of weakening inbound auth and exposing an open LAN proxy.
+                Logs.w(
+                    "Append HTTP proxy was skipped because LAN access requires proxy " +
+                        "authentication. Disable Allow LAN access to use system HTTP proxy.",
                 )
-            )
+            } else {
+                val proxyInfo = runCatching {
+                    val exclusionList = parseHttpProxyBypass(DataStore.httpProxyBypass)
+                    if (exclusionList.isNotEmpty()) {
+                        ProxyInfo.buildDirectProxy(LOCALHOST, DataStore.mixedPort, exclusionList)
+                    } else {
+                        ProxyInfo.buildDirectProxy(LOCALHOST, DataStore.mixedPort)
+                    }
+                }.getOrElse {
+                    // A malformed exclusion entry must never block service start.
+                    Logs.w("Invalid HTTP proxy bypass list, ignoring it", it)
+                    ProxyInfo.buildDirectProxy(LOCALHOST, DataStore.mixedPort)
+                }
+                builder.setHttpProxy(proxyInfo)
+            }
         }
 
         metered = DataStore.meteredNetwork
@@ -205,6 +224,38 @@ class VpnService : BaseVpnService(),
         conn = builder.establish() ?: throw NullConnectionException()
 
         return conn!!.fd
+    }
+
+    // Build a validated exclusion list for the system HTTP proxy. Entries are
+    // Android ProxyInfo host/suffix patterns (NOT CIDRs), one per line (commas
+    // also accepted). Each entry is validated individually so a single bad
+    // pattern is dropped instead of invalidating the whole list or blocking
+    // service start.
+    private fun parseHttpProxyBypass(raw: String?): List<String> {
+        if (raw.isNullOrBlank()) return emptyList()
+        return raw.split('\n', ',')
+            .map { it.trim() }
+            .filter { it.isNotEmpty() && isValidProxyBypassEntry(it) }
+            .distinct()
+    }
+
+    // Mirror the host/suffix patterns Android's ProxyInfo accepts: a bare "*",
+    // or dot-separated labels where each label is alphanumeric (hyphens allowed
+    // internally) and a single "*" wildcard label is allowed only as the first
+    // or last label (e.g. "192.168.*", "*.example.com"). Rejects empty labels
+    // (e.g. ".."), leading/trailing dots and stray characters.
+    private fun isValidProxyBypassEntry(entry: String): Boolean {
+        if (entry == "*") return true
+        val labels = entry.split('.')
+        val label = Regex("^[A-Za-z0-9]+(-+[A-Za-z0-9]+)*$")
+        labels.forEachIndexed { index, l ->
+            if (l == "*") {
+                if (index != 0 && index != labels.lastIndex) return false
+            } else if (!label.matches(l)) {
+                return false
+            }
+        }
+        return true
     }
 
     fun updateUnderlyingNetwork(builder: Builder? = null) {

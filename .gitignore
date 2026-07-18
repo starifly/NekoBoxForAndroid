@@ -1,20 +1,73 @@
-*.iml
-.gradle
-.idea
-.vscode
+# OS / filesystem
 .DS_Store
+._*
+__MACOSX/
+
+# IDE / editor
+*.iml
+.idea/
+.vscode/
+.cursor/
+.agents/
+.pi-subagents/
+AGENTS.md
+
+# Gradle / Kotlin build state
+.gradle/
+.kotlin/
 build/
-/captures
-.externalNativeBuild
-.cxx
+# buildSrc/build is sometimes a symlink to APFS /tmp (exFAT AppleDouble workaround);
+# the trailing-slash 'build/' rule above doesn't match a symlink, so ignore it explicitly.
+buildSrc/build
+
+# Android / native build outputs
+/captures/
+.externalNativeBuild/
+.cxx/
+jniLibs/
+/library/libcore_build/
+/libcore/.build/
+/libcore/version_gen.go
+/.masterdnsvpn-build/
+/.olcrtc-build/
+/.olcrtc-gomobile/
+/.olcrtc-wrapper/
+/buildScript/lib/olcrtc-src/go.sum
+
+# Local config / generated app artifacts
 local.properties
 /app/libs/
 /app/src/main/assets/sing-box
 /service_account_credentials.json
-jniLibs/
-/library/libcore_build/
-.idea/deploymentTargetDropDown.xml
-/nkmr
+/nkmr/
 
-# submodules
-/external
+# Submodules / external sources
+/external/
+
+# Signing keys - never commit; provided via CI secrets or local.properties
+release.keystore
+*.keystore
+*.jks
+
+#Extra
+currentArchitectureState/*
+localAPKs/
+
+# Depot project id is local-only infra metadata, not for the public fork.
+depot.json
+# Internal notes/docs - keep local, do not publish.
+/docs/
+# Local build env + local-only sources (kept off the public fork).
+buildenv.local.sh
+/libcore/gomobile/
+app/src/main/java/io/nekohasekai/sagernet/ktx/AgentDebugLog.kt
+
+# Local policy and verification helpers.
+/scripts/check-agents-untracked.sh
+/scripts/check-no-shared-prefs.sh
+/scripts/verify.sh
+/scripts/hooks/
+
+# Local on-device DB/config backups (profiles + credentials — never commit)
+device-backups/
+.worklog/

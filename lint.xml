@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Lint severity policy.
+
+  Baseline policy (see scripts/check-lint-baseline.sh): app/lint-baseline.xml records
+  pre-existing findings so the gate is green today; it may only SHRINK over time.
+  New lint errors must be FIXED, never added to the baseline. The guard job fails if
+  the baseline issue count grows versus main.
+
+  The security-relevant ids below are deliberately NOT ignored:
+    - TrustAllX509TrustManager: for a privacy/proxy app an all-trusting
+      X509TrustManager in APP code (not the proxied tunnel) is a real MITM vector.
+      App code has none today (grep: no X509TrustManager/checkServerTrusted), so it
+      is promoted to `error` to fail-fast if one is ever introduced. Must never regress.
+    - RestrictedApi: kept visible at `warning` so misuse of @RestrictedApi internals
+      (which can break across library versions) is surfaced, not hidden.
+  The remaining ignores are intentional cosmetic/i18n noise suppression.
+-->
 <lint>
     <issue id="UnusedAttribute" severity="ignore" />
     <issue id="UnknownNullness" severity="ignore" />
@@ -30,8 +47,8 @@
     <issue id="RtlHardcoded" severity="ignore" />
     <issue id="MissingTranslation" severity="ignore" />
     <issue id="ExtraTranslation" severity="ignore" />
-    <issue id="RestrictedApi" severity="ignore" />
+    <issue id="RestrictedApi" severity="warning" />
 
     <issue id="InvalidPackage" severity="ignore" />
-    <issue id="TrustAllX509TrustManager" severity="ignore" />
+    <issue id="TrustAllX509TrustManager" severity="error" />
 </lint>

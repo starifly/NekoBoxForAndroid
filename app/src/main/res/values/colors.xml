@@ -26,6 +26,8 @@
         <item>@color/material_blue_grey_500</item>
         <item>@color/material_light_black</item>
         <item>@color/color_verdant_mint</item>
+        <item>@color/color_dracula</item>
+        <item>@color/color_dynamic_swatch</item>
     </integer-array>
 
     <color name="material_amber_100">#FFECB3</color>
@@ -291,8 +293,37 @@
     <color name="color_verdant_mint_100">#B4D7C6</color>
     <color name="color_verdant_mint_300">#509177</color>
 
+    <!-- Dracula theme accents (https://draculatheme.com). Purple primary,
+         pink accent. Surfaces are overridden in values-night for the true
+         #282a36 canvas; see Theme.SagerNet.Dracula. -->
+    <color name="color_dracula">#BD93F9</color>
+    <!-- Representative swatch for the Dynamic (Material You) theme option (wallpaper-based on
+         Android 12+); a neutral system-accent stand-in since it has no fixed color. -->
+    <color name="color_dynamic_swatch">#5E6472</color>
+    <color name="color_dracula_dark">#6272A4</color>
+    <color name="color_dracula_accent">#FF79C6</color>
+    <color name="color_dracula_100">#E9DDFB</color>
+    <color name="color_dracula_300">#9A7BD0</color>
+    <!-- Dracula green (#50fa7b), used for the protocol/type label. -->
+    <color name="color_dracula_green">#50FA7B</color>
+    <!-- Dracula red (#ff5555): failures / stopped state. -->
+    <color name="color_dracula_red">#FF5555</color>
+    <!-- Dracula yellow (#f1fa8c): profile name label. -->
+    <color name="color_dracula_yellow">#F1FA8C</color>
+    <!-- Dracula cyan (#8be9fd): the Dracula "blue" (e.g. proxy route rules). -->
+    <color name="color_dracula_cyan">#8BE9FD</color>
+
     <color name="color_ng_black_accent">#9E9E9E</color>
     <color name="color_ng_black_primary">#2B2B2B</color>
+
+    <!-- M3 container/surface-variant roles for the special themes, so M3 widgets
+         (chips, tonal buttons, cards) don't fall back to library grayscale.
+         Dracula: dark purple container on its #282A36 canvas; Black: near-black. -->
+    <color name="color_dracula_container">#44355E</color>
+    <color name="color_dracula_surface_variant">#3C3F52</color>
+    <color name="color_dracula_outline">#6272A4</color>
+    <color name="color_ng_black_container">#383838</color>
+    <color name="color_ng_black_surface_variant">#2E2E2E</color>
 
     <!-- 路由规则类型颜色（日间）-->
     <color name="color_route_block">#E53935</color>   <!-- 屏蔽：红色 -->
@@ -306,6 +337,12 @@
     <color name="card_stroke">#29000000</color>
 
     <!-- 立体卡片色调提升表面色（浅色，白底 + 各 primary 8% 染色），夜间见 values-night/colors.xml -->
+    <!-- M3 colorOutline: neutral mid-gray for borders/dividers on light surfaces.
+         Night equivalent in values-night/colors.xml. -->
+    <color name="m3_outline">#79747E</color>
+
+    <!-- Elevated-card tonal surface colors (light: white base + ~8% primary tint);
+         see values-night/colors.xml for the dark equivalents. -->
     <color name="card_elevated_pink">#FDEDF3</color>
     <color name="card_elevated_pink_ssr">#FFF4F7</color>
     <color name="card_elevated_amber">#FFFAEB</color>
@@ -328,5 +365,150 @@
     <color name="card_elevated_yellow">#FFFDEF</color>
     <color name="card_elevated_black">#EEEEEE</color>
     <color name="card_elevated_verdant_mint">#EBF9F3</color>
+    <color name="card_elevated_dracula">#F1EAFB</color>
+
+    <!-- Dracula canvas surfaces. The Dracula theme forces night mode on, so the live
+         values come from values-night; these base declarations exist so the resources
+         always resolve (avoids MissingDefaultResource / a crash if queried in a non-night
+         configuration) and intentionally use the same dark Dracula palette. -->
+    <color name="dracula_background">#282A36</color>
+    <color name="dracula_surface">#343746</color>
+    <color name="dracula_on_surface">#F8F8F2</color>
+
+    <!-- Dark High Contrast (OLED): a full Material 3 dark-only theme on a true
+         black canvas. Green-primary (GitHub action-button style) with a bright
+         blue secondary for links/selection; maximally legible near-white text.
+         The theme forces night mode on, so the live canvas comes from
+         values-night; these base declarations exist only so resources always
+         resolve in a non-night configuration. -->
+    <color name="dhc_primary">#3FB950</color>          <!-- green action accent -->
+    <color name="dhc_primary_dark">#2EA043</color>     <!-- darker green (status bar) -->
+    <color name="dhc_on_primary">#0A0A0A</color> <!-- dark text on green -->
+    <color name="dhc_accent">#71B7FF</color>           <!-- bright blue secondary -->
+    <color name="dhc_blue">#4493F8</color>   <!-- link/route blue -->
+    <color name="dhc_background">#000000</color>       <!-- true OLED black -->
+    <color name="dhc_surface">#0D0D0D</color>
+    <color name="dhc_surface_variant">#161616</color>
+    <color name="dhc_container">#1C1C1C</color>
+    <color name="dhc_on_surface">#F0F6FC</color>      <!-- high-contrast near-white -->
+    <color name="dhc_on_surface_variant">#C9D1D9</color>
+    <color name="dhc_outline">#3D444D</color>
+    <color name="dhc_outline_variant">#21262D</color>
+    <color name="dhc_green">#3FB950</color>
+    <color name="dhc_red">#F85149</color>
+    <color name="dhc_yellow">#D29922</color>
+    <color name="dhc_100">#1C1C1C</color>            <!-- colorMaterial100 stand-in -->
+    <color name="dhc_300">#2EA043</color>            <!-- colorMaterial300 stand-in -->
+    <color name="card_elevated_dhc">#0D0D0D</color>
+
+    <!-- ===================== Phase 3: modern M3 dark themes =====================
+         Each is a full M3 dark theme surfaced by name in the picker. Base
+         declarations live here so resources always resolve; the live dark canvas
+         is applied via the theme styles (these themes force night mode on). -->
+
+    <!-- Dracula-M3 (official palette; separate from the legacy Dracula id 23). -->
+    <color name="draculam3_primary">#BD93F9</color>          <!-- purple -->
+    <color name="draculam3_primary_dark">#6272A4</color>     <!-- comment blue -->
+    <color name="draculam3_on_primary">#282A36</color>
+    <color name="draculam3_accent">#FF79C6</color> <!-- pink -->
+    <color name="draculam3_blue">#8BE9FD</color>            <!-- cyan -->
+    <color name="draculam3_background">#282A36</color>
+    <color name="draculam3_surface">#343746</color>
+    <color name="draculam3_surface_variant">#3C3F52</color>
+    <color name="draculam3_container">#44475A</color>
+    <color name="draculam3_on_surface">#F8F8F2</color>
+    <color name="draculam3_on_surface_variant">#C9CEE3</color>
+    <color name="draculam3_outline">#6272A4</color>
+    <color name="draculam3_outline_variant">#3C3F52</color>
+    <color name="draculam3_green">#50FA7B</color>
+    <color name="draculam3_red">#FF5555</color>
+    <color name="draculam3_yellow">#F1FA8C</color>
+    <color name="draculam3_100">#44475A</color>
+    <color name="draculam3_300">#6272A4</color>
+    <color name="card_elevated_draculam3">#343746</color>
+
+    <!-- Nord (official palette). -->
+    <color name="nord_primary">#88C0D0</color>             <!-- frost cyan -->
+    <color name="nord_primary_dark">#5E81AC</color>        <!-- frost deep blue -->
+    <color name="nord_on_primary">#2E3440</color>
+    <color name="nord_accent">#81A1C1</color>             <!-- frost blue -->
+    <color name="nord_blue">#81A1C1</color>
+    <color name="nord_background">#2E3440</color>
+    <color name="nord_surface">#3B4252</color>
+    <color name="nord_surface_variant">#434C5E</color>
+    <color name="nord_container">#434C5E</color>
+    <color name="nord_on_surface">#ECEFF4</color>
+    <color name="nord_on_surface_variant">#D8DEE9</color>
+    <color name="nord_outline">#4C566A</color>
+    <color name="nord_outline_variant">#3B4252</color>
+    <color name="nord_green">#A3BE8C</color>
+    <color name="nord_red">#BF616A</color>
+    <color name="nord_yellow">#EBCB8B</color>
+    <color name="nord_100">#434C5E</color>
+    <color name="nord_300">#5E81AC</color>
+    <color name="card_elevated_nord">#3B4252</color>
+
+    <!-- Monokai (classic palette). -->
+    <color name="monokai_primary">#A6E22E</color>          <!-- green -->
+    <color name="monokai_primary_dark">#75A813</color>
+    <color name="monokai_on_primary">#272822</color>
+    <color name="monokai_accent">#66D9EF</color>           <!-- blue -->
+    <color name="monokai_blue">#66D9EF</color>
+    <color name="monokai_background">#272822</color>
+    <color name="monokai_surface">#31322B</color>
+    <color name="monokai_surface_variant">#3A3B33</color>
+    <color name="monokai_container">#3E3D32</color>
+    <color name="monokai_on_surface">#F8F8F2</color>
+    <color name="monokai_on_surface_variant">#CFCFC2</color>
+    <color name="monokai_outline">#75715E</color>
+    <color name="monokai_outline_variant">#3A3B33</color>
+    <color name="monokai_green">#A6E22E</color>
+    <color name="monokai_red">#F92672</color>            <!-- pink/red -->
+    <color name="monokai_yellow">#E6DB74</color>
+    <color name="monokai_100">#3E3D32</color>
+    <color name="monokai_300">#75715E</color>
+    <color name="card_elevated_monokai">#31322B</color>
+
+    <!-- Ayu Mirage (official palette). -->
+    <color name="ayu_primary">#FFCC66</color>             <!-- amber accent -->
+    <color name="ayu_primary_dark">#FFA759</color>        <!-- orange -->
+    <color name="ayu_on_primary">#1F2430</color>
+    <color name="ayu_accent">#5CCFE6</color>              <!-- cyan -->
+    <color name="ayu_blue">#5CCFE6</color>
+    <color name="ayu_background">#1F2430</color>
+    <color name="ayu_surface">#232834</color>
+    <color name="ayu_surface_variant">#2A303C</color>
+    <color name="ayu_container">#2D3440</color>
+    <color name="ayu_on_surface">#E6E1CF</color>
+    <color name="ayu_on_surface_variant">#B8B5A5</color>
+    <color name="ayu_outline">#54596B</color>
+    <color name="ayu_outline_variant">#2A303C</color>
+    <color name="ayu_green">#BAE67E</color>
+    <color name="ayu_red">#FF6666</color>
+    <color name="ayu_yellow">#FFD580</color>
+    <color name="ayu_100">#2D3440</color>
+    <color name="ayu_300">#FFA759</color>
+    <color name="card_elevated_ayu">#232834</color>
+
+    <!-- Catppuccin Mocha (official palette: https://catppuccin.com/palette). -->
+    <color name="catppuccin_primary">#CBA6F7</color>       <!-- mauve -->
+    <color name="catppuccin_primary_dark">#74C7EC</color>  <!-- sapphire (status bar) -->
+    <color name="catppuccin_on_primary">#1E1E2E</color>    <!-- base -->
+    <color name="catppuccin_accent">#89B4FA</color>        <!-- blue -->
+    <color name="catppuccin_blue">#89B4FA</color>
+    <color name="catppuccin_background">#1E1E2E</color>    <!-- base -->
+    <color name="catppuccin_surface">#181825</color>       <!-- mantle -->
+    <color name="catppuccin_surface_variant">#313244</color> <!-- surface0 -->
+    <color name="catppuccin_container">#45475A</color>    <!-- surface1 -->
+    <color name="catppuccin_on_surface">#CDD6F4</color>   <!-- text -->
+    <color name="catppuccin_on_surface_variant">#BAC2DE</color> <!-- subtext1 -->
+    <color name="catppuccin_outline">#6C7086</color>      <!-- overlay0 -->
+    <color name="catppuccin_outline_variant">#313244</color>
+    <color name="catppuccin_green">#A6E3A1</color>
+    <color name="catppuccin_red">#F38BA8</color>
+    <color name="catppuccin_yellow">#F9E2AF</color>
+    <color name="catppuccin_100">#45475A</color>
+    <color name="catppuccin_300">#6C7086</color>
+    <color name="card_elevated_catppuccin">#181825</color>
 
 </resources>

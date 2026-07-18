@@ -30,17 +30,13 @@ class AnyTLSSettingsActivity : ProfileSettingsActivity<AnyTLSBean>() {
 
     override fun AnyTLSBean.init() {
         pbm.writeToCacheAll(this)
-
     }
 
     override fun AnyTLSBean.serialize() {
         pbm.fromCacheAll(this)
     }
 
-    override fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?
-    ) {
+    override fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.anytls_preferences)
 
         findPreference<EditTextPreference>(Key.SERVER_PORT)!!.apply {

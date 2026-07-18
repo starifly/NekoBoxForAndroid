@@ -33,6 +33,9 @@ import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 
 @Suppress("DEPRECATION")
 class QuickToggleShortcut : Activity(), SagerConnection.Callback {
@@ -42,41 +45,68 @@ class QuickToggleShortcut : Activity(), SagerConnection.Callback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (intent.action == Intent.ACTION_CREATE_SHORTCUT) {
-            setResult(RESULT_OK, ShortcutManagerCompat.createShortcutResultIntent(this,
-                ShortcutInfoCompat.Builder(this, "toggle")
-                    .setIntent(Intent(this,
-                        QuickToggleShortcut::class.java).setAction(Intent.ACTION_MAIN))
-                    .setIcon(IconCompat.createWithResource(this,
-                        R.drawable.ic_qu_shadowsocks_launcher))
-                    .setShortLabel(getString(R.string.quick_toggle))
-                    .build()))
+            setResult(
+                RESULT_OK,
+                ShortcutManagerCompat.createShortcutResultIntent(
+                    this,
+                    ShortcutInfoCompat.Builder(this, "toggle")
+                        .setIntent(
+                            Intent(
+                                this,
+                                QuickToggleShortcut::class.java,
+                            ).setAction(Intent.ACTION_MAIN),
+                        )
+                        .setIcon(
+                            IconCompat.createWithResource(
+                                this,
+                                R.drawable.ic_qu_shadowsocks_launcher,
+                            ),
+                        )
+                        .setShortLabel(getString(R.string.quick_toggle))
+                        .build(),
+                ),
+            )
             finish()
         } else {
             profileId = intent.getLongExtra("profile", -1L)
             connection.connect(this, this)
             if (Build.VERSION.SDK_INT >= 25) {
-                getSystemService<ShortcutManager>()!!.reportShortcutUsed(if (profileId >= 0) "shortcut-profile-$profileId" else "toggle")
+                getSystemService<ShortcutManager>()!!.reportShortcutUsed(
+                    if (profileId >= 0) "shortcut-profile-$profileId" else "toggle",
+                )
             }
         }
     }
 
     override fun onServiceConnected(service: ISagerNetService) {
         val state = BaseService.State.values()[service.state]
-        when {
-            state.canStop -> {
-                if (profileId == DataStore.selectedProxy || profileId == -1L) {
-                    SagerNet.stopService()
-                } else {
-                    DataStore.selectedProxy = profileId
-                    SagerNet.reloadService()
+        // The "profile" extra comes from an untrusted launching intent (these shortcut
+        // activities are reachable by the launcher and by other apps). Validate it against the
+        // DB off the main thread, then apply the service action on the main thread. Only honor
+        // a profile id that resolves to a real profile; otherwise fall back to a plain toggle
+        // of the current profile, so a crafted intent cannot pin the user to an arbitrary id.
+        val requestedId = profileId
+        runOnDefaultDispatcher {
+            val validProfileId =
+                requestedId.takeIf { it >= 0L && SagerDatabase.proxyDao.getById(it) != null } ?: -1L
+            runOnMainDispatcher {
+                when {
+                    state.canStop -> {
+                        if (validProfileId == DataStore.selectedProxy || validProfileId == -1L) {
+                            SagerNet.stopService()
+                        } else {
+                            DataStore.selectedProxy = validProfileId
+                            SagerNet.reloadService(validProfileId)
+                        }
+                    }
+                    state == BaseService.State.Stopped -> {
+                        if (validProfileId >= 0L) DataStore.selectedProxy = validProfileId
+                        SagerNet.startService(validProfileId)
+                    }
                 }
-            }
-            state == BaseService.State.Stopped -> {
-                if (profileId >= 0L) DataStore.selectedProxy = profileId
-                SagerNet.startService()
+                finish()
             }
         }
-        finish()
     }
 
     override fun stateChanged(state: BaseService.State, profileName: String?, msg: String?) {}

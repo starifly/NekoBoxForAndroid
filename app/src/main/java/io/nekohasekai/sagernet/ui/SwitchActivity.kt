@@ -7,7 +7,8 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 
-class SwitchActivity : ThemedActivity(R.layout.layout_empty),
+class SwitchActivity :
+    ThemedActivity(R.layout.layout_empty),
     ConfigurationFragment.SelectCallback {
 
     override val isDialog = true
@@ -18,7 +19,7 @@ class SwitchActivity : ThemedActivity(R.layout.layout_empty),
         supportFragmentManager.beginTransaction()
             .replace(
                 R.id.fragment_holder,
-                ConfigurationFragment(true, null, R.string.action_switch)
+                ConfigurationFragment(true, null, R.string.action_switch),
             )
             .commitAllowingStateLoss()
     }
@@ -30,7 +31,9 @@ class SwitchActivity : ThemedActivity(R.layout.layout_empty),
             ProfileManager.postUpdate(old, true)
             ProfileManager.postUpdate(profileId, true)
         }
-        SagerNet.reloadService()
+        // Carry the freshly-selected id in the reload IPC so :bg uses it authoritatively rather
+        // than re-reading selectedProxy from the DB before the async write-through commit lands.
+        SagerNet.reloadService(profileId)
         finish()
     }
 }

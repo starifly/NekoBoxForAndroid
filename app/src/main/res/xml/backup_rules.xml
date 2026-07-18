@@ -2,18 +2,24 @@
 <data-extraction-rules xmlns:tools="http://schemas.android.com/tools"
     tools:ignore="FullBackupContent">
     <cloud-backup>
-        <include
+        <exclude
             domain="database"
             path="sager_net.db" />
-        <include
+        <exclude
+            domain="database"
+            path="configuration.db" />
+        <exclude
             domain="device_database"
             path="configuration.db" />
     </cloud-backup>
     <device-transfer>
-        <include
+        <exclude
             domain="database"
             path="sager_net.db" />
-        <include
+        <exclude
+            domain="database"
+            path="configuration.db" />
+        <exclude
             domain="device_database"
             path="configuration.db" />
     </device-transfer>

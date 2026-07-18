@@ -26,7 +26,6 @@ fun AbstractBean.toUniversalLink(): String {
     return link
 }
 
-
 fun ProxyGroup.toUniversalLink(): String {
     var link = "sn://subscription?"
     export = true

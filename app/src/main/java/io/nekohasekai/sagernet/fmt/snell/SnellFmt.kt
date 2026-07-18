@@ -1,10 +1,12 @@
 package io.nekohasekai.sagernet.fmt.snell
 
-import io.nekohasekai.sagernet.ktx.urlSafe
 import io.nekohasekai.sagernet.ktx.unUrlSafe
+import io.nekohasekai.sagernet.ktx.urlSafe
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 // URI 格式: snell://base64(psk)@server:port?version=6&userkey=base64(userkey)&mode=default&reuse=true&network=tcp#name
+// or
+// URI format: snell://base64(psk)@server:port?version=4&obfs-mode=http&obfs-host=bing.com&reuse=true&network=tcp#name
 fun parseSnell(url: String): SnellBean {
     val link = url.replace("snell://", "https://").toHttpUrlOrNull()
         ?: error("Invalid snell URL")

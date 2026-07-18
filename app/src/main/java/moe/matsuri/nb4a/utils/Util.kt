@@ -3,6 +3,11 @@ package moe.matsuri.nb4a.utils
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Base64
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
+import io.nekohasekai.sagernet.ktx.ImportTooLargeException
+import io.nekohasekai.sagernet.ktx.MAX_IMPORT_BYTES
 import libcore.StringBox
 import java.io.ByteArrayOutputStream
 import java.net.URLDecoder
@@ -15,12 +20,12 @@ import java.util.zip.Inflater
 object Util {
 
     /**
-     * 取两个文本之间的文本值
+     * Get the text value between two pieces of text
      *
-     * @param text  源文本 比如：欲取全文本为 12345
-     * @param left  文本前面
-     * @param right 后面文本
-     * @return 返回 String
+     * @param text  source text, e.g. the full text to extract from is 12345
+     * @param left  text before
+     * @param right text after
+     * @return returns String
      */
     fun getSubString(text: String, left: String?, right: String?): String {
         var zLen: Int
@@ -63,13 +68,13 @@ object Util {
     fun b64Decode(b: String): ByteArray {
         var ret: ByteArray? = null
 
-        // padding 自动处理，不用理
-        // URLSafe 需要替换这两个，不要用 URL_SAFE 否则处理非 Safe 的时候会乱码
+        // padding is handled automatically, no need to worry about it
+        // URLSafe needs to replace these two; don't use URL_SAFE, otherwise non-Safe input will be garbled
         val str = b.replace("-", "+").replace("_", "/")
 
         val flags = listOf(
-            Base64.DEFAULT, // 多行
-            Base64.NO_WRAP, // 单行
+            Base64.DEFAULT, // multi-line
+            Base64.NO_WRAP, // single-line
         )
 
         for (flag in flags) {
@@ -96,7 +101,7 @@ object Util {
         return output.copyOfRange(0, compressedDataLength)
     }
 
-    fun zlibDecompress(input: ByteArray): ByteArray {
+    fun zlibDecompress(input: ByteArray, limit: Long = MAX_IMPORT_BYTES): ByteArray {
         val inflater = Inflater()
         val outputStream = ByteArrayOutputStream()
 
@@ -105,14 +110,28 @@ object Util {
 
             inflater.setInput(input)
 
-            var count = -1
-            while (count != 0) {
-                count = inflater.inflate(buffer)
-                outputStream.write(buffer, 0, count)
+            try {
+                var total = 0L
+                var count = -1
+                while (count != 0) {
+                    count = inflater.inflate(buffer)
+                    total += count
+                    // Bound the INFLATED (output) size: a tiny crafted input can otherwise
+                    // inflate to gigabytes (decompression bomb) and OOM the process before any
+                    // user confirmation. Mirrors the import cap in BoundedRead.
+                    if (total > limit) throw ImportTooLargeException(limit)
+                    outputStream.write(buffer, 0, count)
+                }
+                // inflate() also returns 0 when it needs more input (truncated/corrupt stream),
+                // not only when finished; reject partial output instead of accepting it.
+                if (!inflater.finished()) {
+                    throw java.util.zip.DataFormatException("truncated or corrupt zlib stream")
+                }
+                outputStream.toByteArray()
+            } finally {
+                // Always release the native inflater, even on a malformed-input exception.
+                inflater.end()
             }
-
-            inflater.end()
-            outputStream.toByteArray()
         }
     }
 
@@ -132,12 +151,12 @@ object Util {
                 val currentMap = (dst[k] as Map<*, *>).toMutableMap()
                 dst[k] = mergeMap(map2StringMap(currentMap), map2StringMap(v))
             } else if (v is List<*>) {
-                if (k.startsWith("+")) {  // prepend
+                if (k.startsWith("+")) { // prepend
                     val dstKey = k.removePrefix("+")
                     var currentList = (dst[dstKey] as? List<*>)?.toMutableList() ?: mutableListOf()
                     currentList = (v + currentList).toMutableList()
                     dst[dstKey] = currentList
-                } else if (k.endsWith("+")) {  // append
+                } else if (k.endsWith("+")) { // append
                     val dstKey = k.removeSuffix("+")
                     var currentList = (dst[dstKey] as? List<*>)?.toMutableList() ?: mutableListOf()
                     currentList = (currentList + v).toMutableList()
@@ -156,6 +175,42 @@ object Util {
         if (j.isBlank()) return
         val src = JavaUtil.gson.fromJson(j, dst.javaClass)
         mergeMap(dst, src)
+    }
+
+    fun mergeJsonElement(dst: JsonObject, json: String) {
+        if (json.isBlank()) return
+        mergeJsonObject(dst, JsonParser.parseString(json).asJsonObject)
+    }
+
+    private fun mergeJsonObject(dst: JsonObject, src: JsonObject) {
+        src.entrySet().forEach { (key, value) ->
+            val current = dst.get(key)
+            if (value.isJsonObject && current?.isJsonObject == true) {
+                mergeJsonObject(current.asJsonObject, value.asJsonObject)
+            } else if (value.isJsonArray && (key.startsWith("+") || key.endsWith("+"))) {
+                val destinationKey = if (key.startsWith("+")) {
+                    key.removePrefix("+")
+                } else {
+                    key.removeSuffix("+")
+                }
+                val currentArray = dst.get(destinationKey)?.takeIf { it.isJsonArray }?.asJsonArray
+                dst.add(
+                    destinationKey,
+                    if (key.startsWith("+")) {
+                        combineJsonArrays(value.asJsonArray, currentArray)
+                    } else {
+                        combineJsonArrays(currentArray, value.asJsonArray)
+                    },
+                )
+            } else {
+                dst.add(key, value.deepCopy())
+            }
+        }
+    }
+
+    private fun combineJsonArrays(first: JsonArray?, second: JsonArray?) = JsonArray().apply {
+        first?.forEach { add(it.deepCopy()) }
+        second?.forEach { add(it.deepCopy()) }
     }
 
     // Format Time

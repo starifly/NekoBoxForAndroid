@@ -16,10 +16,11 @@ constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = TypedArrayUtils.getAttr(
-        context, R.attr.editTextPreferenceStyle,
-        android.R.attr.editTextPreferenceStyle
+        context,
+        R.attr.editTextPreferenceStyle,
+        android.R.attr.editTextPreferenceStyle,
     ),
-    defStyleRes: Int = 0
+    defStyleRes: Int = 0,
 ) : EditTextPreference(context, attrs, defStyleAttr, defStyleRes) {
 
     var concurrent: EditText? = null
@@ -29,6 +30,8 @@ constructor(
         dialogLayoutResource = R.layout.layout_urltest_preference_dialog
 
         setOnBindEditTextListener {
+            // findViewById (not ViewBinding): the dialog view is supplied by the AndroidX
+            // EditTextPreference bind callback (it.rootView), not an app layout binding.
             concurrent = it.rootView.findViewById(R.id.edit_concurrent)
             concurrent?.apply {
                 setText(DataStore.connectionTestConcurrent.toString())
@@ -59,5 +62,4 @@ constructor(
             true
         }
     }
-
 }

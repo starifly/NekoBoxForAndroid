@@ -43,26 +43,36 @@ import io.nekohasekai.sagernet.fmt.KryoConverters
 import io.nekohasekai.sagernet.fmt.PluginEntry
 import io.nekohasekai.sagernet.group.GroupInterfaceAdapter
 import io.nekohasekai.sagernet.group.GroupUpdater
+import io.nekohasekai.sagernet.ktx.FabContainer
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.alert
-import io.nekohasekai.sagernet.ktx.isPlay
 import io.nekohasekai.sagernet.ktx.isPreview
 import io.nekohasekai.sagernet.ktx.launchCustomTab
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.parseProxies
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
-import io.nekohasekai.sagernet.ui.MessageStore
-import io.nekohasekai.sagernet.ktx.Logs
+import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
+import io.nekohasekai.sagernet.plugin.PluginTrust
+import moe.matsuri.nb4a.plugin.Plugins
 import moe.matsuri.nb4a.utils.Util
+import java.util.Locale
 
-class MainActivity : ThemedActivity(),
+class MainActivity :
+    ThemedActivity(),
     SagerConnection.Callback,
     OnPreferenceDataStoreChangeListener,
+    FabContainer,
     NavigationView.OnNavigationItemSelectedListener {
 
     lateinit var binding: LayoutMainBinding
     lateinit var navigation: NavigationView
     private var currentMainFragment: ToolbarFragment? = null
+
+    // FabContainer: lets ktx layout managers drive the FAB without importing ui (cycle break).
+    override val fabView get() = binding.fab
+    override fun showFab() = binding.fab.show()
+    override fun hideFab() = binding.fab.hide()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,7 +82,7 @@ class MainActivity : ThemedActivity(),
         binding = LayoutMainBinding.inflate(layoutInflater)
         binding.fab.initProgress(binding.fabProgress)
         if (themeResId !in intArrayOf(
-                R.style.Theme_SagerNet_Black
+                R.style.Theme_SagerNet_Black,
             )
         ) {
             navigation = binding.navView
@@ -98,9 +108,13 @@ class MainActivity : ThemedActivity(),
         }
 
         binding.fab.setOnClickListener {
-            if (DataStore.serviceState.canStop) SagerNet.stopService() else connect.launch(
-                null
-            )
+            if (DataStore.serviceState.canStop) {
+                SagerNet.stopService()
+            } else {
+                connect.launch(
+                    null,
+                )
+            }
         }
         binding.stats.setOnClickListener { if (DataStore.serviceState.connected) binding.stats.testConnection() }
 
@@ -131,9 +145,11 @@ class MainActivity : ThemedActivity(),
             val checkPermission =
                 ContextCompat.checkSelfPermission(this@MainActivity, POST_NOTIFICATIONS)
             if (checkPermission != PackageManager.PERMISSION_GRANTED) {
-                //动态申请
+                // request dynamically
                 ActivityCompat.requestPermissions(
-                    this@MainActivity, arrayOf(POST_NOTIFICATIONS), 0
+                    this@MainActivity,
+                    arrayOf(POST_NOTIFICATIONS),
+                    0,
                 )
             }
         }
@@ -153,20 +169,6 @@ class MainActivity : ThemedActivity(),
 
         if (DataStore.hideFromRecentApps) {
             applyHideFromRecentApps(DataStore.hideFromRecentApps)
-        }
-    }
-
-    override fun onPostResume() {
-        super.onPostResume()
-        val restoredFragment =
-            supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ToolbarFragment
-        if (restoredFragment != null && restoredFragment !== currentMainFragment) {
-            currentMainFragment = restoredFragment
-            syncMainControls(
-                fragment = restoredFragment,
-                showWhenConnected = DataStore.serviceState == BaseService.State.Connected,
-                animate = false,
-            )
         }
     }
 
@@ -226,7 +228,8 @@ class MainActivity : ThemedActivity(),
             val data = uri.encodedQuery.takeIf { !it.isNullOrBlank() } ?: return
             try {
                 group = KryoConverters.deserialize(
-                    ProxyGroup().apply { export = true }, Util.zlibDecompress(Util.b64Decode(data))
+                    ProxyGroup().apply { export = true },
+                    Util.zlibDecompress(Util.b64Decode(data)),
                 ).apply {
                     export = false
                 }
@@ -239,14 +242,13 @@ class MainActivity : ThemedActivity(),
         }
 
         val name = group.name.takeIf { !it.isNullOrBlank() } ?: group.subscription?.link
-        ?: group.subscription?.token
+            ?: group.subscription?.token
         if (name.isNullOrBlank()) return
 
         group.name = group.name.takeIf { !it.isNullOrBlank() }
             ?: ("Subscription #" + System.currentTimeMillis())
 
         onMainDispatcher {
-
             displayFragmentWithId(R.id.nav_group)
 
             MaterialAlertDialogBuilder(this@MainActivity).setTitle(R.string.subscription_import)
@@ -258,9 +260,7 @@ class MainActivity : ThemedActivity(),
                 }
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
-
         }
-
     }
 
     private suspend fun finishImportSubscription(subscription: ProxyGroup) {
@@ -289,7 +289,6 @@ class MainActivity : ThemedActivity(),
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
         }
-
     }
 
     private suspend fun finishImportProfile(profile: AbstractBean) {
@@ -313,21 +312,114 @@ class MainActivity : ThemedActivity(),
             return
         }
 
-        // official exe
+        runOnDefaultDispatcher {
+            val rejected = try {
+                Plugins.inspectRejectedPlugins(pluginName)
+            } catch (e: Exception) {
+                Logs.w(e)
+                emptyList()
+            }
+            onMainDispatcher {
+                if (isFinishing || isDestroyed) return@onMainDispatcher
+                when {
+                    rejected.size > 1 -> showPluginApprovalConflict(rejected)
+                    rejected.singleOrNull()?.currentFingerprints?.isNotEmpty() == true -> {
+                        showPluginApprovalDialog(pluginName, rejected.single())
+                    }
+                    else -> showMissingPluginDialog(profileName, pluginEntity)
+                }
+            }
+        }
+    }
 
+    private fun showMissingPluginDialog(profileName: String, pluginEntity: PluginEntry) {
         MaterialAlertDialogBuilder(this).setTitle(R.string.missing_plugin)
             .setMessage(
                 getString(
-                    R.string.profile_requiring_plugin, profileName, pluginEntity.displayName
-                )
+                    R.string.profile_requiring_plugin,
+                    profileName,
+                    pluginEntity.displayName,
+                ),
             )
             .setPositiveButton(R.string.action_download) { _, _ ->
                 showDownloadDialog(pluginEntity)
             }
-            .setNeutralButton(android.R.string.cancel, null)
-            .setNeutralButton(R.string.action_learn_more) { _, _ ->
-                launchCustomTab("https://matsuridayo.github.io/nb4a-plugin/")
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showPluginApprovalDialog(pluginName: String, rejection: PluginTrust.RejectedPlugin) {
+        val currentFingerprints = rejection.currentFingerprints ?: return
+        val fingerprintText = currentFingerprints.sorted().joinToString("\n") {
+            it.chunked(2).joinToString(":").uppercase(Locale.ROOT)
+        }
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.plugin_approval_title)
+            .setMessage(
+                getString(
+                    R.string.plugin_approval_message,
+                    rejection.packageName,
+                    fingerprintText,
+                ),
+            )
+            .setPositiveButton(R.string.plugin_approval_action) { _, _ ->
+                approvePluginSigner(pluginName, rejection)
             }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun approvePluginSigner(pluginName: String, displayed: PluginTrust.RejectedPlugin) {
+        runOnDefaultDispatcher {
+            val approved = try {
+                val current = Plugins.inspectRejectedPlugins(pluginName).singleOrNull()
+                if (current == null || current != displayed) {
+                    false
+                } else {
+                    val fingerprints = current.currentFingerprints
+                    val identity = if (fingerprints.isNullOrEmpty()) {
+                        null
+                    } else {
+                        PluginTrust.approvalIdentity(current.packageName, fingerprints)
+                    }
+                    if (identity == null) {
+                        false
+                    } else {
+                        DataStore.approvePluginSigner(identity)
+                        true
+                    }
+                }
+            } catch (e: Exception) {
+                Logs.w(e)
+                false
+            }
+            showPluginApprovalResult(approved)
+        }
+    }
+
+    private fun showPluginApprovalResult(approved: Boolean) {
+        runOnMainDispatcher {
+            if (isFinishing || isDestroyed) return@runOnMainDispatcher
+            snackbar(
+                if (approved) {
+                    getString(R.string.plugin_approval_success)
+                } else {
+                    getString(R.string.plugin_approval_failed)
+                },
+            ).show()
+        }
+    }
+
+    private fun showPluginApprovalConflict(rejected: List<PluginTrust.RejectedPlugin>) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.plugin_approval_conflict_title)
+            .setMessage(
+                getString(
+                    R.string.plugin_approval_conflict_message,
+                    rejected.map { it.packageName }.distinct().sorted().joinToString("\n"),
+                ),
+            )
+            .setPositiveButton(android.R.string.ok, null)
             .show()
     }
 
@@ -352,7 +444,9 @@ class MainActivity : ThemedActivity(),
         MaterialAlertDialogBuilder(this).setTitle(pluginEntry.name)
             .setItems(items.toTypedArray()) { _, which ->
                 when (which) {
-                    playIndex -> launchCustomTab("https://play.google.com/store/apps/details?id=${pluginEntry.packageName}")
+                    playIndex -> launchCustomTab(
+                        "https://play.google.com/store/apps/details?id=${pluginEntry.packageName}",
+                    )
                     fdroidIndex -> launchCustomTab("https://f-droid.org/packages/${pluginEntry.packageName}/")
                     downloadIndex -> launchCustomTab(pluginEntry.downloadSource.downloadLink)
                 }
@@ -361,12 +455,13 @@ class MainActivity : ThemedActivity(),
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        if (item.isChecked) binding.drawerLayout.closeDrawers() else {
+        if (item.isChecked) {
+            binding.drawerLayout.closeDrawers()
+        } else {
             return displayFragmentWithId(item.itemId)
         }
         return true
     }
-
 
     @SuppressLint("CommitTransaction")
     fun displayFragment(fragment: ToolbarFragment) {
@@ -417,6 +512,11 @@ class MainActivity : ThemedActivity(),
         binding.stats.onListScrolled(scrollDy)
     }
 
+    private fun refreshConfigurationProfileState() {
+        (supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ConfigurationFragment)
+            ?.refreshProfileState()
+    }
+
     fun displayFragmentWithId(@IdRes id: Int): Boolean {
         when (id) {
             R.id.nav_configuration -> {
@@ -429,11 +529,6 @@ class MainActivity : ThemedActivity(),
             R.id.nav_traffic -> displayFragment(WebviewFragment())
             R.id.nav_tools -> displayFragment(ToolsFragment())
             R.id.nav_logcat -> displayFragment(LogcatFragment())
-            R.id.nav_faq -> {
-                launchCustomTab("https://matsuridayo.github.io/")
-                return false
-            }
-
             R.id.nav_about -> displayFragment(AboutFragment())
 
             else -> return false
@@ -442,12 +537,7 @@ class MainActivity : ThemedActivity(),
         return true
     }
 
-    private fun changeState(
-        state: BaseService.State,
-        msg: String? = null,
-        animate: Boolean = false,
-        animateControls: Boolean = animate,
-    ) {
+    private fun changeState(state: BaseService.State, msg: String? = null, animate: Boolean = false) {
         DataStore.serviceState = state
         refreshConfigurationProfileState()
 
@@ -479,7 +569,7 @@ class MainActivity : ThemedActivity(),
             BaseService.State.values()[service.state]
         } catch (_: RemoteException) {
             BaseService.State.Idle
-        }
+        },
     )
 
     override fun onServiceDisconnected() = changeState(BaseService.State.Idle)
@@ -500,6 +590,12 @@ class MainActivity : ThemedActivity(),
 
     override suspend fun cbTrafficUpdate(data: TrafficDataBatch) {
         ProfileManager.postUpdate(data.items)
+    }
+
+    override fun cbTrafficUpdateList(data: List<TrafficData>) {
+        runOnDefaultDispatcher {
+            ProfileManager.postUpdate(data)
+        }
     }
 
     override fun cbSelectorUpdate(id: Long) {
@@ -523,7 +619,22 @@ class MainActivity : ThemedActivity(),
             Key.PROXY_APPS, Key.BYPASS_MODE, Key.INDIVIDUAL -> {
                 if (DataStore.serviceState.canStop) {
                     snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {
-                        SagerNet.reloadService()
+                        // Await the cached store's async write-through before reload so :bg reads
+                        // the new proxy-apps/bypass/individual values from a durable DB.
+                        runOnDefaultDispatcher {
+                            try {
+                                DataStore.configurationStore.awaitWrites()
+                                SagerNet.reloadService()
+                            } catch (e: Exception) {
+                                Logs.w(e)
+                                onMainDispatcher {
+                                    // The coroutine can outlive the activity; guard fragment/UI APIs.
+                                    if (!isFinishing && !isDestroyed) {
+                                        snackbar(getString(R.string.service_failed)).show()
+                                    }
+                                }
+                            }
+                        }
                     }.show()
                 }
             }
@@ -570,5 +681,4 @@ class MainActivity : ThemedActivity(),
             supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ToolbarFragment
         return fragment != null && fragment.onKeyDown(keyCode, event)
     }
-
 }

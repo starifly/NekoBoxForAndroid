@@ -14,7 +14,13 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONObject
 
 private val supportedKcpHeaderType = arrayOf(
-    "none", "srtp", "utp", "wechat-video", "dtls", "wireguard", "dns"
+    "none",
+    "srtp",
+    "utp",
+    "wechat-video",
+    "dtls",
+    "wireguard",
+    "dns",
 )
 
 data class VmessQRCode(
@@ -49,15 +55,15 @@ fun parseV2Ray(link: String): StandardV2RayBean {
     if (!link.contains("?")) {
         try {
             return parseV2RayN(link)
-        } catch (e: Exception) {
-            Logs.i("try v2rayN: " + e.readableMessage)
+        } catch (_: Exception) {
+            Logs.i("V2RayN parser rejected input")
         }
     }
 
     try {
         return tryResolveVmess4Kitsunebi(link)
-    } catch (e: Exception) {
-        Logs.i("try Kitsunebi: " + e.readableMessage)
+    } catch (_: Exception) {
+        Logs.i("Kitsunebi parser rejected input")
     }
 
     // "std" format
@@ -316,7 +322,7 @@ fun StandardV2RayBean.parseDuckSoft(url: HttpUrl) {
     }
 }
 
-// 不确定是谁的格式
+// not sure whose format this is
 private fun tryResolveVmess4Kitsunebi(server: String): VMessBean {
     // vmess://YXV0bzo1YWY1ZDBlYy02ZWEwLTNjNDMtOTNkYi1jYTMwMDg1MDNiZGJAMTgzLjIzMi41Ni4xNjE6MTIwMg
     // ?remarks=*%F0%9F%87%AF%F0%9F%87%B5JP%20-355%20TG@moon365free&obfsParam=%7B%22Host%22:%22183.232.56.161%22%7D&path=/v2ray&obfs=websocket&alterId=0
@@ -378,10 +384,10 @@ fun parseV2RayN(link: String): VMessBean {
     val vmessQRCode = Gson().fromJson(result, VmessQRCode::class.java)
 
     // Although VmessQRCode fields are non null, looks like Gson may still create null fields
-    if (TextUtils.isEmpty(vmessQRCode.add)
-        || TextUtils.isEmpty(vmessQRCode.port)
-        || TextUtils.isEmpty(vmessQRCode.id)
-        || TextUtils.isEmpty(vmessQRCode.net)
+    if (TextUtils.isEmpty(vmessQRCode.add) ||
+        TextUtils.isEmpty(vmessQRCode.port) ||
+        TextUtils.isEmpty(vmessQRCode.id) ||
+        TextUtils.isEmpty(vmessQRCode.net)
     ) {
         throw Exception("invalid VmessQRCode")
     }
@@ -418,7 +424,6 @@ fun parseV2RayN(link: String): VMessBean {
 }
 
 private fun parseCsvVMess(csv: String): VMessBean {
-
     val args = csv.split(",")
 
     val bean = VMessBean()
@@ -429,7 +434,6 @@ private fun parseCsvVMess(csv: String): VMessBean {
     bean.uuid = args[4].replace("\"", "")
 
     args.subList(5, args.size).forEach {
-
         when {
             it == "over-tls=true" -> bean.security = "tls"
             it.startsWith("tls-host=") -> bean.host = it.substringAfter("=")
@@ -441,15 +445,11 @@ private fun parseCsvVMess(csv: String): VMessBean {
                 runCatching {
                     bean.host = it.substringAfter("Host:").substringBefore("[")
                 }
-
             }
-
         }
-
     }
 
     return bean
-
 }
 
 fun VMessBean.toV2rayN(): String {
@@ -713,7 +713,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
                 host = bean.host.takeIf { it.isNotBlank() }
                 path = bean.path.takeIf { it.isNotBlank() } ?: "/"
             }
-            
+
             // Merge xhttpExtra JSON config if present
             if (bean.xhttpExtra.isNotBlank()) {
                 try {
@@ -743,7 +743,7 @@ fun buildSingBoxOutboundStreamSettings(bean: StandardV2RayBean): V2RayTransportO
                         "seq_key",
                         "uplink_data_placement",
                         "uplink_data_key",
-                        "uplink_chunk_size"
+                        "uplink_chunk_size",
                     )
                     allowedKeys.forEach { key ->
                         if (extraJson.has(key)) {
@@ -772,7 +772,7 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
         insecure = bean.allowInsecure || DataStore.globalAllowInsecure
         if (bean.sni.isNotBlank()) server_name = bean.sni
         if (bean.alpn.isNotBlank()) {
-            // 当传输协议为WebSocket时，过滤掉h2和h3
+            // when the transport protocol is WebSocket, filter out h2 and h3
             val alpnList = bean.alpn.listByLineOrComma()
             if (bean.type == "ws") {
                 val filtered = alpnList.filter { it == "http/1.1" }
@@ -826,24 +826,26 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound {
         }
 
         is VMessBean -> {
-            if (bean.isVLESS) return Outbound_VLESSOptions().apply {
-                type = "vless"
-                server = bean.serverAddress
-                server_port = bean.serverPort
-                uuid = bean.uuid
-                if (bean.encryption.isNotBlank() && bean.encryption != "auto") {
-                    flow = bean.encryption
+            if (bean.isVLESS) {
+                return Outbound_VLESSOptions().apply {
+                    type = "vless"
+                    server = bean.serverAddress
+                    server_port = bean.serverPort
+                    uuid = bean.uuid
+                    if (bean.encryption.isNotBlank() && bean.encryption != "auto") {
+                        flow = bean.encryption
+                    }
+                    if (bean.vlessEncryption.isNotBlank() && bean.vlessEncryption != "none") {
+                        encryption = bean.vlessEncryption
+                    }
+                    when (bean.packetEncoding) {
+                        0 -> packet_encoding = ""
+                        1 -> packet_encoding = "packetaddr"
+                        2 -> packet_encoding = "xudp"
+                    }
+                    tls = buildSingBoxOutboundTLS(bean)
+                    transport = buildSingBoxOutboundStreamSettings(bean)
                 }
-                if (bean.vlessEncryption.isNotBlank() && bean.vlessEncryption != "none") {
-                    encryption = bean.vlessEncryption
-                }
-                when (bean.packetEncoding) {
-                    0 -> packet_encoding = ""
-                    1 -> packet_encoding = "packetaddr"
-                    2 -> packet_encoding = "xudp"
-                }
-                tls = buildSingBoxOutboundTLS(bean)
-                transport = buildSingBoxOutboundStreamSettings(bean)
             }
             return Outbound_VMessOptions().apply {
                 type = "vmess"

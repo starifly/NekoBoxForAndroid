@@ -1,7 +1,6 @@
 package moe.matsuri.nb4a
 
 import android.content.Context
-import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Build.VERSION_CODES
@@ -39,11 +38,11 @@ class NativeInterface : BoxPlatformInterface, NB4AInterface {
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    override fun findConnectionOwner(
-        ipProto: Int, srcIp: String, srcPort: Int, destIp: String, destPort: Int
-    ): Int {
+    override fun findConnectionOwner(ipProto: Int, srcIp: String, srcPort: Int, destIp: String, destPort: Int): Int {
         return SagerNet.connectivity.getConnectionOwnerUid(
-            ipProto, InetSocketAddress(srcIp, srcPort), InetSocketAddress(destIp, destPort)
+            ipProto,
+            InetSocketAddress(srcIp, srcPort),
+            InetSocketAddress(destIp, destPort),
         )
     }
 
@@ -55,8 +54,10 @@ class NativeInterface : BoxPlatformInterface, NB4AInterface {
         }
 
         val packageNames = PackageCache.uidMap[uid]
-        if (!packageNames.isNullOrEmpty()) for (packageName in packageNames) {
-            return packageName
+        if (!packageNames.isNullOrEmpty()) {
+            for (packageName in packageNames) {
+                return packageName
+            }
         }
 
         error("unknown uid $uid")
@@ -89,15 +90,14 @@ class NativeInterface : BoxPlatformInterface, NB4AInterface {
         Libcore.resetAllConnections(true)
         DataStore.baseService?.apply {
             runOnDefaultDispatcher {
-                val id = data.proxy!!.config.profileTagMap
+                val proxy = data.proxy ?: return@runOnDefaultDispatcher
+                val id = proxy.config.profileTagMap
                     .filterValues { it == tag }.keys.firstOrNull() ?: -1
                 val ent = SagerDatabase.proxyDao.getById(id) ?: return@runOnDefaultDispatcher
                 // traffic & title
-                data.proxy?.apply {
-                    looper?.selectMain(id)
-                    displayProfileName = ServiceNotification.genTitle(ent)
-                    data.notification?.postNotificationTitle(displayProfileName)
-                }
+                proxy.looper?.selectMain(id)
+                proxy.displayProfileName = ServiceNotification.genTitle(ent)
+                data.notification?.postNotificationTitle(proxy.displayProfileName)
                 // post binder
                 data.binder.broadcast { b ->
                     b.cbSelectorUpdate(id)
@@ -105,5 +105,4 @@ class NativeInterface : BoxPlatformInterface, NB4AInterface {
             }
         }
     }
-
 }

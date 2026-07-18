@@ -23,6 +23,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import androidx.core.graphics.ColorUtils
 import androidx.preference.DropDownPreference
 import androidx.preference.PreferenceViewHolder
 import io.nekohasekai.sagernet.R
@@ -33,19 +34,20 @@ import io.nekohasekai.sagernet.ktx.getColorAttr
  * [Simple Menus](https://material.google.com/components/menus.html#menus-behavior).
  */
 
-
 open class SimpleMenuPreference
 @JvmOverloads constructor(
     context: Context?,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = androidx.preference.R.attr.dropdownPreferenceStyle,
-    defStyleRes: Int = 0
+    defStyleRes: Int = 0,
 ) : DropDownPreference(context!!, attrs, defStyleAttr, defStyleRes) {
 
     private lateinit var mAdapter: SimpleMenuAdapter
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         super.onBindViewHolder(holder)
+        // findViewById (not ViewBinding): binds into the AndroidX preference-row ViewHolder
+        // (holder.itemView), which is not an app layout binding.
         val mSpinner = holder.itemView.findViewById<Spinner>(R.id.spinner)
         mSpinner.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
         mSpinner.setPopupBackgroundResource(R.drawable.bg_spinner_dropdown)
@@ -70,7 +72,15 @@ open class SimpleMenuPreference
         var currentPosition = -1
 
         private val radius = 12f * context.resources.displayMetrics.density
-        private val selectedColor = context.getColorAttr(R.attr.colorMaterial100)
+
+        // Highlight the selected item with a translucent primary tint rather than
+        // an opaque colorMaterial100 fill: the light fill made the (light) item
+        // text low-contrast on dark themes. ~20% alpha reads on any background
+        // while keeping the text legible.
+        private val selectedColor = ColorUtils.setAlphaComponent(
+            context.getColorAttr(R.attr.colorPrimary),
+            41, // 0.16 alpha, matches nav_item_fill.xml
+        )
 
         private val topDrawable = GradientDrawable().apply {
             setColor(selectedColor)

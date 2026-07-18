@@ -1,6 +1,7 @@
 package io.nekohasekai.sagernet.widget
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.util.AttributeSet
@@ -11,20 +12,24 @@ import androidx.appcompat.widget.TooltipCompat
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.withStarted
 import androidx.vectordrawable.graphics.drawable.Animatable2Compat
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.progressindicator.BaseProgressIndicator
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.bg.BaseService
+import io.nekohasekai.sagernet.ktx.getColorAttr
+import io.nekohasekai.sagernet.ktx.unwrap
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.*
 
 class ServiceButton @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = 0,
 ) :
     FloatingActionButton(context, attrs, defStyleAttr), DynamicAnimation.OnAnimationEndListener {
 
@@ -42,7 +47,7 @@ class ServiceButton @JvmOverloads constructor(
 
     private inner class AnimatedState(
         @DrawableRes resId: Int,
-        private val onStart: BaseProgressIndicator<*>.() -> Unit = { hideProgress() }
+        private val onStart: BaseProgressIndicator<*>.() -> Unit = { hideProgress() },
     ) {
         val icon: AnimatedVectorDrawableCompat =
             AnimatedVectorDrawableCompat.create(context, resId)!!.apply {
@@ -62,10 +67,15 @@ class ServiceButton @JvmOverloads constructor(
     private val iconConnecting by lazy {
         AnimatedState(R.drawable.ic_service_connecting) {
             hideProgress()
-            delayedAnimation = (context as LifecycleOwner).lifecycleScope.launchWhenStarted {
+            val owner = context.unwrap<LifecycleOwner>()
+            delayedAnimation = owner.lifecycleScope.launch {
                 delay(context.resources.getInteger(android.R.integer.config_mediumAnimTime) + 1000L)
-                isIndeterminate = true
-                show()
+                // Gate the UI mutation on STARTED so a delayed progress reveal doesn't run
+                // while the activity is stopped (the old launchWhenStarted suspended here).
+                owner.withStarted {
+                    isIndeterminate = true
+                    show()
+                }
             }
         }
     }
@@ -87,8 +97,10 @@ class ServiceButton @JvmOverloads constructor(
     }
 
     override fun onAnimationEnd(
-        animation: DynamicAnimation<out DynamicAnimation<*>>?, canceled: Boolean, value: Float,
-        velocity: Float
+        animation: DynamicAnimation<out DynamicAnimation<*>>?,
+        canceled: Boolean,
+        value: Float,
+        velocity: Float,
     ) {
         if (!canceled) progress.hide()
     }
@@ -100,10 +112,12 @@ class ServiceButton @JvmOverloads constructor(
 
     override fun onCreateDrawableState(extraSpace: Int): IntArray {
         val drawableState = super.onCreateDrawableState(extraSpace + 1)
-        if (checked) View.mergeDrawableStates(
-            drawableState,
-            intArrayOf(android.R.attr.state_checked)
-        )
+        if (checked) {
+            View.mergeDrawableStates(
+                drawableState,
+                intArrayOf(android.R.attr.state_checked),
+            )
+        }
         return drawableState
     }
 
@@ -118,32 +132,51 @@ class ServiceButton @JvmOverloads constructor(
         }
         checked = state == BaseService.State.Connected
         refreshDrawableState()
+        applyStateTint(state)
         val description = context.getText(if (state.canStop) R.string.stop else R.string.connect)
         contentDescription = description
         TooltipCompat.setTooltipText(this, description)
         val enabled = state.canStop || state == BaseService.State.Stopped
         isEnabled = enabled
-        if (Build.VERSION.SDK_INT >= 24) pointerIcon = PointerIcon.getSystemIcon(
-            context,
-            if (enabled) PointerIcon.TYPE_HAND else PointerIcon.TYPE_WAIT
-        )
+        if (Build.VERSION.SDK_INT >= 24) {
+            pointerIcon = PointerIcon.getSystemIcon(
+                context,
+                if (enabled) PointerIcon.TYPE_HAND else PointerIcon.TYPE_WAIT,
+            )
+        }
+    }
+
+    private fun applyStateTint(state: BaseService.State) {
+        // Tint the connect FAB icon by state. Connected uses fabConnectedColor
+        // (defaults to the green connected status color, but themes whose FAB
+        // background is that same green - e.g. Dark High Contrast - override it
+        // with a contrasting color so the icon stays visible). Stopped uses
+        // fabStoppedColor. Transient states fall back to colorOnPrimary, the FAB's
+        // normal icon color, so unaffected themes look unchanged.
+        val attr = when (state) {
+            BaseService.State.Connected -> R.attr.fabConnectedColor
+            BaseService.State.Stopped -> R.attr.fabStoppedColor
+            else -> com.google.android.material.R.attr.colorOnPrimary
+        }
+        imageTintList = ColorStateList.valueOf(context.getColorAttr(attr))
     }
 
     private fun changeState(icon: AnimatedState, animate: Boolean) {
-        fun counters(a: AnimatedState, b: AnimatedState): Boolean =
-            a == iconStopped && b == iconConnecting ||
-                    a == iconConnecting && b == iconStopped ||
-                    a == iconConnected && b == iconStopping ||
-                    a == iconStopping && b == iconConnected
+        fun counters(a: AnimatedState, b: AnimatedState): Boolean = a == iconStopped && b == iconConnecting ||
+            a == iconConnecting && b == iconStopped ||
+            a == iconConnected && b == iconStopping ||
+            a == iconStopping && b == iconConnected
         if (animate) {
             if (animationQueue.size < 2 || !counters(animationQueue.last, icon)) {
                 animationQueue.add(icon)
                 if (animationQueue.size == 1) icon.start()
-            } else animationQueue.removeLast()
+            } else {
+                animationQueue.removeLast()
+            }
         } else {
             animationQueue.peekFirst()?.stop()
             animationQueue.clear()
-            icon.start()    // force ensureAnimatorSet to be called so that stop() will work
+            icon.start() // force ensureAnimatorSet to be called so that stop() will work
             icon.stop()
         }
     }

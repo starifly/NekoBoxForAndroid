@@ -21,7 +21,7 @@ data class ProxyGroup(
     var order: Int = GroupOrder.ORIGIN,
     var isSelector: Boolean = false,
     var frontProxy: Long = -1L,
-    var landingProxy: Long = -1L
+    var landingProxy: Long = -1L,
 ) : Serializable() {
 
     @Transient
@@ -33,13 +33,11 @@ data class ProxyGroup(
 
     override fun serializeToBuffer(output: ByteBufferOutput) {
         if (export) {
-
             output.writeInt(0)
             output.writeString(name)
             output.writeInt(type)
             val subscription = subscription!!
             subscription.serializeForShare(output)
-
         } else {
             output.writeInt(0)
             output.writeLong(id)
@@ -123,7 +121,6 @@ data class ProxyGroup(
 
         @Insert
         fun insert(groupList: List<ProxyGroup>)
-
     }
 
     companion object {
@@ -139,5 +136,4 @@ data class ProxyGroup(
             }
         }
     }
-
 }

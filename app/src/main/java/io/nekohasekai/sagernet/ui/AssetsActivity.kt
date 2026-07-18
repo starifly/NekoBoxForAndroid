@@ -2,11 +2,13 @@ package io.nekohasekai.sagernet.ui
 
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.system.Os
 import android.text.format.DateFormat
 import android.view.Menu
 import android.view.MenuItem
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.isInvisible
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -25,6 +27,26 @@ import java.io.FileWriter
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
+private const val MAX_HTTP_JSON_BYTES = 10L * 1024 * 1024
+private const val MAX_RULE_ASSET_BYTES = 256L * 1024 * 1024
+
+/**
+ * Reduce an untrusted file name (e.g. a content provider's DISPLAY_NAME) to a safe basename
+ * for an importable asset, or null if invalid. Strips any directory component and rejects
+ * path separators, "..", NUL, and non-".db" names so it can't be used for path traversal.
+ */
+fun sanitizeAssetFileName(raw: String): String? {
+    // Reject anything that isn't already a bare basename: a path separator, "..", NUL, or a
+    // name whose basename differs from the input (i.e. it carried a directory component).
+    if (raw.isBlank()) return null
+    if (raw.contains('/') || raw.contains('\\') || raw.contains('\u0000')) return null
+    if (raw == "." || raw == "..") return null
+    val base = File(raw).name
+    if (base != raw) return null // defensive: any residual path component
+    if (!base.endsWith(".db")) return null
+    return base
+}
+
 class AssetsActivity : ThemedActivity() {
 
     lateinit var adapter: AssetAdapter
@@ -38,7 +60,7 @@ class AssetsActivity : ThemedActivity() {
         layout = binding
         setContentView(binding.root)
 
-        setSupportActionBar(findViewById(R.id.toolbar))
+        setSupportActionBar(findViewById<Toolbar>(R.id.toolbar))
         supportActionBar?.apply {
             setTitle(R.string.route_assets)
             setDisplayHomeAsUpEnabled(true)
@@ -58,12 +80,11 @@ class AssetsActivity : ThemedActivity() {
         undoManager = UndoSnackbarManager(this, adapter)
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
-            0, ItemTouchHelper.START
+            0,
+            ItemTouchHelper.START,
         ) {
 
-            override fun getSwipeDirs(
-                recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder
-            ): Int {
+            override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
                 val index = viewHolder.bindingAdapterPosition
                 if (index < 2) return 0
                 return super.getSwipeDirs(recyclerView, viewHolder)
@@ -78,9 +99,8 @@ class AssetsActivity : ThemedActivity() {
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
+                target: RecyclerView.ViewHolder,
             ) = false
-
         }).attachToRecyclerView(binding.recyclerView)
     }
 
@@ -97,37 +117,66 @@ class AssetsActivity : ThemedActivity() {
 
     val importFile = registerForActivityResult(ActivityResultContracts.GetContent()) { file ->
         if (file != null) {
-            val fileName = contentResolver.query(file, null, null, null, null)?.use { cursor ->
-                cursor.moveToFirst()
-                cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME).let(cursor::getString)
+            val rawName = contentResolver.query(file, null, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (idx >= 0) cursor.getString(idx) else null
+                } else {
+                    null
+                }
             }?.takeIf { it.isNotBlank() } ?: file.pathSegments.last()
                 .substringAfterLast('/')
                 .substringAfter(':')
 
-            if (!fileName.endsWith(".db")) {
-                alert(getString(R.string.route_not_asset, fileName)).show()
+            // DISPLAY_NAME is attacker-controllable (a malicious content provider returns any
+            // name). Reduce to a safe basename and reject path separators / ".." so a name like
+            // "../../databases/sager_net.db" can't traverse out of the assets dir.
+            val fileName = sanitizeAssetFileName(rawName) ?: run {
+                alert(getString(R.string.route_not_asset, rawName)).show()
                 return@registerForActivityResult
             }
             val filesDir = getExternalFilesDir(null) ?: filesDir
 
             runOnDefaultDispatcher {
-                val outFile = File(filesDir, fileName).apply {
-                    parentFile?.mkdirs()
+                runCatching {
+                    val outFile = File(filesDir, fileName)
+                    // Defense-in-depth: assert the resolved paths stay within filesDir.
+                    val baseCanonical = filesDir.canonicalPath + File.separator
+                    require(outFile.canonicalPath.startsWith(baseCanonical)) { "unsafe path" }
+                    outFile.parentFile?.mkdirs()
+
+                    // Copy into a temp file first, then atomically replace the
+                    // target so a failed copy can't leave a partial/corrupt .db.
+                    val tmpFile = File(outFile.parentFile, "$fileName.tmp")
+                    require(tmpFile.canonicalPath.startsWith(baseCanonical)) { "unsafe path" }
+                    try {
+                        contentResolver.openInputStream(file)?.use(tmpFile.outputStream())
+                            ?: error("Unable to open the selected file")
+
+                        if (outFile.exists()) outFile.delete()
+                        if (!tmpFile.renameTo(outFile)) {
+                            error("Unable to save the imported asset")
+                        }
+                    } finally {
+                        if (tmpFile.exists()) tmpFile.delete()
+                    }
+
+                    File(outFile.parentFile, outFile.nameWithoutExtension + ".version.txt").apply {
+                        if (isFile) delete()
+                        createNewFile()
+                        FileWriter(this).use { it.write("Custom") }
+                    }
+
+                    adapter.reloadAssets()
+                }.onFailure {
+                    Logs.w(it)
+                    onMainDispatcher {
+                        if (!isFinishing && !isDestroyed) {
+                            alert(it.readableMessage).tryToShow()
+                        }
+                    }
                 }
-
-                contentResolver.openInputStream(file)?.use(outFile.outputStream())
-
-                File(outFile.parentFile, outFile.nameWithoutExtension + ".version.txt").apply {
-                    if (isFile) delete()
-                    createNewFile()
-                    val fw = FileWriter(this)
-                    fw.write("Custom")
-                    fw.close()
-                }
-
-                adapter.reloadAssets()
             }
-
         }
     }
 
@@ -141,7 +190,8 @@ class AssetsActivity : ThemedActivity() {
         return false
     }
 
-    inner class AssetAdapter : RecyclerView.Adapter<AssetHolder>(),
+    inner class AssetAdapter :
+        RecyclerView.Adapter<AssetHolder>(),
         UndoSnackbarManager.Interface<File> {
 
         val assets = ArrayList<File>()
@@ -194,7 +244,6 @@ class AssetsActivity : ThemedActivity() {
                 groups.forEach { it.deleteRecursively() }
             }
         }
-
     }
 
     val updating = AtomicInteger()
@@ -250,9 +299,15 @@ class AssetsActivity : ThemedActivity() {
                     }
                 }
             }
-
         }
+    }
 
+    private fun replaceAssetFile(tempFile: File, targetFile: File) {
+        try {
+            Os.rename(tempFile.absolutePath, targetFile.absolutePath)
+        } catch (e: Exception) {
+            error("Unable to save the route asset: ${e.readableMessage}")
+        }
     }
 
     private val rulesProviders = listOf(
@@ -265,15 +320,15 @@ class AssetsActivity : ThemedActivity() {
             "soffchen/sing-geosite",
         ),
         RuleAssetsProvider(
-            "Chocolate4U/Iran-sing-box-rules"
+            "Chocolate4U/Iran-sing-box-rules",
         ),
         RuleAssetsProvider(
-            "L11R/antizapret-sing-box-geo"
+            "L11R/antizapret-sing-box-geo",
         ),
     )
 
     suspend fun updateAsset(file: File, versionFile: File, localVersion: String) {
-        if (DataStore.rulesProvider == 4){
+        if (DataStore.rulesProvider == 4) {
             return updateCustomAsset(file, versionFile)
         }
         val fileName = file.name
@@ -285,7 +340,7 @@ class AssetsActivity : ThemedActivity() {
             trySocks5(
                 DataStore.mixedPort,
                 DataStore.mixedInboundUser,
-                DataStore.mixedInboundPass
+                DataStore.mixedInboundPass,
             )
         }
 
@@ -294,7 +349,7 @@ class AssetsActivity : ThemedActivity() {
                 setURL("https://api.github.com/repos/$repo/releases/latest")
             }.execute()
 
-            val release = JSONObject(Util.getStringBox(response.contentString))
+            val release = JSONObject(Util.getStringBox(response.getContentStringLimited(MAX_HTTP_JSON_BYTES)))
             val tagName = release.optString("tag_name")
 
             if (tagName == localVersion) {
@@ -305,9 +360,13 @@ class AssetsActivity : ThemedActivity() {
             }
 
             val releaseAssets = release.getJSONArray("assets").filterIsInstance<JSONObject>()
-            val assetToDownload = releaseAssets.find { it.getStr("name") == fileName }
-                ?: error("File $fileName not found in release ${release["url"]}")
+            val assetToDownload = releaseAssets.find {
+                val assetName = it.getStr("name")
+                assetName == fileName || assetName == "$fileName.xz"
+            } ?: error("File $fileName not found in release ${release["url"]}")
+            val downloadName = assetToDownload.getStr("name") ?: error("Release asset is missing a name")
             val browserDownloadUrl = assetToDownload.getStr("browser_download_url")
+                ?: error("Release asset $downloadName is missing a download URL")
 
             response = client.newRequest().apply {
                 setURL(browserDownloadUrl)
@@ -316,16 +375,27 @@ class AssetsActivity : ThemedActivity() {
             val cacheFile = File(file.parentFile, fileName + ".tmp")
             cacheFile.parentFile?.mkdirs()
 
-            response.writeTo(cacheFile.canonicalPath)
+            try {
+                response.writeToLimited(cacheFile.canonicalPath, MAX_RULE_ASSET_BYTES)
 
-            if (fileName.endsWith(".xz")) {
-                Libcore.unxz(cacheFile.absolutePath, file.absolutePath)
-                cacheFile.delete()
-            } else {
-                cacheFile.renameTo(file)
+                if (downloadName.endsWith(".xz")) {
+                    val unpackedFile = File(file.parentFile, file.nameWithoutExtension + ".unxz.tmp")
+                    try {
+                        // Libcore.unxz enforces the same 256 MB cap (defaultUnxzFileLimit)
+                        // and fails before writing if exceeded, so no extra size check here.
+                        Libcore.unxz(cacheFile.absolutePath, unpackedFile.absolutePath)
+                        replaceAssetFile(unpackedFile, file)
+                    } finally {
+                        if (unpackedFile.exists()) unpackedFile.delete()
+                    }
+                } else {
+                    replaceAssetFile(cacheFile, file)
+                }
+
+                versionFile.writeText(tagName)
+            } finally {
+                if (cacheFile.exists()) cacheFile.delete()
             }
-
-            versionFile.writeText(tagName)
 
             adapter.reloadAssets()
 
@@ -352,7 +422,7 @@ class AssetsActivity : ThemedActivity() {
             trySocks5(
                 DataStore.mixedPort,
                 DataStore.mixedInboundUser,
-                DataStore.mixedInboundPass
+                DataStore.mixedInboundPass,
             )
         }
         try {
@@ -361,11 +431,15 @@ class AssetsActivity : ThemedActivity() {
             }.execute()
             val cacheFile = File(file.parentFile, fileName + ".tmp")
             cacheFile.parentFile?.mkdirs()
-            response.writeTo(cacheFile.canonicalPath)
-            cacheFile.renameTo(file)
+            try {
+                response.writeToLimited(cacheFile.canonicalPath, MAX_RULE_ASSET_BYTES)
+                replaceAssetFile(cacheFile, file)
 
-            val currentDate = java.text.SimpleDateFormat("yyyyMMdd").format(java.util.Date())
-            versionFile.writeText(currentDate)
+                val currentDate = java.text.SimpleDateFormat("yyyyMMdd", Locale.US).format(Date())
+                versionFile.writeText(currentDate)
+            } finally {
+                if (cacheFile.exists()) cacheFile.delete()
+            }
 
             adapter.reloadAssets()
             onMainDispatcher {
@@ -384,10 +458,6 @@ class AssetsActivity : ThemedActivity() {
         return true
     }
 
-    override fun onBackPressed() {
-        finish()
-    }
-
     override fun onResume() {
         super.onResume()
 
@@ -397,7 +467,7 @@ class AssetsActivity : ThemedActivity() {
     }
 
     private data class RuleAssetsProvider(
-        val repoByFileName: Map<String, String>
+        val repoByFileName: Map<String, String>,
     ) {
         constructor(
             geoipRepo: String,
@@ -406,7 +476,7 @@ class AssetsActivity : ThemedActivity() {
             mapOf(
                 "geoip.db" to geoipRepo,
                 "geosite.db" to geositeRepo,
-            )
+            ),
         )
     }
 }

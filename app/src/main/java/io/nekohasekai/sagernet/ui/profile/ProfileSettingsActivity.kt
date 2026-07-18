@@ -12,6 +12,7 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.activity.result.component1
 import androidx.activity.result.component2
 import androidx.activity.result.contract.ActivityResultContracts
@@ -33,6 +34,7 @@ import io.nekohasekai.sagernet.*
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
+import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.databinding.LayoutGroupItemBinding
@@ -89,9 +91,22 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
 
     val proxyEntity by lazy { SagerDatabase.proxyDao.getById(DataStore.editingId) }
     protected var isSubscription by Delegates.notNull<Boolean>()
+    private var canMoveToOtherBasicGroup = false
+    private var moveTargetGroups: List<ProxyGroup> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        onBackPressedDispatcher.addCallback(this) {
+            if (DataStore.dirty) {
+                UnsavedChangesDialogFragment().apply { key() }
+                    .show(supportFragmentManager, null)
+            } else {
+                finish()
+            }
+        }
+        // ViewBinding intentionally not used here: this activity sets its content via the
+        // ThemedActivity(@LayoutRes) constructor (contentLayoutId), not by inflating a binding,
+        // so the toolbar is resolved with findViewById.
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.apply {
             setTitle(R.string.profile_config)
@@ -106,32 +121,36 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
             runOnDefaultDispatcher {
                 if (editingId == 0L) {
                     DataStore.editingGroup = DataStore.selectedGroupForImport()
+                    canMoveToOtherBasicGroup = false
+                    moveTargetGroups = emptyList()
                     createEntity().applyDefaultValues().init()
                 } else {
-                    if (proxyEntity == null) {
+                    val entity = proxyEntity
+                    if (entity == null) {
                         onMainDispatcher {
                             finish()
                         }
                         return@runOnDefaultDispatcher
                     }
-                    DataStore.editingGroup = proxyEntity!!.groupId
-                    (proxyEntity!!.requireBean() as T).init()
+                    DataStore.editingGroup = entity.groupId
+                    val groups = SagerDatabase.groupDao.allGroups()
+                    moveTargetGroups = groups.filter { it.type == GroupType.BASIC && it.id != entity.groupId }
+                    canMoveToOtherBasicGroup = groups.firstOrNull { it.id == entity.groupId }?.type ==
+                        GroupType.BASIC && moveTargetGroups.isNotEmpty()
+                    (entity.requireBean() as T).init()
                 }
 
                 onMainDispatcher {
+                    invalidateOptionsMenu()
                     supportFragmentManager.beginTransaction()
                         .replace(R.id.settings, MyPreferenceFragmentCompat())
                         .commit()
                 }
             }
-
-
         }
-
     }
 
     open suspend fun saveAndExit() {
-
         val editingId = DataStore.editingId
         if (editingId == 0L) {
             val editingGroup = DataStore.editingGroup
@@ -147,7 +166,6 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
             ProfileManager.updateProfile(proxyEntity!!.apply { (requireBean() as T).serialize() })
         }
         finish()
-
     }
 
     val child by lazy { supportFragmentManager.findFragmentById(R.id.settings) as MyPreferenceFragmentCompat }
@@ -155,11 +173,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.profile_config_menu, menu)
         menu.findItem(R.id.action_move)?.apply {
-            if (DataStore.editingId != 0L // not new profile
-                && SagerDatabase.groupDao.getById(DataStore.editingGroup)?.type == GroupType.BASIC // not in subscription group
-                && SagerDatabase.groupDao.allGroups()
-                    .filter { it.type == GroupType.BASIC }.size > 1 // have other basic group
-            ) isVisible = true
+            isVisible = DataStore.editingId != 0L && canMoveToOtherBasicGroup
         }
         menu.findItem(R.id.action_create_shortcut)?.apply {
             if (Build.VERSION.SDK_INT >= 26 && DataStore.editingId != 0L) {
@@ -174,13 +188,10 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
 
     override fun onOptionsItemSelected(item: MenuItem) = child.onOptionsItemSelected(item)
 
-    override fun onBackPressed() {
-        if (DataStore.dirty) UnsavedChangesDialogFragment().apply { key() }
-            .show(supportFragmentManager, null) else super.onBackPressed()
-    }
-
     override fun onSupportNavigateUp(): Boolean {
-        if (!super.onSupportNavigateUp()) finish()
+        // Route the action-bar up button through the same back dispatcher so it honors
+        // the unsaved-changes guard instead of finishing directly (avoids data loss).
+        onBackPressedDispatcher.onBackPressed()
         return true
     }
 
@@ -195,10 +206,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
         }
     }
 
-    abstract fun PreferenceFragmentCompat.createPreferences(
-        savedInstanceState: Bundle?,
-        rootKey: String?,
-    )
+    abstract fun PreferenceFragmentCompat.createPreferences(savedInstanceState: Bundle?, rootKey: String?)
 
     open fun PreferenceFragmentCompat.viewCreated(view: View, savedInstanceState: Bundle?) {
     }
@@ -221,7 +229,7 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                 Toast.makeText(
                     SagerNet.application,
                     "Error on createPreferences, please try again.",
-                    Toast.LENGTH_SHORT
+                    Toast.LENGTH_SHORT,
                 ).show()
                 Logs.e(e)
             }
@@ -243,13 +251,13 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
         var callbackCustomOutbound: ((String) -> Unit)? = null
 
         val resultCallbackCustom = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
+            ActivityResultContracts.StartActivityForResult(),
         ) { (_, _) ->
             callbackCustom?.let { it(DataStore.serverCustom) }
         }
 
         val resultCallbackCustomOutbound = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
+            ActivityResultContracts.StartActivityForResult(),
         ) { (_, _) ->
             callbackCustomOutbound?.let { it(DataStore.serverCustomOutbound) }
         }
@@ -263,8 +271,9 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                     DeleteConfirmationDialogFragment().apply {
                         arg(
                             ProfileIdArg(
-                                DataStore.editingId, DataStore.editingGroup
-                            )
+                                DataStore.editingId,
+                                DataStore.editingGroup,
+                            ),
                         )
                         key()
                     }.show(parentFragmentManager, null)
@@ -287,10 +296,11 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                     resultCallbackCustomOutbound.launch(
                         Intent(
                             requireContext(),
-                            ConfigEditActivity::class.java
+                            ConfigEditActivity::class.java,
                         ).apply {
                             putExtra("key", Key.SERVER_CUSTOM_OUTBOUND)
-                        })
+                        },
+                    )
                 }
                 true
             }
@@ -303,10 +313,11 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                     resultCallbackCustom.launch(
                         Intent(
                             requireContext(),
-                            ConfigEditActivity::class.java
+                            ConfigEditActivity::class.java,
                         ).apply {
                             putExtra("key", Key.SERVER_CUSTOM)
-                        })
+                        },
+                    )
                 }
                 true
             }
@@ -319,26 +330,30 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                     .setLongLabel(ent.displayName())
                     .setIcon(
                         IconCompat.createWithResource(
-                            activity, R.drawable.ic_qu_shadowsocks_launcher
-                        )
-                    ).setIntent(Intent(
-                        context, QuickToggleShortcut::class.java
-                    ).apply {
-                        action = Intent.ACTION_MAIN
-                        putExtra("profile", ent.id)
-                    }).build()
+                            activity,
+                            R.drawable.ic_qu_shadowsocks_launcher,
+                        ),
+                    ).setIntent(
+                        Intent(
+                            context,
+                            QuickToggleShortcut::class.java,
+                        ).apply {
+                            action = Intent.ACTION_MAIN
+                            putExtra("profile", ent.id)
+                        },
+                    ).build()
                 ShortcutManagerCompat.requestPinShortcut(activity, shortcut, null)
             }
 
             R.id.action_move -> {
                 val activity = requireActivity() as ProfileSettingsActivity<*>
-                val view = LinearLayout(context).apply {
-                    val ent = activity.proxyEntity!!
-                    orientation = LinearLayout.VERTICAL
+                val ent = activity.proxyEntity!!
+                val groups = activity.moveTargetGroups
+                if (groups.isNotEmpty()) {
+                    val view = LinearLayout(context).apply {
+                        orientation = LinearLayout.VERTICAL
 
-                    SagerDatabase.groupDao.allGroups()
-                        .filter { it.type == GroupType.BASIC && it.id != ent.groupId }
-                        .forEach { group ->
+                        groups.forEach { group ->
                             LayoutGroupItemBinding.inflate(layoutInflater, this, true).apply {
                                 edit.isVisible = false
                                 options.isVisible = false
@@ -360,11 +375,12 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                                 }
                             }
                         }
+                    }
+                    val scrollView = ScrollView(context).apply {
+                        addView(view)
+                    }
+                    MaterialAlertDialogBuilder(activity).setView(scrollView).show()
                 }
-                val scrollView = ScrollView(context).apply {
-                    addView(view)
-                }
-                MaterialAlertDialogBuilder(activity).setView(scrollView).show()
                 true
             }
 
@@ -377,7 +393,6 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
             }
             super.onDisplayPreferenceDialog(preference)
         }
-
     }
 
     object PasswordSummaryProvider : Preference.SummaryProvider<EditTextPreference> {
@@ -390,7 +405,5 @@ abstract class ProfileSettingsActivity<T : AbstractBean>(
                 "\u2022".repeat(text.length)
             }
         }
-
     }
-
 }

@@ -3,6 +3,7 @@ package moe.matsuri.nb4a;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.ToNumberPolicy;
@@ -11,7 +12,10 @@ import com.google.gson.TypeAdapterFactory;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,10 +34,25 @@ public class SingBoxOptions {
             .setLenient()
             .disableHtmlEscaping()
             .create();
+    private static final Gson gsonSingboxPlain = new GsonBuilder()
+            .setPrettyPrinting()
+            .setNumberToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+            .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+            .setLenient()
+            .disableHtmlEscaping()
+            .create();
+
+    public static JsonObject toJsonTree(SingBoxOption option) {
+        return gsonSingbox.toJsonTree(option).getAsJsonObject();
+    }
+
+    public static String treeToJson(JsonElement tree) {
+        return gsonSingbox.toJson(tree);
+    }
 
     public static class SingBoxOption {
 
-        public transient Map<String, Object> _hack_config_map; // 仍然用普通json方式合并，所以Object内不要使用 _hack
+        public transient Map<String, Object> _hack_config_map; // still merged using the normal json approach, so don't use _hack inside Object
 
         public transient String _hack_custom_config;
 
@@ -65,33 +84,87 @@ public class SingBoxOptions {
         }
     }
 
-    // 自定义序列化器
+    // custom serializer
     public static class SingBoxOptionSerializer implements JsonSerializer<SingBoxOption> {
         @Override
         public JsonElement serialize(SingBoxOption src, Type typeOfSrc, JsonSerializationContext context) {
-            // 拿到原始的 delegate（默认序列化器）
-            TypeAdapter<?> delegate = gsonSingbox.getDelegateAdapter(
-                    new TypeAdapterFactory() {
-                        @Override
-                        public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
-                            return null; // 返回 null，表示只作为“跳过当前自定义”的 marker
-                        }
-                    },
-                    TypeToken.get(src.getClass())
-            );
-            Map<String, Object> map;
+            JsonElement tree;
             if (src instanceof CustomSingBoxOption) {
-                map = ((CustomSingBoxOption) src).getBasicMap();
+                tree = gsonSingboxPlain.toJsonTree(((CustomSingBoxOption) src).getBasicMap());
             } else {
-                map = gsonSingbox.fromJson(((TypeAdapter<SingBoxOption>) delegate).toJson(src), Map.class);
+                tree = gsonSingboxPlain.toJsonTree(src);
             }
-            if (src._hack_config_map != null && !src._hack_config_map.isEmpty()) {
-                Util.INSTANCE.mergeMap(map, src._hack_config_map);
+            applyHackConfig(src, tree);
+            return tree;
+        }
+
+        private void applyHackConfig(Object src, JsonElement tree) {
+            if (src == null || tree == null) return;
+            if (src instanceof SingBoxOption && tree.isJsonObject()) {
+                SingBoxOption option = (SingBoxOption) src;
+                JsonObject object = tree.getAsJsonObject();
+                if (option instanceof CustomSingBoxOption) {
+                    object.entrySet().clear();
+                    gsonSingboxPlain.toJsonTree(((CustomSingBoxOption) option).getBasicMap()).getAsJsonObject()
+                            .entrySet()
+                            .forEach(entry -> object.add(entry.getKey(), entry.getValue()));
+                }
+                if (option._hack_config_map != null && !option._hack_config_map.isEmpty()) {
+                    Map<String, Object> map = gsonSingboxPlain.fromJson(object, Map.class);
+                    Util.INSTANCE.mergeMap(map, option._hack_config_map);
+                    object.entrySet().clear();
+                    gsonSingboxPlain.toJsonTree(map).getAsJsonObject()
+                            .entrySet()
+                            .forEach(entry -> object.add(entry.getKey(), entry.getValue()));
+                }
+                if (option._hack_custom_config != null && !option._hack_custom_config.isBlank()) {
+                    Map<String, Object> map = gsonSingboxPlain.fromJson(object, Map.class);
+                    Util.INSTANCE.mergeJSON(map, option._hack_custom_config);
+                    object.entrySet().clear();
+                    gsonSingboxPlain.toJsonTree(map).getAsJsonObject()
+                            .entrySet()
+                            .forEach(entry -> object.add(entry.getKey(), entry.getValue()));
+                }
             }
-            if (src._hack_custom_config != null && !src._hack_custom_config.isBlank()) {
-                Util.INSTANCE.mergeJSON(map, src._hack_custom_config);
+            if (!tree.isJsonObject()) return;
+            JsonObject object = tree.getAsJsonObject();
+            for (Field field : src.getClass().getFields()) {
+                int modifiers = field.getModifiers();
+                if (Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers)) continue;
+                String name = serializedName(field);
+                JsonElement childTree = object.get(name);
+                if (childTree == null || childTree.isJsonNull()) continue;
+                try {
+                    Object child = field.get(src);
+                    if (child instanceof SingBoxOption) {
+                        applyHackConfig(child, childTree);
+                    } else if (child instanceof Collection<?> && childTree.isJsonArray()) {
+                        int index = 0;
+                        for (Object item : (Collection<?>) child) {
+                            if (index >= childTree.getAsJsonArray().size()) break;
+                            applyHackConfig(item, childTree.getAsJsonArray().get(index));
+                            index++;
+                        }
+                    } else if (child instanceof Map<?, ?> && childTree.isJsonObject()) {
+                        JsonObject childObject = childTree.getAsJsonObject();
+                        for (Map.Entry<?, ?> entry : ((Map<?, ?>) child).entrySet()) {
+                            Object value = entry.getValue();
+                            if (!(value instanceof SingBoxOption)) continue;
+                            JsonElement valueTree = childObject.get(String.valueOf(entry.getKey()));
+                            if (valueTree != null && !valueTree.isJsonNull()) {
+                                applyHackConfig(value, valueTree);
+                            }
+                        }
+                    }
+                } catch (IllegalAccessException ignored) {
+                }
             }
-            return gsonSingbox.toJsonTree(map);
+        }
+
+        private String serializedName(Field field) {
+            SerializedName serializedName = field.getAnnotation(SerializedName.class);
+            if (serializedName != null) return serializedName.value();
+            return field.getName();
         }
     }
 
@@ -590,6 +663,11 @@ public class SingBoxOptions {
         public String type;
 
         public String password;
+
+        // Gecko obfs only (flattened into the obfs object by the core's badjson serializer).
+        public Integer min_packet_size;
+
+        public Integer max_packet_size;
 
     }
 
@@ -2829,6 +2907,9 @@ public class SingBoxOptions {
         public Integer mtu;
 
         // Generate note: Listable
+        public List<String> address;
+
+        // Generate note: Listable
         public List<String> inet4_address;
 
         // Generate note: Listable
@@ -3941,6 +4022,104 @@ public class SingBoxOptions {
 
     }
 
+    public static class Outbound_AmneziaWGOptions extends Outbound {
+
+        // Generate note: nested type DialerOptions
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public Long connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+
+        public String domain_strategy;
+
+        public Long fallback_delay;
+
+        // End of public DialerOptions ;
+
+        public Boolean system_interface;
+
+        public String interface_name;
+
+        // Generate note: Listable
+        public List<String> local_address;
+
+        public String private_key;
+
+        public List<WireGuardPeer> peers;
+
+        // Generate note: nested type ServerOptions
+        public String server;
+
+        public Integer server_port;
+
+        // End of public ServerOptions ;
+
+        public String peer_public_key;
+
+        public String pre_shared_key;
+
+        // Generate note: Base64 String
+        public String reserved;
+
+        public Integer workers;
+
+        public Integer mtu;
+
+        public String network;
+
+        // AmneziaWG obfuscation parameters.
+        public Integer jc;
+
+        public Integer jmin;
+
+        public Integer jmax;
+
+        public Integer s1;
+
+        public Integer s2;
+
+        public Integer s3;
+
+        public Integer s4;
+
+        public String h1;
+
+        public String h2;
+
+        public String h3;
+
+        public String h4;
+
+        public String i1;
+
+        public String i2;
+
+        public String i3;
+
+        public String i4;
+
+        public String i5;
+
+    }
+
     public static class Outbound_HysteriaOptions extends Outbound {
 
         // Generate note: nested type DialerOptions
@@ -4533,6 +4712,17 @@ public class SingBoxOptions {
 
         public String outbound;
 
+        // action = "sniff"
+        // Generate note: Listable
+        public List<String> sniffer;
+
+        public String timeout;
+
+        // action = "resolve"
+        public String strategy;
+
+        public String server;
+
     }
 
     public static class DNSRule_DefaultOptions extends DNSRule {
@@ -4721,7 +4911,7 @@ public class SingBoxOptions {
 
     }
 
-    // sing-box Options 生成器已经坏了，以下是从 husi 抄的
+    // the sing-box Options generator is already broken; the following is copied from husi
 
     public static class Outbound_AnyTLSOptions extends Outbound {
 

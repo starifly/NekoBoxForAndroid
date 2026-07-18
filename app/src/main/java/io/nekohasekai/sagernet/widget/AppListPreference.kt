@@ -13,11 +13,16 @@ class AppListPreference : Preference {
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
     constructor(context: Context, attrs: AttributeSet?, defStyle: Int) : super(
-        context, attrs, defStyle
+        context,
+        attrs,
+        defStyle,
     )
 
     constructor(
-        context: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int
+        context: Context,
+        attrs: AttributeSet?,
+        defStyleAttr: Int,
+        defStyleRes: Int,
     ) : super(context, attrs, defStyleAttr, defStyleRes)
 
     override fun getSummary(): CharSequence {
@@ -37,5 +42,4 @@ class AppListPreference : Preference {
     fun postUpdate() {
         notifyChanged()
     }
-
 }

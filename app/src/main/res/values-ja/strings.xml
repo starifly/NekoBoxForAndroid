@@ -280,6 +280,10 @@
     <string name="license">ライセンス</string>
     <string name="route_warn">カスタムルールを追加する前にドキュメントを必ずお読みください。さもないとインターネットに接続できなくなる場合があります。</string>
     <string name="lines">%d 行</string>
+    <plurals name="dns_hosts_lines">
+        <item quantity="other">%d 行</item>
+    </plurals>
+    <string name="not_set">未設定</string>
     <string name="night_mode">ナイトモード</string>
     <string name="language">言語</string>
     <string name="follow_system">システムに従う</string>
@@ -531,6 +535,7 @@
     <string name="webdav_server_error">サーバーエラー</string>
     <string name="webdav_connect_failed">接続に失敗しました。コード: %d</string>
     <string name="webdav_create_dir_failed">バックアップディレクトリの作成またはアクセスに失敗しました</string>
+    <string name="webdav_insecure_url">WebDAVサーバーのURLが安全ではありません。https://アドレスを使用してください。http://を使用すると、認証情報とバックアップ（すべてのプロファイルのシークレットを含む）が平文で送信されます。</string>
     <string name="global_mode">グローバルモード</string>
     <string name="global_mode_summary">すべてのルーティングルールをバイパスし、すべてのトラフィックを現在のノード経由でプロキシします</string>
     <string name="mux_preference">マルチプレックス</string>

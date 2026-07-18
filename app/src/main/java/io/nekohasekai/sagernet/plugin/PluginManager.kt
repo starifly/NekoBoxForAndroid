@@ -12,10 +12,10 @@ import java.io.FileNotFoundException
 
 object PluginManager {
 
-    class PluginNotFoundException(val plugin: String) : FileNotFoundException(plugin),
+    class PluginNotFoundException(val plugin: String) :
+        FileNotFoundException(plugin),
         BaseService.ExpectedException {
-        override fun getLocalizedMessage() =
-            SagerNet.application.getString(R.string.plugin_unknown, plugin)
+        override fun getLocalizedMessage() = SagerNet.application.getString(R.string.plugin_unknown, plugin)
     }
 
     data class InitResult(
@@ -40,18 +40,20 @@ object PluginManager {
     }
 
     private fun initNative(pluginId: String): InitResult? {
-        val info = Plugins.getPlugin(pluginId) ?: return null
-
-        // internal so
-        if (info.applicationInfo == null) {
-            try {
-                initNativeInternal(pluginId)?.let { return InitResult(it, info) }
-            } catch (t: Throwable) {
-                Logs.w("initNativeInternal failed", t)
+        // A bundled sidecar always wins over an externally-installed provider. External
+        // providers are signer-checked below, but they must not shadow binaries we ship.
+        try {
+            initNativeInternal(pluginId)?.let { path ->
+                return InitResult(
+                    path,
+                    ProviderInfo().apply { authority = Plugins.AUTHORITIES_PREFIX_NEKO_EXE },
+                )
             }
-            return null
+        } catch (t: Throwable) {
+            Logs.w("initNativeInternal failed", t)
         }
 
+        val info = Plugins.getPluginExternal(pluginId) ?: return null
         try {
             initNativeFaster(info)?.let { return InitResult(it, info) }
         } catch (t: Throwable) {
@@ -71,8 +73,11 @@ object PluginManager {
             return null
         }
         return when (pluginId) {
-            "hysteria-plugin" -> soIfExist("libhysteria.so")
-            "hysteria2-plugin" -> soIfExist("libhysteria2.so")
+            // Hysteria v1 resolves through the external plugin only; its bundled sidecar was removed.
+            "mieru-plugin" -> soIfExist("libmieru.so")
+            "masterdnsvpn-plugin" -> soIfExist("libmasterdnsvpn.so")
+            "olcrtc-plugin" -> soIfExist("libolcrtc.so")
+            "naive-plugin" -> soIfExist("libnaive.so")
             else -> null
         }
     }

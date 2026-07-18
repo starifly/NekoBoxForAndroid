@@ -1,17 +1,20 @@
 package io.nekohasekai.sagernet.bg
 
+import android.Manifest.permission.POST_NOTIFICATIONS
 import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
 import android.os.Build
 import android.text.format.Formatter
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
@@ -19,6 +22,7 @@ import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
@@ -38,8 +42,10 @@ import kotlinx.coroutines.sync.withLock
  * See also: https://github.com/aosp-mirror/platform_frameworks_base/commit/070d142993403cc2c42eca808ff3fafcee220ac4
  */
 class ServiceNotification(
-    private val service: BaseService.Interface, title: String,
-    channel: String, visible: Boolean = false,
+    private val service: BaseService.Interface,
+    title: String,
+    channel: String,
+    visible: Boolean = false,
 ) : BroadcastReceiver() {
     companion object {
         const val notificationId = 1
@@ -47,8 +53,11 @@ class ServiceNotification(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
 
         fun genTitle(ent: ProxyEntity): String {
-            val gn = if (DataStore.showGroupInNotification)
-                SagerDatabase.groupDao.getById(ent.groupId)?.displayName() else null
+            val gn = if (DataStore.showGroupInNotification) {
+                SagerDatabase.groupDao.getById(ent.groupId)?.displayName()
+            } else {
+                null
+            }
             return if (gn == null) ent.displayName() else "[$gn] ${ent.displayName()}"
         }
     }
@@ -59,27 +68,37 @@ class ServiceNotification(
         useBuilder {
             if (showDirectSpeed) {
                 val speedDetail = (service as Context).getString(
-                    R.string.speed_detail, service.getString(
-                        R.string.speed, Formatter.formatFileSize(service, stats.txRateProxy)
-                    ), service.getString(
-                        R.string.speed, Formatter.formatFileSize(service, stats.rxRateProxy)
-                    ), service.getString(
+                    R.string.speed_detail,
+                    service.getString(
                         R.string.speed,
-                        Formatter.formatFileSize(service, stats.txRateDirect)
-                    ), service.getString(
+                        Formatter.formatFileSize(service, stats.txRateProxy),
+                    ),
+                    service.getString(
                         R.string.speed,
-                        Formatter.formatFileSize(service, stats.rxRateDirect)
-                    )
+                        Formatter.formatFileSize(service, stats.rxRateProxy),
+                    ),
+                    service.getString(
+                        R.string.speed,
+                        Formatter.formatFileSize(service, stats.txRateDirect),
+                    ),
+                    service.getString(
+                        R.string.speed,
+                        Formatter.formatFileSize(service, stats.rxRateDirect),
+                    ),
                 )
                 it.setStyle(NotificationCompat.BigTextStyle().bigText(speedDetail))
                 it.setContentText(speedDetail)
             } else {
                 val speedSimple = (service as Context).getString(
-                    R.string.traffic, service.getString(
-                        R.string.speed, Formatter.formatFileSize(service, stats.txRateProxy)
-                    ), service.getString(
-                        R.string.speed, Formatter.formatFileSize(service, stats.rxRateProxy)
-                    )
+                    R.string.traffic,
+                    service.getString(
+                        R.string.speed,
+                        Formatter.formatFileSize(service, stats.txRateProxy),
+                    ),
+                    service.getString(
+                        R.string.speed,
+                        Formatter.formatFileSize(service, stats.rxRateProxy),
+                    ),
                 )
                 it.setContentText(speedSimple)
             }
@@ -87,8 +106,8 @@ class ServiceNotification(
                 service.getString(
                     R.string.traffic,
                     Formatter.formatFileSize(service, stats.txTotal),
-                    Formatter.formatFileSize(service, stats.rxTotal)
-                )
+                    Formatter.formatFileSize(service, stats.rxTotal),
+                ),
             )
         }
         update()
@@ -137,10 +156,13 @@ class ServiceNotification(
         Theme.apply(service)
         builder.color = service.getColorAttr(R.attr.colorPrimary)
 
-        service.registerReceiver(this, IntentFilter().apply {
-            addAction(Intent.ACTION_SCREEN_ON)
-            addAction(Intent.ACTION_SCREEN_OFF)
-        })
+        service.registerReceiver(
+            this,
+            IntentFilter().apply {
+                addAction(Intent.ACTION_SCREEN_ON)
+                addAction(Intent.ACTION_SCREEN_OFF)
+            },
+        )
 
         runOnMainDispatcher {
             updateActions()
@@ -154,24 +176,38 @@ class ServiceNotification(
             it.clearActions()
 
             val closeAction = NotificationCompat.Action.Builder(
-                0, service.getText(R.string.stop), PendingIntent.getBroadcast(
-                    service, 0, Intent(Action.CLOSE).setPackage(service.packageName), flags
-                )
+                0,
+                service.getText(R.string.stop),
+                PendingIntent.getBroadcast(
+                    service,
+                    0,
+                    Intent(Action.CLOSE).setPackage(service.packageName),
+                    flags,
+                ),
             ).setShowsUserInterface(false).build()
             it.addAction(closeAction)
 
             val switchAction = NotificationCompat.Action.Builder(
-                0, service.getString(R.string.action_switch), PendingIntent.getActivity(
-                    service, 0, Intent(service, SwitchActivity::class.java), flags
-                )
+                0,
+                service.getString(R.string.action_switch),
+                PendingIntent.getActivity(
+                    service,
+                    0,
+                    Intent(service, SwitchActivity::class.java),
+                    flags,
+                ),
             ).setShowsUserInterface(false).build()
             it.addAction(switchAction)
 
             val resetUpstreamAction = NotificationCompat.Action.Builder(
-                0, service.getString(R.string.reset_connections),
+                0,
+                service.getString(R.string.reset_connections),
                 PendingIntent.getBroadcast(
-                    service, 0, Intent(Action.RESET_UPSTREAM_CONNECTIONS), flags
-                )
+                    service,
+                    0,
+                    Intent(Action.RESET_UPSTREAM_CONNECTIONS),
+                    flags,
+                ),
             ).setShowsUserInterface(false).build()
             it.addAction(resetUpstreamAction)
         }
@@ -183,30 +219,42 @@ class ServiceNotification(
         }
     }
 
-
-    private suspend fun show() =
-        useBuilder {
-            try {
-                if (Build.VERSION.SDK_INT >= 34) {
-                    (service as Service).startForeground(
-                        notificationId,
-                        it.build(),
-                        FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
-                    )
-                } else {
-                    (service as Service).startForeground(notificationId, it.build())
-                }
-            } catch (e: Exception) {
-                Toast.makeText(
-                    SagerNet.application,
-                    "startForeground: $e",
-                    Toast.LENGTH_LONG
-                ).show()
+    private suspend fun show() = useBuilder {
+        try {
+            if (Build.VERSION.SDK_INT >= 34) {
+                (service as Service).startForeground(
+                    notificationId,
+                    it.build(),
+                    FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED,
+                )
+            } else {
+                (service as Service).startForeground(notificationId, it.build())
             }
+        } catch (e: Exception) {
+            Toast.makeText(
+                SagerNet.application,
+                "startForeground: $e",
+                Toast.LENGTH_LONG,
+            ).show()
         }
+    }
 
     private suspend fun update() = useBuilder {
-        NotificationManagerCompat.from(service as Service).notify(notificationId, it.build())
+        val serviceContext = service as Service
+        val notificationManager = NotificationManagerCompat.from(serviceContext)
+        if (!notificationManager.areNotificationsEnabled()) return@useBuilder
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(serviceContext, POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return@useBuilder
+        }
+        try {
+            notificationManager.notify(notificationId, it.build())
+        } catch (e: SecurityException) {
+            Logs.w("service notification update skipped", e)
+        }
     }
 
     fun destroy() {

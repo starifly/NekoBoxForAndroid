@@ -23,15 +23,19 @@ abstract class AlertDialogFragment<Arg : Parcelable, Ret : Parcelable?> :
         private const val KEY_RET = "ret"
         private const val KEY_WHICH = "which"
 
-        fun <Ret : Parcelable> setResultListener(fragment: Fragment, requestKey: String,
-                                                 listener: (Int, Ret?) -> Unit) {
+        fun <Ret : Parcelable> setResultListener(
+            fragment: Fragment,
+            requestKey: String,
+            listener: (Int, Ret?) -> Unit,
+        ) {
             fragment.setFragmentResultListener(requestKey) { _, bundle ->
                 listener(bundle.getInt(KEY_WHICH, Activity.RESULT_CANCELED), bundle.getParcelable(KEY_RET))
             }
         }
         inline fun <reified T : AlertDialogFragment<*, Ret>, Ret : Parcelable?> setResultListener(
-            fragment: Fragment, noinline listener: (Int, Ret?) -> Unit) =
-            setResultListener(fragment, T::class.java.name, listener)
+            fragment: Fragment,
+            noinline listener: (Int, Ret?) -> Unit,
+        ) = setResultListener(fragment, T::class.java.name, listener)
     }
     protected abstract fun AlertDialog.Builder.prepare(listener: DialogInterface.OnClickListener)
 
@@ -47,10 +51,13 @@ abstract class AlertDialogFragment<Arg : Parcelable, Ret : Parcelable?> :
         MaterialAlertDialogBuilder(requireContext()).also { it.prepare(this) }.create()
 
     override fun onClick(dialog: DialogInterface?, which: Int) {
-        setFragmentResult(resultKey ?: return, Bundle().apply {
-            putInt(KEY_WHICH, which)
-            putParcelable(KEY_RET, ret(which) ?: return@apply)
-        })
+        setFragmentResult(
+            resultKey ?: return,
+            Bundle().apply {
+                putInt(KEY_WHICH, which)
+                putParcelable(KEY_RET, ret(which) ?: return@apply)
+            },
+        )
     }
 
     override fun onDismiss(dialog: DialogInterface) {

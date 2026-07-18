@@ -13,7 +13,9 @@ import moe.matsuri.nb4a.ui.SimpleMenuPreference
 
 class OutboundPreference
 @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null, defStyle: Int = R.attr.dropdownPreferenceStyle
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyle: Int = R.attr.dropdownPreferenceStyle,
 ) : SimpleMenuPreference(context, attrs, defStyle, 0) {
 
     companion object {
@@ -45,17 +47,14 @@ class OutboundPreference
         dropdownOpened = false
         super.onBindViewHolder(holder)
 
+        // findViewById (not ViewBinding): binds into the AndroidX preference-row ViewHolder
+        // (holder.itemView), which is not an app layout binding.
         val spinner = holder.itemView.findViewById<Spinner>(R.id.spinner)
         (spinner as? ReselectableSpinner)?.onPopupClosed = { dropdownOpened = false }
         var selectionReady = false
         holder.itemView.post { selectionReady = true }
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>?,
-                view: View?,
-                position: Int,
-                id: Long,
-            ) {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (!selectionReady || position < 0) return
                 val newValue = entryValues?.getOrNull(position)?.toString() ?: return
                 val reselectedProfile =
@@ -83,5 +82,4 @@ class OutboundPreference
         }
         return super.getSummary()
     }
-
 }

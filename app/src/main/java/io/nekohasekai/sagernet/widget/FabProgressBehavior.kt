@@ -17,13 +17,16 @@ class FabProgressBehavior(context: Context, attrs: AttributeSet?) :
     }
 
     override fun onLayoutChild(
-        parent: CoordinatorLayout, child: CircularProgressIndicator,
+        parent: CoordinatorLayout,
+        child: CircularProgressIndicator,
         layoutDirection: Int,
     ): Boolean {
         val size = parent.getDependencies(child).single().measuredHeight + child.trackThickness
         return if (child.indicatorSize != size) {
             child.indicatorSize = size
             true
-        } else false
+        } else {
+            false
+        }
     }
 }

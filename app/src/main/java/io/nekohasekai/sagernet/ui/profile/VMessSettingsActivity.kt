@@ -10,5 +10,4 @@ class VMessSettingsActivity : StandardV2RaySettingsActivity() {
         }
         initializeDefaultValues()
     }
-
 }

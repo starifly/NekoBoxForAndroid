@@ -44,9 +44,12 @@ data class RuleEntity(
         if (network.isNotBlank()) summary += "network: $network\n"
         if (protocol.isNotBlank()) summary += "protocol: $protocol\n"
         if (ruleset.isNotBlank()) summary += "$ruleset\n"
-        if (packages.isNotEmpty()) summary += app.getString(
-            R.string.apps_message, packages.size
-        ) + "\n"
+        if (packages.isNotEmpty()) {
+            summary += app.getString(
+                R.string.apps_message,
+                packages.size,
+            ) + "\n"
+        }
         val lines = summary.trim().split("\n")
         return if (lines.size > 3) {
             lines.subList(0, 3).joinToString("\n", postfix = "\n...")
@@ -106,8 +109,5 @@ data class RuleEntity(
 
         @Insert
         fun insert(rules: List<RuleEntity>)
-
     }
-
-
 }

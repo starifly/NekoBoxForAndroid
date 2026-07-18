@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:installLocation="internalOnly">
 
-    <uses-sdk tools:overrideLibrary="com.google.zxing.client.android, com.blacksquircle.ui.editorkit" />
+    <uses-sdk tools:overrideLibrary="com.google.zxing.client.android" />
 
     <permission
         android:name="${applicationId}.SERVICE"
@@ -74,7 +74,7 @@
 
         <activity
             android:name="io.nekohasekai.sagernet.ui.MainActivity"
-            android:configChanges="uiMode"
+            android:configChanges="uiMode|orientation|screenSize|keyboardHidden"
             android:exported="true"
             android:launchMode="singleTask">
             <intent-filter>
@@ -134,6 +134,15 @@
                 <data android:scheme="naive+https" />
                 <data android:scheme="naive+quic" />
                 <data android:scheme="hysteria" />
+                <data android:scheme="hysteria2" />
+                <data android:scheme="hy2" />
+                <data android:scheme="vless" />
+                <data android:scheme="anytls" />
+                <data android:scheme="snell" />
+                <data android:scheme="masterdns" />
+                <data android:scheme="olcrtc" />
+                <data android:scheme="tuic" />
+                <data android:scheme="juicity" />
 
             </intent-filter>
 
@@ -185,6 +194,9 @@
             android:name="io.nekohasekai.sagernet.ui.profile.WireGuardSettingsActivity"
             android:configChanges="uiMode" />
         <activity
+            android:name="io.nekohasekai.sagernet.ui.profile.AmneziaWGSettingsActivity"
+            android:configChanges="uiMode" />
+        <activity
             android:name="io.nekohasekai.sagernet.ui.profile.TuicSettingsActivity"
             android:configChanges="uiMode" />
         <activity
@@ -192,6 +204,12 @@
             android:configChanges="uiMode" />
         <activity
             android:name="io.nekohasekai.sagernet.ui.profile.SnellSettingsActivity"
+            android:configChanges="uiMode" />
+        <activity
+            android:name="io.nekohasekai.sagernet.ui.profile.MasterDnsVpnSettingsActivity"
+            android:configChanges="uiMode" />
+        <activity
+            android:name="io.nekohasekai.sagernet.ui.profile.OlcrtcSettingsActivity"
             android:configChanges="uiMode" />
         <activity
             android:name="io.nekohasekai.sagernet.ui.profile.ChainSettingsActivity"

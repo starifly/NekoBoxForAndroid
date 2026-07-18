@@ -7,48 +7,39 @@ import com.esotericsoftware.kryo.io.ByteBufferInput
 import com.esotericsoftware.kryo.io.ByteBufferOutput
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.fmt.*
+import io.nekohasekai.sagernet.fmt.amneziawg.AmneziaWGBean
 import io.nekohasekai.sagernet.fmt.http.HttpBean
-import io.nekohasekai.sagernet.fmt.http.toUri
 import io.nekohasekai.sagernet.fmt.hysteria.*
 import io.nekohasekai.sagernet.fmt.internal.ChainBean
+import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
+import io.nekohasekai.sagernet.fmt.masterdnsvpn.MasterDnsVpnBean
 import io.nekohasekai.sagernet.fmt.mieru.MieruBean
 import io.nekohasekai.sagernet.fmt.mieru.buildMieruConfig
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean
 import io.nekohasekai.sagernet.fmt.naive.buildNaiveConfig
-import io.nekohasekai.sagernet.fmt.naive.toUri
+import io.nekohasekai.sagernet.fmt.olcrtc.OlcrtcBean
 import io.nekohasekai.sagernet.fmt.shadowsocks.*
 import io.nekohasekai.sagernet.fmt.shadowsocksr.ShadowsocksRBean
-import io.nekohasekai.sagernet.fmt.shadowsocksr.toUri
-import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
 import io.nekohasekai.sagernet.fmt.snell.SnellBean
-import io.nekohasekai.sagernet.fmt.snell.toUri
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
-import io.nekohasekai.sagernet.fmt.socks.toUri
 import io.nekohasekai.sagernet.fmt.ssh.SSHBean
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean
 import io.nekohasekai.sagernet.fmt.trojan_go.TrojanGoBean
 import io.nekohasekai.sagernet.fmt.trojan_go.buildTrojanGoConfig
-import io.nekohasekai.sagernet.fmt.trojan_go.toUri
 import io.nekohasekai.sagernet.fmt.tuic.TuicBean
-import io.nekohasekai.sagernet.fmt.tuic.toUri
-import io.nekohasekai.sagernet.fmt.juicity.JuicityBean
-import io.nekohasekai.sagernet.fmt.juicity.toUri
 import io.nekohasekai.sagernet.fmt.v2ray.*
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.ktx.app
-import io.nekohasekai.sagernet.ui.profile.*
+import io.nekohasekai.sagernet.ui.profile.ProfileSettingsActivity
 import moe.matsuri.nb4a.SingBoxOptions.BrutalOptions
 import moe.matsuri.nb4a.SingBoxOptions.MultiplexOptions
 import moe.matsuri.nb4a.proxy.anytls.AnyTLSBean
-import moe.matsuri.nb4a.proxy.anytls.AnyTLSSettingsActivity
-import moe.matsuri.nb4a.proxy.anytls.toUri
 import moe.matsuri.nb4a.proxy.config.ConfigBean
-import moe.matsuri.nb4a.proxy.config.ConfigSettingActivity
-import moe.matsuri.nb4a.proxy.neko.*
-import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity
+import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
 
 @Entity(
-    tableName = "proxy_entities", indices = [Index("groupId", name = "groupId")]
+    tableName = "proxy_entities",
+    indices = [Index("groupId", name = "groupId")],
 )
 data class ProxyEntity(
     @PrimaryKey(autoGenerate = true) var id: Long = 0L,
@@ -57,6 +48,14 @@ data class ProxyEntity(
     var userOrder: Long = 0L,
     var tx: Long = 0L,
     var rx: Long = 0L,
+    // Lifetime (all-time) totals, accumulated across sessions. Additive columns (schema v12);
+    // tx/rx above stay the live/session value the UI already shows. Not part of the Kryo
+    // serializeToBuffer wire format (backup/export stats are out of scope), so the on-disk
+    // blob format is unchanged. A DB default of 0 is required for the additive AutoMigration.
+    @ColumnInfo(defaultValue = "0")
+    var lifetimeRx: Long = 0L,
+    @ColumnInfo(defaultValue = "0")
+    var lifetimeTx: Long = 0L,
     var status: Int = 0,
     var ping: Int = 0,
     var uuid: String = "",
@@ -78,9 +77,11 @@ data class ProxyEntity(
     var shadowTLSBean: ShadowTLSBean? = null,
     var anyTLSBean: AnyTLSBean? = null,
     var chainBean: ChainBean? = null,
-    var nekoBean: NekoBean? = null,
     var configBean: ConfigBean? = null,
     var snellBean: SnellBean? = null,
+    var masterDnsVpnBean: MasterDnsVpnBean? = null,
+    var awgBean: AmneziaWGBean? = null,
+    var olcrtcBean: OlcrtcBean? = null,
 ) : Serializable() {
 
     companion object {
@@ -103,8 +104,18 @@ data class ProxyEntity(
         const val TYPE_ANYTLS = 22
         const val TYPE_JUICITY = 23
         const val TYPE_SNELL = 24
+        const val TYPE_MASTERDNSVPN = 25
+
+        // 25 is reserved for the MasterDnsVPN sidecar type on the
+        // feature/masterdnsvpn-sidecar branch (PR #18); do not reuse it here so
+        // persisted type IDs stay stable when both branches merge.
+        const val TYPE_AWG = 26
+        const val TYPE_OLCRTC = 27
 
         const val TYPE_CONFIG = 998
+
+        // 999 was the Matsuri "Neko Plugin" protocol (removed). Reserved: do not
+        // reuse the id; rows with this type are purged by the v11 migration.
         const val TYPE_NEKO = 999
 
         const val TYPE_CHAIN = 8
@@ -170,83 +181,21 @@ data class ProxyEntity(
         dirty = input.readBoolean()
     }
 
-
     fun putByteArray(byteArray: ByteArray) {
-        when (type) {
-            TYPE_SOCKS -> socksBean = KryoConverters.socksDeserialize(byteArray)
-            TYPE_HTTP -> httpBean = KryoConverters.httpDeserialize(byteArray)
-            TYPE_SS -> ssBean = KryoConverters.shadowsocksDeserialize(byteArray)
-            TYPE_SSR -> ssrBean = KryoConverters.shadowsocksrDeserialize(byteArray)
-            TYPE_VMESS -> vmessBean = KryoConverters.vmessDeserialize(byteArray)
-            TYPE_TROJAN -> trojanBean = KryoConverters.trojanDeserialize(byteArray)
-            TYPE_TROJAN_GO -> trojanGoBean = KryoConverters.trojanGoDeserialize(byteArray)
-            TYPE_MIERU -> mieruBean = KryoConverters.mieruDeserialize(byteArray)
-            TYPE_NAIVE -> naiveBean = KryoConverters.naiveDeserialize(byteArray)
-            TYPE_HYSTERIA -> hysteriaBean = KryoConverters.hysteriaDeserialize(byteArray)
-            TYPE_SSH -> sshBean = KryoConverters.sshDeserialize(byteArray)
-            TYPE_WG -> wgBean = KryoConverters.wireguardDeserialize(byteArray)
-            TYPE_TUIC -> tuicBean = KryoConverters.tuicDeserialize(byteArray)
-            TYPE_JUICITY -> juicityBean = KryoConverters.juicityDeserialize(byteArray)
-            TYPE_SHADOWTLS -> shadowTLSBean = KryoConverters.shadowTLSDeserialize(byteArray)
-            TYPE_ANYTLS -> anyTLSBean = KryoConverters.anyTLSDeserialize(byteArray)
-            TYPE_CHAIN -> chainBean = KryoConverters.chainDeserialize(byteArray)
-            TYPE_NEKO -> nekoBean = KryoConverters.nekoDeserialize(byteArray)
-            TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
-            TYPE_SNELL -> snellBean = KryoConverters.snellDeserialize(byteArray)
-        }
+        // Registry routes each persisted type id to the same KryoConverters.*Deserialize the
+        // historical when(type) ladder used and stores it in the matching typed field. An
+        // unknown/dead id is a no-op, matching the old ladder's absent else-branch.
+        ProtocolRegistry.forType(type)?.let { it.setBean(this, it.deserialize(byteArray)) }
     }
 
-    fun displayType(): String = when (type) {
-        TYPE_SOCKS -> socksBean!!.protocolName()
-        TYPE_HTTP -> if (httpBean!!.isTLS()) "HTTPS" else "HTTP"
-        TYPE_SS -> "Shadowsocks"
-        TYPE_SSR -> "ShadowsocksR"
-        TYPE_VMESS -> if (vmessBean!!.isVLESS) "VLESS" else "VMess"
-        TYPE_TROJAN -> "Trojan"
-        TYPE_TROJAN_GO -> "Trojan-Go"
-        TYPE_MIERU -> "Mieru"
-        TYPE_NAIVE -> "Naïve"
-        TYPE_HYSTERIA -> "Hysteria" + hysteriaBean!!.protocolVersion
-        TYPE_SSH -> "SSH"
-        TYPE_WG -> "WireGuard"
-        TYPE_TUIC -> "TUIC"
-        TYPE_JUICITY -> "Juicity"
-        TYPE_SHADOWTLS -> "ShadowTLS"
-        TYPE_ANYTLS -> "AnyTLS"
-        TYPE_CHAIN -> chainName
-        TYPE_NEKO -> nekoBean!!.displayType()
-        TYPE_CONFIG -> configBean!!.displayType()
-        TYPE_SNELL -> "Snell"
-        else -> "Undefined type $type"
-    }
+    fun displayType(): String = ProtocolRegistry.forType(type)?.displayType?.invoke(this) ?: "Undefined type $type"
 
     fun displayName() = requireBean().displayName()
     fun displayAddress() = requireBean().displayAddress()
 
     fun requireBean(): AbstractBean {
-        return when (type) {
-            TYPE_SOCKS -> socksBean
-            TYPE_HTTP -> httpBean
-            TYPE_SS -> ssBean
-            TYPE_SSR -> ssrBean
-            TYPE_VMESS -> vmessBean
-            TYPE_TROJAN -> trojanBean
-            TYPE_TROJAN_GO -> trojanGoBean
-            TYPE_MIERU -> mieruBean
-            TYPE_NAIVE -> naiveBean
-            TYPE_HYSTERIA -> hysteriaBean
-            TYPE_SSH -> sshBean
-            TYPE_WG -> wgBean
-            TYPE_TUIC -> tuicBean
-            TYPE_JUICITY -> juicityBean
-            TYPE_SHADOWTLS -> shadowTLSBean
-            TYPE_ANYTLS -> anyTLSBean
-            TYPE_CHAIN -> chainBean
-            TYPE_NEKO -> nekoBean
-            TYPE_CONFIG -> configBean
-            TYPE_SNELL -> snellBean
-            else -> error("Undefined type $type")
-        } ?: error("Null ${displayType()} profile")
+        val descriptor = ProtocolRegistry.forType(type) ?: error("Undefined type $type")
+        return descriptor.getBean(this) ?: error("Null ${displayType()} profile")
     }
 
     fun haveLink(): Boolean {
@@ -257,34 +206,13 @@ data class ProxyEntity(
     }
 
     fun haveStandardLink(): Boolean {
-        return when (requireBean()) {
-            is SSHBean -> false
-            is WireGuardBean -> false
-            is ShadowTLSBean -> false
-            is NekoBean -> false
-            is ConfigBean -> false
-            else -> true
-        }
+        requireBean()
+        return ProtocolRegistry.forType(type)!!.hasStandardLink
     }
 
-    fun toStdLink(compact: Boolean = false): String = with(requireBean()) {
-        when (this) {
-            is SOCKSBean -> toUri()
-            is HttpBean -> toUri()
-            is ShadowsocksBean -> toUri()
-            is ShadowsocksRBean -> toUri()
-            is VMessBean -> toUriVMessVLESSTrojan(false)
-            is TrojanBean -> toUriVMessVLESSTrojan(true)
-            is TrojanGoBean -> toUri()
-            is NaiveBean -> toUri()
-            is HysteriaBean -> toUri()
-            is TuicBean -> toUri()
-            is JuicityBean -> toUri()
-            is AnyTLSBean -> toUri()
-            is SnellBean -> toUri()
-            is NekoBean -> ""
-            else -> toUniversalLink()
-        }
+    fun toStdLink(compact: Boolean = false): String {
+        val bean = requireBean()
+        return ProtocolRegistry.forType(type)!!.toStandardLink?.invoke(bean) ?: bean.toUniversalLink()
     }
 
     fun exportConfig(): Pair<String, String> {
@@ -329,14 +257,7 @@ data class ProxyEntity(
     }
 
     fun needExternal(): Boolean {
-        return when (type) {
-            TYPE_TROJAN_GO -> true
-            TYPE_MIERU -> true
-            TYPE_NAIVE -> true
-            TYPE_HYSTERIA -> !hysteriaBean!!.canUseSingBox()
-            TYPE_NEKO -> true
-            else -> false
-        }
+        return ProtocolRegistry.forType(type)?.needExternal?.invoke(this) ?: false
     }
 
     fun singMux(): MultiplexOptions? {
@@ -418,157 +339,21 @@ data class ProxyEntity(
     }
 
     fun putBean(bean: AbstractBean): ProxyEntity {
-        socksBean = null
-        httpBean = null
-        ssBean = null
-        ssrBean = null
-        vmessBean = null
-        trojanBean = null
-        trojanGoBean = null
-        mieruBean = null
-        naiveBean = null
-        hysteriaBean = null
-        sshBean = null
-        wgBean = null
-        tuicBean = null
-        juicityBean = null
-        shadowTLSBean = null
-        anyTLSBean = null
-        chainBean = null
-        configBean = null
-        nekoBean = null
-
-        when (bean) {
-            is SOCKSBean -> {
-                type = TYPE_SOCKS
-                socksBean = bean
-            }
-
-            is HttpBean -> {
-                type = TYPE_HTTP
-                httpBean = bean
-            }
-
-            is ShadowsocksBean -> {
-                type = TYPE_SS
-                ssBean = bean
-            }
-
-            is ShadowsocksRBean -> {
-                type = TYPE_SSR
-                ssrBean = bean
-            }
-
-            is VMessBean -> {
-                type = TYPE_VMESS
-                vmessBean = bean
-            }
-
-            is TrojanBean -> {
-                type = TYPE_TROJAN
-                trojanBean = bean
-            }
-
-            is TrojanGoBean -> {
-                type = TYPE_TROJAN_GO
-                trojanGoBean = bean
-            }
-
-            is MieruBean -> {
-                type = TYPE_MIERU
-                mieruBean = bean
-            }
-
-            is NaiveBean -> {
-                type = TYPE_NAIVE
-                naiveBean = bean
-            }
-
-            is HysteriaBean -> {
-                type = TYPE_HYSTERIA
-                hysteriaBean = bean
-            }
-
-            is SSHBean -> {
-                type = TYPE_SSH
-                sshBean = bean
-            }
-
-            is WireGuardBean -> {
-                type = TYPE_WG
-                wgBean = bean
-            }
-
-            is TuicBean -> {
-                type = TYPE_TUIC
-                tuicBean = bean
-            }
-
-            is JuicityBean -> {
-                type = TYPE_JUICITY
-                juicityBean = bean
-            }
-
-            is ShadowTLSBean -> {
-                type = TYPE_SHADOWTLS
-                shadowTLSBean = bean
-            }
-
-            is AnyTLSBean -> {
-                type = TYPE_ANYTLS
-                anyTLSBean = bean
-            }
-
-            is SnellBean -> {
-                type = TYPE_SNELL
-                snellBean = bean
-            }
-
-            is ChainBean -> {
-                type = TYPE_CHAIN
-                chainBean = bean
-            }
-
-            is NekoBean -> {
-                type = TYPE_NEKO
-                nekoBean = bean
-            }
-
-            is ConfigBean -> {
-                type = TYPE_CONFIG
-                configBean = bean
-            }
-
-            else -> error("Undefined type $type")
-        }
+        // Registry clears every typed field then assigns the one matching this bean's class and
+        // sets the corresponding type id - identical result to the historical null-out block +
+        // when(bean) ladder, but declared once per protocol. An unregistered bean class errors,
+        // matching the old else-branch.
+        ProtocolRegistry.clearAllBeans(this)
+        val descriptor = ProtocolRegistry.forBean(bean) ?: error("Unregistered bean class ${bean.javaClass.simpleName}")
+        type = descriptor.type
+        descriptor.setBean(this, bean)
         return this
     }
 
     fun settingIntent(ctx: Context, isSubscription: Boolean): Intent {
-        return Intent(
-            ctx, when (type) {
-                TYPE_SOCKS -> SocksSettingsActivity::class.java
-                TYPE_HTTP -> HttpSettingsActivity::class.java
-                TYPE_SS -> ShadowsocksSettingsActivity::class.java
-                TYPE_SSR -> ShadowsocksRSettingsActivity::class.java
-                TYPE_VMESS -> VMessSettingsActivity::class.java
-                TYPE_TROJAN -> TrojanSettingsActivity::class.java
-                TYPE_TROJAN_GO -> TrojanGoSettingsActivity::class.java
-                TYPE_MIERU -> MieruSettingsActivity::class.java
-                TYPE_NAIVE -> NaiveSettingsActivity::class.java
-                TYPE_HYSTERIA -> HysteriaSettingsActivity::class.java
-                TYPE_SSH -> SSHSettingsActivity::class.java
-                TYPE_WG -> WireGuardSettingsActivity::class.java
-                TYPE_TUIC -> TuicSettingsActivity::class.java
-                TYPE_JUICITY -> JuicitySettingsActivity::class.java
-                TYPE_SHADOWTLS -> ShadowTLSSettingsActivity::class.java
-                TYPE_ANYTLS -> AnyTLSSettingsActivity::class.java
-                TYPE_CHAIN -> ChainSettingsActivity::class.java
-                TYPE_CONFIG -> ConfigSettingActivity::class.java
-                TYPE_SNELL -> SnellSettingsActivity::class.java
-                else -> throw IllegalArgumentException()
-            }
-        ).apply {
+        val activityClass = ProtocolRegistry.forType(type)?.settingsActivityClass
+            ?: throw IllegalArgumentException("No settings activity for type $type")
+        return Intent(ctx, activityClass).apply {
             putExtra(ProfileSettingsActivity.EXTRA_PROFILE_ID, id)
             putExtra(ProfileSettingsActivity.EXTRA_IS_SUBSCRIPTION, isSubscription)
         }
@@ -601,6 +386,9 @@ data class ProxyEntity(
         @Query("DELETE FROM proxy_entities WHERE id IN (:proxyId)")
         fun deleteById(proxyId: Long): Int
 
+        @Query("DELETE FROM proxy_entities WHERE id IN (:proxyIds)")
+        fun deleteByIds(proxyIds: List<Long>): Int
+
         @Query("DELETE FROM proxy_entities WHERE groupId = :groupId")
         fun deleteByGroup(groupId: Long)
 
@@ -624,6 +412,12 @@ data class ProxyEntity(
 
         @Query("UPDATE proxy_entities SET rx = 0, tx = 0 WHERE id IN (:profileIds)")
         fun resetTraffic(profileIds: LongArray): Int
+        // Additive lifetime accumulation (schema v12). Callers pass the per-session DELTA since
+        // the last flush (never absolute totals) so re-entrant persist() cannot double-count.
+        @Query(
+            "UPDATE proxy_entities SET lifetimeRx = lifetimeRx + :rxDelta, lifetimeTx = lifetimeTx + :txDelta WHERE id = :proxyId",
+        )
+        fun addLifetimeTraffic(proxyId: Long, rxDelta: Long, txDelta: Long): Int
 
         @Insert
         fun addProxy(proxy: ProxyEntity): Long
@@ -636,7 +430,6 @@ data class ProxyEntity(
 
         @Query("DELETE FROM proxy_entities")
         fun reset()
-
     }
 
     override fun describeContents(): Int {

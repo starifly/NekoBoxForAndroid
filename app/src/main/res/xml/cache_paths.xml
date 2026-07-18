@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <cache-path name="cache" path="/"/>
+    <!-- Only the dedicated share/export subfolders are vendable via the FileProvider,
+         not the whole cache root. share/ = exported backups (BackupFragment),
+         log/ = exported logcat/neko.log (SendLog). -->
+    <cache-path name="share" path="share/"/>
+    <cache-path name="log" path="log/"/>
 </paths>

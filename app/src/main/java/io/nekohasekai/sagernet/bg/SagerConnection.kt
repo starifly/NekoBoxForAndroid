@@ -17,7 +17,7 @@ import io.nekohasekai.sagernet.ktx.runOnMainDispatcher
 
 class SagerConnection(
     private var connectionId: Int,
-    private var listenForDeath: Boolean = false
+    private var listenForDeath: Boolean = false,
 ) : ServiceConnection, IBinder.DeathRecipient {
 
     companion object {
@@ -41,7 +41,10 @@ class SagerConnection(
         // smaller ISagerNetServiceCallback
 
         fun cbSpeedUpdate(stats: SpeedDisplayData) {}
-        suspend fun cbTrafficUpdate(data: TrafficDataBatch) {}
+        fun cbTrafficUpdate(data: TrafficData) {}
+        fun cbTrafficUpdateList(data: List<TrafficData>) {
+            data.forEach { cbTrafficUpdate(it) }
+        }
         fun cbSelectorUpdate(id: Long) {}
 
         fun stateChanged(state: BaseService.State, profileName: String?, msg: String?)
@@ -86,6 +89,13 @@ class SagerConnection(
             }
         }
 
+        override fun cbTrafficUpdateList(stats: MutableList<TrafficData>) {
+            val callback = callback ?: return
+            runOnMainDispatcher {
+                callback.cbTrafficUpdateList(stats)
+            }
+        }
+
         override fun cbSelectorUpdate(id: Long) {
             val callback = callback ?: return
             runOnMainDispatcher {
@@ -99,7 +109,6 @@ class SagerConnection(
                 callback.missingPlugin(profileName, pluginName)
             }
         }
-
     }
 
     private var binder: IBinder? = null
@@ -147,9 +156,11 @@ class SagerConnection(
 
     private fun unregisterCallback() {
         val service = service
-        if (service != null && callbackRegistered) try {
-            service.unregisterCallback(serviceCallback)
-        } catch (_: RemoteException) {
+        if (service != null && callbackRegistered) {
+            try {
+                service.unregisterCallback(serviceCallback)
+            } catch (_: RemoteException) {
+            }
         }
         callbackRegistered = false
     }
@@ -165,14 +176,18 @@ class SagerConnection(
 
     fun disconnect(context: Context) {
         unregisterCallback()
-        if (connectionActive) try {
-            context.unbindService(this)
-        } catch (_: IllegalArgumentException) {
-        }   // ignore
+        if (connectionActive) {
+            try {
+                context.unbindService(this)
+            } catch (_: IllegalArgumentException) {
+            } // ignore
+        }
         connectionActive = false
-        if (listenForDeath) try {
-            binder?.unlinkToDeath(this, 0)
-        } catch (_: NoSuchElementException) {
+        if (listenForDeath) {
+            try {
+                binder?.unlinkToDeath(this, 0)
+            } catch (_: NoSuchElementException) {
+            }
         }
         binder = null
         service = null

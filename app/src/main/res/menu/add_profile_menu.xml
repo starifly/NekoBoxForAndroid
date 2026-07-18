@@ -73,11 +73,20 @@
                         android:id="@+id/action_new_snell"
                         android:title="@string/action_snell" />
                     <item
+                        android:id="@+id/action_new_masterdnsvpn"
+                        android:title="@string/action_masterdnsvpn" />
+                    <item
+                        android:id="@+id/action_new_olcrtc"
+                        android:title="@string/action_olcrtc" />
+                    <item
                         android:id="@+id/action_new_ssh"
                         android:title="@string/action_ssh" />
                     <item
                         android:id="@+id/action_new_wg"
                         android:title="@string/action_wireguard" />
+                    <item
+                        android:id="@+id/action_new_awg"
+                        android:title="@string/action_amneziawg" />
                     <item
                         android:id="@+id/action_new_config"
                         android:title="@string/custom_config" />

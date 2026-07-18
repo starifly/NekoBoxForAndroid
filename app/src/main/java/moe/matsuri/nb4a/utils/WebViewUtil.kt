@@ -10,17 +10,17 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 object WebViewUtil {
-    fun onReceivedError(
-        view: WebView?, request: WebResourceRequest?, error: WebResourceError?
-    ) {
+    fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
         if (Build.VERSION.SDK_INT >= 23 && error != null) {
             Logs.e("WebView error description: ${error.description}")
         }
-        Logs.e("WebView error: ${error.toString()}")
+        Logs.e("WebView error: $error")
     }
 
     fun interceptRequest(
-        res: (String) -> InputStream?, view: WebView?, request: WebResourceRequest?
+        res: (String) -> InputStream?,
+        view: WebView?,
+        request: WebResourceRequest?,
     ): WebResourceResponse {
         val path = request?.url?.path ?: "404"
         val input = res(path)
@@ -31,7 +31,9 @@ object WebViewUtil {
             WebResourceResponse(mime, "UTF-8", input)
         } else {
             WebResourceResponse(
-                "text/plain", "UTF-8", ByteArrayInputStream("".toByteArray())
+                "text/plain",
+                "UTF-8",
+                ByteArrayInputStream("".toByteArray()),
             )
         }
     }

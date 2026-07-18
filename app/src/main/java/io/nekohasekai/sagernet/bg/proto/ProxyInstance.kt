@@ -1,13 +1,13 @@
 package io.nekohasekai.sagernet.bg.proto
 
-import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.ServiceNotification
+import io.nekohasekai.sagernet.bg.runRequiredCompletion
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.runBlocking
-import moe.matsuri.nb4a.utils.JavaUtil
 
 class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = null) :
     BoxInstance(profile) {
@@ -23,9 +23,7 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     override fun buildConfig() {
         super.buildConfig()
         lastSelectorGroupId = super.config.selectorGroupId
-        //
-        if (notTmp) Logs.d(config.config)
-        if (notTmp && BuildConfig.DEBUG) Logs.d(JavaUtil.gson.toJson(config.trafficMap))
+        if (notTmp) Logs.d(safeConfigDiagnostics(config, 0))
     }
 
     // only use this in temporary instance
@@ -36,10 +34,7 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
 
     override suspend fun init() {
         super.init()
-        pluginConfigs.forEach { (_, plugin) ->
-            val (_, content) = plugin
-            Logs.d(content)
-        }
+        Logs.d(safeConfigDiagnostics(config, pluginConfigs.size))
     }
 
     override suspend fun loadConfig() {
@@ -49,17 +44,29 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     override fun launch() {
         box.setAsMain()
         super.launch() // start box
-        runOnDefaultDispatcher {
-            looper = service?.let { TrafficLooper(it.data, this) }
-            looper?.start()
-        }
+        // Assign the looper synchronously so close() always observes it (no
+        // launch/close race). GlobalScope matches the previous scope semantics:
+        // runOnDefaultDispatcher was GlobalScope.launch(Dispatchers.Default), and
+        // TrafficLooper.start() launches its own loop on this scope.
+        looper = service?.let { TrafficLooper(it.data, GlobalScope) }
+        looper?.start()
     }
 
-    override fun close() {
+    suspend fun closeAndPersist() = runRequiredCompletion(
+        after = {
+            try {
+                looper?.stop()
+            } finally {
+                looper = null
+            }
+        },
+    ) {
         super.close()
-        runBlocking {
-            looper?.stop()
-            looper = null
-        }
+    }
+
+    // Synchronous compatibility path for Closeable callers. Service teardown uses
+    // closeAndPersist() through runServiceTeardown instead of blocking its caller.
+    override fun close() = runBlocking(Dispatchers.Default) {
+        closeAndPersist()
     }
 }

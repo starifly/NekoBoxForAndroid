@@ -4,7 +4,6 @@ import io.nekohasekai.sagernet.fmt.v2ray.parseDuckSoft
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 fun parseTrojan(server: String): TrojanBean {
-
     val link = server.replace("trojan://", "https://").toHttpUrlOrNull()
         ?: error("invalid trojan link $server")
 
@@ -14,5 +13,4 @@ fun parseTrojan(server: String): TrojanBean {
             ?.apply { if (this == "1" || this == "true") allowInsecure = true }
         link.queryParameter("peer")?.apply { if (this.isNotBlank()) sni = this }
     }
-
 }

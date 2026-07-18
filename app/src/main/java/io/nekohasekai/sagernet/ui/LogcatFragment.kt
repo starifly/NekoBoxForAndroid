@@ -9,7 +9,6 @@ import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
 import android.text.style.ForegroundColorSpan
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.doOnLayout
@@ -18,9 +17,11 @@ import io.nekohasekai.sagernet.databinding.LayoutLogcatBinding
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.widget.ListListener
 import libcore.Libcore
+import moe.matsuri.nb4a.utils.AnsiLog
 import moe.matsuri.nb4a.utils.SendLog
 
-class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
+class LogcatFragment :
+    ToolbarFragment(R.layout.layout_logcat),
     Toolbar.OnMenuItemClickListener {
 
     lateinit var binding: LayoutLogcatBinding
@@ -44,39 +45,34 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         reloadSession()
     }
 
-    private fun getColorForLine(line: String): ForegroundColorSpan {
-        var color = ForegroundColorSpan(Color.GRAY)
-        when {
-            line.contains("INFO[") || line.contains(" [Info]") -> {
-                color = ForegroundColorSpan((0xFF86C166).toInt())
-            }
-
-            line.contains("ERROR[") || line.contains(" [Error]") -> {
-                color = ForegroundColorSpan(Color.RED)
-            }
-
-            line.contains("WARN[") || line.contains(" [Warning]") -> {
-                color = ForegroundColorSpan(Color.RED)
-            }
-        }
-        return color
-    }
-
     private fun reloadSession() {
-        val span = SpannableString(
-            String(SendLog.getNekoLog(50 * 1024))
-        )
-        var offset = 0
-        for (line in span.lines()) {
-            val color = getColorForLine(line)
+        // sing-box bakes ANSI color codes into each log line, so parse them into
+        // foreground spans (instead of rendering the raw escape codes as text) and
+        // keep the colors the core emits (cyan INFO, yellow WARN, red ERROR, the
+        // per-connection-id color, ...).
+        val rendered = AnsiLog.render(String(SendLog.getNekoLog(50 * 1024)))
+        val span = SpannableString(rendered.text)
+        // Dim default for lines the core emits without an ANSI color (e.g. plain
+        // go-log lines), matching the previous viewer's gray fallback.
+        if (rendered.text.isNotEmpty()) {
             span.setSpan(
-                color, offset, offset + line.length, SPAN_EXCLUSIVE_EXCLUSIVE
+                ForegroundColorSpan(Color.GRAY),
+                0,
+                rendered.text.length,
+                SPAN_EXCLUSIVE_EXCLUSIVE,
             )
-            offset += line.length + 1
+        }
+        for (run in rendered.spans) {
+            span.setSpan(
+                ForegroundColorSpan(run.color),
+                run.start,
+                run.end,
+                SPAN_EXCLUSIVE_EXCLUSIVE,
+            )
         }
         binding.textview.text = span
         binding.textview.clearFocus()
-        // 等 textview 完成最终 layout 再滚动到底部
+        // wait for the textview to finish its final layout before scrolling to the bottom
         binding.textview.doOnLayout {
             binding.scroolview.scrollTo(0, binding.textview.height)
         }
@@ -99,7 +95,6 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
                         binding.textview.text = ""
                     }
                 }
-
             }
 
             R.id.action_send_logcat -> {
@@ -115,5 +110,4 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
         }
         return true
     }
-
 }

@@ -1,16 +1,66 @@
 <resources>
-    <!-- Base application theme. -->
-    <style name="Theme.SagerNet" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="actionBarStyle">@style/Widget.MaterialComponents.ActionBar.Solid</item>
+    <!-- Base application theme. Migrated to Material 3 while keeping the app's
+         hand-picked legacy palettes. Components that need legacy behavior get
+         explicit SagerNet widget styles instead of relying on generated M3 tones. -->
+    <style name="Theme.SagerNet" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="actionBarStyle">@style/Widget.Material3.ActionBar.Solid</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar</item>
+        <item name="floatingActionButtonStyle">@style/Widget.SagerNet.FloatingActionButton</item>
+        <!-- Protocol/type label color; defaults to accent, Dracula overrides green. -->
+        <item name="protocolColor">?attr/accentOrTextSecondary</item>
+        <!-- Per-theme semantic colors; default to primary text (no visible change),
+             Dracula overrides them. -->
+        <item name="profileNameColor">?android:attr/textColorPrimary</item>
+        <item name="statusConnectedColor">?attr/colorOnPrimary</item>
+        <item name="statusStoppedColor">?attr/colorOnPrimary</item>
+        <item name="statusConnectingColor">?attr/colorOnPrimary</item>
+        <item name="testFailColor">@color/material_red_500</item>
+        <item name="speedTextColor">?attr/colorOnPrimary</item>
+        <item name="fabStoppedColor">?attr/colorOnPrimary</item>
+        <!-- FAB connected-icon tint; defaults to the connected status color so
+             existing themes are unchanged. -->
+        <item name="fabConnectedColor">?attr/statusConnectedColor</item>
+        <item name="statusDetailColor">?attr/colorOnPrimary</item>
+        <item name="statusTestingColor">?attr/colorOnPrimary</item>
+        <item name="routeProxyColor">@color/color_route_proxy</item>
+        <item name="navSelectedColor">?attr/colorPrimary</item>
+        <!-- Default nav-drawer selected-item fill; also satisfies the
+             ?itemShapeFillColor self-reference in @color/navigation_item so the
+             ColorStateList resolves for every theme. Only Black overrides it;
+             other themes (incl. Dracula) inherit this ?colorPrimary default. -->
+        <item name="itemShapeFillColor">?colorPrimary</item>
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
         <item name="colorButtonNormal">?colorAccent</item>
         <item name="android:navigationBarColor">?colorPrimaryDark</item>
         <item name="colorPrimary">@color/material_pink_500</item>
+        <item name="appBarBackgroundColor">@color/material_pink_500</item>
         <item name="colorPrimaryDark">@color/material_pink_700</item>
         <item name="colorAccent">@color/material_pink_accent_200</item>
+        <item name="colorOnPrimary">@color/white</item>
 
         <item name="colorMaterial100">@color/material_pink_100</item>
         <item name="colorMaterial300">@color/material_pink_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_pink</item>
+
+        <!-- Material 3 color roles. Derived from each theme's own palette so the
+             hand-picked themes keep their look while M3 widgets (Chip, FilledButton,
+             Cards, NavigationView, dialogs) resolve a real role instead of falling
+             back to the library's generated grayscale tones. Special themes
+             (Dracula, Black, black-on-light accents) override these explicitly. -->
+        <item name="colorPrimaryContainer">?attr/colorMaterial100</item>
+        <item name="colorOnPrimaryContainer">?android:attr/textColorPrimary</item>
+        <item name="colorSecondary">?colorAccent</item>
+        <item name="colorOnSecondary">?attr/colorOnPrimary</item>
+        <item name="colorSecondaryContainer">?attr/colorMaterial100</item>
+        <item name="colorOnSecondaryContainer">?android:attr/textColorPrimary</item>
+        <item name="colorTertiary">?colorAccent</item>
+        <item name="colorOnTertiary">?attr/colorOnPrimary</item>
+        <item name="colorTertiaryContainer">?attr/colorMaterial100</item>
+        <item name="colorOnTertiaryContainer">?android:attr/textColorPrimary</item>
+        <item name="colorSurfaceVariant">?attr/colorSurface</item>
+        <item name="colorOnSurfaceVariant">?android:attr/textColorSecondary</item>
+        <item name="colorOutline">@color/m3_outline</item>
+        <item name="colorOutlineVariant">@color/card_stroke</item>
 
         <!-- 立体卡片提升表面色，默认 = Pink；各配色变体在下方各自覆盖 -->
         <item name="cardElevatedSurfaceColor">@color/card_elevated_pink</item>
@@ -35,10 +85,10 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
 
-        <item name="chipStyle">@style/Widget.MaterialComponents.Chip.Choice.SagerNet</item>
+        <item name="chipStyle">@style/Widget.SagerNet.Chip.Choice</item>
 
         <item name="itemShapeAppearance">
-            @style/ShapeAppearance.MaterialComponents.MediumComponent
+            @style/ShapeAppearance.Material3.MediumComponent
         </item>
 
         <item name="alertDialogTheme">
@@ -46,7 +96,7 @@
         </item>
 
         <item name="materialAlertDialogTheme">
-            @style/ThemeOverlay.MaterialComponents.MaterialAlertDialog.SagerNet
+            @style/ThemeOverlay.SagerNet.MaterialAlertDialog
         </item>
 
         <item name="materialCardViewStyle">@style/Widget.SagerNet.CardView</item>
@@ -58,17 +108,58 @@
 
     </style>
 
-    <style name="Theme.SagerNet.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
-        <item name="actionBarStyle">@style/Widget.MaterialComponents.ActionBar.Solid</item>
+    <style name="Theme.SagerNet.Dialog" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="actionBarStyle">@style/Widget.Material3.ActionBar.Solid</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar</item>
+        <item name="floatingActionButtonStyle">@style/Widget.SagerNet.FloatingActionButton</item>
+        <item name="protocolColor">?attr/accentOrTextSecondary</item>
+        <item name="profileNameColor">?android:attr/textColorPrimary</item>
+        <item name="statusConnectedColor">?attr/colorOnPrimary</item>
+        <item name="statusStoppedColor">?attr/colorOnPrimary</item>
+        <item name="statusConnectingColor">?attr/colorOnPrimary</item>
+        <item name="testFailColor">@color/material_red_500</item>
+        <item name="speedTextColor">?attr/colorOnPrimary</item>
+        <item name="fabStoppedColor">?attr/colorOnPrimary</item>
+        <!-- FAB connected-icon tint; defaults to the connected status color so
+             existing themes are unchanged. -->
+        <item name="fabConnectedColor">?attr/statusConnectedColor</item>
+        <item name="statusDetailColor">?attr/colorOnPrimary</item>
+        <item name="statusTestingColor">?attr/colorOnPrimary</item>
+        <item name="routeProxyColor">@color/color_route_proxy</item>
+        <item name="navSelectedColor">?attr/colorPrimary</item>
+        <item name="itemShapeFillColor">?colorPrimary</item>
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
         <item name="colorButtonNormal">?colorAccent</item>
         <item name="android:navigationBarColor">?colorPrimaryDark</item>
         <item name="colorPrimary">@color/material_pink_500</item>
+        <item name="appBarBackgroundColor">@color/material_pink_500</item>
         <item name="colorPrimaryDark">@color/material_pink_700</item>
         <item name="colorAccent">@color/material_pink_accent_200</item>
+        <item name="colorOnPrimary">@color/white</item>
 
         <item name="colorMaterial100">@color/material_pink_100</item>
         <item name="colorMaterial300">@color/material_pink_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_pink</item>
+
+        <!-- Material 3 color roles. Derived from each theme's own palette so the
+             hand-picked themes keep their look while M3 widgets (Chip, FilledButton,
+             Cards, NavigationView, dialogs) resolve a real role instead of falling
+             back to the library's generated grayscale tones. Special themes
+             (Dracula, Black, black-on-light accents) override these explicitly. -->
+        <item name="colorPrimaryContainer">?attr/colorMaterial100</item>
+        <item name="colorOnPrimaryContainer">?android:attr/textColorPrimary</item>
+        <item name="colorSecondary">?colorAccent</item>
+        <item name="colorOnSecondary">?attr/colorOnPrimary</item>
+        <item name="colorSecondaryContainer">?attr/colorMaterial100</item>
+        <item name="colorOnSecondaryContainer">?android:attr/textColorPrimary</item>
+        <item name="colorTertiary">?colorAccent</item>
+        <item name="colorOnTertiary">?attr/colorOnPrimary</item>
+        <item name="colorTertiaryContainer">?attr/colorMaterial100</item>
+        <item name="colorOnTertiaryContainer">?android:attr/textColorPrimary</item>
+        <item name="colorSurfaceVariant">?attr/colorSurface</item>
+        <item name="colorOnSurfaceVariant">?android:attr/textColorSecondary</item>
+        <item name="colorOutline">@color/m3_outline</item>
+        <item name="colorOutlineVariant">@color/card_stroke</item>
 
         <!-- 立体卡片提升表面色，默认 = Pink；各配色变体在下方各自覆盖 -->
         <item name="cardElevatedSurfaceColor">@color/card_elevated_pink</item>
@@ -93,10 +184,10 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
 
-        <item name="chipStyle">@style/Widget.MaterialComponents.Chip.Choice.SagerNet</item>
+        <item name="chipStyle">@style/Widget.SagerNet.Chip.Choice</item>
 
         <item name="itemShapeAppearance">
-            @style/ShapeAppearance.MaterialComponents.MediumComponent
+            @style/ShapeAppearance.Material3.MediumComponent
         </item>
 
         <item name="alertDialogTheme">
@@ -104,7 +195,7 @@
         </item>
 
         <item name="materialAlertDialogTheme">
-            @style/ThemeOverlay.MaterialComponents.MaterialAlertDialog.SagerNet
+            @style/ThemeOverlay.SagerNet.MaterialAlertDialog
         </item>
 
         <item name="materialCardViewStyle">@style/Widget.SagerNet.CardView</item>
@@ -125,28 +216,28 @@
         <item name="android:textStyle">bold</item>
     </style>
 
-    <style name="ThemeOverlay.MaterialComponents.MaterialAlertDialog.SagerNet">
+    <style name="ThemeOverlay.SagerNet.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.SagerNet.Dialog</item>
         <item name="buttonBarPositiveButtonStyle">
-            @style/Widget.MaterialComponents.Button.TextButton.Dialog.Primary
+            @style/Widget.SagerNet.Button.TextButton.Dialog
         </item>
         <item name="buttonBarNegativeButtonStyle">
-            @style/Widget.MaterialComponents.Button.TextButton.Dialog.Primary
+            @style/Widget.SagerNet.Button.TextButton.Dialog
         </item>
         <item name="buttonBarNeutralButtonStyle">
-            @style/Widget.MaterialComponents.Button.TextButton.Dialog.Flush.Primary
+            @style/Widget.SagerNet.Button.TextButton.Dialog.Flush
         </item>
     </style>
 
-    <style name="Widget.MaterialComponents.Button.TextButton.Dialog.Primary">
+    <style name="Widget.SagerNet.Button.TextButton.Dialog" parent="Widget.Material3.Button.TextButton.Dialog">
         <item name="android:textColor">?primaryOrTextPrimary</item>
     </style>
 
-    <style name="Widget.MaterialComponents.Button.TextButton.Dialog.Flush.Primary">
+    <style name="Widget.SagerNet.Button.TextButton.Dialog.Flush" parent="Widget.Material3.Button.TextButton.Dialog.Flush">
         <item name="android:textColor">?primaryOrTextPrimary</item>
     </style>
 
-    <style name="Widget.MaterialComponents.Chip.Choice.SagerNet">
+    <style name="Widget.SagerNet.Chip.Choice" parent="Widget.Material3.Chip.Suggestion">
         <item name="textStartPadding">30dp</item>
         <item name="textEndPadding">30dp</item>
         <item name="chipBackgroundColor">@color/chip_background</item>
@@ -155,7 +246,46 @@
         <item name="rippleColor">@color/chip_ripple_color</item>
     </style>
 
-    <style name="Widget.SagerNet.CardView" parent="Widget.MaterialComponents.CardView">
+    <style name="Widget.SagerNet.BottomAppBar" parent="Widget.Material3.BottomAppBar">
+        <item name="backgroundTint">?attr/colorPrimary</item>
+        <item name="fabAlignmentMode">center</item>
+        <item name="fabAlignmentModeEndMargin">@null</item>
+        <item name="fabAnchorMode">cradle</item>
+        <item name="menuAlignmentMode">auto</item>
+        <item name="removeEmbeddedFabElevation">false</item>
+    </style>
+
+    <!-- Dark High Contrast bottom bar: black surface (not the green primary) so the
+         green/blue/red status text reads against it, matching the OLED design. -->
+    <style name="Widget.SagerNet.BottomAppBar.DarkHighContrast" parent="Widget.SagerNet.BottomAppBar">
+        <item name="backgroundTint">?attr/colorSurface</item>
+    </style>
+
+    <style name="Widget.SagerNet.BottomAppBar.DraculaM3" parent="Widget.SagerNet.BottomAppBar">
+        <item name="backgroundTint">?attr/colorSurface</item>
+    </style>
+    <style name="Widget.SagerNet.BottomAppBar.Nord" parent="Widget.SagerNet.BottomAppBar">
+        <item name="backgroundTint">?attr/colorSurface</item>
+    </style>
+    <style name="Widget.SagerNet.BottomAppBar.Monokai" parent="Widget.SagerNet.BottomAppBar">
+        <item name="backgroundTint">?attr/colorSurface</item>
+    </style>
+    <style name="Widget.SagerNet.BottomAppBar.Ayu" parent="Widget.SagerNet.BottomAppBar">
+        <item name="backgroundTint">?attr/colorSurface</item>
+    </style>
+    <style name="Widget.SagerNet.BottomAppBar.Catppuccin" parent="Widget.SagerNet.BottomAppBar">
+        <item name="backgroundTint">?attr/colorSurface</item>
+    </style>
+
+    <style name="Widget.SagerNet.FloatingActionButton" parent="Widget.Material3.FloatingActionButton.Primary">
+        <item name="backgroundTint">?attr/fabColorBackground</item>
+        <item name="tint">?attr/colorOnPrimary</item>
+    </style>
+
+    <!-- Use the Material 3 *Outlined* card as the base so M3's surface-tint elevation
+         overlay is not applied; the app sets its own card background/stroke colors and an
+         olive tint was bleeding through Filled cards on the custom (non-M3-role) themes. -->
+    <style name="Widget.SagerNet.CardView" parent="Widget.Material3.CardView.Outlined">
         <item name="cardElevation">0dp</item>
         <item name="cardCornerRadius">@dimen/card_corner_radius</item>
         <item name="strokeColor">@color/card_stroke</item>
@@ -183,20 +313,26 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">@dimen/input_corner_radius</item>
     </style>
-    <style name="Widget.SagerNet.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+    <style name="Widget.SagerNet.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
         <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.SagerNet.Input</item>
     </style>
+
+    <!-- DayNight-aware popup overlay for the MaterialToolbar overflow menu. The
+         toolbar itself uses a Dark ActionBar overlay (icons/title on the colored
+         primary bar); the overflow dropdown should follow day/night surfaces
+         instead, the M3 replacement for the old ThemeOverlay.AppCompat.DayNight. -->
+    <style name="ThemeOverlay.SagerNet.Toolbar.Popup" parent="ThemeOverlay.Material3" />
 
     <style name="PopupMenuAnimation">
         <item name="android:windowEnterAnimation">@anim/popup_enter</item>
         <item name="android:windowExitAnimation">@anim/popup_exit</item>
     </style>
 
-    <style name="Widget.SagerNet.PopupMenu" parent="Widget.MaterialComponents.PopupMenu">
+    <style name="Widget.SagerNet.PopupMenu" parent="Widget.Material3.PopupMenu">
         <item name="android:popupBackground">@drawable/bg_popup_menu</item>
         <item name="android:popupAnimationStyle">@style/PopupMenuAnimation</item>
     </style>
-    <style name="Widget.SagerNet.PopupMenu.Overflow" parent="Widget.MaterialComponents.PopupMenu.Overflow">
+    <style name="Widget.SagerNet.PopupMenu.Overflow" parent="Widget.Material3.PopupMenu.Overflow">
         <item name="android:popupBackground">@drawable/bg_popup_menu</item>
         <item name="android:popupAnimationStyle">@style/PopupMenuAnimation</item>
     </style>
@@ -208,10 +344,10 @@
         <item name="cornerSizeBottomLeft">0dp</item>
         <item name="cornerSizeBottomRight">0dp</item>
     </style>
-    <style name="Widget.SagerNet.BottomSheet" parent="Widget.MaterialComponents.BottomSheet.Modal">
+    <style name="Widget.SagerNet.BottomSheet" parent="Widget.Material3.BottomSheet.Modal">
         <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.SagerNet.BottomSheet</item>
     </style>
-    <style name="ThemeOverlay.SagerNet.BottomSheetDialog" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
+    <style name="ThemeOverlay.SagerNet.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/Widget.SagerNet.BottomSheet</item>
     </style>
 
@@ -219,21 +355,22 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">@dimen/button_corner_radius</item>
     </style>
-    <style name="Widget.SagerNet.Button" parent="Widget.MaterialComponents.Button">
+    <style name="Widget.SagerNet.Button" parent="Widget.Material3.Button">
         <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.SagerNet.Button</item>
     </style>
 
-    <style name="ShapeAppearance.SagerNet.NavItem" parent="ShapeAppearance.MaterialComponents.SmallComponent">
+    <style name="ShapeAppearance.SagerNet.NavItem" parent="ShapeAppearance.Material3.SmallComponent">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">@dimen/nav_item_corner_radius</item>
     </style>
 
-    <style name="ThemeOverlay.SagerNet.AlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog.SagerNet">
+    <style name="ThemeOverlay.SagerNet.AlertDialog" parent="ThemeOverlay.SagerNet.MaterialAlertDialog">
         <item name="android:windowBackground">@drawable/bg_dialog</item>
     </style>
 
     <style name="Theme.SagerNet.Pink_SSR" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/color_pink_ssr</item>
+        <item name="appBarBackgroundColor">@color/color_pink_ssr</item>
         <item name="colorPrimaryDark">@color/color_pink_ssr</item>
         <item name="colorAccent">@color/material_pink_accent_200</item>
         <item name="colorMaterial100">@color/material_pink_accent_100</item>
@@ -243,8 +380,10 @@
 
     <style name="Theme.SagerNet.Amber" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_amber_500</item>
+        <item name="appBarBackgroundColor">@color/material_amber_500</item>
         <item name="colorPrimaryDark">@color/material_amber_700</item>
         <item name="colorAccent">@color/material_amber_accent_200</item>
+        <item name="colorOnPrimary">@color/black</item>
         <item name="colorMaterial100">@color/material_amber_100</item>
         <item name="colorMaterial300">@color/material_amber_300</item>
         <item name="cardElevatedSurfaceColor">@color/card_elevated_amber</item>
@@ -252,6 +391,7 @@
 
     <style name="Theme.SagerNet.Blue" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_blue_500</item>
+        <item name="appBarBackgroundColor">@color/material_blue_500</item>
         <item name="colorPrimaryDark">@color/material_blue_700</item>
         <item name="colorAccent">@color/material_blue_accent_200</item>
         <item name="colorMaterial100">@color/material_blue_100</item>
@@ -261,6 +401,7 @@
 
     <style name="Theme.SagerNet.BlueGrey" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_blue_grey_500</item>
+        <item name="appBarBackgroundColor">@color/material_blue_grey_500</item>
         <item name="colorPrimaryDark">@color/material_blue_grey_700</item>
         <item name="colorAccent">@color/material_blue_grey_200</item>
         <item name="colorMaterial100">@color/material_blue_grey_100</item>
@@ -270,6 +411,7 @@
 
     <style name="Theme.SagerNet.Brown" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_brown_500</item>
+        <item name="appBarBackgroundColor">@color/material_brown_500</item>
         <item name="colorPrimaryDark">@color/material_brown_700</item>
         <item name="colorAccent">@color/material_brown_200</item>
         <item name="colorMaterial100">@color/material_brown_100</item>
@@ -279,6 +421,7 @@
 
     <style name="Theme.SagerNet.Cyan" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_cyan_500</item>
+        <item name="appBarBackgroundColor">@color/material_cyan_500</item>
         <item name="colorPrimaryDark">@color/material_cyan_700</item>
         <item name="colorAccent">@color/material_cyan_accent_200</item>
         <item name="colorMaterial100">@color/material_cyan_100</item>
@@ -288,6 +431,7 @@
 
     <style name="Theme.SagerNet.DeepOrange" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_deep_orange_500</item>
+        <item name="appBarBackgroundColor">@color/material_deep_orange_500</item>
         <item name="colorPrimaryDark">@color/material_deep_orange_700</item>
         <item name="colorAccent">@color/material_deep_orange_accent_200</item>
         <item name="colorMaterial100">@color/material_deep_orange_100</item>
@@ -297,6 +441,7 @@
 
     <style name="Theme.SagerNet.DeepPurple" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_deep_purple_500</item>
+        <item name="appBarBackgroundColor">@color/material_deep_purple_500</item>
         <item name="colorPrimaryDark">@color/material_deep_purple_700</item>
         <item name="colorAccent">@color/material_deep_purple_accent_200</item>
         <item name="colorMaterial100">@color/material_deep_purple_100</item>
@@ -306,6 +451,7 @@
 
     <style name="Theme.SagerNet.Green" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_green_500</item>
+        <item name="appBarBackgroundColor">@color/material_green_500</item>
         <item name="colorPrimaryDark">@color/material_green_700</item>
         <item name="colorAccent">@color/material_green_accent_200</item>
         <item name="colorMaterial100">@color/material_green_100</item>
@@ -315,6 +461,7 @@
 
     <style name="Theme.SagerNet.Grey" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_grey_500</item>
+        <item name="appBarBackgroundColor">@color/material_grey_500</item>
         <item name="colorPrimaryDark">@color/material_grey_700</item>
         <item name="colorAccent">@color/material_grey_200</item>
         <item name="colorMaterial100">@color/material_grey_100</item>
@@ -324,6 +471,7 @@
 
     <style name="Theme.SagerNet.Indigo" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_indigo_500</item>
+        <item name="appBarBackgroundColor">@color/material_indigo_500</item>
         <item name="colorPrimaryDark">@color/material_indigo_700</item>
         <item name="colorAccent">@color/material_indigo_accent_200</item>
         <item name="colorMaterial100">@color/material_indigo_100</item>
@@ -333,6 +481,7 @@
 
     <style name="Theme.SagerNet.LightBlue" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_light_blue_500</item>
+        <item name="appBarBackgroundColor">@color/material_light_blue_500</item>
         <item name="colorPrimaryDark">@color/material_light_blue_700</item>
         <item name="colorAccent">@color/material_light_blue_accent_200</item>
         <item name="colorMaterial100">@color/material_light_blue_100</item>
@@ -342,6 +491,7 @@
 
     <style name="Theme.SagerNet.LightGreen" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_light_green_500</item>
+        <item name="appBarBackgroundColor">@color/material_light_green_500</item>
         <item name="colorPrimaryDark">@color/material_light_green_700</item>
         <item name="colorAccent">@color/material_light_green_accent_200</item>
         <item name="colorMaterial100">@color/material_light_green_100</item>
@@ -351,8 +501,10 @@
 
     <style name="Theme.SagerNet.Lime" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_lime_500</item>
+        <item name="appBarBackgroundColor">@color/material_lime_500</item>
         <item name="colorPrimaryDark">@color/material_lime_700</item>
         <item name="colorAccent">@color/material_lime_accent_200</item>
+        <item name="colorOnPrimary">@color/black</item>
         <item name="colorMaterial100">@color/material_lime_100</item>
         <item name="colorMaterial300">@color/material_lime_300</item>
         <item name="cardElevatedSurfaceColor">@color/card_elevated_lime</item>
@@ -360,6 +512,7 @@
 
     <style name="Theme.SagerNet.Orange" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_orange_500</item>
+        <item name="appBarBackgroundColor">@color/material_orange_500</item>
         <item name="colorPrimaryDark">@color/material_orange_700</item>
         <item name="colorAccent">@color/material_orange_accent_200</item>
         <item name="colorMaterial100">@color/material_orange_100</item>
@@ -369,6 +522,7 @@
 
     <style name="Theme.SagerNet.Purple" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_purple_500</item>
+        <item name="appBarBackgroundColor">@color/material_purple_500</item>
         <item name="colorPrimaryDark">@color/material_purple_700</item>
         <item name="colorAccent">@color/material_purple_accent_200</item>
         <item name="colorMaterial100">@color/material_purple_100</item>
@@ -378,6 +532,7 @@
 
     <style name="Theme.SagerNet.Red" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_red_500</item>
+        <item name="appBarBackgroundColor">@color/material_red_500</item>
         <item name="colorPrimaryDark">@color/material_red_700</item>
         <item name="colorAccent">@color/material_red_accent_200</item>
         <item name="colorMaterial100">@color/material_red_100</item>
@@ -387,6 +542,7 @@
 
     <style name="Theme.SagerNet.Teal" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_teal_500</item>
+        <item name="appBarBackgroundColor">@color/material_teal_500</item>
         <item name="colorPrimaryDark">@color/material_teal_700</item>
         <item name="colorAccent">@color/material_teal_accent_200</item>
         <item name="colorMaterial100">@color/material_teal_100</item>
@@ -396,8 +552,10 @@
 
     <style name="Theme.SagerNet.Yellow" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/material_yellow_500</item>
+        <item name="appBarBackgroundColor">@color/material_yellow_500</item>
         <item name="colorPrimaryDark">@color/material_yellow_700</item>
         <item name="colorAccent">@color/material_yellow_accent_200</item>
+        <item name="colorOnPrimary">@color/black</item>
         <item name="colorMaterial100">@color/material_yellow_100</item>
         <item name="colorMaterial300">@color/material_yellow_300</item>
         <item name="cardElevatedSurfaceColor">@color/card_elevated_yellow</item>
@@ -406,8 +564,10 @@
 
     <style name="Theme.SagerNet.Dialog.Amber" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_amber_500</item>
+        <item name="appBarBackgroundColor">@color/material_amber_500</item>
         <item name="colorPrimaryDark">@color/material_amber_700</item>
         <item name="colorAccent">@color/material_amber_accent_200</item>
+        <item name="colorOnPrimary">@color/black</item>
         <item name="colorMaterial100">@color/material_amber_100</item>
         <item name="colorMaterial300">@color/material_amber_300</item>
         <item name="cardElevatedSurfaceColor">@color/card_elevated_amber</item>
@@ -415,6 +575,7 @@
 
     <style name="Theme.SagerNet.Dialog.Blue" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_blue_500</item>
+        <item name="appBarBackgroundColor">@color/material_blue_500</item>
         <item name="colorPrimaryDark">@color/material_blue_700</item>
         <item name="colorAccent">@color/material_blue_accent_200</item>
         <item name="colorMaterial100">@color/material_blue_100</item>
@@ -424,6 +585,7 @@
 
     <style name="Theme.SagerNet.Dialog.BlueGrey" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_blue_grey_500</item>
+        <item name="appBarBackgroundColor">@color/material_blue_grey_500</item>
         <item name="colorPrimaryDark">@color/material_blue_grey_700</item>
         <item name="colorAccent">@color/material_blue_grey_200</item>
         <item name="colorMaterial100">@color/material_blue_grey_100</item>
@@ -433,6 +595,7 @@
 
     <style name="Theme.SagerNet.Dialog.Brown" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_brown_500</item>
+        <item name="appBarBackgroundColor">@color/material_brown_500</item>
         <item name="colorPrimaryDark">@color/material_brown_700</item>
         <item name="colorAccent">@color/material_brown_200</item>
         <item name="colorMaterial100">@color/material_brown_100</item>
@@ -442,6 +605,7 @@
 
     <style name="Theme.SagerNet.Dialog.Cyan" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_cyan_500</item>
+        <item name="appBarBackgroundColor">@color/material_cyan_500</item>
         <item name="colorPrimaryDark">@color/material_cyan_700</item>
         <item name="colorAccent">@color/material_cyan_accent_200</item>
         <item name="colorMaterial100">@color/material_cyan_100</item>
@@ -451,6 +615,7 @@
 
     <style name="Theme.SagerNet.Dialog.DeepOrange" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_deep_orange_500</item>
+        <item name="appBarBackgroundColor">@color/material_deep_orange_500</item>
         <item name="colorPrimaryDark">@color/material_deep_orange_700</item>
         <item name="colorAccent">@color/material_deep_orange_accent_200</item>
         <item name="colorMaterial100">@color/material_deep_orange_100</item>
@@ -460,6 +625,7 @@
 
     <style name="Theme.SagerNet.Dialog.DeepPurple" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_deep_purple_500</item>
+        <item name="appBarBackgroundColor">@color/material_deep_purple_500</item>
         <item name="colorPrimaryDark">@color/material_deep_purple_700</item>
         <item name="colorAccent">@color/material_deep_purple_accent_200</item>
         <item name="colorMaterial100">@color/material_deep_purple_100</item>
@@ -469,6 +635,7 @@
 
     <style name="Theme.SagerNet.Dialog.Green" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_green_500</item>
+        <item name="appBarBackgroundColor">@color/material_green_500</item>
         <item name="colorPrimaryDark">@color/material_green_700</item>
         <item name="colorAccent">@color/material_green_accent_200</item>
         <item name="colorMaterial100">@color/material_green_100</item>
@@ -478,6 +645,7 @@
 
     <style name="Theme.SagerNet.Dialog.Grey" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_grey_500</item>
+        <item name="appBarBackgroundColor">@color/material_grey_500</item>
         <item name="colorPrimaryDark">@color/material_grey_700</item>
         <item name="colorAccent">@color/material_grey_200</item>
         <item name="colorMaterial100">@color/material_grey_100</item>
@@ -487,6 +655,7 @@
 
     <style name="Theme.SagerNet.Dialog.Indigo" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_indigo_500</item>
+        <item name="appBarBackgroundColor">@color/material_indigo_500</item>
         <item name="colorPrimaryDark">@color/material_indigo_700</item>
         <item name="colorAccent">@color/material_indigo_accent_200</item>
         <item name="colorMaterial100">@color/material_indigo_100</item>
@@ -496,6 +665,7 @@
 
     <style name="Theme.SagerNet.Dialog.LightBlue" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_light_blue_500</item>
+        <item name="appBarBackgroundColor">@color/material_light_blue_500</item>
         <item name="colorPrimaryDark">@color/material_light_blue_700</item>
         <item name="colorAccent">@color/material_light_blue_accent_200</item>
         <item name="colorMaterial100">@color/material_light_blue_100</item>
@@ -505,6 +675,7 @@
 
     <style name="Theme.SagerNet.Dialog.LightGreen" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_light_green_500</item>
+        <item name="appBarBackgroundColor">@color/material_light_green_500</item>
         <item name="colorPrimaryDark">@color/material_light_green_700</item>
         <item name="colorAccent">@color/material_light_green_accent_200</item>
         <item name="colorMaterial100">@color/material_light_green_100</item>
@@ -514,8 +685,10 @@
 
     <style name="Theme.SagerNet.Dialog.Lime" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_lime_500</item>
+        <item name="appBarBackgroundColor">@color/material_lime_500</item>
         <item name="colorPrimaryDark">@color/material_lime_700</item>
         <item name="colorAccent">@color/material_lime_accent_200</item>
+        <item name="colorOnPrimary">@color/black</item>
         <item name="colorMaterial100">@color/material_lime_100</item>
         <item name="colorMaterial300">@color/material_lime_300</item>
         <item name="cardElevatedSurfaceColor">@color/card_elevated_lime</item>
@@ -523,6 +696,7 @@
 
     <style name="Theme.SagerNet.Dialog.Orange" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_orange_500</item>
+        <item name="appBarBackgroundColor">@color/material_orange_500</item>
         <item name="colorPrimaryDark">@color/material_orange_700</item>
         <item name="colorAccent">@color/material_orange_accent_200</item>
         <item name="colorMaterial100">@color/material_orange_100</item>
@@ -532,6 +706,7 @@
 
     <style name="Theme.SagerNet.Dialog.Purple" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_purple_500</item>
+        <item name="appBarBackgroundColor">@color/material_purple_500</item>
         <item name="colorPrimaryDark">@color/material_purple_700</item>
         <item name="colorAccent">@color/material_purple_accent_200</item>
         <item name="colorMaterial100">@color/material_purple_100</item>
@@ -541,6 +716,7 @@
 
     <style name="Theme.SagerNet.Dialog.Red" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_red_500</item>
+        <item name="appBarBackgroundColor">@color/material_red_500</item>
         <item name="colorPrimaryDark">@color/material_red_700</item>
         <item name="colorAccent">@color/material_red_accent_200</item>
         <item name="colorMaterial100">@color/material_red_100</item>
@@ -550,6 +726,7 @@
 
     <style name="Theme.SagerNet.Dialog.Pink_SSR" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/color_pink_ssr</item>
+        <item name="appBarBackgroundColor">@color/color_pink_ssr</item>
         <item name="colorPrimaryDark">@color/color_pink_ssr</item>
         <item name="colorAccent">@color/material_pink_accent_200</item>
         <item name="colorMaterial100">@color/material_pink_accent_100</item>
@@ -559,6 +736,7 @@
 
     <style name="Theme.SagerNet.Dialog.Teal" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_teal_500</item>
+        <item name="appBarBackgroundColor">@color/material_teal_500</item>
         <item name="colorPrimaryDark">@color/material_teal_700</item>
         <item name="colorAccent">@color/material_teal_accent_200</item>
         <item name="colorMaterial100">@color/material_teal_100</item>
@@ -568,8 +746,10 @@
 
     <style name="Theme.SagerNet.Dialog.Yellow" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/material_yellow_500</item>
+        <item name="appBarBackgroundColor">@color/material_yellow_500</item>
         <item name="colorPrimaryDark">@color/material_yellow_700</item>
         <item name="colorAccent">@color/material_yellow_accent_200</item>
+        <item name="colorOnPrimary">@color/black</item>
         <item name="colorMaterial100">@color/material_yellow_100</item>
         <item name="colorMaterial300">@color/material_yellow_300</item>
         <item name="cardElevatedSurfaceColor">@color/card_elevated_yellow</item>
@@ -578,6 +758,7 @@
 
     <style name="Theme.SagerNet.Black" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/color_ng_black_primary</item>
+        <item name="appBarBackgroundColor">@color/color_ng_black_primary</item>
         <item name="colorPrimaryDark">@color/color_ng_black_primary</item>
         <item name="colorAccent">@color/color_ng_black_accent</item>
         <item name="colorMaterial100">@color/color_ng_black_primary</item>
@@ -585,8 +766,16 @@
         <item name="cardElevatedSurfaceColor">@color/card_elevated_black</item>
 
         <item name="selectedColorPrimary">@color/color_ng_black_accent</item>
-        <item name="fabColorBackground">@color/color_ng_black_accent</item>
+        <item name="fabColorBackground">@color/color_ng_black_primary</item>
         <item name="itemShapeFillColor">@color/color_ng_black_accent</item>
+        <item name="navSelectedColor">@color/color_ng_black_accent</item>
+
+        <!-- Keep M3 surfaces on the Black palette (no library gray fallback). -->
+        <item name="colorPrimaryContainer">@color/color_ng_black_container</item>
+        <item name="colorSecondaryContainer">@color/color_ng_black_container</item>
+        <item name="colorTertiaryContainer">@color/color_ng_black_container</item>
+        <item name="colorSurfaceVariant">@color/color_ng_black_surface_variant</item>
+        <item name="colorOutline">@color/color_ng_black_accent</item>
 
         <item name="accentOrTextSecondary">?android:textColorSecondary</item>
         <item name="accentOrTextPrimary">?android:textColorPrimary</item>
@@ -596,6 +785,7 @@
 
     <style name="Theme.SagerNet.VerdantMint" parent="Theme.SagerNet">
         <item name="colorPrimary">@color/color_verdant_mint</item>
+        <item name="appBarBackgroundColor">@color/color_verdant_mint</item>
         <item name="colorPrimaryDark">@color/color_verdant_mint_dark</item>
         <item name="colorAccent">@color/color_verdant_mint_accent</item>
         <item name="colorMaterial100">@color/color_verdant_mint_100</item>
@@ -603,8 +793,376 @@
         <item name="cardElevatedSurfaceColor">@color/card_elevated_verdant_mint</item>
     </style>
 
+    <!-- Dracula: purple primary, pink accent. Accent colors apply in any mode;
+         the true #282a36 dark canvas (colorSurface/colorBackground/colorOnSurface)
+         is layered on in values-night/themes.xml. Selecting this theme forces
+         night mode on (see SettingsPreferenceFragment). -->
+    <style name="Theme.SagerNet.Dracula" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/color_dracula</item>
+        <item name="appBarBackgroundColor">@color/color_dracula</item>
+        <item name="colorPrimaryDark">@color/color_dracula_dark</item>
+        <item name="colorAccent">@color/color_dracula_accent</item>
+        <item name="colorMaterial100">@color/color_dracula_100</item>
+        <item name="colorMaterial300">@color/color_dracula_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_dracula</item>
+        <item name="protocolColor">@color/color_dracula_green</item>
+        <item name="profileNameColor">@color/color_dracula_yellow</item>
+        <item name="statusConnectedColor">@color/color_dracula_green</item>
+        <item name="statusStoppedColor">@color/color_dracula_red</item>
+        <item name="statusConnectingColor">@color/color_dracula_yellow</item>
+        <item name="testFailColor">@color/color_dracula_red</item>
+        <item name="speedTextColor">@color/color_dracula_cyan</item>
+        <item name="fabStoppedColor">@color/color_dracula_cyan</item>
+        <item name="statusDetailColor">@color/color_dracula_cyan</item>
+        <item name="statusTestingColor">@color/color_dracula_yellow</item>
+        <item name="routeProxyColor">@color/color_dracula_cyan</item>
+        <item name="navSelectedColor">?attr/colorAccent</item>
+    </style>
+
+    <!-- Dark High Contrast (OLED): full Material 3 dark-only theme on a true black
+         canvas. Green-primary action accent (GitHub style), bright blue secondary.
+         The full dark canvas is declared here too (not only values-night) so the
+         theme never flashes a light surface; selecting it also forces night mode
+         on (see SettingsPreferenceFragment). -->
+    <style name="Theme.SagerNet.DarkHighContrast" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/dhc_primary</item>
+        <item name="appBarBackgroundColor">@color/dhc_background</item>
+        <item name="colorPrimaryDark">@color/dhc_primary_dark</item>
+        <item name="colorAccent">@color/dhc_primary</item>
+        <item name="colorOnPrimary">@color/dhc_on_primary</item>
+        <item name="colorMaterial100">@color/dhc_100</item>
+        <item name="colorMaterial300">@color/dhc_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_dhc</item>
+
+        <!-- True OLED black canvas. -->
+        <item name="colorSurface">@color/dhc_surface</item>
+        <item name="colorOnSurface">@color/dhc_on_surface</item>
+        <item name="android:colorBackground">@color/dhc_background</item>
+        <item name="colorOnBackground">@color/dhc_on_surface</item>
+        <item name="android:windowBackground">@color/dhc_background</item>
+
+        <!-- M3 dark chrome: app bar / bottom bar use the black surface, not the
+             green primary, so green/blue/red accents are reserved for actions and
+             status. Status & nav bars are black to match the OLED canvas. -->
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar.DarkHighContrast</item>
+        <item name="android:statusBarColor">@color/dhc_background</item>
+        <item name="android:navigationBarColor">@color/dhc_background</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
+        <item name="tabTextColor">@color/dhc_on_surface_variant</item>
+        <item name="tabSelectedTextColor">@color/dhc_primary</item>
+        <item name="tabIndicatorColor">@color/dhc_primary</item>
+
+        <!-- M3 container/variant roles on the dark canvas. -->
+        <item name="colorPrimaryContainer">@color/dhc_container</item>
+        <item name="colorOnPrimaryContainer">@color/dhc_on_surface</item>
+        <item name="colorSecondary">@color/dhc_primary</item>
+        <item name="colorSecondaryContainer">@color/dhc_container</item>
+        <item name="colorOnSecondaryContainer">@color/dhc_on_surface</item>
+        <item name="colorTertiary">@color/dhc_blue</item>
+        <item name="colorTertiaryContainer">@color/dhc_container</item>
+        <item name="colorOnTertiaryContainer">@color/dhc_on_surface</item>
+        <item name="colorSurfaceVariant">@color/dhc_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/dhc_on_surface_variant</item>
+        <item name="colorOutline">@color/dhc_outline</item>
+        <item name="colorOutlineVariant">@color/dhc_outline_variant</item>
+
+        <!-- Semantic colors: green action accent reads on black, so primary text
+             accents use it; status uses GitHub-style green/red/yellow. -->
+        <item name="accentOrTextSecondary">@color/dhc_primary</item>
+        <item name="accentOrTextPrimary">@color/dhc_primary</item>
+        <item name="primaryOrTextSecondary">@color/dhc_primary</item>
+        <item name="primaryOrTextPrimary">@color/dhc_primary</item>
+        <item name="protocolColor">@color/dhc_green</item>
+        <item name="profileNameColor">@color/dhc_on_surface</item>
+        <item name="statusConnectedColor">@color/dhc_green</item>
+        <item name="statusStoppedColor">@color/dhc_red</item>
+        <item name="statusConnectingColor">@color/dhc_yellow</item>
+        <item name="testFailColor">@color/dhc_red</item>
+        <item name="speedTextColor">@color/dhc_on_surface_variant</item>
+        <item name="fabStoppedColor">@color/dhc_on_primary</item>
+        <!-- Connected airplane icon: dark, so it stays visible on the green FAB
+             (the green statusConnectedColor would vanish against it). -->
+        <item name="fabConnectedColor">@color/dhc_on_primary</item>
+        <item name="statusDetailColor">@color/dhc_on_surface_variant</item>
+        <item name="statusTestingColor">@color/dhc_yellow</item>
+        <item name="routeProxyColor">@color/dhc_blue</item>
+        <item name="navSelectedColor">?attr/colorPrimary</item>
+    </style>
+
+    <style name="Theme.SagerNet.DraculaM3" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/draculam3_primary</item>
+        <item name="appBarBackgroundColor">@color/draculam3_background</item>
+        <item name="colorPrimaryDark">@color/draculam3_primary_dark</item>
+        <item name="colorAccent">@color/draculam3_accent</item>
+        <item name="colorOnPrimary">@color/draculam3_on_primary</item>
+        <item name="colorMaterial100">@color/draculam3_100</item>
+        <item name="colorMaterial300">@color/draculam3_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_draculam3</item>
+
+        <item name="colorSurface">@color/draculam3_surface</item>
+        <item name="colorOnSurface">@color/draculam3_on_surface</item>
+        <item name="android:colorBackground">@color/draculam3_background</item>
+        <item name="colorOnBackground">@color/draculam3_on_surface</item>
+        <item name="android:windowBackground">@color/draculam3_background</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar.DraculaM3</item>
+        <item name="android:statusBarColor">@color/draculam3_background</item>
+        <item name="android:navigationBarColor">@color/draculam3_background</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
+        <item name="tabTextColor">@color/draculam3_on_surface_variant</item>
+        <item name="tabSelectedTextColor">@color/draculam3_primary</item>
+        <item name="tabIndicatorColor">@color/draculam3_primary</item>
+
+        <item name="colorPrimaryContainer">@color/draculam3_container</item>
+        <item name="colorOnPrimaryContainer">@color/draculam3_on_surface</item>
+        <item name="colorSecondary">@color/draculam3_accent</item>
+        <item name="colorSecondaryContainer">@color/draculam3_container</item>
+        <item name="colorOnSecondaryContainer">@color/draculam3_on_surface</item>
+        <item name="colorTertiary">@color/draculam3_blue</item>
+        <item name="colorTertiaryContainer">@color/draculam3_container</item>
+        <item name="colorOnTertiaryContainer">@color/draculam3_on_surface</item>
+        <item name="colorSurfaceVariant">@color/draculam3_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/draculam3_on_surface_variant</item>
+        <item name="colorOutline">@color/draculam3_outline</item>
+        <item name="colorOutlineVariant">@color/draculam3_outline_variant</item>
+        <item name="accentOrTextSecondary">@color/draculam3_accent</item>
+        <item name="accentOrTextPrimary">@color/draculam3_accent</item>
+        <item name="primaryOrTextSecondary">@color/draculam3_primary</item>
+        <item name="primaryOrTextPrimary">@color/draculam3_primary</item>
+        <item name="protocolColor">@color/draculam3_green</item>
+        <item name="profileNameColor">@color/draculam3_yellow</item>
+        <item name="statusConnectedColor">@color/draculam3_green</item>
+        <item name="statusStoppedColor">@color/draculam3_red</item>
+        <item name="statusConnectingColor">@color/draculam3_yellow</item>
+        <item name="testFailColor">@color/draculam3_red</item>
+        <item name="speedTextColor">@color/draculam3_accent</item>
+        <item name="fabStoppedColor">@color/draculam3_on_primary</item>
+        <item name="fabConnectedColor">@color/draculam3_on_primary</item>
+        <item name="statusDetailColor">@color/draculam3_accent</item>
+        <item name="statusTestingColor">@color/draculam3_yellow</item>
+        <item name="routeProxyColor">@color/draculam3_blue</item>
+        <item name="navSelectedColor">?attr/colorPrimary</item>
+    </style>
+
+    <style name="Theme.SagerNet.Nord" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/nord_primary</item>
+        <item name="appBarBackgroundColor">@color/nord_background</item>
+        <item name="colorPrimaryDark">@color/nord_primary_dark</item>
+        <item name="colorAccent">@color/nord_accent</item>
+        <item name="colorOnPrimary">@color/nord_on_primary</item>
+        <item name="colorMaterial100">@color/nord_100</item>
+        <item name="colorMaterial300">@color/nord_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_nord</item>
+
+        <item name="colorSurface">@color/nord_surface</item>
+        <item name="colorOnSurface">@color/nord_on_surface</item>
+        <item name="android:colorBackground">@color/nord_background</item>
+        <item name="colorOnBackground">@color/nord_on_surface</item>
+        <item name="android:windowBackground">@color/nord_background</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar.Nord</item>
+        <item name="android:statusBarColor">@color/nord_background</item>
+        <item name="android:navigationBarColor">@color/nord_background</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
+        <item name="tabTextColor">@color/nord_on_surface_variant</item>
+        <item name="tabSelectedTextColor">@color/nord_primary</item>
+        <item name="tabIndicatorColor">@color/nord_primary</item>
+
+        <item name="colorPrimaryContainer">@color/nord_container</item>
+        <item name="colorOnPrimaryContainer">@color/nord_on_surface</item>
+        <item name="colorSecondary">@color/nord_accent</item>
+        <item name="colorSecondaryContainer">@color/nord_container</item>
+        <item name="colorOnSecondaryContainer">@color/nord_on_surface</item>
+        <item name="colorTertiary">@color/nord_blue</item>
+        <item name="colorTertiaryContainer">@color/nord_container</item>
+        <item name="colorOnTertiaryContainer">@color/nord_on_surface</item>
+        <item name="colorSurfaceVariant">@color/nord_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/nord_on_surface_variant</item>
+        <item name="colorOutline">@color/nord_outline</item>
+        <item name="colorOutlineVariant">@color/nord_outline_variant</item>
+        <item name="accentOrTextSecondary">@color/nord_accent</item>
+        <item name="accentOrTextPrimary">@color/nord_accent</item>
+        <item name="primaryOrTextSecondary">@color/nord_primary</item>
+        <item name="primaryOrTextPrimary">@color/nord_primary</item>
+        <item name="protocolColor">@color/nord_green</item>
+        <item name="profileNameColor">@color/nord_on_surface</item>
+        <item name="statusConnectedColor">@color/nord_green</item>
+        <item name="statusStoppedColor">@color/nord_red</item>
+        <item name="statusConnectingColor">@color/nord_yellow</item>
+        <item name="testFailColor">@color/nord_red</item>
+        <item name="speedTextColor">@color/nord_accent</item>
+        <item name="fabStoppedColor">@color/nord_on_primary</item>
+        <item name="fabConnectedColor">@color/nord_on_primary</item>
+        <item name="statusDetailColor">@color/nord_accent</item>
+        <item name="statusTestingColor">@color/nord_yellow</item>
+        <item name="routeProxyColor">@color/nord_blue</item>
+        <item name="navSelectedColor">?attr/colorPrimary</item>
+    </style>
+
+    <style name="Theme.SagerNet.Monokai" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/monokai_primary</item>
+        <item name="appBarBackgroundColor">@color/monokai_background</item>
+        <item name="colorPrimaryDark">@color/monokai_primary_dark</item>
+        <item name="colorAccent">@color/monokai_accent</item>
+        <item name="colorOnPrimary">@color/monokai_on_primary</item>
+        <item name="colorMaterial100">@color/monokai_100</item>
+        <item name="colorMaterial300">@color/monokai_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_monokai</item>
+
+        <item name="colorSurface">@color/monokai_surface</item>
+        <item name="colorOnSurface">@color/monokai_on_surface</item>
+        <item name="android:colorBackground">@color/monokai_background</item>
+        <item name="colorOnBackground">@color/monokai_on_surface</item>
+        <item name="android:windowBackground">@color/monokai_background</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar.Monokai</item>
+        <item name="android:statusBarColor">@color/monokai_background</item>
+        <item name="android:navigationBarColor">@color/monokai_background</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
+        <item name="tabTextColor">@color/monokai_on_surface_variant</item>
+        <item name="tabSelectedTextColor">@color/monokai_primary</item>
+        <item name="tabIndicatorColor">@color/monokai_primary</item>
+
+        <item name="colorPrimaryContainer">@color/monokai_container</item>
+        <item name="colorOnPrimaryContainer">@color/monokai_on_surface</item>
+        <item name="colorSecondary">@color/monokai_accent</item>
+        <item name="colorSecondaryContainer">@color/monokai_container</item>
+        <item name="colorOnSecondaryContainer">@color/monokai_on_surface</item>
+        <item name="colorTertiary">@color/monokai_blue</item>
+        <item name="colorTertiaryContainer">@color/monokai_container</item>
+        <item name="colorOnTertiaryContainer">@color/monokai_on_surface</item>
+        <item name="colorSurfaceVariant">@color/monokai_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/monokai_on_surface_variant</item>
+        <item name="colorOutline">@color/monokai_outline</item>
+        <item name="colorOutlineVariant">@color/monokai_outline_variant</item>
+        <item name="accentOrTextSecondary">@color/monokai_accent</item>
+        <item name="accentOrTextPrimary">@color/monokai_accent</item>
+        <item name="primaryOrTextSecondary">@color/monokai_primary</item>
+        <item name="primaryOrTextPrimary">@color/monokai_primary</item>
+        <item name="protocolColor">@color/monokai_green</item>
+        <item name="profileNameColor">@color/monokai_on_surface</item>
+        <item name="statusConnectedColor">@color/monokai_green</item>
+        <item name="statusStoppedColor">@color/monokai_red</item>
+        <item name="statusConnectingColor">@color/monokai_yellow</item>
+        <item name="testFailColor">@color/monokai_red</item>
+        <item name="speedTextColor">@color/monokai_accent</item>
+        <item name="fabStoppedColor">@color/monokai_on_primary</item>
+        <item name="fabConnectedColor">@color/monokai_on_primary</item>
+        <item name="statusDetailColor">@color/monokai_accent</item>
+        <item name="statusTestingColor">@color/monokai_yellow</item>
+        <item name="routeProxyColor">@color/monokai_blue</item>
+        <item name="navSelectedColor">?attr/colorPrimary</item>
+    </style>
+
+    <style name="Theme.SagerNet.Ayu" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/ayu_primary</item>
+        <item name="appBarBackgroundColor">@color/ayu_background</item>
+        <item name="colorPrimaryDark">@color/ayu_primary_dark</item>
+        <item name="colorAccent">@color/ayu_accent</item>
+        <item name="colorOnPrimary">@color/ayu_on_primary</item>
+        <item name="colorMaterial100">@color/ayu_100</item>
+        <item name="colorMaterial300">@color/ayu_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_ayu</item>
+
+        <item name="colorSurface">@color/ayu_surface</item>
+        <item name="colorOnSurface">@color/ayu_on_surface</item>
+        <item name="android:colorBackground">@color/ayu_background</item>
+        <item name="colorOnBackground">@color/ayu_on_surface</item>
+        <item name="android:windowBackground">@color/ayu_background</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar.Ayu</item>
+        <item name="android:statusBarColor">@color/ayu_background</item>
+        <item name="android:navigationBarColor">@color/ayu_background</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
+        <item name="tabTextColor">@color/ayu_on_surface_variant</item>
+        <item name="tabSelectedTextColor">@color/ayu_primary</item>
+        <item name="tabIndicatorColor">@color/ayu_primary</item>
+
+        <item name="colorPrimaryContainer">@color/ayu_container</item>
+        <item name="colorOnPrimaryContainer">@color/ayu_on_surface</item>
+        <item name="colorSecondary">@color/ayu_accent</item>
+        <item name="colorSecondaryContainer">@color/ayu_container</item>
+        <item name="colorOnSecondaryContainer">@color/ayu_on_surface</item>
+        <item name="colorTertiary">@color/ayu_blue</item>
+        <item name="colorTertiaryContainer">@color/ayu_container</item>
+        <item name="colorOnTertiaryContainer">@color/ayu_on_surface</item>
+        <item name="colorSurfaceVariant">@color/ayu_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/ayu_on_surface_variant</item>
+        <item name="colorOutline">@color/ayu_outline</item>
+        <item name="colorOutlineVariant">@color/ayu_outline_variant</item>
+        <item name="accentOrTextSecondary">@color/ayu_accent</item>
+        <item name="accentOrTextPrimary">@color/ayu_accent</item>
+        <item name="primaryOrTextSecondary">@color/ayu_primary</item>
+        <item name="primaryOrTextPrimary">@color/ayu_primary</item>
+        <item name="protocolColor">@color/ayu_green</item>
+        <item name="profileNameColor">@color/ayu_on_surface</item>
+        <item name="statusConnectedColor">@color/ayu_green</item>
+        <item name="statusStoppedColor">@color/ayu_red</item>
+        <item name="statusConnectingColor">@color/ayu_yellow</item>
+        <item name="testFailColor">@color/ayu_red</item>
+        <item name="speedTextColor">@color/ayu_accent</item>
+        <item name="fabStoppedColor">@color/ayu_on_primary</item>
+        <item name="fabConnectedColor">@color/ayu_on_primary</item>
+        <item name="statusDetailColor">@color/ayu_accent</item>
+        <item name="statusTestingColor">@color/ayu_yellow</item>
+        <item name="routeProxyColor">@color/ayu_blue</item>
+        <item name="navSelectedColor">?attr/colorPrimary</item>
+    </style>
+
+    <style name="Theme.SagerNet.Catppuccin" parent="Theme.SagerNet">
+        <item name="colorPrimary">@color/catppuccin_primary</item>
+        <item name="appBarBackgroundColor">@color/catppuccin_background</item>
+        <item name="colorPrimaryDark">@color/catppuccin_primary_dark</item>
+        <item name="colorAccent">@color/catppuccin_accent</item>
+        <item name="colorOnPrimary">@color/catppuccin_on_primary</item>
+        <item name="colorMaterial100">@color/catppuccin_100</item>
+        <item name="colorMaterial300">@color/catppuccin_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_catppuccin</item>
+
+        <item name="colorSurface">@color/catppuccin_surface</item>
+        <item name="colorOnSurface">@color/catppuccin_on_surface</item>
+        <item name="android:colorBackground">@color/catppuccin_background</item>
+        <item name="colorOnBackground">@color/catppuccin_on_surface</item>
+        <item name="android:windowBackground">@color/catppuccin_background</item>
+        <item name="bottomAppBarStyle">@style/Widget.SagerNet.BottomAppBar.Catppuccin</item>
+        <item name="android:statusBarColor">@color/catppuccin_background</item>
+        <item name="android:navigationBarColor">@color/catppuccin_background</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
+        <item name="tabTextColor">@color/catppuccin_on_surface_variant</item>
+        <item name="tabSelectedTextColor">@color/catppuccin_primary</item>
+        <item name="tabIndicatorColor">@color/catppuccin_primary</item>
+
+        <item name="colorPrimaryContainer">@color/catppuccin_container</item>
+        <item name="colorOnPrimaryContainer">@color/catppuccin_on_surface</item>
+        <item name="colorSecondary">@color/catppuccin_accent</item>
+        <item name="colorSecondaryContainer">@color/catppuccin_container</item>
+        <item name="colorOnSecondaryContainer">@color/catppuccin_on_surface</item>
+        <item name="colorTertiary">@color/catppuccin_blue</item>
+        <item name="colorTertiaryContainer">@color/catppuccin_container</item>
+        <item name="colorOnTertiaryContainer">@color/catppuccin_on_surface</item>
+        <item name="colorSurfaceVariant">@color/catppuccin_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/catppuccin_on_surface_variant</item>
+        <item name="colorOutline">@color/catppuccin_outline</item>
+        <item name="colorOutlineVariant">@color/catppuccin_outline_variant</item>
+        <item name="accentOrTextSecondary">@color/catppuccin_accent</item>
+        <item name="accentOrTextPrimary">@color/catppuccin_accent</item>
+        <item name="primaryOrTextSecondary">@color/catppuccin_primary</item>
+        <item name="primaryOrTextPrimary">@color/catppuccin_primary</item>
+        <item name="protocolColor">@color/catppuccin_green</item>
+        <item name="profileNameColor">@color/catppuccin_on_surface</item>
+        <item name="statusConnectedColor">@color/catppuccin_green</item>
+        <item name="statusStoppedColor">@color/catppuccin_red</item>
+        <item name="statusConnectingColor">@color/catppuccin_yellow</item>
+        <item name="testFailColor">@color/catppuccin_red</item>
+        <item name="speedTextColor">@color/catppuccin_accent</item>
+        <item name="fabStoppedColor">@color/catppuccin_on_primary</item>
+        <item name="fabConnectedColor">@color/catppuccin_on_primary</item>
+        <item name="statusDetailColor">@color/catppuccin_accent</item>
+        <item name="statusTestingColor">@color/catppuccin_yellow</item>
+        <item name="routeProxyColor">@color/catppuccin_blue</item>
+        <item name="navSelectedColor">?attr/colorPrimary</item>
+    </style>
+
+
     <style name="Theme.SagerNet.Dialog.Black" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/color_ng_black_primary</item>
+        <item name="appBarBackgroundColor">@color/color_ng_black_primary</item>
         <item name="colorPrimaryDark">@color/color_ng_black_primary</item>
         <item name="colorAccent">@color/color_ng_black_accent</item>
         <item name="colorMaterial100">@color/color_ng_black_primary</item>
@@ -612,8 +1170,15 @@
         <item name="cardElevatedSurfaceColor">@color/card_elevated_black</item>
 
         <item name="selectedColorPrimary">@color/color_ng_black_accent</item>
-        <item name="fabColorBackground">@color/color_ng_black_accent</item>
+        <item name="fabColorBackground">@color/color_ng_black_primary</item>
         <item name="itemShapeFillColor">@color/color_ng_black_accent</item>
+
+        <!-- Keep M3 surfaces on the Black palette (no library gray fallback). -->
+        <item name="colorPrimaryContainer">@color/color_ng_black_container</item>
+        <item name="colorSecondaryContainer">@color/color_ng_black_container</item>
+        <item name="colorTertiaryContainer">@color/color_ng_black_container</item>
+        <item name="colorSurfaceVariant">@color/color_ng_black_surface_variant</item>
+        <item name="colorOutline">@color/color_ng_black_accent</item>
 
         <item name="accentOrTextSecondary">?android:textColorSecondary</item>
         <item name="accentOrTextPrimary">?android:textColorPrimary</item>
@@ -623,6 +1188,7 @@
 
     <style name="Theme.SagerNet.Dialog.VerdantMint" parent="Theme.SagerNet.Dialog">
         <item name="colorPrimary">@color/color_verdant_mint</item>
+        <item name="appBarBackgroundColor">@color/color_verdant_mint</item>
         <item name="colorPrimaryDark">@color/color_verdant_mint_dark</item>
         <item name="colorAccent">@color/color_verdant_mint_accent</item>
         <item name="colorMaterial100">@color/color_verdant_mint_100</item>
@@ -635,8 +1201,277 @@
     <style name="Theme.SagerNet.Dialog.Monet" parent="Theme.SagerNet.Dialog" />
 
     <style name="Theme.Start" parent="Theme.MaterialComponents.DayNight">
+    <style name="Theme.SagerNet.Dialog.Dracula" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/color_dracula</item>
+        <item name="appBarBackgroundColor">@color/color_dracula</item>
+        <item name="colorPrimaryDark">@color/color_dracula_dark</item>
+        <item name="colorAccent">@color/color_dracula_accent</item>
+        <item name="colorMaterial100">@color/color_dracula_100</item>
+        <item name="colorMaterial300">@color/color_dracula_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_dracula</item>
+        <item name="protocolColor">@color/color_dracula_green</item>
+        <item name="profileNameColor">@color/color_dracula_yellow</item>
+        <item name="statusConnectedColor">@color/color_dracula_green</item>
+        <item name="statusStoppedColor">@color/color_dracula_red</item>
+        <item name="statusConnectingColor">@color/color_dracula_yellow</item>
+        <item name="testFailColor">@color/color_dracula_red</item>
+        <item name="speedTextColor">@color/color_dracula_cyan</item>
+        <item name="fabStoppedColor">@color/color_dracula_cyan</item>
+        <item name="statusDetailColor">@color/color_dracula_cyan</item>
+        <item name="statusTestingColor">@color/color_dracula_yellow</item>
+        <item name="routeProxyColor">@color/color_dracula_cyan</item>
+    </style>
+
+    <style name="Theme.SagerNet.Dialog.DarkHighContrast" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/dhc_primary</item>
+        <item name="appBarBackgroundColor">@color/dhc_background</item>
+        <item name="colorPrimaryDark">@color/dhc_primary_dark</item>
+        <item name="colorAccent">@color/dhc_primary</item>
+        <item name="colorOnPrimary">@color/dhc_on_primary</item>
+        <item name="colorMaterial100">@color/dhc_100</item>
+        <item name="colorMaterial300">@color/dhc_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_dhc</item>
+
+        <item name="colorSurface">@color/dhc_surface</item>
+        <item name="colorOnSurface">@color/dhc_on_surface</item>
+        <item name="android:colorBackground">@color/dhc_background</item>
+        <item name="colorOnBackground">@color/dhc_on_surface</item>
+        <item name="colorPrimaryContainer">@color/dhc_container</item>
+        <item name="colorOnPrimaryContainer">@color/dhc_on_surface</item>
+        <item name="colorSecondary">@color/dhc_primary</item>
+        <item name="colorSecondaryContainer">@color/dhc_container</item>
+        <item name="colorOnSecondaryContainer">@color/dhc_on_surface</item>
+        <item name="colorTertiary">@color/dhc_blue</item>
+        <item name="colorTertiaryContainer">@color/dhc_container</item>
+        <item name="colorOnTertiaryContainer">@color/dhc_on_surface</item>
+        <item name="colorSurfaceVariant">@color/dhc_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/dhc_on_surface_variant</item>
+        <item name="colorOutline">@color/dhc_outline</item>
+        <item name="colorOutlineVariant">@color/dhc_outline_variant</item>
+        <item name="protocolColor">@color/dhc_green</item>
+        <item name="profileNameColor">@color/dhc_on_surface</item>
+        <item name="statusConnectedColor">@color/dhc_green</item>
+        <item name="statusStoppedColor">@color/dhc_red</item>
+        <item name="statusConnectingColor">@color/dhc_yellow</item>
+        <item name="testFailColor">@color/dhc_red</item>
+        <item name="speedTextColor">@color/dhc_on_surface_variant</item>
+        <item name="fabStoppedColor">@color/dhc_on_primary</item>
+        <item name="fabConnectedColor">@color/dhc_on_primary</item>
+        <item name="statusDetailColor">@color/dhc_on_surface_variant</item>
+        <item name="statusTestingColor">@color/dhc_yellow</item>
+        <item name="routeProxyColor">@color/dhc_blue</item>
+    </style>
+
+    <style name="Theme.SagerNet.Dialog.DraculaM3" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/draculam3_primary</item>
+        <item name="appBarBackgroundColor">@color/draculam3_background</item>
+        <item name="colorPrimaryDark">@color/draculam3_primary_dark</item>
+        <item name="colorAccent">@color/draculam3_accent</item>
+        <item name="colorOnPrimary">@color/draculam3_on_primary</item>
+        <item name="colorMaterial100">@color/draculam3_100</item>
+        <item name="colorMaterial300">@color/draculam3_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_draculam3</item>
+
+        <item name="colorSurface">@color/draculam3_surface</item>
+        <item name="colorOnSurface">@color/draculam3_on_surface</item>
+        <item name="android:colorBackground">@color/draculam3_background</item>
+        <item name="colorOnBackground">@color/draculam3_on_surface</item>
+
+        <item name="colorPrimaryContainer">@color/draculam3_container</item>
+        <item name="colorOnPrimaryContainer">@color/draculam3_on_surface</item>
+        <item name="colorSecondary">@color/draculam3_accent</item>
+        <item name="colorSecondaryContainer">@color/draculam3_container</item>
+        <item name="colorOnSecondaryContainer">@color/draculam3_on_surface</item>
+        <item name="colorTertiary">@color/draculam3_blue</item>
+        <item name="colorTertiaryContainer">@color/draculam3_container</item>
+        <item name="colorOnTertiaryContainer">@color/draculam3_on_surface</item>
+        <item name="colorSurfaceVariant">@color/draculam3_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/draculam3_on_surface_variant</item>
+        <item name="colorOutline">@color/draculam3_outline</item>
+        <item name="colorOutlineVariant">@color/draculam3_outline_variant</item>
+        <item name="protocolColor">@color/draculam3_green</item>
+        <item name="profileNameColor">@color/draculam3_yellow</item>
+        <item name="statusConnectedColor">@color/draculam3_green</item>
+        <item name="statusStoppedColor">@color/draculam3_red</item>
+        <item name="statusConnectingColor">@color/draculam3_yellow</item>
+        <item name="testFailColor">@color/draculam3_red</item>
+        <item name="speedTextColor">@color/draculam3_accent</item>
+        <item name="fabStoppedColor">@color/draculam3_on_primary</item>
+        <item name="fabConnectedColor">@color/draculam3_on_primary</item>
+        <item name="statusDetailColor">@color/draculam3_accent</item>
+        <item name="statusTestingColor">@color/draculam3_yellow</item>
+        <item name="routeProxyColor">@color/draculam3_blue</item>
+    </style>
+
+    <style name="Theme.SagerNet.Dialog.Nord" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/nord_primary</item>
+        <item name="appBarBackgroundColor">@color/nord_background</item>
+        <item name="colorPrimaryDark">@color/nord_primary_dark</item>
+        <item name="colorAccent">@color/nord_accent</item>
+        <item name="colorOnPrimary">@color/nord_on_primary</item>
+        <item name="colorMaterial100">@color/nord_100</item>
+        <item name="colorMaterial300">@color/nord_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_nord</item>
+
+        <item name="colorSurface">@color/nord_surface</item>
+        <item name="colorOnSurface">@color/nord_on_surface</item>
+        <item name="android:colorBackground">@color/nord_background</item>
+        <item name="colorOnBackground">@color/nord_on_surface</item>
+
+        <item name="colorPrimaryContainer">@color/nord_container</item>
+        <item name="colorOnPrimaryContainer">@color/nord_on_surface</item>
+        <item name="colorSecondary">@color/nord_accent</item>
+        <item name="colorSecondaryContainer">@color/nord_container</item>
+        <item name="colorOnSecondaryContainer">@color/nord_on_surface</item>
+        <item name="colorTertiary">@color/nord_blue</item>
+        <item name="colorTertiaryContainer">@color/nord_container</item>
+        <item name="colorOnTertiaryContainer">@color/nord_on_surface</item>
+        <item name="colorSurfaceVariant">@color/nord_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/nord_on_surface_variant</item>
+        <item name="colorOutline">@color/nord_outline</item>
+        <item name="colorOutlineVariant">@color/nord_outline_variant</item>
+        <item name="protocolColor">@color/nord_green</item>
+        <item name="profileNameColor">@color/nord_on_surface</item>
+        <item name="statusConnectedColor">@color/nord_green</item>
+        <item name="statusStoppedColor">@color/nord_red</item>
+        <item name="statusConnectingColor">@color/nord_yellow</item>
+        <item name="testFailColor">@color/nord_red</item>
+        <item name="speedTextColor">@color/nord_accent</item>
+        <item name="fabStoppedColor">@color/nord_on_primary</item>
+        <item name="fabConnectedColor">@color/nord_on_primary</item>
+        <item name="statusDetailColor">@color/nord_accent</item>
+        <item name="statusTestingColor">@color/nord_yellow</item>
+        <item name="routeProxyColor">@color/nord_blue</item>
+    </style>
+
+    <style name="Theme.SagerNet.Dialog.Monokai" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/monokai_primary</item>
+        <item name="appBarBackgroundColor">@color/monokai_background</item>
+        <item name="colorPrimaryDark">@color/monokai_primary_dark</item>
+        <item name="colorAccent">@color/monokai_accent</item>
+        <item name="colorOnPrimary">@color/monokai_on_primary</item>
+        <item name="colorMaterial100">@color/monokai_100</item>
+        <item name="colorMaterial300">@color/monokai_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_monokai</item>
+
+        <item name="colorSurface">@color/monokai_surface</item>
+        <item name="colorOnSurface">@color/monokai_on_surface</item>
+        <item name="android:colorBackground">@color/monokai_background</item>
+        <item name="colorOnBackground">@color/monokai_on_surface</item>
+
+        <item name="colorPrimaryContainer">@color/monokai_container</item>
+        <item name="colorOnPrimaryContainer">@color/monokai_on_surface</item>
+        <item name="colorSecondary">@color/monokai_accent</item>
+        <item name="colorSecondaryContainer">@color/monokai_container</item>
+        <item name="colorOnSecondaryContainer">@color/monokai_on_surface</item>
+        <item name="colorTertiary">@color/monokai_blue</item>
+        <item name="colorTertiaryContainer">@color/monokai_container</item>
+        <item name="colorOnTertiaryContainer">@color/monokai_on_surface</item>
+        <item name="colorSurfaceVariant">@color/monokai_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/monokai_on_surface_variant</item>
+        <item name="colorOutline">@color/monokai_outline</item>
+        <item name="colorOutlineVariant">@color/monokai_outline_variant</item>
+        <item name="protocolColor">@color/monokai_green</item>
+        <item name="profileNameColor">@color/monokai_on_surface</item>
+        <item name="statusConnectedColor">@color/monokai_green</item>
+        <item name="statusStoppedColor">@color/monokai_red</item>
+        <item name="statusConnectingColor">@color/monokai_yellow</item>
+        <item name="testFailColor">@color/monokai_red</item>
+        <item name="speedTextColor">@color/monokai_accent</item>
+        <item name="fabStoppedColor">@color/monokai_on_primary</item>
+        <item name="fabConnectedColor">@color/monokai_on_primary</item>
+        <item name="statusDetailColor">@color/monokai_accent</item>
+        <item name="statusTestingColor">@color/monokai_yellow</item>
+        <item name="routeProxyColor">@color/monokai_blue</item>
+    </style>
+
+    <style name="Theme.SagerNet.Dialog.Ayu" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/ayu_primary</item>
+        <item name="appBarBackgroundColor">@color/ayu_background</item>
+        <item name="colorPrimaryDark">@color/ayu_primary_dark</item>
+        <item name="colorAccent">@color/ayu_accent</item>
+        <item name="colorOnPrimary">@color/ayu_on_primary</item>
+        <item name="colorMaterial100">@color/ayu_100</item>
+        <item name="colorMaterial300">@color/ayu_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_ayu</item>
+
+        <item name="colorSurface">@color/ayu_surface</item>
+        <item name="colorOnSurface">@color/ayu_on_surface</item>
+        <item name="android:colorBackground">@color/ayu_background</item>
+        <item name="colorOnBackground">@color/ayu_on_surface</item>
+
+        <item name="colorPrimaryContainer">@color/ayu_container</item>
+        <item name="colorOnPrimaryContainer">@color/ayu_on_surface</item>
+        <item name="colorSecondary">@color/ayu_accent</item>
+        <item name="colorSecondaryContainer">@color/ayu_container</item>
+        <item name="colorOnSecondaryContainer">@color/ayu_on_surface</item>
+        <item name="colorTertiary">@color/ayu_blue</item>
+        <item name="colorTertiaryContainer">@color/ayu_container</item>
+        <item name="colorOnTertiaryContainer">@color/ayu_on_surface</item>
+        <item name="colorSurfaceVariant">@color/ayu_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/ayu_on_surface_variant</item>
+        <item name="colorOutline">@color/ayu_outline</item>
+        <item name="colorOutlineVariant">@color/ayu_outline_variant</item>
+        <item name="protocolColor">@color/ayu_green</item>
+        <item name="profileNameColor">@color/ayu_on_surface</item>
+        <item name="statusConnectedColor">@color/ayu_green</item>
+        <item name="statusStoppedColor">@color/ayu_red</item>
+        <item name="statusConnectingColor">@color/ayu_yellow</item>
+        <item name="testFailColor">@color/ayu_red</item>
+        <item name="speedTextColor">@color/ayu_accent</item>
+        <item name="fabStoppedColor">@color/ayu_on_primary</item>
+        <item name="fabConnectedColor">@color/ayu_on_primary</item>
+        <item name="statusDetailColor">@color/ayu_accent</item>
+        <item name="statusTestingColor">@color/ayu_yellow</item>
+        <item name="routeProxyColor">@color/ayu_blue</item>
+    </style>
+
+    <style name="Theme.SagerNet.Dialog.Catppuccin" parent="Theme.SagerNet.Dialog">
+        <item name="colorPrimary">@color/catppuccin_primary</item>
+        <item name="appBarBackgroundColor">@color/catppuccin_background</item>
+        <item name="colorPrimaryDark">@color/catppuccin_primary_dark</item>
+        <item name="colorAccent">@color/catppuccin_accent</item>
+        <item name="colorOnPrimary">@color/catppuccin_on_primary</item>
+        <item name="colorMaterial100">@color/catppuccin_100</item>
+        <item name="colorMaterial300">@color/catppuccin_300</item>
+        <item name="cardElevatedSurfaceColor">@color/card_elevated_catppuccin</item>
+
+        <item name="colorSurface">@color/catppuccin_surface</item>
+        <item name="colorOnSurface">@color/catppuccin_on_surface</item>
+        <item name="android:colorBackground">@color/catppuccin_background</item>
+        <item name="colorOnBackground">@color/catppuccin_on_surface</item>
+
+        <item name="colorPrimaryContainer">@color/catppuccin_container</item>
+        <item name="colorOnPrimaryContainer">@color/catppuccin_on_surface</item>
+        <item name="colorSecondary">@color/catppuccin_accent</item>
+        <item name="colorSecondaryContainer">@color/catppuccin_container</item>
+        <item name="colorOnSecondaryContainer">@color/catppuccin_on_surface</item>
+        <item name="colorTertiary">@color/catppuccin_blue</item>
+        <item name="colorTertiaryContainer">@color/catppuccin_container</item>
+        <item name="colorOnTertiaryContainer">@color/catppuccin_on_surface</item>
+        <item name="colorSurfaceVariant">@color/catppuccin_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/catppuccin_on_surface_variant</item>
+        <item name="colorOutline">@color/catppuccin_outline</item>
+        <item name="colorOutlineVariant">@color/catppuccin_outline_variant</item>
+        <item name="protocolColor">@color/catppuccin_green</item>
+        <item name="profileNameColor">@color/catppuccin_on_surface</item>
+        <item name="statusConnectedColor">@color/catppuccin_green</item>
+        <item name="statusStoppedColor">@color/catppuccin_red</item>
+        <item name="statusConnectingColor">@color/catppuccin_yellow</item>
+        <item name="testFailColor">@color/catppuccin_red</item>
+        <item name="speedTextColor">@color/catppuccin_accent</item>
+        <item name="fabStoppedColor">@color/catppuccin_on_primary</item>
+        <item name="fabConnectedColor">@color/catppuccin_on_primary</item>
+        <item name="statusDetailColor">@color/catppuccin_accent</item>
+        <item name="statusTestingColor">@color/catppuccin_yellow</item>
+        <item name="routeProxyColor">@color/catppuccin_blue</item>
+    </style>
+
+
+    <style name="Theme.Start" parent="Theme.Material3.DayNight">
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="colorPrimary">@android:color/transparent</item>
+        <item name="appBarBackgroundColor">@android:color/transparent</item>
         <item name="colorPrimaryDark">@android:color/transparent</item>
         <item name="android:backgroundDimEnabled">false</item>
         <item name="android:windowNoTitle">true</item>
