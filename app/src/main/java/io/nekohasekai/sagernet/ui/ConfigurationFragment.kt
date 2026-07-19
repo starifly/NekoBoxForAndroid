@@ -1205,6 +1205,7 @@ val groupListBinding = LayoutGroupListBinding.bind(view)
         var groupFragments: HashMap<Long, ConfigurationGroupFragment> = HashMap()
         private var disposed = false
         private val reloadGeneration = AtomicLong()
+        var set = false
 
         fun dispose() {
             disposed = true
@@ -1342,6 +1343,8 @@ val groupListBinding = LayoutGroupListBinding.bind(view)
                 reload()
             }
         }
+
+        override suspend fun onUpdated(data: TrafficData) = Unit
 
         override suspend fun onUpdated(data: List<TrafficData>) = Unit
 
