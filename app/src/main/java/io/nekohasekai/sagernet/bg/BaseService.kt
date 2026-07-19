@@ -574,7 +574,8 @@ class BaseService {
 
             val proxy = ProxyInstance(profile, this)
             data.proxy = proxy
-            BootReceiver.enabled = DataStore.persistAcrossRebootreturn runOnMainDispatcher {
+            BootReceiver.enabled = DataStore.persistAcrossReboot
+            return runOnMainDispatcher {
                 if (!data.closeReceiverRegistered) {
                     val filter = IntentFilter().apply {
                         addAction(Action.RELOAD)

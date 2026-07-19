@@ -12,7 +12,8 @@ object Key {
     const val CLEAR_CACHE = "clearCache"
     const val PLUGIN_SIGNER_APPROVALS = "pluginSignerApprovals"
 
-    const val APP_EXPERT = "isExpert"const val APP_THEME = "appTheme"
+    const val APP_EXPERT = "isExpert"
+    const val APP_THEME = "appTheme"
     const val USE_SYSTEM_THEME = "useSystemTheme"
     const val NIGHT_THEME = "nightTheme"
 
