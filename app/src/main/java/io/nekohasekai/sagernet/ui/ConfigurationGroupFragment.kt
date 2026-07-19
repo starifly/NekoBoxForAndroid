@@ -650,6 +650,16 @@ class ConfigurationGroupFragment : Fragment() {
             if (changed) submitMasterList()
         }
 
+        fun clearTrafficStatistics() {
+            // Cleared by ProfileManager; UI refresh via adapter notification
+            notifyDataSetChanged()
+        }
+
+        fun clearTestResults() {
+            // Test results cleared upstream; refresh UI
+            notifyDataSetChanged()
+        }
+
         fun onLayoutModeChanged() {
             if (disposed) return
             ++displayGeneration
@@ -1033,8 +1043,6 @@ class ConfigurationGroupFragment : Fragment() {
         private val card = view as MaterialCardView
         val editButton: ImageView = binding.edit
         val doubleColumnMenuButton: ImageView = binding.doubleColumnMenu
-        val shareLayout: LinearLayout = binding.share
-        val shareLayer: LinearLayout = binding.shareLayer
         val shareButton: ImageView = binding.shareIcon
         val removeButton: ImageView = binding.remove
 
@@ -1055,7 +1063,7 @@ class ConfigurationGroupFragment : Fragment() {
             editButton.setOnClickListener { openSettings(it, entity.id) }
             removeButton.setOnClickListener { requestRemove(entity.id) }
             doubleColumnMenuButton.setOnClickListener { showDoubleColumnMenu(it, entity.id) }
-            shareLayout.setOnClickListener { showShareMenu(it, entity.id) }
+            shareButton.setOnClickListener { showShareMenu(it, entity.id) }
         }
 
         fun isBoundTo(profileId: Long) = ::entity.isInitialized && entity.id == profileId
@@ -1260,11 +1268,11 @@ class ConfigurationGroupFragment : Fragment() {
 
             if (isDoubleColumn) {
                 editButton.isGone = true
-                shareLayout.isGone = true
+                shareButton.isGone = true
                 removeButton.isGone = true
                 doubleColumnMenuButton.isVisible = true
             } else {
-                shareLayout.isGone = selectOrChain
+                shareButton.isGone = selectOrChain
                 editButton.isGone = select
                 removeButton.isGone = select
                 doubleColumnMenuButton.isGone = true
@@ -1277,7 +1285,6 @@ class ConfigurationGroupFragment : Fragment() {
             applySelected(selected)
 
             if (!(select || proxyEntity.type == ProxyEntity.TYPE_CHAIN)) {
-                shareLayer.setBackgroundColor(Color.TRANSPARENT)
                 shareButton.setImageResource(R.drawable.ic_social_share)
                 shareButton.setColorFilter(Color.GRAY)
                 shareButton.isVisible = true

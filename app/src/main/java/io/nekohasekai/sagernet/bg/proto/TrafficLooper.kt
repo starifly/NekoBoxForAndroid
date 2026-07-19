@@ -273,7 +273,7 @@ class TrafficLooper(
                 applySelect(sel)
             }
 
-            trafficUpdater.updateAll()
+            trafficUpdater?.updateAll()
             if (!sc.isActive) return
 
             // add all non-bypass to "main"

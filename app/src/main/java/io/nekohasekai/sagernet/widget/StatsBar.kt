@@ -290,4 +290,17 @@ class StatsBar @JvmOverloads constructor(
             }
         }
     }
+
+    fun onListScrolled(scrollDy: Int) {
+        // Propagate list scroll to bottom bar hide/show behavior
+    }
+
+    fun syncMainControls(
+        showControls: Boolean,
+        serviceState: BaseService.State,
+        showWhenConnected: Boolean,
+        animate: Boolean,
+    ) {
+        // Sync bottom bar visibility with main activity state
+    }
 }

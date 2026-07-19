@@ -128,10 +128,12 @@ object Theme {
         }
     }
 
-    fun getTheme(): Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && DataStore.dynamicColors) {
+    fun getTheme(): Int = getTheme(DataStore.appTheme)
+
+    fun getTheme(themeId: Int): Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && DataStore.dynamicColors) {
         R.style.Theme_SagerNet_Expressive_Dynamic
     } else {
-        when (DataStore.appTheme) {
+        when (themeId) {
             DRACULA -> R.style.Theme_SagerNet_Dracula
             DRACULA_M3 -> R.style.Theme_SagerNet_DraculaM3
             NORD -> R.style.Theme_SagerNet_Nord

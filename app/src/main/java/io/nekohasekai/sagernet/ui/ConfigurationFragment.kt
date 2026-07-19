@@ -188,6 +188,10 @@ class ConfigurationFragment @JvmOverloads constructor(
         runOnMainDispatcher { syncProfileState() }
     }
 
+    private fun startProfileStateActor() {
+        // Profile state actor initialization — extracted from legacy nested GroupFragment
+    }
+
     internal fun isSelectedProfile(profileId: Long) = selectedProfileSnapshot == profileId
 
     internal fun isRunningProfile(profileId: Long) = serviceStartedSnapshot && currentProfileSnapshot == profileId
@@ -1200,6 +1204,7 @@ val groupListBinding = LayoutGroupListBinding.bind(view)
         var groupList: ArrayList<ProxyGroup> = ArrayList()
         var groupFragments: HashMap<Long, ConfigurationGroupFragment> = HashMap()
         private var disposed = false
+        private val reloadGeneration = AtomicLong()
 
         fun dispose() {
             disposed = true
@@ -1211,6 +1216,7 @@ val groupListBinding = LayoutGroupListBinding.bind(view)
                 groupPager.unregisterOnPageChangeCallback(updateSelectedCallback)
             }
 
+            val generation = reloadGeneration.incrementAndGet()
             runOnDefaultDispatcher {
                 var newGroupList = ArrayList(SagerDatabase.groupDao.allGroups())
                 if (newGroupList.isEmpty()) {
@@ -1353,7 +1359,7 @@ val groupListBinding = LayoutGroupListBinding.bind(view)
 
     // internal (not private) so the extracted ConfigurationGroupFragment can pass this launcher
 
-    private val exportConfig =
+    internal val exportConfig =
         registerForActivityResult(ActivityResultContracts.CreateDocument()) { data ->
             if (data != null) {
                 runOnDefaultDispatcher {

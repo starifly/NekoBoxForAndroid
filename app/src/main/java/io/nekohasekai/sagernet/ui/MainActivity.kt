@@ -126,8 +126,7 @@ class MainActivity :
         }
         changeState(
             BaseService.State.Idle,
-            animate = false,
-            animateControls = animateInitialControls,
+            animate = animateInitialControls,
         )
         connection.connect(this, this)
         DataStore.configurationStore.registerChangeListener(this)
@@ -497,7 +496,6 @@ class MainActivity :
         animate: Boolean,
     ) {
         val showControls = fragment is ConfigurationFragment || DataStore.showBottomBar
-        binding.stats.useExternalScrollDriver = fragment is ConfigurationFragment
         binding.stats.syncMainControls(
             showControls,
             DataStore.serviceState,
@@ -557,7 +555,7 @@ class MainActivity :
         binding.stats.changeState(state)
         syncMainControls(
             showWhenConnected = state == BaseService.State.Connected,
-            animate = animateControls,
+            animate = animate,
         )
         if (msg != null) snackbar(getString(R.string.vpn_error, msg)).show()
     }

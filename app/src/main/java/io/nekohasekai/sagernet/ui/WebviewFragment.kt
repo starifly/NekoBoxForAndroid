@@ -77,7 +77,7 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
                 super.onPageFinished(view, url)
             }
         }
-        mWebView.loadSafeUrl(dashboardUrl())
+        loadSafeUrl(dashboardUrl())
     }
 
     private fun dashboardUrl(): String {

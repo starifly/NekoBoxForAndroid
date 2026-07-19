@@ -6,6 +6,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.nekohasekai.sagernet.database.DataStore
 
+private var listenerDisabled = false
+
 class FixedLinearLayoutManager(val recyclerView: RecyclerView) :
     LinearLayoutManager(recyclerView.context, RecyclerView.VERTICAL, false) {
 
@@ -15,7 +17,6 @@ class FixedLinearLayoutManager(val recyclerView: RecyclerView) :
         } catch (ignored: IndexOutOfBoundsException) {
         }
     }
-private var listenerDisabled = false
 
     override fun supportsPredictiveItemAnimations(): Boolean {
         return false
