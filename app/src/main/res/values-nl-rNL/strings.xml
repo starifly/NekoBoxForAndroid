@@ -12,11 +12,21 @@
     <string name="menu_group">Groep</string>
     <string name="menu_about">Over</string>
     <string name="theme">Thema</string>
+    <string name="theme_dynamic">Dynamisch (Material You)</string>
+    <string name="theme_dark_high_contrast">Donker hoog contrast</string>
+    <string name="theme_dracula_m3">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_monokai">Monokai</string>
+    <string name="theme_ayu">Ayu</string>
+    <string name="theme_catppuccin">Catppuccin</string>
+    <string name="theme_classic_colors">Klassieke kleuren…</string>
+    <string name="theme_classic_color_swatch">Kleurenthema %1$d</string>
     <string name="document">Document</string>
     <string name="group_default">Niet-gegroepeerd</string>
     <string name="quick_toggle">Schakelen</string>
     <string name="quick_enable">Inschakelen</string>
     <string name="quick_disable">Uitschakelen</string>
+    <string name="quick_clear_cache_restart">Cache legen &amp; Herstarten</string>
     <string name="tile_title">Schakelaar</string>
     <string name="menu_traffic">Verkeer</string>
     <string name="menu_dashboard">sing-box Dashboard</string>
@@ -40,9 +50,9 @@
     <string name="group_status_empty">Lege groep</string>
     <string name="group_status_empty_subscription">Nog niet bijgewerkt</string>
     <string name="group_status_proxies">%d Proxies</string>
-    <string name="group_status_proxies_subscription">%1$d Proxies | Bijgewerkt op %2$s</string>
+    <string name="group_status_proxies_subscription">%1$d Proxy\'s | Bijgewerkt op %2$s</string>
     <string name="group_no_difference">%s: Geen verschil</string>
-    <string name="group_updated">%1$s: Bijgewerkt %2$d proxies</string>
+    <string name="group_updated">%1$s: %2$d proxy\'s bijgewerkt</string>
     <string name="group_show_diff">Verschil</string>
     <string name="group_diff">Verschil (%s)</string>
     <string name="group_delete_confirm_prompt">Weet u zeker dat u deze groep wilt verwijderen?</string>
@@ -59,6 +69,10 @@
     <string name="cag_route">Route-instellingen</string>
     <string name="allow_access">Verbindingen vanaf het LAN toestaan</string>
     <string name="allow_access_sum">Bind inkomende servers aan 0.0.0.0</string>
+    <string name="require_proxy_in_vpn">Lokale proxy behouden in VPN-modus</string>
+    <string name="require_proxy_in_vpn_sum">De lokale SOCKS/HTTP-proxypoort open houden in VPN-modus. Standaard uit: in VPN-modus is de poort meestal niet nodig en staat andere apps toe deze te bereiken.</string>
+    <string name="proxy_mode_inbound_auth">Lokale proxy verifiëren in Proxy-modus</string>
+    <string name="proxy_mode_inbound_auth_sum">Gebruikersnaam/wachtwoord vereisen op de lokale SOCKS/HTTP-proxy in Proxy-modus (niet-VPN). Inschakelen om te voorkomen dat andere apps deze als open relay gebruiken.</string>
     <string name="inbound_settings">Inkomende instellingen</string>
     <string name="general_settings">App-instellingen</string>
     <string name="require_http">HTTP-inbound inschakelen</string>
@@ -74,11 +88,12 @@
     <string name="security_settings">TLS-beveiligingsinstellingen</string>
     <string name="allow_insecure">Onveilig toestaan</string>
     <string name="allow_insecure_sum">Certificaatcontrole uitschakelen. Wanneer ingeschakeld, is deze configuratie net zo veilig als onversleutelde tekst.</string>
+    <string name="lifetime_traffic">Altijd: %1$s↑ %2$s↓</string>
     <string name="speed_detail">Proxy: %1$s↑ %2$s↓\nDirect: %3$s↑ %4$s↓</string>
     <string name="speed">%s/s</string>
     <string name="connection_test_testing">Testen…</string>
-    <string name="connection_test_available">Succes: HTTPS-handshake duurde %dms</string>
-    <string name="connection_test_available_http">Succes: HTTP-handshake duurde %dms</string>
+    <string name="connection_test_available">Vertraging: %d ms</string>
+    <string name="connection_test_available_http">Vertraging: %d ms</string>
     <string name="connection_test_error">Mislukt: %s</string>
     <string name="connection_test_fail">Internet niet beschikbaar</string>
     <string name="connection_test_error_status_code">Foutcode: #%d</string>
@@ -221,15 +236,20 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="add_profile">Profiel toevoegen</string>
     <string name="select_profile">Profiel selecteren</string>
     <string name="proxy_chain">Proxyketen</string>
+    <string name="proxy_waterfall">Waterval</string>
+    <string name="proxy_fastest">Snelste</string>
     <string name="custom_config">Aangepaste configuratie</string>
     <string name="balancer">Balancer</string>
     <string name="balancer_settings">Balancer-instellingen</string>
     <string name="balancer_type">Type</string>
     <string name="balancer_strategy">Strategie</string>
     <string name="chain_settings">Keteninstellingen</string>
+    <string name="waterfall_settings">Waterval-instellingen</string>
+    <string name="fastest_settings">Instellingen voor snelste</string>
     <string name="config_settings">Configuratie-instellingen</string>
     <string name="circular_reference">Circulaire verwijzing</string>
     <string name="circular_reference_sum">De route kan zichzelf niet bevatten.</string>
+    <string name="profile_reference_not_allowed">Dit profiel is al toegevoegd, verwijst naar zichzelf, of is niet toegestaan in deze groep.</string>
     <string name="clear_profiles">Wissen</string>
     <string name="action_create_group">Lege groep</string>
     <string name="action_from_link">Van abonnement</string>
@@ -239,6 +259,11 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="action_export">Exporteren</string>
     <string name="action_import">Importeren van klembord</string>
     <string name="action_import_file">Importeren uit bestand</string>
+    <string name="scan_qr_hint">Richt de camera op een QR-code</string>
+    <string name="scan_toggle_torch">Zaklamp aan/uit</string>
+    <string name="scan_torch_turn_on">Zaklamp inschakelen</string>
+    <string name="scan_torch_turn_off">Zaklamp uitschakelen</string>
+    <string name="scan_no_qr_found">Geen QR-code gevonden in de geselecteerde afbeelding</string>
     <string name="action_export_msg">Succesvol geëxporteerd!</string>
     <string name="action_export_err">Exporteren mislukt.</string>
     <string name="action_import_msg">Succesvol geïmporteerd!</string>
@@ -269,6 +294,7 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <!-- status -->
     <string name="connecting">Verbinden…</string>
     <string name="vpn_connected">Verbonden, tik om verbinding te controleren</string>
+    <string name="connection_status_connected">Verbonden</string>
     <string name="not_connected">Niet verbonden</string>
     <!-- subscriptions -->
     <string name="subscriptions">Abonnementen</string>
@@ -277,12 +303,16 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="no_proxies_found">Geen proxies gevonden in de link</string>
     <string name="no_proxies_found_in_subscription">Geen proxies gevonden in het abonnement</string>
     <string name="no_proxies_found_in_file">Geen proxies gevonden in het bestand</string>
+    <string name="invalid_amnezia_config">Ongeldige of beschadigde Amnezia-configuratie</string>
+    <string name="no_amnezia_awg_profiles">Geen AmneziaWG-profielen gevonden in de configuratie</string>
     <string name="no_proxies_found_in_clipboard">Geen proxies gevonden in het klembord</string>
     <string name="deduplication">Deduplicatie</string>
     <string name="donate">Doneren</string>
     <string name="donate_info">Ik hou van geld</string>
     <string name="ignore_battery_optimizations">Batterijoptimalisaties negeren</string>
     <string name="ignore_battery_optimizations_sum">Enkele beperkingen opheffen</string>
+    <string name="battery_optimization_enabled">Ingeschakeld - de app kan onbeperkt op de achtergrond draaien</string>
+    <string name="battery_optimization_disabled">Uitgeschakeld - tik om achtergrondactiviteit toe te staan</string>
     <!-- plugin -->
     <string name="plugin">Plugin</string>
     <string name="plugin_configure">Configureren…</string>
@@ -290,6 +320,15 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="plugin_unknown">Onbekende plugin %s</string>
     <string name="plugin_untrusted">Waarschuwing: Deze plugin lijkt niet afkomstig van een bekende vertrouwde
         bron.</string>
+    <string name="plugin_signer_unreadable">onleesbaar</string>
+    <string name="plugin_signer_rejected">Geblokkeerd plug-inpakket %1$s met ondertekenaar %2$s. Maak opnieuw verbinding om het te controleren.</string>
+    <string name="plugin_approval_title">Plug-inpakket goedkeuren?</string>
+    <string name="plugin_approval_message">Pakket: %1$s\n\nSHA-256-certificaatvingerafdruk(ken):\n%2$s\n\nDe uitvoerbare code van de geïnstalleerde plug-in kan via de plug-ininterface van de app worden uitgevoerd. Keur alleen goed als u dit pakket vertrouwt.</string>
+    <string name="plugin_approval_action">Goedkeuren</string>
+    <string name="plugin_approval_success">Plug-inpakket goedgekeurd. Maak opnieuw verbinding om het te gebruiken.</string>
+    <string name="plugin_approval_failed">Het plug-inpakket kon niet worden goedgekeurd.</string>
+    <string name="plugin_approval_conflict_title">Conflict met plug-inpakket</string>
+    <string name="plugin_approval_conflict_message">Meer dan één onbetrouwbaar pakket biedt deze plug-in: %s\n\nLos het conflict op voordat u een pakket goedkeurt.</string>
     <string name="plugin_auto_connect_unlock_only">Deze plugin werkt mogelijk niet met Auto Connect</string>
     <string name="proxy_cat">Serverinstellingen</string>
     <string name="ss_cat">Shadowsocks-instellingen</string>
@@ -302,6 +341,11 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="route_warn">Zorg ervoor dat u de documentatie heeft gelezen voordat u aangepaste regels toevoegt,
         anders kunt u mogelijk geen verbinding maken met internet.</string>
     <string name="lines">%d regels</string>
+    <plurals name="dns_hosts_lines">
+        <item quantity="one">%d regel</item>
+        <item quantity="other">%d regels</item>
+    </plurals>
+    <string name="not_set">Niet ingesteld</string>
     <string name="night_mode">Nachtmodus</string>
     <string name="language">Taal</string>
     <string name="follow_system">Systeem volgen</string>
@@ -331,12 +375,13 @@ www.example.com 1.1.1.1 1.1.1.2</string>
     <string name="append_http_proxy">HTTP-proxy toevoegen aan VPN</string>
     <string name="append_http_proxy_sum">HTTP-proxy wordt rechtstreeks gebruikt vanuit (browser/sommige
         ondersteunde apps), zonder door het virtuele NIC-apparaat te gaan (Android 10+)</string>
-    <string name="http_proxy_bypass">HTTP-proxy-omzeilingslijst</string>
     <string name="http_proxy_bypass_dialog_message">Eén per regel. Regels die beginnen met # zijn opmerkingen. Voorbeeld: *zhihu.com</string>
     <string name="append_http_proxy_security_title">Beveiligingsmelding</string>
     <string name="append_http_proxy_security_message">Wanneer ingeschakeld, kunnen andere apps op dit apparaat de lokale proxy-poort direct gebruiken.
 
 Aanbeveling: Schakel dit alleen in als u alle geïnstalleerde apps vertrouwt.</string>
+    <string name="http_proxy_bypass">HTTP-proxy-omzeilingslijst</string>
+    <string name="http_proxy_bypass_sum">Hosts die de systeem-HTTP-proxy overslaan en direct verbinden wanneer Append HTTP Proxy to VPN is ingeschakeld. Eén patroon per regel, bijvoorbeeld 192.168.* of 10.*. Standaard worden privé- en loopback-bereiken gebruikt.</string>
     <string name="enable_anyway">Toch inschakelen</string>
     <string name="strict_route">Strikte routering</string>
     <string name="protocol_settings">Protocolinstellingen</string>
@@ -357,6 +402,9 @@ Aanbeveling: Schakel dit alleen in als u alle geïnstalleerde apps vertrouwt.</s
     <string name="filter_include">Opnemen</string>
     <string name="filter_exclude">Uitsluiten</string>
     <string name="filter_regex">Filter (Regex)</string>
+    <string name="subscription_custom_dns">Aangepaste resolver</string>
+    <string name="subscription_custom_dns_sum">Optionele DNS die alleen wordt gebruikt om de serverdomeinen van dit abonnement op te lossen. Laat leeg om de globale DNS te gebruiken. Accepteert https://, tls://, quic:// of host[:port].</string>
+    <string name="subscription_custom_dns_invalid">Ongeldige resolver. Gebruik https://, tls://, quic:// of host[:port], of laat leeg.</string>
     <string name="raw">Raw</string>
     <string name="update_settings">Update-instellingen</string>
     <string name="auto_update">Automatische update</string>
@@ -364,9 +412,13 @@ Aanbeveling: Schakel dit alleen in als u alle geïnstalleerde apps vertrouwt.</s
     <string name="update_when_connected_only">Alleen updaten wanneer verbonden</string>
     <string name="update_when_connected_only_sum">Voorkom IP-adreslek</string>
     <string name="subscription_user_agent">UserAgent</string>
+    <string name="subscription_send_hwid">HWID verzenden</string>
+    <string name="subscription_send_hwid_summary">HWID, Android-versie en apparaatmodel verzenden bij het bijwerken van dit abonnement</string>
+    <string name="subscription_custom_hwid_params">Aangepaste HWID-parameters</string>
+    <string name="subscription_custom_hwid_params_summary">Formaat: hwid=waarde,os=waarde,osVersion=waarde,model=waarde. Laat leeg om de waarden van dit apparaat te gebruiken; ingevuld worden alleen de vermelde waarden verzonden.</string>
     <string name="confirm">Bevestigen</string>
     <string name="missing_plugin">Ontbrekende plugin</string>
-    <string name="profile_requiring_plugin">Profiel %1$s vereist dat de %2$s plugin is geïnstalleerd, maar
+    <string name="profile_requiring_plugin">Profiel %1$s vereist de %2$s-plug-in, maar
         deze is niet gevonden.</string>
     <string name="action_learn_more">MEER INFORMATIE</string>
     <string name="action_download">DOWNLOADEN</string>
@@ -387,7 +439,7 @@ Aanbeveling: Schakel dit alleen in als u alle geïnstalleerde apps vertrouwt.</s
     <string name="server_dns_subscription_sum">Optionele DNS die alleen wordt gebruikt om serverdomeinen in dit abonnement op te lossen. Laat leeg om het standaardgedrag te gebruiken. Accepteert https://, tls://, quic:// of host[:poort].</string>
     <string name="server_dns_invalid">Ongeldige aangepaste server-DNS. Gebruik https://, tls://, quic:// of host[:poort], of laat leeg.</string>
     <string name="subscription_used">%s Gebruikt</string>
-    <string name="subscription_traffic">%1$s Gebruikt / %2$s Resterend</string>
+    <string name="subscription_traffic">%1$s gebruikt / %2$s resterend</string>
     <string name="subscription_expire">Verloopt: %s</string>
     <string name="subscription_import">Abonnement importeren</string>
     <string name="subscription_import_message">Bevestig dat u abonnement %s wilt importeren? Als u
@@ -399,6 +451,48 @@ Aanbeveling: Schakel dit alleen in als u alle geïnstalleerde apps vertrouwt.</s
     <string name="select_apps">Selecteer toepassingen</string>
     <string name="apps_message">%d toepassingen</string>
     <string name="hysteria_obfs">Obfuscatie-wachtwoord</string>
+    <string name="hysteria2_obfs_type">Obfuscatietype</string>
+    <string name="hysteria2_gecko_min_packet">Gecko Minimale pakketgrootte</string>
+    <string name="hysteria2_gecko_max_packet">Gecko Maximale pakketgrootte</string>
+    <string name="hysteria2_ech_summary">Geavanceerd en optioneel. Vereist de ECH-configuratielijst van de server. De verbinding mislukt als de configuratie ontbreekt of verouderd is; ECH is meestal overbodig wanneer versluiering is ingeschakeld.</string>
+    <string name="hysteria2_ech_config_hint">Plak de base64-configuratielijst van de server, of een compleet ECH CONFIGS PEM-blok.</string>
+    <string name="hysteria2_ech_config_invalid">Voer een geldige ECH-configuratielijst in voordat u ECH inschakelt.</string>
+    <string name="action_masterdnsvpn">MasterDnsVPN</string>
+    <string name="mdv_domains">Tunneldomeinen</string>
+    <string name="mdv_encryption_method">Versleutelingsmethode</string>
+    <string name="mdv_encryption_key">Versleutelingssleutel</string>
+    <string name="mdv_resolvers">DNS-resolvers</string>
+    <string name="mdv_resilience_cat">Resolver &amp; Veerkracht</string>
+    <string name="mdv_balancing_strategy">Balanceringsstrategie voor resolvers</string>
+    <string name="mdv_packet_dup">Aantal pakketduplicaties</string>
+    <string name="mdv_setup_packet_dup">Aantal duplicaties voor setup-pakketten</string>
+    <string name="mdv_auto_disable_timeout">Timeout-servers automatisch uitschakelen</string>
+    <string name="mdv_auto_remove_low_mtu">Low-MTU-servers automatisch verwijderen</string>
+    <string name="mdv_base_encode">Data base-coderen</string>
+    <string name="mdv_compression_cat">Compressie</string>
+    <string name="mdv_upload_compression">Uploadcompressie</string>
+    <string name="mdv_download_compression">Downloadcompressie</string>
+    <string name="mdv_compression_min_size">Minimale compressiegrootte</string>
+    <string name="mdv_mtu_cat">MTU-detectie</string>
+    <string name="mdv_min_upload_mtu">Minimale upload-MTU</string>
+    <string name="mdv_min_download_mtu">Minimale download-MTU</string>
+    <string name="mdv_max_upload_mtu">Maximale upload-MTU</string>
+    <string name="mdv_max_download_mtu">Maximale download-MTU</string>
+    <string name="mdv_misc_cat">Diversen</string>
+    <string name="mdv_local_dns_enabled">Lokale DNS-server</string>
+    <string name="mdv_local_dns_port">Lokale DNS-poort</string>
+    <string name="mdv_log_level">Logniveau</string>
+    <string name="mdv_advanced_json">Geavanceerde JSON-overschrijving</string>
+    <string name="action_olcrtc">olcRTC</string>
+    <string name="olcrtc_carrier">Provider</string>
+    <string name="olcrtc_room_id">Room-ID / URL</string>
+    <string name="olcrtc_client_id">Client-ID</string>
+    <string name="olcrtc_key_hex">Versleutelingssleutel (64 hex)</string>
+    <string name="olcrtc_transport_cat">Transport</string>
+    <string name="olcrtc_transport">Transport</string>
+    <string name="olcrtc_vp8_fps">VP8 FPS</string>
+    <string name="olcrtc_vp8_batch">VP8 Batchgrootte</string>
+    <string name="olcrtc_dns_server">DNS-resolver</string>
     <string name="hysteria_auth_type">Authenticatietype</string>
     <string name="hysteria_auth_payload">Authenticatiepayload</string>
     <string name="hysteria_upload_mbps">Max uploadsnelheid (in Mbps)</string>
@@ -411,9 +505,9 @@ Aanbeveling: Schakel dit alleen in als u alle geïnstalleerde apps vertrouwt.</s
     <string name="group_order_origin">Oorsprong</string>
     <string name="group_order_by_name">Op naam</string>
     <string name="group_order_by_delay">Op vertraging</string>
-    <string name="plugin_exists_but_on_shit_system">Profiel %1$s vereist de %2$s-plugin, maar uw
-        leverancier van propriëtaire apparatuur (meestal surveillance-kapitaalreusen en malwaremakers)
-        heeft uw Android gemanipuleerd, waardoor de plugin onbruikbaar is.</string>
+    <string name="plugin_exists_but_on_shit_system">Profiel %1$s vereist de %2$s-plug-in, maar uw
+        eigenaar van propriëtaire apparatuur (meestal surveillance kapitaalreuzen en malwaremakers)
+        heeft met uw Android geknoeid, waardoor de plug-in onbruikbaar is.</string>
     <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks Android-plugin)</string>
     <string name="shadowsocks_plugin_v2ray">V2Ray (Shadowsocks Android Plugin)</string>
     <string name="tcp_connections">%d TCP-verbindingen</string>
@@ -446,6 +540,23 @@ Aanbeveling: Schakel dit alleen in als u alle geïnstalleerde apps vertrouwt.</s
     <string name="wireguard_local_address">Lokaal adres</string>
     <string name="wireguard_public_key">Peer openbare sleutel</string>
     <string name="wireguard_psk">Peer pre-gedeelde sleutel</string>
+    <string name="amneziawg_category">AmneziaWG 2.0</string>
+    <string name="amneziawg_jc">Jc (junkpakketten)</string>
+    <string name="amneziawg_jmin">Jmin (minimale junkgrootte)</string>
+    <string name="amneziawg_jmax">Jmax (maximale junkgrootte)</string>
+    <string name="amneziawg_s1">S1</string>
+    <string name="amneziawg_s2">S2</string>
+    <string name="amneziawg_s3">S3</string>
+    <string name="amneziawg_s4">S4</string>
+    <string name="amneziawg_h1">H1</string>
+    <string name="amneziawg_h2">H2</string>
+    <string name="amneziawg_h3">H3</string>
+    <string name="amneziawg_h4">H4</string>
+    <string name="amneziawg_i1">I1</string>
+    <string name="amneziawg_i2">I2</string>
+    <string name="amneziawg_i3">I3</string>
+    <string name="amneziawg_i4">I4</string>
+    <string name="amneziawg_i5">I5</string>
     <string name="warp_license">CloudFlare Warp is een gratis WireGuard VPN-provider. Door het te gebruiken, gaat u akkoord met de algemene voorwaarden.</string>
     <string name="warp_generate">Configuratie genereren</string>
     <string name="generating">Bezig met genereren…</string>
@@ -491,14 +602,17 @@ Als u dit moet gebruiken, probeer dan eerst N=2 om te zien of het uw problemen o
     <string name="tuic_disable_sni">SNI uitschakelen</string>
     <string name="tuic_reduce_rtt">0-RTT QUIC-handshake inschakelen</string>
     <string name="pinned_certchain_sha256">Pinned Certificate SHA256</string>
-    <string name="please_update">Uw APP is te oud (%1$s). En stopt met werken op %2$s.
-        Update alstublieft!</string>
+    <string name="please_update">Uw APP is te oud (%1$s). En zal stoppen met werken op %2$s. Gelieve
+        te updaten!</string>
     <string name="please_update_force">Uw APP is te oud (%1$s). En is gestopt met werken op %2$s.
-        Update alstublieft!</string>
+        Gelieve te updaten!</string>
     <string name="connection_test_delete_unavailable">Wis niet beschikbaar</string>
     <string name="move">Verplaatsen</string>
     <string name="exe_prefer_provider">Plugin voorkeursprovider</string>
     <string name="create_shortcut">Snelkoppeling maken</string>
+    <string name="create_clear_cache_shortcut_summary">Maak een snelkoppeling op het startscherm voor cache legen en herstarten</string>
+    <string name="shortcut_pin_requested">Snelkoppelingsverzoek naar launcher gestuurd</string>
+    <string name="shortcut_pin_not_supported">Launcher ondersteunt geen snelkoppelingen vastmaken</string>
     <string name="app_tls_version">Abonnement min TLS-versie</string>
     <string name="hop_interval">Port Hopping-interval (seconden)</string>
     <string name="domain_strategy_for_remote">Domeinstrategie voor Remote</string>
@@ -511,6 +625,8 @@ Als u dit moet gebruiken, probeer dan eerst N=2 om te zien of het uw problemen o
     <string name="is_outbound_only">De JSON-set is uitgaand</string>
     <string name="save">Opslaan</string>
     <string name="set_panel_url">Paneel-URL instellen</string>
+    <string name="action_close">Sluiten</string>
+    <string name="invalid_panel_url">Ongeldige paneel-URL. Gebruik alleen HTTPS of localhost HTTP.</string>
     <string name="enable_clash_api">Clash-API inschakelen</string>
     <string name="log_level">Logniveau</string>
     <string name="enable_clash_api_summary">Bied Clash-API en yacd-dashboard op 127.0.0.1:9090</string>
@@ -574,11 +690,13 @@ Als u dit moet gebruiken, probeer dan eerst N=2 om te zien of het uw problemen o
     <string name="webdav_server_error">Serverfout</string>
     <string name="webdav_connect_failed">Verbinding mislukt met code: %d</string>
     <string name="webdav_create_dir_failed">Maken of openen back-upmap mislukt</string>
+    <string name="webdav_insecure_url">Onveilige WebDAV-server-URL. Gebruik een https://-adres; gewoon http:// verzendt uw inloggegevens en back-up (die alle profielgeheimen bevat) in leesbare tekst.</string>
     <string name="global_mode">Globale modus</string>
     <string name="global_mode_summary">Omzeil alle routeringsregels en proxy al het verkeer via het huidige knooppunt</string>
     <string name="mux_preference">Multiplex</string>
     <string name="padding">Padding</string>
     <string name="network_change_reset_connections">Uitgaande verbindingen resetten bij netwerkwijziging</string>
+    <string name="restart_profile_on_network_change">Actief profiel herstarten bij netwerkwijzigingen</string>
     <string name="wake_reset_connections">Uitgaande verbindingen resetten bij ontwaken uit slaapstand</string>
     <string name="backup_in_progress">Back-up is al bezig</string>
     <string name="restore_in_progress">Herstellen is al bezig</string>
@@ -614,11 +732,26 @@ Als u dit moet gebruiken, probeer dan eerst N=2 om te zien of het uw problemen o
     <string name="open_app_settings">Open systeeminstellingen</string>
     <!-- Snell Protocol -->
     <string name="action_snell">Snell</string>
-    <string name="snell_psk">Sleutel</string>
+    <string name="snell_psk">Pre-shared Key</string>
+    <string name="snell_userkey">User Key</string>
     <string name="snell_version">Versie</string>
-    <string name="snell_network">Protocol</string>
-    <string name="snell_obfs_mode">Obfs-modus</string>
-    <string name="snell_obfs_host">Obfs host</string>
+    <string name="snell_network">Netwerk</string>
+    <string name="snell_obfs_mode">Obfs Mode</string>
+    <string name="snell_obfs_host">Obfs Host</string>
+    <string name="snell_mode">Modus</string>
     <string name="snell_reuse">Hergebruik</string>
-    <string name="snell_reuse_summary">Alleen v4/v5</string>
+    <string name="snell_reuse_summary">Alleen v4-v6</string>
+    <string name="interface_settings">Interface</string>
+    <string name="ui_style">Interface-stijl</string>
+    <string name="ui_style_expressive">Nieuw</string>
+    <string name="ui_style_classic">Klassiek</string>
+    <string name="dynamic_colors">Dynamische kleuren</string>
+    <string name="dynamic_colors_summary">Gebruik het systeem-Material You-palet</string>
+    <string name="dynamic_colors_unavailable">Beschikbaar op Android 12 en nieuwer</string>
+    <string name="dynamic_colors_classic">Beschikbaar met de nieuwe interface</string>
+    <string name="theme_fallback_summary">Gebruikt wanneer dynamische kleuren niet beschikbaar of uitgeschakeld zijn</string>
+    <string name="more_options">Meer opties</string>
+    <string name="amoled_theme">AMOLED donker thema</string>
+    <string name="amoled_theme_summary">Zuiver zwarte achtergrond in donkere modus</string>
+    <string name="app_theme">Accentkleur</string>
 </resources>
