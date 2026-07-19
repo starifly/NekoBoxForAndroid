@@ -1268,7 +1268,6 @@ val groupListBinding = LayoutGroupListBinding.bind(view)
                         toolbar.elevation = 0F
                     }
                 }
-            }
         }
 
         init {

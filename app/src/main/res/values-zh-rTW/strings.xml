@@ -46,7 +46,7 @@
     <string name="layout">版面配置</string>
     <string name="layout_single_column">單列</string>
     <string name="layout_double_column">雙列</string>
-    <string name="sort_and_layout">排序与佈局</string>
+    <string name="sort_and_layout">排序與佈局</string>
     <string name="group_status_empty">空分組</string>
     <string name="group_status_empty_subscription">尚未更新</string>
     <string name="group_status_proxies">%d 個代理</string>
