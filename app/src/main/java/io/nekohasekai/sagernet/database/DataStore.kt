@@ -123,7 +123,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     ) { true }
     var wakeResetConnections by configurationStore.boolean(Key.WAKE_RESET_CONNECTIONS)
 
-    var isExpert by configurationStore.boolean(Key.APP_EXPERT)var appTheme by configurationStore.stringToInt(Key.APP_THEME) { 0 }
+    var isExpert by configurationStore.boolean(Key.APP_EXPERT)
+    var appTheme by configurationStore.stringToInt(Key.APP_THEME) { 0 }
     var useSystemTheme by configurationStore.boolean(Key.USE_SYSTEM_THEME)
     var nightTheme by configurationStore.stringToInt(Key.NIGHT_THEME)
 

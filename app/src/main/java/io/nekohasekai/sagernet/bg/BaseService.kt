@@ -566,7 +566,7 @@ class BaseService {
         private fun onStartConnect(profile: ProxyEntity?): Job? {
             this as Context
             val data = data
-            if (profile == null) { // gracefully shutdown: https://stackoverflow.com/q/47337857/2245107
+            if (profile == null) {
                 data.notification = createNotification("")
                 stopRunner(false, getString(R.string.profile_empty))
                 return null
@@ -575,13 +575,16 @@ class BaseService {
             val proxy = ProxyInstance(profile, this)
             data.proxy = proxy
             BootReceiver.enabled = DataStore.persistAcrossReboot
-            return runOnMainDispatcher {
+
+            val connectingJob = GlobalScope.launch(
+                Dispatchers.Main.immediate,
+                start = CoroutineStart.LAZY,
+            ) {
                 if (!data.closeReceiverRegistered) {
                     val filter = IntentFilter().apply {
                         addAction(Action.RELOAD)
                         addAction(Intent.ACTION_SHUTDOWN)
                         addAction(Action.CLOSE)
-                        // addAction(Action.SWITCH_WAKE_LOCK)
                         addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)
                         addAction(Action.RESET_UPSTREAM_CONNECTIONS)
                     }
@@ -605,20 +608,11 @@ class BaseService {
                 }
 
                 data.changeState(State.Connecting)
-                val connectingJob = GlobalScope.launch(
-                    Dispatchers.Main.immediate,
-                    start = CoroutineStart.LAZY,
-                ) {
                 try {
-                    // Reuse the title computed during ProxyInstance construction (off the main
-                    // thread); calling genTitle() here would do a groupDao read on the main thread.
                     data.notification = createNotification(proxy.displayProfileName)
 
-                    Executable.killAll() // clean up old processes
+                    Executable.killAll()
                     preInit()
-                    // buildConfig() (via proxy.init()) does synchronous group/profile DAO reads;
-                    // run it off the main thread so it works with the main-thread-DB allowance
-                    // removed (Plan 027). init() is suspend and does not touch the UI.
                     onDefaultDispatcher { proxy.init() }
                     DataStore.currentProfile = profile.id
 
@@ -631,7 +625,7 @@ class BaseService {
                     data.changeState(State.Connected)
 
                     lateInit()
-                } catch (_: CancellationException) { // if the job was cancelled, it is canceller's responsibility to call stopRunner
+                } catch (_: CancellationException) {
                 } catch (_: UnknownHostException) {
                     stopRunner(false, getString(R.string.invalid_server))
                 } catch (e: PluginManager.PluginNotFoundException) {
@@ -641,7 +635,6 @@ class BaseService {
                     stopRunner(false, null)
                 } catch (exc: Throwable) {
                     if (exc.javaClass.name.endsWith("proxyerror")) {
-                        // error from golang
                         Logs.w(exc.readableMessage)
                     } else {
                         Logs.w(exc)
@@ -656,7 +649,6 @@ class BaseService {
             }
             data.connectingJob = connectingJob
             connectingJob.start()
-            return Service.START_NOT_STICKY
+            return connectingJob
         }
-    }
 }

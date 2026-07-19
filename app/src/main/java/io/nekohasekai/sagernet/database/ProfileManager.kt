@@ -117,6 +117,8 @@ object ProfileManager {
         if (profileIds.isNotEmpty()) {
             SagerDatabase.proxyDao.resetTraffic(profileIds)
         }
+    }
+
     // Add a per-session DELTA (never absolute) into the profile's lifetime columns (schema v12).
     suspend fun addLifetimeTraffic(profileId: Long, rxDelta: Long, txDelta: Long) {
         SagerDatabase.proxyDao.addLifetimeTraffic(profileId, rxDelta, txDelta)
@@ -188,10 +190,6 @@ object ProfileManager {
 
     suspend fun postUpdate(data: List<TrafficData>) {
         if (data.isEmpty()) return
-        iterator { onUpdated(data) }
-    }
-
-    suspend fun postUpdate(data: List<TrafficData>) {
         iterator { onUpdated(data) }
     }
 

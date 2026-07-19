@@ -199,44 +199,6 @@ class ConfigBuildResult(
     data class IndexEntity(var chain: LinkedHashMap<Int, ProxyEntity>)
 }
 
-private fun sanitizeDnsEntry(value: String): String {
-    return value.filterNot { it.isISOControl() }.trim()
-}
-
-private fun parseDnsHosts(value: String): Map<String, List<String>> {
-    val hosts = linkedMapOf<String, MutableList<String>>()
-    value.lineSequence().forEach { line ->
-        val trimmed = line.trim()
-        if (trimmed.isEmpty() || trimmed.startsWith("#")) return@forEach
-        val tokens = trimmed.split("\\s+".toRegex())
-        if (tokens.size < 2) return@forEach
-        val domain = tokens.first()
-        val addresses = tokens.drop(1).filter { it.isIpAddress() }
-        if (addresses.isEmpty()) return@forEach
-        hosts.getOrPut(domain) { mutableListOf() }.addAll(addresses)
-    }
-    return hosts.mapValues { (_, addresses) -> addresses.distinct() }
-}
-
-private fun serverHostOf(bean: AbstractBean): String? {
-    val fallback = bean.serverAddress?.takeIf { it.isNotBlank() }
-    if (bean is ConfigBean) {
-        return try {
-            val map = gson.fromJson(bean.config, mutableMapOf<String, Any>().javaClass)
-            map["server"]?.toString()?.takeIf { it.isNotBlank() } ?: fallback
-        } catch (_: Exception) {
-            fallback
-        }
-    }
-    return fallback
-}
-
-fun buildConfig(
-    proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean = false
-): ConfigBuildResult {
-// Extracted from buildConfig as pure, capture-free helpers (Plan 028 seams).
-// Behavior-preserving moves: same inputs -> same outputs.
-
 private fun resolveChainInternal(entity: ProxyEntity): MutableList<ProxyEntity> {
     val bean = entity.requireBean()
     if (bean is ChainBean) {
@@ -415,6 +377,7 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
     val enableDnsRouting = DataStore.enableDnsRouting
     val useFakeDns = DataStore.enableFakeDns && !forTest
     val needSniff = DataStore.trafficSniffing > 0
+    val needSniffOverride = DataStore.trafficSniffing > 1
     val externalIndexMap = ArrayList<IndexEntity>()
     val ipv6Mode = if (forTest) IPv6Mode.ENABLE else DataStore.ipv6Mode
 
@@ -1525,9 +1488,6 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
                         tag = serverTag
                         detour = TAG_DIRECT
                         address_resolver = "dns-local"
-                        // Reached via direct detour, so use the direct domain strategy (like
-                        // dns-direct), not the server strategy (the tag would otherwise fall into
-                        // the "server" arm of domainStrategy).
                         strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy("dns-direct"))
                     },
                 )
@@ -1538,27 +1498,6 @@ fun buildConfig(proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean
                         server = serverTag
                     },
                 )
-            }
-            perGroupResolver.forEach { (gid, resolver) ->
-                val hosts = perGroupServerHosts[gid]
-                    ?.filter { it.isNotBlank() && isExclusiveCustomHost(it) }
-                    ?.map { "full:$it" }
-                if (hosts.isNullOrEmpty()) return@forEach
-
-                val serverTag = "dns-sub-$gid"
-                dns.servers.add(DNSServerOptions().apply {
-                    address = resolver
-                    tag = serverTag
-                    detour = TAG_DIRECT
-                    if (!resolver.isIpAddress()) {
-                        address_resolver = "dns-direct"
-                    }
-                    strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy("server"))
-                })
-                dns.rules.add(0, DNSRule_DefaultOptions().apply {
-                    makeSingBoxRule(hosts)
-                    server = serverTag
-                })
             }
         }
 
