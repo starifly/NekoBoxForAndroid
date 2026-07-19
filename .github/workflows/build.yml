@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'nb4a.properties'
 env:
   MIERU_VERSION: v3.34.1
   MDVPN_REF: android-vpnservice-protect-hook

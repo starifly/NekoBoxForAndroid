@@ -1,6 +1,9 @@
 name: CI
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 env:
   MIERU_VERSION: v3.34.1
   MDVPN_REF: android-vpnservice-protect-hook
