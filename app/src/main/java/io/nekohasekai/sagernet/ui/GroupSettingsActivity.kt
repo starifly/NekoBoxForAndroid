@@ -231,6 +231,22 @@ class GroupSettingsActivity(
         subscriptionServerDns.setOnPreferenceChangeListener { pref, newValue ->
             val value = (newValue as String).trim()
             if (isValidServerDns(value)) {
+                // Persist the normalized (trimmed) value rather than the raw input.
+                if (value != newValue) {
+                    (pref as EditTextPreference).text = value
+                    false
+                } else {
+                    true
+                }
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    R.string.server_dns_invalid,
+                    Toast.LENGTH_LONG,
+                ).show()
+                false
+            }
+        }
         val subscriptionCustomDns =
             findPreference<EditTextPreference>(Key.SUBSCRIPTION_CUSTOM_DNS)!!
         subscriptionCustomDns.setOnPreferenceChangeListener { pref, newValue ->
@@ -246,7 +262,6 @@ class GroupSettingsActivity(
             } else {
                 Toast.makeText(
                     requireContext(),
-                    R.string.server_dns_invalid,
                     R.string.subscription_custom_dns_invalid,
                     Toast.LENGTH_LONG,
                 ).show()

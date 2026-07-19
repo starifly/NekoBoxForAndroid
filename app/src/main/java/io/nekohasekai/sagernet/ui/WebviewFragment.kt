@@ -127,7 +127,6 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
                         // 2. 透過 dashboardUrl() 判斷是否需要注入本地 Secret，再經由 loadSafeUrl 載入
                         loadSafeUrl(dashboardUrl())
                     }
-                    }
                     .setNegativeButton(android.R.string.cancel, null)
                     .show()
             }

@@ -114,7 +114,8 @@ object Theme {
         context.setTheme(getDialogTheme())
         applyOverlays(context)
     }
-private fun applyOverlays(context: Context) {
+
+    private fun applyOverlays(context: Context) {
         if (!DataStore.dynamicColors) {
             when (DataStore.appTheme) {
                 1 -> context.theme.applyStyle(R.style.ThemeOverlay_SagerNet_Accent_Blue, true)
@@ -160,12 +161,6 @@ private fun applyOverlays(context: Context) {
             }
         }
     }
-    fun getDialogTheme(): Int =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && DataStore.dynamicColors) {
-            R.style.Theme_SagerNet_Expressive_Dynamic_Dialog
-        } else {
-            R.style.Theme_SagerNet_Expressive_Dialog
-        }
 
     var currentNightMode = -1
 

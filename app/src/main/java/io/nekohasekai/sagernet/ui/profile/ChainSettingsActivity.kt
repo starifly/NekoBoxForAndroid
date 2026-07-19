@@ -301,6 +301,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
                         }
                     }
                 }
+                }
             }
         }
 

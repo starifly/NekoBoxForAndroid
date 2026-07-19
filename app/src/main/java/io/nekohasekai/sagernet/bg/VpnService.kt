@@ -144,7 +144,7 @@ class VpnService :
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) builder.setMetered(metered)
 
         // app route
-        {
+        run {
             val packageName = packageName
             val proxyApps = DataStore.proxyApps
             var bypass = DataStore.bypass

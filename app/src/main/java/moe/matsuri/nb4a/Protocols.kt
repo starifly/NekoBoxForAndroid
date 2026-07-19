@@ -2,6 +2,7 @@ package moe.matsuri.nb4a
 
 import android.content.Context
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_NEKO
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.getColorAttr

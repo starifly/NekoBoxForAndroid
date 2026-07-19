@@ -58,7 +58,6 @@ import io.nekohasekai.sagernet.plugin.PluginTrust
 import moe.matsuri.nb4a.plugin.Plugins
 import io.nekohasekai.sagernet.ui.MessageStore
 import io.nekohasekai.sagernet.ui.publishClearCacheShortcut
-import io.nekohasekai.sagernet.ktx.Logs
 import moe.matsuri.nb4a.utils.Util
 import java.util.Locale
 
@@ -90,16 +89,7 @@ class MainActivity :
 
         binding = LayoutMainBinding.inflate(layoutInflater)
         binding.fab.initProgress(binding.fabProgress)
-        if (themeResId !in intArrayOf(
-                R.style.Theme_SagerNet_Black,
-            )
-        ) {
-            navigation = binding.navView
-            binding.drawerLayout.removeView(binding.navViewBlack)
-        } else {
-            navigation = binding.navViewBlack
-            binding.drawerLayout.removeView(binding.navView)
-        }
+        navigation = binding.navView
         navigation.setNavigationItemSelectedListener(this)
 
         if (savedInstanceState == null) {

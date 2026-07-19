@@ -1,6 +1,8 @@
 package io.nekohasekai.sagernet.group
 
 import android.annotation.SuppressLint
+import android.os.Build
+import android.provider.Settings
 import androidx.core.net.toUri
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SubscriptionFilterMode

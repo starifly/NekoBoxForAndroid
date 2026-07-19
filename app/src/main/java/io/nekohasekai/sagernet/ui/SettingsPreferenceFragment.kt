@@ -126,6 +126,8 @@ val appTheme = findPreference<ThemePickerPreference>(Key.APP_THEME)!!
         val httpPort = findPreference<EditTextPreference>(Key.HTTP_PORT)!!
         val mixedUsername = findPreference<EditTextPreference>(Key.MIXED_USERNAME)!!
         val mixedPassword = findPreference<EditTextPreference>(Key.MIXED_PASSWORD)!!
+        val httpProxyBypass = findPreference<EditTextPreference>(Key.HTTP_PROXY_BYPASS)!!
+        val dnsHosts = findPreference<EditTextPreference>(Key.DNS_HOSTS)!!
         val serviceMode = findPreference<Preference>(Key.SERVICE_MODE)!!
         val allowAccess = findPreference<SwitchPreferenceCompat>(Key.ALLOW_ACCESS)!!
         val appendHttpProxy = findPreference<SwitchPreferenceCompat>(Key.APPEND_HTTP_PROXY)!!
@@ -183,8 +185,6 @@ val appTheme = findPreference<ThemePickerPreference>(Key.APP_THEME)!!
         }
         httpProxyBypass.setOnBindEditTextListener(EditTextPreferenceModifiers.Hosts)
         dnsHosts.setOnBindEditTextListener(EditTextPreferenceModifiers.Hosts)
-        httpProxyBypass.summaryProvider = ListSummaryProvider(maxLines = 1)
-        dnsHosts.summaryProvider = ListSummaryProvider(maxLines = 1)
         val metedNetwork = findPreference<Preference>(Key.METERED_NETWORK)!!
         if (Build.VERSION.SDK_INT < 28) {
             metedNetwork.remove()
@@ -410,7 +410,8 @@ socksPort.onPreferenceChangeListener = reloadListener
         }
     }
 
-    runOnDefaultDispatcher {
+    private fun clearAppCache() {
+        runOnDefaultDispatcher {
             try {
                 SagerNet.stopService()
                 Thread.sleep(300)
@@ -443,6 +444,7 @@ socksPort.onPreferenceChangeListener = reloadListener
                 e.printStackTrace()
             }
         }
+    }
 
     private fun clearDirFiles(dir: File, skipFiles: Set<String> = emptySet()): Boolean {
         if (dir.isDirectory) {

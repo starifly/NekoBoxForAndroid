@@ -30,12 +30,30 @@ import io.nekohasekai.sagernet.fmt.tuic.TuicBean
 import io.nekohasekai.sagernet.fmt.v2ray.*
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.ktx.app
+import io.nekohasekai.sagernet.ui.profile.ChainSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.HttpSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.HysteriaSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.JuicitySettingsActivity
+import io.nekohasekai.sagernet.ui.profile.MieruSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.NaiveSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.ProfileSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.ShadowsocksRSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.ShadowsocksSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.SocksSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.SSHSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.TrojanGoSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.TrojanSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.TuicSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.VMessSettingsActivity
+import io.nekohasekai.sagernet.ui.profile.WireGuardSettingsActivity
 import moe.matsuri.nb4a.SingBoxOptions.BrutalOptions
 import moe.matsuri.nb4a.SingBoxOptions.MultiplexOptions
 import moe.matsuri.nb4a.proxy.anytls.AnyTLSBean
+import moe.matsuri.nb4a.proxy.anytls.AnyTLSSettingsActivity
 import moe.matsuri.nb4a.proxy.config.ConfigBean
+import moe.matsuri.nb4a.proxy.config.ConfigSettingActivity
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
+import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity
 
 @Entity(
     tableName = "proxy_entities",
@@ -199,7 +217,7 @@ fun putByteArray(byteArray: ByteArray) {
                 TYPE_HTTP -> httpBean = KryoConverters.httpDeserialize(byteArray)
                 TYPE_SS -> ssBean = KryoConverters.shadowsocksDeserialize(byteArray)
                 TYPE_SSR -> ssrBean = KryoConverters.shadowsocksrDeserialize(byteArray)
-                TYPE_VMESS -> vmixBean = KryoConverters.vmessDeserialize(byteArray)
+                TYPE_VMESS -> vmessBean = KryoConverters.vmessDeserialize(byteArray)
                 TYPE_TROJAN -> trojanBean = KryoConverters.trojanDeserialize(byteArray)
                 TYPE_TROJAN_GO -> trojanGoBean = KryoConverters.trojanGoDeserialize(byteArray)
                 TYPE_MIERU -> mieruBean = KryoConverters.mieruDeserialize(byteArray)
@@ -212,7 +230,6 @@ fun putByteArray(byteArray: ByteArray) {
                 TYPE_SHADOWTLS -> shadowTLSBean = KryoConverters.shadowTLSDeserialize(byteArray)
                 TYPE_ANYTLS -> anyTLSBean = KryoConverters.anyTLSDeserialize(byteArray)
                 TYPE_CHAIN, TYPE_WATERFALL, TYPE_FASTEST -> chainBean = KryoConverters.chainDeserialize(byteArray)
-                TYPE_NEKO -> nekoBean = KryoConverters.nekoDeserialize(byteArray)
                 TYPE_CONFIG -> configBean = KryoConverters.configDeserialize(byteArray)
             }
         }
@@ -239,7 +256,6 @@ fun putByteArray(byteArray: ByteArray) {
             TYPE_CHAIN -> chainName
             TYPE_WATERFALL -> waterfallName
             TYPE_FASTEST -> fastestName
-            TYPE_NEKO -> nekoBean?.displayType() ?: "Neko"
             TYPE_CONFIG -> configBean?.displayType() ?: "Config"
             else -> "Undefined type $type"
         }
@@ -271,7 +287,6 @@ fun putByteArray(byteArray: ByteArray) {
             TYPE_SHADOWTLS -> shadowTLSBean
             TYPE_ANYTLS -> anyTLSBean
             TYPE_CHAIN, TYPE_WATERFALL, TYPE_FASTEST -> chainBean
-            TYPE_NEKO -> nekoBean
             TYPE_CONFIG -> configBean
             else -> error("Undefined type $type")
         } ?: error("Null ${displayType()} profile")
@@ -444,7 +459,6 @@ fun putByteArray(byteArray: ByteArray) {
         anyTLSBean = null
         chainBean = null
         configBean = null
-        nekoBean = null
 
         when (bean) {
             is SOCKSBean -> {
@@ -534,11 +548,6 @@ fun putByteArray(byteArray: ByteArray) {
                     else -> TYPE_CHAIN
                 }
                 chainBean = bean
-            }
-
-            is NekoBean -> {
-                type = TYPE_NEKO
-                nekoBean = bean
             }
 
             is ConfigBean -> {

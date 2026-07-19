@@ -15,6 +15,7 @@ import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.utils.Theme
 
 abstract class ThemedActivity : AppCompatActivity {

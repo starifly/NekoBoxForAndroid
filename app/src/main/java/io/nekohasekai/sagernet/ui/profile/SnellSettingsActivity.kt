@@ -106,4 +106,20 @@ class SnellSettingsActivity : ProfileSettingsActivity<SnellBean>() {
             obfsModePref.setEntryValues(R.array.snell_obfs_modes_value)
         }
     }
+
+    private fun updateVersionFields(
+        version: Int,
+        userKeyPref: EditTextPreference,
+        obfsModePref: SimpleMenuPreference,
+        obfsHostPref: EditTextPreference,
+        modePref: SimpleMenuPreference,
+    ) {
+        // userKey was introduced in v4
+        userKeyPref.isEnabled = version >= 4
+        // obfs was introduced in v3
+        obfsModePref.isEnabled = version >= 3
+        obfsHostPref.isEnabled = version >= 3
+        // mode was introduced in v6
+        modePref.isEnabled = version >= 6
+    }
 }
