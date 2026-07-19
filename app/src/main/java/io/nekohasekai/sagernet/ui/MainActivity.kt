@@ -28,6 +28,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
+import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.aidl.TrafficDataBatch
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
@@ -538,11 +539,6 @@ class MainActivity :
         binding.stats.onListScrolled(scrollDy)
     }
 
-    private fun refreshConfigurationProfileState() {
-        (supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ConfigurationFragment)
-            ?.refreshProfileState()
-    }
-
     fun displayFragmentWithId(@IdRes id: Int): Boolean {
         when (id) {
             R.id.nav_configuration -> {
@@ -614,8 +610,16 @@ class MainActivity :
         binding.stats.updateSpeed(stats.txRateProxy, stats.rxRateProxy)
     }
 
-    override suspend fun cbTrafficUpdate(data: TrafficDataBatch) {
-        ProfileManager.postUpdate(data.items)
+    override fun cbTrafficUpdate(data: TrafficData) {
+        runOnDefaultDispatcher {
+            ProfileManager.postUpdate(listOf(data))
+        }
+    }
+
+    override fun cbTrafficUpdateBatch(data: TrafficDataBatch) {
+        runOnDefaultDispatcher {
+            ProfileManager.postUpdate(data.items)
+        }
     }
 
     override fun cbTrafficUpdateList(data: List<TrafficData>) {

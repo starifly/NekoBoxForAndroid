@@ -144,7 +144,7 @@ class VpnService :
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) builder.setMetered(metered)
 
         // app route
-        if (!applyTunPackageRules(builder, tunOptionsJson)) {
+        {
             val packageName = packageName
             val proxyApps = DataStore.proxyApps
             var bypass = DataStore.bypass
@@ -273,40 +273,6 @@ if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && DataStore.appendHttpProxy)
                 return false
             }
         }
-        return true
-    }
-
-    fun updateUnderlyingNetwork(builder: Builder? = null) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-            SagerNet.underlyingNetwork?.let {
-                builder?.setUnderlyingNetworks(arrayOf(SagerNet.underlyingNetwork))
-                    ?: setUnderlyingNetworks(arrayOf(SagerNet.underlyingNetwork))
-            }
-        }
-
-        val includePackages = tunOptions.packageList("include_package").toMutableSet()
-        val excludePackages = tunOptions.packageList("exclude_package")
-        if (includePackages.isEmpty() && excludePackages.isEmpty()) return false
-        if (includePackages.isNotEmpty()) {
-            includePackages.add(packageName)
-        }
-
-        if (includePackages.isNotEmpty()) {
-            includePackages.forEach {
-                try {
-                    builder.addAllowedApplication(it)
-                } catch (_: PackageManager.NameNotFoundException) {
-                }
-            }
-        } else {
-            excludePackages.forEach {
-                try {
-                    builder.addDisallowedApplication(it)
-                } catch (_: PackageManager.NameNotFoundException) {
-                }
-            }
-        }
-        Logs.d("Applied tun package rules: include=${includePackages.size}, exclude=${excludePackages.size}")
         return true
     }
 

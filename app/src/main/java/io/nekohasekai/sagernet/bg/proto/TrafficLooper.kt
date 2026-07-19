@@ -206,7 +206,7 @@ class TrafficLooper(
                 if (data.binder.callbackIdMap[callback] ==
                     SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND
                 ) {
-                    batches.forEach { callback.cbTrafficUpdate(it) }
+                    batches.forEach { callback.cbTrafficUpdateBatch(it) }
                 }
             }
         }
@@ -315,13 +315,14 @@ class TrafficLooper(
                         }
                     }
                 }
-                snapshot
             }
             currentCoroutineContext().ensureActive()
 
             // ServiceNotification
             data.notification?.apply {
-                if (listenPostSpeed) postNotificationSpeedUpdate(snapshot.speed)
+                if (listenPostSpeed) {
+                    postNotificationSpeedUpdate(speed)
+                }
             }
 
             delay(delayMs)
