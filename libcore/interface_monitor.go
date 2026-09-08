@@ -43,3 +43,7 @@ func (s *interfaceMonitorStub) RegisterMyInterface(interfaceName string) {
 func (s *interfaceMonitorStub) MyInterface() string {
 	return ""
 }
+
+func (s *interfaceMonitorStub) MyInterfaces() []string {
+	return nil
+}

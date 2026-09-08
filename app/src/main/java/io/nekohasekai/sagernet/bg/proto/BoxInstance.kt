@@ -18,6 +18,7 @@ import io.nekohasekai.sagernet.fmt.trojan_go.TrojanGoBean
 import io.nekohasekai.sagernet.fmt.trojan_go.buildTrojanGoConfig
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.plugin.PluginManager
+import io.nekohasekai.sagernet.route.RouterRuntimeSelection
 import kotlinx.coroutines.*
 import libcore.BoxInstance
 import libcore.Libcore
@@ -38,6 +39,15 @@ abstract class BoxInstance(
     private var cacheFiles = ArrayList<File>()
     fun isInitialized(): Boolean {
         return ::config.isInitialized && ::box.isInitialized
+    }
+
+    fun currentUrlTestSelections(): LongArray {
+        if (!isInitialized()) return longArrayOf()
+        return RouterRuntimeSelection.resolve(
+            routerTags = config.routerUrlTestTags,
+            profileTags = config.profileTagMap,
+            currentOutbound = box::currentOutboundFor,
+        )
     }
 
     protected fun initPlugin(name: String): PluginManager.InitResult {

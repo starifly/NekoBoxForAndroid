@@ -413,8 +413,6 @@
     <string name="warp_generate">구성 생성</string>
     <string name="generating">생성 중…</string>
     <string name="tun_implementation">TUN 구현</string>
-    <string name="enable_hev_tun">Hev TUN 사용</string>
-    <string name="enable_hev_tun_summary">hev-socks5-tunnel로 TUN 장치 생성</string>
     <string name="destination_override">목적지 재정의</string>
     <string name="destination_override_summary">스니핑한 도메인을 사용하여 목적지 주소를 덮어씁니다 (라우팅뿐만 아니라)</string>
     <string name="resolve_destination">목적지 확인</string>
@@ -520,7 +518,7 @@
     <string name="webdav_path">백업 경로</string>
     <string name="webdav_test">연결 테스트</string>
     <string name="webdav_test_success">연결 성공</string>
-    <string name="webdav_test_failed" formatted="false">연결 실패: %s</string>
+    <string name="webdav_test_failed">연결 실패: %1$s</string>
     <string name="backup_to_webdav">WebDAV에 백업</string>
     <string name="restore_from_webdav">WebDAV에서 복원</string>
     <string name="webdav_backup_success">WebDAV에 백업 성공</string>

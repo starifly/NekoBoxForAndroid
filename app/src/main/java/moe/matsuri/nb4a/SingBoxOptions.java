@@ -113,9 +113,91 @@ public class SingBoxOptions {
 
         public List<SingBoxOption> outbounds;
 
+        public List<SingBoxOption> endpoints;
+
         public RouteOptions route;
 
         public ExperimentalOptions experimental;
+
+    }
+
+    // sing-box 1.15 moved some protocols (WireGuard) from outbounds to endpoints.
+
+    public static class Endpoint extends SingBoxOption {
+
+        public String type;
+
+        public String tag;
+
+    }
+
+    public static class Endpoint_WireGuardPeer extends SingBoxOption {
+
+        public String address;
+
+        public Integer port;
+
+        public String public_key;
+
+        public String pre_shared_key;
+
+        // Generate note: Listable
+        public List<String> allowed_ips;
+
+        public Integer persistent_keepalive_interval;
+
+        // Generate note: Base64 String
+        public String reserved;
+
+    }
+
+    public static class Endpoint_WireGuardOptions extends Endpoint {
+
+        // Generate note: nested type DialerOptions
+        public String detour;
+
+        public String bind_interface;
+
+        public String inet4_bind_address;
+
+        public String inet6_bind_address;
+
+        public String protect_path;
+
+        public Integer routing_mark;
+
+        public Boolean reuse_addr;
+
+        public Long connect_timeout;
+
+        public Boolean tcp_fast_open;
+
+        public Boolean tcp_multi_path;
+
+        public Boolean udp_fragment;
+
+        public String domain_strategy;
+
+        public Long fallback_delay;
+
+        // End of public DialerOptions ;
+
+        public Boolean system;
+
+        public String name;
+
+        public Integer mtu;
+
+        // Generate note: Listable
+        public List<String> address;
+
+        public String private_key;
+
+        public Integer listen_port;
+
+        public List<Endpoint_WireGuardPeer> peers;
+
+        public Integer workers;
 
     }
 
@@ -2829,20 +2911,22 @@ public class SingBoxOptions {
         public Integer mtu;
 
         // Generate note: Listable
-        public List<String> inet4_address;
+        public List<String> address;
+
+        public String dns_mode;
 
         // Generate note: Listable
-        public List<String> inet6_address;
+        public List<String> dns_address;
 
         public Boolean auto_route;
 
         public Boolean strict_route;
 
         // Generate note: Listable
-        public List<String> inet4_route_address;
+        public List<String> route_address;
 
         // Generate note: Listable
-        public List<String> inet6_route_address;
+        public List<String> route_exclude_address;
 
         // Generate note: Listable
         public List<String> include_interface;
@@ -2870,8 +2954,6 @@ public class SingBoxOptions {
 
         // Generate note: Listable
         public List<String> exclude_package;
-
-        public Boolean endpoint_independent_nat;
 
         public Long udp_timeout;
 
@@ -4452,9 +4534,11 @@ public class SingBoxOptions {
 
         public String url;
 
-        public Long interval;
+        public String interval;
 
         public Integer tolerance;
+
+        public String idle_timeout;
 
     }
 

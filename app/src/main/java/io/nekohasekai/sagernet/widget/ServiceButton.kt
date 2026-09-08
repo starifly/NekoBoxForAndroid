@@ -2,7 +2,6 @@ package io.nekohasekai.sagernet.widget
 
 import android.content.Context
 import android.graphics.drawable.Drawable
-import android.os.Build
 import android.util.AttributeSet
 import android.view.PointerIcon
 import android.view.View
@@ -123,7 +122,7 @@ class ServiceButton @JvmOverloads constructor(
         TooltipCompat.setTooltipText(this, description)
         val enabled = state.canStop || state == BaseService.State.Stopped
         isEnabled = enabled
-        if (Build.VERSION.SDK_INT >= 24) pointerIcon = PointerIcon.getSystemIcon(
+        pointerIcon = PointerIcon.getSystemIcon(
             context,
             if (enabled) PointerIcon.TYPE_HAND else PointerIcon.TYPE_WAIT
         )

@@ -7,6 +7,7 @@ import androidx.appcompat.content.res.AppCompatResources
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.ktx.Logs
 import java.io.File
+import java.util.Locale
 
 // SagerNet Class
 
@@ -50,9 +51,9 @@ fun Context.getDrawableByName(name: String?): Drawable? {
 fun Long.toBytesString(): String {
     val size = this.toDouble()
     return when {
-        this >= GB -> String.format("%.2f GiB", size / GB)
-        this >= MB -> String.format("%.2f MiB", size / MB)
-        this >= KB -> String.format("%.2f KiB", size / KB)
+        this >= GB -> String.format(Locale.getDefault(), "%.2f GiB", size / GB)
+        this >= MB -> String.format(Locale.getDefault(), "%.2f MiB", size / MB)
+        this >= KB -> String.format(Locale.getDefault(), "%.2f KiB", size / KB)
         else -> "$this Bytes"
     }
 }

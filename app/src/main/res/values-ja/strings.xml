@@ -419,8 +419,6 @@
     <string name="warp_generate">設定を生成</string>
     <string name="generating">生成中…</string>
     <string name="tun_implementation">TUN 実装</string>
-    <string name="enable_hev_tun">Hev TUN を有効化</string>
-    <string name="enable_hev_tun_summary">hev-socks5-tunnel で TUN デバイスを作成</string>
     <string name="destination_override">宛先を上書き</string>
     <string name="destination_override_summary">スニッフィングしたドメインを使って宛先アドレスを上書きします (ルーティングだけでなく)</string>
     <string name="resolve_destination">宛先を解決</string>
@@ -526,7 +524,7 @@
     <string name="webdav_path">バックアップパス</string>
     <string name="webdav_test">接続をテスト</string>
     <string name="webdav_test_success">接続に成功しました</string>
-    <string name="webdav_test_failed" formatted="false">接続に失敗しました: %s</string>
+    <string name="webdav_test_failed">接続に失敗しました: %1$s</string>
     <string name="backup_to_webdav">WebDAV にバックアップ</string>
     <string name="restore_from_webdav">WebDAV から復元</string>
     <string name="webdav_backup_success">WebDAV へのバックアップに成功しました</string>

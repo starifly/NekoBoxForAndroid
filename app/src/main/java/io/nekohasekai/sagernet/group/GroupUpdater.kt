@@ -132,7 +132,7 @@ abstract class GroupUpdater {
 
         suspend fun executeUpdate(proxyGroup: ProxyGroup, byUser: Boolean): Boolean {
             return coroutineScope {
-                if (!updating.add(proxyGroup.id)) cancel()
+                if (!updating.add(proxyGroup.id)) return@coroutineScope false
                 GroupManager.postReload(proxyGroup.id)
 
                 val subscription = proxyGroup.subscription!!
@@ -142,19 +142,23 @@ abstract class GroupUpdater {
                 if (byUser && (subscription.link?.startsWith("http://") == true || subscription.updateWhenConnectedOnly) && !connected) {
                     if (userInterface == null || !userInterface.confirm(app.getString(R.string.update_subscription_warning))) {
                         finishUpdate(proxyGroup)
-                        cancel()
-                        return@coroutineScope true
+                        return@coroutineScope false
                     }
                 }
 
                 try {
+                    val routerSnapshot = GroupManager.snapshotRouterMembers()
                     RawUpdater.doUpdate(proxyGroup, subscription, userInterface, byUser)
+                    GroupManager.reconcileRouterMembers(routerSnapshot)
                     true
                 } catch (e: Throwable) {
                     Logs.w(e)
+                    GroupManager.markRouterRefreshFailed(proxyGroup.id, e.readableMessage)
                     userInterface?.onUpdateFailure(proxyGroup, e.readableMessage)
                     finishUpdate(proxyGroup)
                     false
+                } finally {
+                    GroupManager.cleanupDanglingRouterMembers()
                 }
             }
         }

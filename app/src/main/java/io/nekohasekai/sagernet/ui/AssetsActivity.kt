@@ -6,6 +6,7 @@ import android.text.format.DateFormat
 import android.view.Menu
 import android.view.MenuItem
 import android.view.ViewGroup
+import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isInvisible
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -33,6 +34,9 @@ class AssetsActivity : ThemedActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        onBackPressedDispatcher.addCallback(this) {
+            finish()
+        }
 
         val binding = LayoutAssetsBinding.inflate(layoutInflater)
         layout = binding
@@ -364,7 +368,7 @@ class AssetsActivity : ThemedActivity() {
             response.writeTo(cacheFile.canonicalPath)
             cacheFile.renameTo(file)
 
-            val currentDate = java.text.SimpleDateFormat("yyyyMMdd").format(java.util.Date())
+            val currentDate = java.text.SimpleDateFormat("yyyyMMdd", Locale.ROOT).format(Date())
             versionFile.writeText(currentDate)
 
             adapter.reloadAssets()
@@ -382,10 +386,6 @@ class AssetsActivity : ThemedActivity() {
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true
-    }
-
-    override fun onBackPressed() {
-        finish()
     }
 
     override fun onResume() {

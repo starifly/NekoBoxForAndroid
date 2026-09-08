@@ -37,19 +37,13 @@
             app:title="@string/service_mode"
             app:useSimpleSummaryProvider="true" />
         <moe.matsuri.nb4a.ui.SimpleMenuPreference
-            app:defaultValue="0"
+            app:defaultValue="3"
             app:entries="@array/tun_implementation"
-            app:entryValues="@array/int_array_3"
+            app:entryValues="@array/int_array_4"
             app:icon="@drawable/ic_baseline_flip_camera_android_24"
             app:key="tunImplementation"
             app:title="@string/tun_implementation"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
-            app:defaultValue="false"
-            app:icon="@drawable/ic_baseline_memory_24"
-            app:key="enableHevTun"
-            app:summary="@string/enable_hev_tun_summary"
-            app:title="@string/enable_hev_tun" />
         <moe.matsuri.nb4a.ui.MTUPreference
             app:defaultValue="9000"
             app:entries="@array/mtu_select"
@@ -78,6 +72,11 @@
             app:title="@string/show_direct_speed"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreference
+            app:defaultValue="true"
+            app:key="showProfileInNotification"
+            app:summary="@string/show_profile_in_notification_summary"
+            app:title="@string/show_profile_in_notification" />
+        <SwitchPreference
             app:key="showGroupInNotification"
             app:title="@string/show_group_in_notification" />
         <SwitchPreference
@@ -89,11 +88,6 @@
             app:key="alwaysShowAddress"
             app:summary="@string/always_show_address_sum"
             app:title="@string/always_show_address" />
-        <SwitchPreference
-            app:icon="@drawable/ic_device_data_usage"
-            app:key="meteredNetwork"
-            app:summary="@string/metered_summary"
-            app:title="@string/metered" />
         <SwitchPreference
             app:icon="@drawable/baseline_developer_board_24"
             app:key="acquireWakeLock"
@@ -156,46 +150,6 @@
             app:icon="@drawable/ic_image_looks_6"
             app:key="ipv6Mode"
             app:title="@string/ipv6"
-            app:useSimpleSummaryProvider="true" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
-            app:defaultValue="0"
-            app:entries="@array/rules_dat_provider"
-            app:entryValues="@array/int_array_5"
-            app:icon="@drawable/ic_baseline_rule_folder_24"
-            app:key="rulesProvider"
-            app:title="@string/route_rules_provider"
-            app:useSimpleSummaryProvider="true" />
-        <EditTextPreference
-            app:defaultValue="https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db"
-            app:key="rulesGeositeUrl"
-            app:title="@string/rules_geosite_url"
-            app:useSimpleSummaryProvider="true" />
-        <EditTextPreference
-            app:defaultValue="https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db"
-            app:key="rulesGeoipUrl"
-            app:title="@string/rules_geoip_url"
-            app:useSimpleSummaryProvider="true" />
-        <EditTextPreference
-            app:defaultValue="0"
-            app:key="rulesUpdateInterval"
-            app:icon="@drawable/ic_baseline_shutter_speed_24"
-            app:title="@string/ruleset_update_interval"
-            app:summary="@string/ruleset_update_interval_summary" />
-    </PreferenceCategory>
-
-    <PreferenceCategory app:title="@string/fragment_settings">
-        <SwitchPreference
-            app:key="enableTLSFragment"
-            app:title="@string/enable_tls_fragment" />
-        <EditTextPreference
-            app:defaultValue="100-200"
-            app:key="fragmentLength"
-            app:title="@string/fragment_length"
-            app:useSimpleSummaryProvider="true" />
-        <EditTextPreference
-            app:defaultValue="10-20"
-            app:key="fragmentInterval"
-            app:title="@string/fragment_interval"
             app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
@@ -260,19 +214,6 @@
             app:key="localProxySettings"
             app:title="@string/local_proxy_settings" />
         <SwitchPreference
-            app:defaultValue="false"
-            app:key="appendHttpProxy"
-            app:summary="@string/append_http_proxy_sum"
-            app:title="@string/append_http_proxy" />
-        <EditTextPreference
-            app:defaultValue=""
-            app:dependency="appendHttpProxy"
-            app:dialogMessage="@string/http_proxy_bypass_dialog_message"
-            app:icon="@drawable/ic_baseline_domain_24"
-            app:key="httpProxyBypass"
-            app:title="@string/http_proxy_bypass"
-            app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
             app:defaultValue="true"
             app:key="strictRoute"
             app:title="@string/strict_route" />
@@ -291,32 +232,12 @@
             app:summary="@string/enable_clash_api_summary"
             app:title="@string/enable_clash_api" />
         <SwitchPreference
-            app:defaultValue="true"
-            app:icon="@drawable/ic_baseline_flip_camera_android_24"
-            app:key="networkChangeResetConnections"
-            app:title="@string/network_change_reset_connections"
-            app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
-            app:key="wakeResetConnections"
-            app:title="@string/wake_reset_connections"
-            app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
             app:icon="@drawable/ic_action_lock_open"
             app:key="globalAllowInsecure"
             app:title="@string/global_allow_insecure" />
         <SwitchPreference
             app:key="allowInsecureOnRequest"
             app:title="@string/allow_insecure_on_request_sum" />
-        <moe.matsuri.nb4a.ui.SimpleMenuPreference
-            app:defaultValue="1.2"
-            app:entries="@array/app_tls_version"
-            app:entryValues="@array/app_tls_version"
-            app:key="appTLSVersion"
-            app:title="@string/app_tls_version"
-            app:useSimpleSummaryProvider="true" />
-        <SwitchPreference
-            app:key="showBottomBar"
-            app:title="@string/show_bottom_bar" />
         <Preference
             app:icon="@drawable/baseline_undo_24"
             app:key="resetSettings"

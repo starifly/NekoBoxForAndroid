@@ -36,6 +36,7 @@
         <item name="windowNoTitle">true</item>
 
         <item name="chipStyle">@style/Widget.MaterialComponents.Chip.Choice.SagerNet</item>
+        <item name="itemShapeFillColor">@color/nav_item_fill</item>
 
         <item name="itemShapeAppearance">
             @style/ShapeAppearance.MaterialComponents.MediumComponent

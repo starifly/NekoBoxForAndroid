@@ -26,16 +26,21 @@ fun genReserved(anyStr: String): String {
     }
 }
 
-fun buildSingBoxOutboundWireguardBean(bean: WireGuardBean): SingBoxOptions.Outbound_WireGuardOptions {
-    return SingBoxOptions.Outbound_WireGuardOptions().apply {
+// sing-box 1.15 only registers WireGuard as an endpoint, and dropped the
+// deprecated server / server_port / local_address / peer_public_key options.
+fun buildSingBoxWireGuardEndpointBean(bean: WireGuardBean): SingBoxOptions.Endpoint_WireGuardOptions {
+    return SingBoxOptions.Endpoint_WireGuardOptions().apply {
         type = "wireguard"
-        server = bean.serverAddress
-        server_port = bean.serverPort
-        local_address = bean.localAddress.listByLineOrComma()
+        address = bean.localAddress.listByLineOrComma()
         private_key = bean.privateKey
-        peer_public_key = bean.peerPublicKey
-        pre_shared_key = bean.peerPreSharedKey
         mtu = bean.mtu
-        if (bean.reserved.isNotBlank()) reserved = genReserved(bean.reserved)
+        peers = listOf(SingBoxOptions.Endpoint_WireGuardPeer().apply {
+            address = bean.serverAddress
+            port = bean.serverPort
+            public_key = bean.peerPublicKey
+            if (bean.peerPreSharedKey.isNotBlank()) pre_shared_key = bean.peerPreSharedKey
+            allowed_ips = listOf("0.0.0.0/0", "::/0")
+            if (bean.reserved.isNotBlank()) reserved = genReserved(bean.reserved)
+        })
     }
 }

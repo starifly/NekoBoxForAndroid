@@ -83,7 +83,11 @@ object SubscriptionUpdater {
                         R.string.subscription_update_message, profile.displayName()
                     )
                 )
-                nm.notify(2, notification.build())
+                try {
+                    nm.notify(2, notification.build())
+                } catch (_: SecurityException) {
+                    // Denied notification permission must not prevent subscription updates.
+                }
 
                 GroupUpdater.executeUpdate(profile, false)
             }

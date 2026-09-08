@@ -37,11 +37,13 @@ data class ProxyGroup(
             output.writeInt(0)
             output.writeString(name)
             output.writeInt(type)
-            val subscription = subscription!!
+            val subscription = checkNotNull(subscription) {
+                "Subscription group ($name) requires subscription data"
+            }
             subscription.serializeForShare(output)
 
         } else {
-            output.writeInt(0)
+            output.writeInt(1)
             output.writeLong(id)
             output.writeLong(userOrder)
             output.writeBoolean(ungrouped)
@@ -49,9 +51,15 @@ data class ProxyGroup(
             output.writeInt(type)
 
             if (type == GroupType.SUBSCRIPTION) {
-                subscription?.serializeToBuffer(output)
+                val subscription = checkNotNull(subscription) {
+                    "Subscription group $id ($name) requires subscription data"
+                }
+                subscription.serializeToBuffer(output)
             }
             output.writeInt(order)
+            output.writeBoolean(isSelector)
+            output.writeLong(frontProxy)
+            output.writeLong(landingProxy)
         }
     }
 
@@ -81,6 +89,11 @@ data class ProxyGroup(
                 subscription.deserializeFromBuffer(input)
             }
             order = input.readInt()
+            if (version >= 1) {
+                isSelector = input.readBoolean()
+                frontProxy = input.readLong()
+                landingProxy = input.readLong()
+            }
         }
     }
 

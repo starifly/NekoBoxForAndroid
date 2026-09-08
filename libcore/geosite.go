@@ -2,11 +2,9 @@ package libcore
 
 import (
 	"fmt"
-	"path/filepath"
 
 	geosites "github.com/sagernet/sing-box/common/geosite"
 	C "github.com/sagernet/sing-box/constant"
-	"github.com/sagernet/sing-box/nekoutils"
 	"github.com/sagernet/sing-box/option"
 )
 
@@ -43,12 +41,5 @@ func (g *geosite) Rules(code string) ([]option.HeadlessRule, error) {
 	}, nil
 }
 
-func init() {
-	nekoutils.GetGeoSiteHeadlessRules = func(name string) ([]option.HeadlessRule, error) {
-		g := new(geosite)
-		if err := g.Open(filepath.Join(externalAssetsPath, "geosite.db")); err != nil {
-			return nil, err
-		}
-		return g.Rules(name)
-	}
-}
+// geosite reader kept for potential direct use; upstream sing-box 1.15 loads geosite
+// via its own resource manager using constant.resourcePaths.

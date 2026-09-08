@@ -58,34 +58,62 @@ class KeyValuePair() : Parcelable {
     var valueType: Int = TYPE_UNINITIALIZED
     var value: ByteArray = ByteArray(0)
 
+    fun validate(): KeyValuePair {
+        require(key.isNotBlank()) { "Setting key cannot be blank" }
+        when (valueType) {
+            TYPE_BOOLEAN -> require(value.isNotEmpty()) { "Setting $key (boolean) payload is empty" }
+            TYPE_FLOAT -> require(value.size >= 4) { "Setting $key (float) payload truncated: ${value.size} bytes" }
+            @Suppress("DEPRECATION") TYPE_INT -> require(value.size >= 4) { "Setting $key (int) payload truncated: ${value.size} bytes" }
+            TYPE_LONG -> require(value.size >= 8) { "Setting $key (long) payload truncated: ${value.size} bytes" }
+            TYPE_STRING -> Unit
+            TYPE_STRING_SET -> {
+                val buffer = ByteBuffer.wrap(value)
+                while (buffer.hasRemaining()) {
+                    require(buffer.remaining() >= 4) { "Setting $key (stringSet) entry length header truncated" }
+                    val len = buffer.int
+                    require(len >= 0 && buffer.remaining() >= len) {
+                        "Setting $key (stringSet) entry truncated or invalid length: $len, remaining: ${buffer.remaining()}"
+                    }
+                    buffer.position(buffer.position() + len)
+                }
+            }
+            else -> throw IllegalArgumentException("Setting $key has invalid valueType: $valueType")
+        }
+        return this
+    }
+
     val boolean: Boolean?
-        get() = if (valueType == TYPE_BOOLEAN) ByteBuffer.wrap(value).get() != 0.toByte() else null
+        get() = if (valueType == TYPE_BOOLEAN && value.isNotEmpty()) ByteBuffer.wrap(value).get() != 0.toByte() else null
     val float: Float?
-        get() = if (valueType == TYPE_FLOAT) ByteBuffer.wrap(value).float else null
+        get() = if (valueType == TYPE_FLOAT && value.size >= 4) ByteBuffer.wrap(value).float else null
 
     @Suppress("DEPRECATION")
     @Deprecated("Use long.", ReplaceWith("long"))
     val int: Int?
-        get() = if (valueType == TYPE_INT) ByteBuffer.wrap(value).int else null
+        get() = if (valueType == TYPE_INT && value.size >= 4) ByteBuffer.wrap(value).int else null
     val long: Long?
         get() = when (valueType) {
-            @Suppress("DEPRECATION") TYPE_INT,
-            -> ByteBuffer.wrap(value).int.toLong()
-            TYPE_LONG -> ByteBuffer.wrap(value).long
+            @Suppress("DEPRECATION") TYPE_INT -> if (value.size >= 4) ByteBuffer.wrap(value).int.toLong() else null
+            TYPE_LONG -> if (value.size >= 8) ByteBuffer.wrap(value).long else null
             else -> null
         }
     val string: String?
         get() = if (valueType == TYPE_STRING) String(value) else null
     val stringSet: Set<String>?
         get() = if (valueType == TYPE_STRING_SET) {
-            val buffer = ByteBuffer.wrap(value)
-            val result = HashSet<String>()
-            while (buffer.hasRemaining()) {
-                val chArr = ByteArray(buffer.int)
-                buffer.get(chArr)
-                result.add(String(chArr))
-            }
-            result
+            runCatching {
+                val buffer = ByteBuffer.wrap(value)
+                val result = HashSet<String>()
+                while (buffer.hasRemaining()) {
+                    if (buffer.remaining() < 4) return null
+                    val len = buffer.int
+                    if (len < 0 || buffer.remaining() < len) return null
+                    val chArr = ByteArray(len)
+                    buffer.get(chArr)
+                    result.add(String(chArr))
+                }
+                result
+            }.getOrNull()
         } else null
 
     @Ignore
@@ -131,9 +159,10 @@ class KeyValuePair() : Parcelable {
         val stream = ByteArrayOutputStream()
         val intBuffer = ByteBuffer.allocate(4)
         for (v in value) {
+            val bytes = v.toByteArray()       // compute UTF-8 bytes once
             intBuffer.rewind()
-            stream.write(intBuffer.putInt(v.length).array())
-            stream.write(v.toByteArray())
+            stream.write(intBuffer.putInt(bytes.size).array())  // write byte count (not char count)
+            stream.write(bytes)
         }
         this.value = stream.toByteArray()
         return this

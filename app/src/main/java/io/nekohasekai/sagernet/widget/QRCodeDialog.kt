@@ -78,10 +78,21 @@ class QRCodeDialog() : DialogFragment() {
                 layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
                 )
-                setImageBitmap(Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565).apply {
-                    for (x in 0 until size) for (y in 0 until size) {
-                        setPixel(x, y, if (qrBits.get(x, y)) Color.BLACK else Color.WHITE)
+                // Bulk-fill instead of per-pixel setPixel(): a size*size loop of
+                // Bitmap.setPixel() is one JNI round-trip per pixel and blocks the
+                // main thread for a long time on large QR codes.
+                // setPixels() reads row-major: the pixel at (x, y) is taken from
+                // pixels[y * stride + x].
+                val pixels = IntArray(size * size)
+                for (y in 0 until size) {
+                    val rowOffset = y * size
+                    for (x in 0 until size) {
+                        pixels[rowOffset + x] =
+                            if (qrBits.get(x, y)) Color.BLACK else Color.WHITE
                     }
+                }
+                setImageBitmap(Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565).apply {
+                    setPixels(pixels, 0, size, 0, 0, size, size)
                 })
             })
 

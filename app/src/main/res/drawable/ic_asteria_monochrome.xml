@@ -1,0 +1,32 @@
+﻿<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Outer Orbital Ring -->
+    <path
+        android:pathData="M 54 22 C 71.67 22 86 36.33 86 54 C 86 71.67 71.67 86 54 86 C 36.33 86 22 71.67 22 54 C 22 36.33 36.33 22 54 22 Z"
+        android:strokeWidth="2"
+        android:strokeColor="#FFFFFF" />
+
+    <!-- Celestial Core / 8-Point Asteria Star -->
+    <path
+        android:pathData="M 54 27 L 57.5 45.5 L 75 42 L 61 54 L 75 66 L 57.5 62.5 L 54 81 L 50.5 62.5 L 33 66 L 47 54 L 33 42 L 50.5 45.5 Z"
+        android:fillColor="#FFFFFF" />
+
+    <!-- Orbital Energy Sparks -->
+    <path
+        android:pathData="M 54 18 L 55.5 21 L 54 24 L 52.5 21 Z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M 90 54 L 87 55.5 L 84 54 L 87 52.5 Z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M 54 90 L 52.5 87 L 54 84 L 55.5 87 Z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M 18 54 L 21 52.5 L 24 54 L 21 55.5 Z"
+        android:fillColor="#FFFFFF" />
+
+</vector>

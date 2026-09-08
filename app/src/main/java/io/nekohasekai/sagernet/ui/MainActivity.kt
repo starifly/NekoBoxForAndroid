@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.RemoteException
 import android.view.KeyEvent
@@ -36,6 +35,7 @@ import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SubscriptionBean
+import io.nekohasekai.sagernet.database.RouterGroupRepository
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
 import io.nekohasekai.sagernet.databinding.LayoutMainBinding
 import io.nekohasekai.sagernet.fmt.AbstractBean
@@ -102,7 +102,6 @@ class MainActivity : ThemedActivity(),
                 null
             )
         }
-        binding.stats.setOnClickListener { if (DataStore.serviceState.connected) binding.stats.testConnection() }
 
         setContentView(binding.root)
         currentMainFragment =
@@ -120,22 +119,28 @@ class MainActivity : ThemedActivity(),
         DataStore.configurationStore.registerChangeListener(this)
         GroupManager.userInterface = GroupInterfaceAdapter(this)
 
+        runOnDefaultDispatcher {
+            if (RouterGroupRepository.all().isNotEmpty()) {
+                runCatching {
+                    GroupManager.reconcileRouterMembers(GroupManager.snapshotRouterMembers())
+                }
+            }
+        }
+
         if (intent?.action == Intent.ACTION_VIEW) {
             onNewIntent(intent)
         }
 
         refreshNavMenu(DataStore.enableClashAPI)
 
-        // sdk 33 notification
-        if (Build.VERSION.SDK_INT >= 33) {
-            val checkPermission =
-                ContextCompat.checkSelfPermission(this@MainActivity, POST_NOTIFICATIONS)
-            if (checkPermission != PackageManager.PERMISSION_GRANTED) {
-                //动态申请
-                ActivityCompat.requestPermissions(
-                    this@MainActivity, arrayOf(POST_NOTIFICATIONS), 0
-                )
-            }
+        // notification permission
+        val checkPermission =
+            ContextCompat.checkSelfPermission(this@MainActivity, POST_NOTIFICATIONS)
+        if (checkPermission != PackageManager.PERMISSION_GRANTED) {
+            //动态申请
+            ActivityCompat.requestPermissions(
+                this@MainActivity, arrayOf(POST_NOTIFICATIONS), 0
+            )
         }
 
         if (isPreview) {
@@ -371,6 +376,9 @@ class MainActivity : ThemedActivity(),
     @SuppressLint("CommitTransaction")
     fun displayFragment(fragment: ToolbarFragment) {
         currentMainFragment = fragment
+        (fragment as? ConfigurationFragment)?.updateRuntimeUrlTestSelections(
+            runtimeUrlTestSelections
+        )
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_holder, fragment)
             .commitAllowingStateLoss()
@@ -384,14 +392,7 @@ class MainActivity : ThemedActivity(),
         showWhenConnected: Boolean,
         animate: Boolean,
     ) {
-        val showControls = fragment is ConfigurationFragment || DataStore.showBottomBar
-        binding.stats.useExternalScrollDriver = fragment is ConfigurationFragment
-        binding.stats.syncMainControls(
-            showControls,
-            DataStore.serviceState,
-            showWhenConnected,
-            animate,
-        )
+        val showControls = fragment is ConfigurationFragment
         binding.fab.animate().cancel()
         if (showControls) {
             binding.fab.show()
@@ -413,10 +414,6 @@ class MainActivity : ThemedActivity(),
         (fragment as? ConfigurationFragment)?.refreshProfileState()
     }
 
-    fun driveBottomBar(scrollDy: Int) {
-        binding.stats.onListScrolled(scrollDy)
-    }
-
     fun displayFragmentWithId(@IdRes id: Int): Boolean {
         when (id) {
             R.id.nav_configuration -> {
@@ -427,18 +424,13 @@ class MainActivity : ThemedActivity(),
             R.id.nav_route -> displayFragment(RouteFragment())
             R.id.nav_settings -> displayFragment(SettingsFragment())
             R.id.nav_traffic -> displayFragment(WebviewFragment())
-            R.id.nav_tools -> displayFragment(ToolsFragment())
+            R.id.nav_tools -> displayFragment(BackupFragment())
             R.id.nav_logcat -> displayFragment(LogcatFragment())
-            R.id.nav_faq -> {
-                launchCustomTab("https://matsuridayo.github.io/")
-                return false
-            }
-
             R.id.nav_about -> displayFragment(AboutFragment())
 
             else -> return false
         }
-        navigation.menu.findItem(id).isChecked = true
+        navigation.menu.findItem(id)?.isChecked = true
         return true
     }
 
@@ -449,10 +441,12 @@ class MainActivity : ThemedActivity(),
         animateControls: Boolean = animate,
     ) {
         DataStore.serviceState = state
+        if (state != BaseService.State.Connected) {
+            updateRuntimeUrlTestSelections(longArrayOf())
+        }
         refreshConfigurationProfileState()
 
         binding.fab.changeState(state, DataStore.serviceState, animate)
-        binding.stats.changeState(state)
         syncMainControls(
             showWhenConnected = state == BaseService.State.Connected,
             animate = animateControls,
@@ -474,13 +468,23 @@ class MainActivity : ThemedActivity(),
     }
 
     val connection = SagerConnection(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND, true)
-    override fun onServiceConnected(service: ISagerNetService) = changeState(
-        try {
+    override fun onServiceConnected(service: ISagerNetService) {
+        val state = try {
             BaseService.State.values()[service.state]
         } catch (_: RemoteException) {
             BaseService.State.Idle
         }
-    )
+        changeState(state)
+        updateRuntimeUrlTestSelections(
+            if (state == BaseService.State.Connected) {
+                runCatching { service.currentUrlTestSelections }.getOrDefault(longArrayOf())
+            } else {
+                longArrayOf()
+            }
+        )
+    }
+
+    private var runtimeUrlTestSelections = longArrayOf()
 
     override fun onServiceDisconnected() = changeState(BaseService.State.Idle)
     override fun onBinderDied() {
@@ -495,7 +499,16 @@ class MainActivity : ThemedActivity(),
     // may NOT called when app is in background
     // ONLY do UI update here, write DB in bg process
     override fun cbSpeedUpdate(stats: SpeedDisplayData) {
-        binding.stats.updateSpeed(stats.txRateProxy, stats.rxRateProxy)
+        updateRuntimeUrlTestSelections(stats.urlTestSelections)
+    }
+
+    private fun updateRuntimeUrlTestSelections(selections: LongArray) {
+        runtimeUrlTestSelections = selections.copyOf()
+        val fragment = currentMainFragment
+            ?: supportFragmentManager.findFragmentById(R.id.fragment_holder)
+        (fragment as? ConfigurationFragment)?.updateRuntimeUrlTestSelections(
+            runtimeUrlTestSelections
+        )
     }
 
     override suspend fun cbTrafficUpdate(data: TrafficDataBatch) {
@@ -516,10 +529,11 @@ class MainActivity : ThemedActivity(),
     override fun onPreferenceDataStoreChanged(store: PreferenceDataStore, key: String) {
         when (key) {
             Key.SERVICE_MODE -> onBinderDied()
-            Key.SHOW_BOTTOM_BAR -> syncMainControls(
-                showWhenConnected = DataStore.showBottomBar,
-                animate = true,
-            )
+            Key.SHOW_PROFILE_IN_NOTIFICATION -> {
+                if (DataStore.serviceState.canStop) {
+                    SagerNet.reloadService()
+                }
+            }
             Key.PROXY_APPS, Key.BYPASS_MODE, Key.INDIVIDUAL -> {
                 if (DataStore.serviceState.canStop) {
                     snackbar(getString(R.string.need_reload)).setAction(R.string.apply) {

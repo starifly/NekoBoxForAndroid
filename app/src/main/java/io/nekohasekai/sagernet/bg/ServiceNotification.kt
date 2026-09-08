@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.bg
 
+import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
@@ -7,7 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
-import android.os.Build
+import android.os.PowerManager
 import android.text.format.Formatter
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
@@ -39,23 +40,90 @@ import kotlinx.coroutines.sync.withLock
  */
 class ServiceNotification(
     private val service: BaseService.Interface, title: String,
-    channel: String, visible: Boolean = false,
+    channel: String, private val visible: Boolean = false,
 ) : BroadcastReceiver() {
     companion object {
         const val notificationId = 1
-        val flags =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+        const val vpnNotificationChannel = "service-vpn-hidden"
+        const val flags = PendingIntent.FLAG_IMMUTABLE
 
-        fun genTitle(ent: ProxyEntity): String {
-            val gn = if (DataStore.showGroupInNotification)
-                SagerDatabase.groupDao.getById(ent.groupId)?.displayName() else null
-            return if (gn == null) ent.displayName() else "[$gn] ${ent.displayName()}"
+        data class NotificationChannelPolicy(
+            val importance: Int,
+            val lockscreenVisibility: Int,
+        )
+
+        fun vpnNotificationChannelPolicy() = NotificationChannelPolicy(
+            importance = NotificationManagerCompat.IMPORTANCE_MIN,
+            lockscreenVisibility = Notification.VISIBILITY_SECRET,
+        )
+
+        fun shouldPostSpeed(visible: Boolean, interactive: Boolean): Boolean =
+            visible && interactive
+
+        fun notificationPriority(visible: Boolean, wakeLockAcquired: Boolean): Int = when {
+            !visible -> NotificationCompat.PRIORITY_MIN
+            wakeLockAcquired -> NotificationCompat.PRIORITY_HIGH
+            else -> NotificationCompat.PRIORITY_LOW
+        }
+
+        fun genTitle(
+            ent: ProxyEntity?,
+            showProfileInNotification: Boolean = DataStore.showProfileInNotification,
+            showGroupInNotification: Boolean = DataStore.showGroupInNotification,
+            groupNameProvider: (Long) -> String? = { SagerDatabase.groupDao.getById(it)?.displayName() },
+            fallbackAppName: String = SagerNet.application.getString(R.string.app_name),
+        ): String {
+            if (ent == null || !showProfileInNotification) {
+                return fallbackAppName
+            }
+            val gn = if (showGroupInNotification) groupNameProvider(ent.groupId) else null
+            return if (gn.isNullOrBlank()) ent.displayName() else "[$gn] ${ent.displayName()}"
         }
     }
 
-    var listenPostSpeed = true
+    @Volatile
+    var listenPostSpeed = shouldPostSpeed(
+        visible,
+        ((service as Context).getSystemService(Context.POWER_SERVICE) as PowerManager).isInteractive,
+    )
+
+    // Last values actually rendered into the notification. Rebuilding a
+    // Notification (RemoteViews + icon resources) and handing it to
+    // NotificationManager is one of the most expensive things this app does on a
+    // timer: it wakes SystemUI and the notification side of every listener every
+    // speed interval. While the connection is idle the rendered text does not
+    // change, so the whole rebuild can be skipped.
+    private var lastSpeedTxRateProxy = Long.MIN_VALUE
+    private var lastSpeedRxRateProxy = Long.MIN_VALUE
+    private var lastSpeedTxRateDirect = Long.MIN_VALUE
+    private var lastSpeedRxRateDirect = Long.MIN_VALUE
+    private var lastSpeedTxTotal = Long.MIN_VALUE
+    private var lastSpeedRxTotal = Long.MIN_VALUE
+
+    private fun speedRenderUnchanged(stats: SpeedDisplayData): Boolean {
+        if (lastSpeedTxRateProxy != stats.txRateProxy) return false
+        if (lastSpeedRxRateProxy != stats.rxRateProxy) return false
+        if (lastSpeedTxTotal != stats.txTotal) return false
+        if (lastSpeedRxTotal != stats.rxTotal) return false
+        if (showDirectSpeed) {
+            if (lastSpeedTxRateDirect != stats.txRateDirect) return false
+            if (lastSpeedRxRateDirect != stats.rxRateDirect) return false
+        }
+        return true
+    }
+
+    private fun rememberSpeed(stats: SpeedDisplayData) {
+        lastSpeedTxRateProxy = stats.txRateProxy
+        lastSpeedRxRateProxy = stats.rxRateProxy
+        lastSpeedTxRateDirect = stats.txRateDirect
+        lastSpeedRxRateDirect = stats.rxRateDirect
+        lastSpeedTxTotal = stats.txTotal
+        lastSpeedRxTotal = stats.rxTotal
+    }
 
     suspend fun postNotificationSpeedUpdate(stats: SpeedDisplayData) {
+        if (speedRenderUnchanged(stats)) return
+        rememberSpeed(stats)
         useBuilder {
             if (showDirectSpeed) {
                 val speedDetail = (service as Context).getString(
@@ -104,8 +172,7 @@ class ServiceNotification(
     suspend fun postNotificationWakeLockStatus(acquired: Boolean) {
         updateActions()
         useBuilder {
-            it.priority =
-                if (acquired) NotificationCompat.PRIORITY_HIGH else NotificationCompat.PRIORITY_LOW
+            it.priority = notificationPriority(visible, acquired)
         }
         update()
     }
@@ -120,9 +187,11 @@ class ServiceNotification(
         .setContentIntent(SagerNet.configureIntent(service))
         .setSmallIcon(R.drawable.ic_service_active)
         .setCategory(NotificationCompat.CATEGORY_SERVICE)
+        .setVisibility(if (visible) NotificationCompat.VISIBILITY_PRIVATE else NotificationCompat.VISIBILITY_SECRET)
         .setPriority(if (visible) NotificationCompat.PRIORITY_LOW else NotificationCompat.PRIORITY_MIN)
 
     private val buildLock = Mutex()
+    @Volatile private var destroyed = false
 
     private suspend fun useBuilder(f: (NotificationCompat.Builder) -> Unit) {
         buildLock.withLock {
@@ -170,7 +239,7 @@ class ServiceNotification(
             val resetUpstreamAction = NotificationCompat.Action.Builder(
                 0, service.getString(R.string.reset_connections),
                 PendingIntent.getBroadcast(
-                    service, 0, Intent(Action.RESET_UPSTREAM_CONNECTIONS), flags
+                    service, 0, Intent(Action.RESET_UPSTREAM_CONNECTIONS).setPackage(service.packageName), flags
                 )
             ).setShowsUserInterface(false).build()
             it.addAction(resetUpstreamAction)
@@ -179,23 +248,23 @@ class ServiceNotification(
 
     override fun onReceive(context: Context, intent: Intent) {
         if (service.data.state == BaseService.State.Connected) {
-            listenPostSpeed = intent.action == Intent.ACTION_SCREEN_ON
+            listenPostSpeed = shouldPostSpeed(
+                visible,
+                intent.action == Intent.ACTION_SCREEN_ON,
+            )
         }
     }
 
 
     private suspend fun show() =
         useBuilder {
+            if (destroyed) return@useBuilder
             try {
-                if (Build.VERSION.SDK_INT >= 34) {
-                    (service as Service).startForeground(
-                        notificationId,
-                        it.build(),
-                        FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
-                    )
-                } else {
-                    (service as Service).startForeground(notificationId, it.build())
-                }
+                (service as Service).startForeground(
+                    notificationId,
+                    it.build(),
+                    FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
+                )
             } catch (e: Exception) {
                 Toast.makeText(
                     SagerNet.application,
@@ -206,16 +275,19 @@ class ServiceNotification(
         }
 
     private suspend fun update() = useBuilder {
-        NotificationManagerCompat.from(service as Service).notify(notificationId, it.build())
+        if (destroyed) return@useBuilder
+        try {
+            NotificationManagerCompat.from(service as Service).notify(notificationId, it.build())
+        } catch (_: SecurityException) {
+            // Notification permission may be revoked while the VPN is running.
+        }
     }
 
     fun destroy() {
+        if (destroyed) return
+        destroyed = true
         listenPostSpeed = false
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            (service as Service).stopForeground(Service.STOP_FOREGROUND_REMOVE)
-        } else {
-            (service as Service).stopForeground(true)
-        }
+        (service as Service).stopForeground(Service.STOP_FOREGROUND_REMOVE)
         service.unregisterReceiver(this)
     }
 }

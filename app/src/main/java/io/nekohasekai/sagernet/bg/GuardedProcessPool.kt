@@ -1,9 +1,6 @@
 package io.nekohasekai.sagernet.bg
 
-import android.os.Build
 import android.os.SystemClock
-import android.system.ErrnoException
-import android.system.Os
 import android.system.OsConstants
 import androidx.annotation.MainThread
 import io.nekohasekai.sagernet.SagerNet
@@ -18,12 +15,6 @@ import java.io.InputStream
 import kotlin.concurrent.thread
 
 class GuardedProcessPool(private val onFatal: suspend (IOException) -> Unit) : CoroutineScope {
-    companion object {
-        private val pid by lazy {
-            Class.forName("java.lang.ProcessManager\$ProcessImpl").getDeclaredField("pid")
-                .apply { isAccessible = true }
-        }
-    }
 
     private inner class Guard(
         private val cmd: List<String>,
@@ -78,21 +69,9 @@ class GuardedProcessPool(private val onFatal: suspend (IOException) -> Unit) : C
                 GlobalScope.launch(Dispatchers.Main) { onFatal(e) }
             } finally {
                 if (running) withContext(NonCancellable) {  // clean-up cannot be cancelled
-                    if (Build.VERSION.SDK_INT < 24) {
-                        try {
-                            Os.kill(pid.get(process) as Int, OsConstants.SIGTERM)
-                        } catch (e: ErrnoException) {
-                            if (e.errno != OsConstants.ESRCH) Logs.w(e)
-                        } catch (e: ReflectiveOperationException) {
-                            Logs.w(e)
-                        }
-                        if (withTimeoutOrNull(500) { exitChannel.receive() } != null) return@withContext
-                    }
                     process.destroy()                       // kill the process
-                    if (Build.VERSION.SDK_INT >= 26) {
-                        if (withTimeoutOrNull(1000) { exitChannel.receive() } != null) return@withContext
-                        process.destroyForcibly()           // Force to kill the process if it's still alive
-                    }
+                    if (withTimeoutOrNull(1000) { exitChannel.receive() } != null) return@withContext
+                    process.destroyForcibly()               // Force to kill the process if it's still alive
                     exitChannel.receive()
                 }                                           // otherwise process already exited, nothing to be done
             }

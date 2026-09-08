@@ -391,8 +391,6 @@
     <string name="profile_traffic_statistics_summary">當停用時，使用的流量將不會被統計</string>
     <string name="app_statistics_disabled">應用程式流量統計資料被停用</string>
     <string name="tun_implementation">TUN 實作</string>
-    <string name="enable_hev_tun">啟用 Hev TUN</string>
-    <string name="enable_hev_tun_summary">使用 hev-socks5-tunnel 建立 TUN 裝置</string>
     <string name="destination_override">覆寫目的地位址</string>
     <string name="resolve_destination">解析目的地位址</string>
     <string name="clear_logcat">清除記錄檔</string>
@@ -544,7 +542,7 @@
     <string name="webdav_path">備份目錄</string>
     <string name="webdav_test">測試連線</string>
     <string name="webdav_test_success">連線成功</string>
-    <string name="webdav_test_failed" formatted="false">連線失敗: %s</string>
+    <string name="webdav_test_failed">連線失敗: %1$s</string>
     <string name="backup_to_webdav">備份到 WebDAV</string>
     <string name="restore_from_webdav">從 WebDAV 恢復</string>
     <string name="webdav_backup_success">備份到 WebDAV 成功</string>

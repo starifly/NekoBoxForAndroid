@@ -9,6 +9,7 @@ import androidx.preference.PreferenceViewHolder
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
+import io.nekohasekai.sagernet.database.SagerDatabase
 import moe.matsuri.nb4a.ui.SimpleMenuPreference
 
 class OutboundPreference
@@ -18,6 +19,7 @@ class OutboundPreference
 
     companion object {
         const val VALUE_SELECT_PROFILE = "3"
+        const val VALUE_SELECT_ROUTER = "4"
     }
 
     init {
@@ -58,9 +60,9 @@ class OutboundPreference
             ) {
                 if (!selectionReady || position < 0) return
                 val newValue = entryValues?.getOrNull(position)?.toString() ?: return
-                val reselectedProfile =
-                    dropdownOpened && newValue == value && newValue == VALUE_SELECT_PROFILE
-                if ((newValue != value || reselectedProfile) && callChangeListener(newValue)) {
+                val reselectedPicker = dropdownOpened && newValue == value &&
+                    newValue in setOf(VALUE_SELECT_PROFILE, VALUE_SELECT_ROUTER)
+                if ((newValue != value || reselectedPicker) && callChangeListener(newValue)) {
                     value = newValue
                 }
                 dropdownOpened = false
@@ -79,6 +81,13 @@ class OutboundPreference
                 ProfileManager.getProfile(routeOutbound)?.displayName()?.let {
                     return it
                 }
+            }
+        }
+        if (value == VALUE_SELECT_ROUTER) {
+            val routerId = DataStore.routeOutboundRouter
+            if (routerId > 0) {
+                return SagerDatabase.routerGroupDao.getById(routerId)?.name
+                    ?: context.getString(R.string.router_reference_invalid)
             }
         }
         return super.getSummary()

@@ -61,6 +61,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/nat_stun_server_hint"
+                            android:labelFor="@id/nat_stun_server"
                             android:textAppearance="?attr/textAppearanceSubtitle2" />
 
                         <EditText

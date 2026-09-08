@@ -23,7 +23,7 @@ import (
 	M "github.com/sagernet/sing/common/metadata"
 	N "github.com/sagernet/sing/common/network"
 
-	"github.com/dyhkwong/sing-juicity"
+	"github.com/exclavenetwork/sing-juicity"
 	"github.com/gofrs/uuid/v5"
 )
 
@@ -65,7 +65,7 @@ func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextL
 	if options.TLS.ALPN == nil { // not len(options.TLS.ALPN) > 0
 		options.TLS.ALPN = []string{"h3"}
 	}
-	tlsConfig, err := tls.NewSTDClient(ctx, options.Server, *options.TLS)
+	tlsConfig, err := tls.NewSTDClient(ctx, logger, options.Server, *options.TLS)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,10 @@ func NewOutbound(ctx context.Context, router adapter.Router, logger log.ContextL
 		if err != nil {
 			return nil, E.Cause(err, "decode pin cert sha256")
 		}
-		stdTLSConfig, _ := tlsConfig.Config()
+		stdTLSConfig, err := tlsConfig.STDConfig()
+		if err != nil {
+			return nil, err
+		}
 		stdTLSConfig.VerifyPeerCertificate = func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
 			peerHash := certChainHash(rawCerts)
 			if !bytes.Equal(pinCertSha256, peerHash) {

@@ -1,7 +1,6 @@
 package io.nekohasekai.sagernet.ui
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -75,8 +74,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
         val localProxySettings = findPreference<Preference>("localProxySettings")!!
         val serviceMode = findPreference<Preference>(Key.SERVICE_MODE)!!
-        val appendHttpProxy = findPreference<SwitchPreference>(Key.APPEND_HTTP_PROXY)!!
-        val httpProxyBypass = findPreference<EditTextPreference>(Key.HTTP_PROXY_BYPASS)!!
         val dnsHosts = findPreference<EditTextPreference>(Key.DNS_HOSTS)!!
         val strictRoute = findPreference<SwitchPreference>(Key.STRICT_ROUTE)!!
 
@@ -91,8 +88,6 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val directDns = findPreference<EditTextPreference>(Key.DIRECT_DNS)!!
         val enableDnsRouting = findPreference<SwitchPreference>(Key.ENABLE_DNS_ROUTING)!!
         val enableFakeDns = findPreference<SwitchPreference>(Key.ENABLE_FAKEDNS)!!
-
-        val enableTLSFragment = findPreference<SwitchPreference>(Key.ENABLE_TLS_FRAGMENT)!!
 
         val logLevel = findPreference<LongClickListPreference>(Key.LOG_LEVEL)!!
         val mtu = findPreference<MTUPreference>(Key.MTU)!!
@@ -126,15 +121,9 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             true
         }
 
-        httpProxyBypass.setOnBindEditTextListener(EditTextPreferenceModifiers.Hosts)
         dnsHosts.setOnBindEditTextListener(EditTextPreferenceModifiers.Hosts)
-        httpProxyBypass.summaryProvider = ListSummaryProvider(maxLines = 1)
         dnsHosts.summaryProvider = ListSummaryProvider(maxLines = 1)
 
-        val metedNetwork = findPreference<Preference>(Key.METERED_NETWORK)!!
-        if (Build.VERSION.SDK_INT < 28) {
-            metedNetwork.remove()
-        }
         isProxyApps = findPreference(Key.PROXY_APPS)!!
         isProxyApps.setOnPreferenceChangeListener { _, newValue ->
             startActivity(Intent(activity, AppManagerActivity::class.java))
@@ -158,13 +147,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
 
         val tunImplementation = findPreference<SimpleMenuPreference>(Key.TUN_IMPLEMENTATION)!!
-        val enableHevTun = findPreference<SwitchPreference>(Key.ENABLE_HEV_TUN)!!
-        tunImplementation.isEnabled = !DataStore.enableHevTun
-        enableHevTun.setOnPreferenceChangeListener { _, newValue ->
-            tunImplementation.isEnabled = !(newValue as Boolean)
-            needReload()
-            true
-        }
+        tunImplementation.onPreferenceChangeListener = reloadListener
         val resolveDestination = findPreference<SwitchPreference>(Key.RESOLVE_DESTINATION)!!
         val acquireWakeLock = findPreference<SwitchPreference>(Key.ACQUIRE_WAKE_LOCK)!!
         val hideFromRecentApps = findPreference<SwitchPreference>(Key.HIDE_FROM_RECENT_APPS)!!
@@ -175,41 +158,11 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
             true
         }
 
-        val rulesProvider = findPreference<SimpleMenuPreference>(Key.RULES_PROVIDER)!!
-        val rulesGeositeUrl = findPreference<EditTextPreference>(Key.RULES_GEOSITE_URL)!!
-        val rulesGeoipUrl = findPreference<EditTextPreference>(Key.RULES_GEOIP_URL)!!
-        rulesGeositeUrl.isVisible = DataStore.rulesProvider == 4
-        rulesGeoipUrl.isVisible = DataStore.rulesProvider == 4
-        rulesProvider.setOnPreferenceChangeListener { _, newValue ->
-            val provider = (newValue as String).toInt()
-            rulesGeositeUrl.isVisible = provider == 4
-            rulesGeoipUrl.isVisible = provider == 4
-            true
-        }
-
         localProxySettings.summary = localProxySummary()
         localProxySettings.setOnPreferenceClickListener {
             showLocalProxySettingsDialog(localProxySettings)
             true
         }
-        appendHttpProxy.setOnPreferenceChangeListener { _, newValue ->
-            if (newValue as Boolean) {
-                MaterialAlertDialogBuilder(requireContext()).apply {
-                    setTitle(R.string.append_http_proxy_security_title)
-                    setMessage(R.string.append_http_proxy_security_message)
-                    setNegativeButton(android.R.string.cancel, null)
-                    setPositiveButton(R.string.enable_anyway) { _, _ ->
-                        appendHttpProxy.isChecked = true
-                        needReload()
-                    }
-                }.show()
-                false
-            } else {
-                needReload()
-                true
-            }
-        }
-        httpProxyBypass.onPreferenceChangeListener = reloadListener
         dnsHosts.onPreferenceChangeListener = reloadListener
         strictRoute.onPreferenceChangeListener = reloadListener
         showDirectSpeed.onPreferenceChangeListener = reloadListener
@@ -233,11 +186,11 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         acquireWakeLock.onPreferenceChangeListener = reloadListener
         hideFromRecentApps.setOnPreferenceChangeListener { _, newValue ->
             (activity as? MainActivity)?.applyHideFromRecentApps(newValue as Boolean)
-            // needReload()
             true
         }
 
-        enableTLSFragment.onPreferenceChangeListener = reloadListener
+        findPreference<SwitchPreference>(Key.SHOW_PROFILE_IN_NOTIFICATION)?.onPreferenceChangeListener = reloadListener
+        findPreference<SwitchPreference>(Key.GLOBAL_ALLOW_INSECURE)?.onPreferenceChangeListener = reloadListener
 
         // 恢复默认设置功能
         val resetSettings = findPreference<Preference>("resetSettings")!!

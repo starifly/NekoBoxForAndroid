@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.fmt.juicity
 
+import android.util.Base64
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.linkBuilder
 import io.nekohasekai.sagernet.ktx.toLink
@@ -8,7 +9,6 @@ import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.SingBoxOptions.Outbound_JuicityOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import java.util.Base64
 
 fun parseJuicity(url: String): JuicityBean {
     val link = url.replace("juicity://", "https://").toHttpUrlOrNull() ?: error(
@@ -84,8 +84,10 @@ fun buildSingBoxOutboundJuicityBean(bean: JuicityBean): Outbound_JuicityOptions 
 private fun normalizePinnedCertChainHash(rawHash: String?): String? {
     val certChainHash = rawHash?.replace(":", "")?.takeIf { it.isNotEmpty() } ?: return null
     return when {
-        certChainHash.length == 64 -> Base64.getUrlEncoder()
-            .encodeToString(certChainHash.chunked(2).map { chunk -> chunk.toInt(16).toByte() }.toByteArray())
+        certChainHash.length == 64 -> Base64.encodeToString(
+            certChainHash.chunked(2).map { chunk -> chunk.toInt(16).toByte() }.toByteArray(),
+            Base64.URL_SAFE or Base64.NO_WRAP
+        )
         else -> certChainHash.replace('/', '_').replace('+', '-')
     }
 }

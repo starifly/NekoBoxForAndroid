@@ -23,7 +23,6 @@ package io.nekohasekai.sagernet
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.ShortcutManager
-import android.os.Build
 import android.os.Bundle
 import androidx.core.content.getSystemService
 import androidx.core.content.pm.ShortcutInfoCompat
@@ -54,9 +53,7 @@ class QuickToggleShortcut : Activity(), SagerConnection.Callback {
         } else {
             profileId = intent.getLongExtra("profile", -1L)
             connection.connect(this, this)
-            if (Build.VERSION.SDK_INT >= 25) {
-                getSystemService<ShortcutManager>()!!.reportShortcutUsed(if (profileId >= 0) "shortcut-profile-$profileId" else "toggle")
-            }
+            getSystemService<ShortcutManager>()!!.reportShortcutUsed(if (profileId >= 0) "shortcut-profile-$profileId" else "toggle")
         }
     }
 

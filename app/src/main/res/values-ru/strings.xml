@@ -35,8 +35,8 @@
 <string name="always_show_address">Всегда показывать адрес</string>
 <string name="always_show_address_sum">Всегда отображать адрес сервера на карте конфигурации</string>
 <string name="app_desc">Универсальный набор инструментов прокси для Android, написанный на Kotlin.</string>
-<string name="app_name">NekoBoxF</string>
-<string name="app_name_long">NekoBoxF для Android</string>
+<string name="app_name">Asteria</string>
+<string name="app_name_long">Asteria для Android</string>
 <string name="app_tls_version">Минимальная версия TLS протокола</string>
 <string name="app_version">Версия</string>
 <string name="append_http_proxy">Добавить HTTP-прокси к VPN</string>
@@ -469,8 +469,6 @@
 <string name="tuic_reduce_rtt">Включить 0-RTT QUIC-соединение</string>
 <string name="tuic_udp_relay_mode">Режим UDP-ретранслятора</string>
 <string name="tun_implementation">Реализация TUN</string>
-    <string name="enable_hev_tun">Включить Hev TUN</string>
-    <string name="enable_hev_tun_summary">Создавать TUN-устройство с помощью hev-socks5-tunnel</string>
 <string name="udp_connections">%d UDP-соединений</string>
 <string name="unavailable">Недоступен</string>
 <string name="undo">Отменить</string>
@@ -600,7 +598,7 @@
     <string name="webdav_path">Путь резервной копии</string>
     <string name="webdav_test">Проверить соединение</string>
     <string name="webdav_test_success">Соединение успешно</string>
-    <string name="webdav_test_failed" formatted="false">Ошибка соединения: %s</string>
+    <string name="webdav_test_failed">Ошибка соединения: %1$s</string>
     <string name="backup_to_webdav">Резервное копирование в WebDAV</string>
     <string name="restore_from_webdav">Восстановление из WebDAV</string>
     <string name="webdav_backup_success">Резервное копирование в WebDAV выполнено</string>

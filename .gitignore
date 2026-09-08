@@ -18,4 +18,28 @@ jniLibs/
 
 # submodules
 /external
-.hev-build/
+
+# Local logs and test dumps
+*.log
+/nekobox_*.json
+.superpowers/
+
+# Private configuration exports: local only, never include in source uploads.
+**/nekobox_*.json
+**/*备份*
+**/*[Bb]ackup*.json
+**/*[Bb]ackup*.zip
+/A[0-9]*.yaml
+/A[0-9]*.json
+
+# Keystores and signing credentials
+*.keystore
+*.jks
+
+# Development scratch / checkpoint dumps (config exports, one-off scripts)
+/scratch/
+scratch/
+*.md.local
+
+# gomobile-matsuri source installed by libcore/init.sh
+/libcore/gomobile/

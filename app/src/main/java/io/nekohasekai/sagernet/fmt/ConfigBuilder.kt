@@ -7,6 +7,8 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyEntity.Companion.TYPE_CONFIG
 import io.nekohasekai.sagernet.database.ProxyGroup
+import io.nekohasekai.sagernet.database.RouterGroup
+import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.fmt.ConfigBuildResult.IndexEntity
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
@@ -29,9 +31,15 @@ import io.nekohasekai.sagernet.fmt.shadowsocksr.buildSingBoxOutboundShadowsocksR
 import io.nekohasekai.sagernet.fmt.snell.SnellBean
 import io.nekohasekai.sagernet.fmt.snell.buildSingBoxOutboundSnellBean
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
-import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxOutboundWireguardBean
+import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxWireGuardEndpointBean
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mkPort
+import io.nekohasekai.sagernet.route.RouterRuntime
+import io.nekohasekai.sagernet.route.RouterFilterConfig
+import io.nekohasekai.sagernet.route.RouterRuntimeGroup
+import io.nekohasekai.sagernet.route.RouterRuntimeException
+import io.nekohasekai.sagernet.route.RouterRuntimeMode
 import io.nekohasekai.sagernet.utils.PackageCache
 import moe.matsuri.nb4a.*
 import moe.matsuri.nb4a.SingBoxOptions.*
@@ -57,6 +65,98 @@ const val TAG_DNS_HOSTS = "dns-hosts"
 
 const val LOCALHOST = "127.0.0.1"
 
+private val routerSystemReservedTags = setOf(
+    TAG_DIRECT,
+    TAG_BYPASS,
+    TAG_BLOCK,
+    TAG_PROXY,
+    TAG_FRAGMENT,
+    TAG_MIXED,
+    TAG_DNS_HOSTS
+)
+
+internal fun resolveRouteOutbound(
+    rule: RuleEntity,
+    mainProxyTag: String,
+    proxyTags: Map<Long, String>,
+    routerTagsById: Map<Long, String>,
+    primaryProxyId: Long = Long.MIN_VALUE
+): String {
+    if (rule.routerGroupId > 0L) {
+        return routerTagsById[rule.routerGroupId]
+            ?: throw RouterRuntimeException(
+                rule.routerGroupId,
+                "",
+                RouterRuntimeException.Reason.MISSING,
+            )
+    }
+    return when (val outId = rule.outbound) {
+        0L -> mainProxyTag
+        -1L -> TAG_BYPASS
+        -2L -> TAG_BLOCK
+        else -> if (outId == primaryProxyId) mainProxyTag else proxyTags[outId] ?: ""
+    }
+}
+
+internal fun validateRouterReferences(
+    rules: Iterable<RuleEntity>,
+    groups: Iterable<RouterGroup>,
+    builtRouterIds: Set<Long>,
+) {
+    val groupsById = groups.associateBy { it.id }
+    rules.asSequence().map { it.routerGroupId }.filter { it > 0 }.distinct().forEach { id ->
+        val group = groupsById[id]
+            ?: throw RouterRuntimeException(id, "", RouterRuntimeException.Reason.MISSING)
+        if (!group.enabled) {
+            throw RouterRuntimeException(id, group.name, RouterRuntimeException.Reason.DISABLED)
+        }
+        if (id !in builtRouterIds) {
+            throw RouterRuntimeException(id, group.name, RouterRuntimeException.Reason.EMPTY)
+        }
+    }
+}
+
+internal fun routerReservedTags(outbounds: Iterable<SingBoxOption>): Set<String> =
+    outbounds.flatMap { outbound ->
+        listOfNotNull(outbound.asMap()["tag"] as? String, (outbound as? Outbound)?.tag)
+    }.toSet() + routerSystemReservedTags
+
+internal fun buildRouterOutbounds(
+    groups: Iterable<RouterRuntimeGroup>,
+    proxyTags: Map<Long, String>,
+    reservedTags: Set<String> = emptySet(),
+    includeRouterGroups: Boolean = true
+): List<Outbound> {
+    if (!includeRouterGroups) return emptyList()
+
+    return RouterRuntime.build(groups, proxyTags, reservedTags).map { router ->
+        when (router.mode) {
+            RouterRuntimeMode.SELECTOR -> Outbound_SelectorOptions().apply {
+                type = "selector"
+                tag = router.tag
+                outbounds = router.outbounds
+                default_ = router.defaultTag
+            }
+
+            RouterRuntimeMode.URL_TEST -> Outbound_URLTestOptions().apply {
+                type = "urltest"
+                tag = router.tag
+                outbounds = router.outbounds
+                url = router.filter.testUrl
+                interval = "${router.filter.intervalSeconds}s"
+                tolerance = router.filter.toleranceMs
+                // sing-box enforces interval <= idle_timeout. The core's default idle_timeout is
+                // 1800s (30 min). When the user sets a longer interval for battery savings, we
+                // must emit a matching idle_timeout so the config can start. We use 2× the
+                // interval to give the group enough time to go idle between test rounds.
+                if (router.filter.intervalSeconds > 1800) {
+                    idle_timeout = "${router.filter.intervalSeconds * 2}s"
+                }
+            }
+        }
+    }
+}
+
 class ConfigBuildResult(
     var config: String,
     var externalIndex: List<IndexEntity>,
@@ -64,6 +164,13 @@ class ConfigBuildResult(
     var trafficMap: Map<String, List<ProxyEntity>>,
     var profileTagMap: Map<Long, String>,
     val selectorGroupId: Long,
+    val routerSelectorTags: Map<String, String> = emptyMap(),
+    val routerMemberIds: Map<String, Set<Long>> = emptyMap(),
+    val routerUrlTestTags: Map<Long, String> = emptyMap(),
+    val mainUrlTestTag: String? = null,
+    /** Union of all proxy IDs belonging to any Router group (selector or urltest). Used by
+     *  TrafficLooper to avoid suppressing independent Router node traffic statistics. */
+    val routerAllMemberIds: Set<Long> = emptySet(),
 ) {
     data class IndexEntity(var chain: LinkedHashMap<Int, ProxyEntity>)
 }
@@ -125,7 +232,11 @@ fun buildConfig(
     val readableNames = mutableSetOf(TAG_DIRECT, TAG_BYPASS, TAG_BLOCK, TAG_FRAGMENT, TAG_MIXED, TAG_PROXY)
     val group = SagerDatabase.groupDao.getById(proxy.groupId)
 
-    fun ProxyEntity.resolveChainInternal(): MutableList<ProxyEntity> {
+    fun ProxyEntity.resolveChainInternal(visited: MutableSet<Long> = HashSet()): MutableList<ProxyEntity> {
+        if (!visited.add(id)) {
+            Logs.w("Detected cyclic proxy chain involving proxy $id")
+            return mutableListOf()
+        }
         val bean = requireBean()
         if (bean is ChainBean) {
             val beans = SagerDatabase.proxyDao.getEntities(bean.proxies)
@@ -133,7 +244,7 @@ fun buildConfig(
             val beanList = ArrayList<ProxyEntity>()
             for (proxyId in bean.proxies) {
                 val item = beansMap[proxyId] ?: continue
-                beanList.addAll(item.resolveChainInternal())
+                beanList.addAll(item.resolveChainInternal(visited))
             }
             return beanList.asReversed()
         }
@@ -165,10 +276,28 @@ fun buildConfig(
     }
 
     val extraRules = if (forTest) listOf() else SagerDatabase.rulesDao.enabledRules()
+    val includeRouterGroups = !forTest && !forExport
+    val allRouterGroups = if (!includeRouterGroups) {
+        listOf()
+    } else {
+        SagerDatabase.routerGroupDao.all()
+    }
+    val routerGroups = allRouterGroups.filter { it.enabled && it.stableTag.isNotBlank() }
+    val routerMembers = if (!includeRouterGroups) {
+        mapOf()
+    } else {
+        routerGroups.associate { router ->
+            router.id to SagerDatabase.routerMemberDao.getByRouter(router.id)
+        }
+    }
+    val extraProxyIds = extraRules.mapNotNull { rule ->
+        rule.outbound.takeIf { it > 0 && it != proxy.id }
+    }.toMutableSet().apply {
+        addAll(routerMembers.values.flatten().map { it.proxyId }.filter { it != proxy.id })
+    }
     val extraProxies =
-        if (forTest) mapOf() else SagerDatabase.proxyDao.getEntities(extraRules.mapNotNull { rule ->
-            rule.outbound.takeIf { it > 0 && it != proxy.id }
-        }.toHashSet().toList()).associateBy { it.id }
+        if (forTest) mapOf() else SagerDatabase.proxyDao.getEntities(extraProxyIds.toList())
+            .associateBy { it.id }
     val buildSelector = !forTest && group?.isSelector == true && !forExport
     val userDNSRuleList = mutableListOf<DNSRule_DefaultOptions>()
     val domainListDNSDirectForce = mutableListOf<String>()
@@ -179,7 +308,7 @@ fun buildConfig(
     val nonCustomFinalHosts = hashSetOf<String>()
     val groupCache = HashMap<Long, ProxyGroup?>()
     val isVPN = DataStore.serviceMode == Key.MODE_VPN
-    val deviceInboundTag = if (isVPN && DataStore.enableHevTun) TAG_MIXED else "tun-in"
+    val deviceInboundTag = if (isVPN) "tun-in" else TAG_MIXED
     val bind = if (!forTest && DataStore.allowAccess) "0.0.0.0" else LOCALHOST
     val remoteDns = DataStore.remoteDns.split("\n")
         .mapNotNull { dns -> dns.trim().takeIf { it.isNotBlank() && !it.startsWith("#") } }
@@ -202,6 +331,10 @@ fun buildConfig(
             else -> "prefer_ipv4"
         }
     }
+
+    var routerSelectorTags: Map<String, String> = emptyMap()
+    var routerMemberIds: Map<String, Set<Long>> = emptyMap()
+    var routerUrlTestTags: Map<Long, String> = emptyMap()
 
     return MyOptions().apply {
 	if (!forTest) {
@@ -256,35 +389,29 @@ fun buildConfig(
         inbounds = mutableListOf()
 
         if (!forTest) {
-            if (isVPN && !DataStore.enableHevTun) inbounds.add(Inbound_TunOptions().apply {
+            if (isVPN) inbounds.add(Inbound_TunOptions().apply {
                 type = "tun"
                 tag = "tun-in"
                 interface_name = "tun0"
                 stack = when (DataStore.tunImplementation) {
                     TunImplementation.GVISOR -> "gvisor"
                     TunImplementation.SYSTEM -> "system"
-                    else -> "mixed"
+                    TunImplementation.MIXED -> "mixed"
+                    else -> "go"
                 }
-                endpoint_independent_nat = true
                 mtu = DataStore.mtu
                 domain_strategy = genDomainStrategy(DataStore.resolveDestination)
                 auto_route = true
                 strict_route = DataStore.strictRoute
                 sniff = needSniff
                 sniff_override_destination = needSniffOverride
-                when (ipv6Mode) {
-                    IPv6Mode.DISABLE -> {
-                        inet4_address = listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
-                    }
-
-                    IPv6Mode.ONLY -> {
-                        inet6_address = listOf(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
-                    }
-
-                    else -> {
-                        inet4_address = listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
-                        inet6_address = listOf(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
-                    }
+                address = when (ipv6Mode) {
+                    IPv6Mode.DISABLE -> listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
+                    IPv6Mode.ONLY -> listOf(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
+                    else -> listOf(
+                        VpnService.PRIVATE_VLAN4_CLIENT + "/28",
+                        VpnService.PRIVATE_VLAN6_CLIENT + "/126"
+                    )
                 }
             })
             inbounds.add(Inbound_MixedOptions().apply {
@@ -305,6 +432,7 @@ fun buildConfig(
         }
 
         outbounds = mutableListOf()
+        endpoints = mutableListOf()
 
         // init routing object
         route = RouteOptions().apply {
@@ -466,7 +594,7 @@ fun buildConfig(
                             buildSingBoxOutboundShadowsocksRBean(bean)
 
                         is WireGuardBean ->
-                            buildSingBoxOutboundWireguardBean(bean)
+                            buildSingBoxWireGuardEndpointBean(bean)
 
                         is SSHBean ->
                             buildSingBoxOutboundSSHBean(bean)
@@ -577,7 +705,12 @@ fun buildConfig(
                     }
                 }
 
-                outbounds.add(currentOutbound)
+                if (currentOutbound is SingBoxOptions.Endpoint) {
+                    // WireGuard & friends live in `endpoints` since sing-box 1.15
+                    endpoints.add(currentOutbound)
+                } else {
+                    outbounds.add(currentOutbound)
+                }
                 chainOutbounds.add(currentOutbound)
                 pastOutbound = currentOutbound
                 pastEntity = proxyEntity
@@ -607,8 +740,51 @@ fun buildConfig(
         extraProxies.forEach { (key, p) ->
             tagMap[key] = buildChain(key, p)
         }
+        val runtimeRouterGroups = routerGroups.map { router ->
+            RouterRuntimeGroup(
+                stableTag = router.stableTag,
+                mode = if (router.mode == RouterGroup.MODE_URL_TEST) {
+                    RouterRuntimeMode.URL_TEST
+                } else {
+                    RouterRuntimeMode.SELECTOR
+                },
+                memberProxyIds = routerMembers[router.id].orEmpty().map { it.proxyId },
+                selectedProxyId = router.selectedProxyId,
+                id = router.id,
+                name = router.name,
+                filter = RouterFilterConfig.fromJson(router.matchConfig),
+            )
+        }
+        val routerOutbounds = buildRouterOutbounds(
+            runtimeRouterGroups,
+            tagMap,
+            reservedTags = routerReservedTags(outbounds),
+            includeRouterGroups = includeRouterGroups
+        )
+        outbounds.addAll(routerOutbounds)
+        val builtRouterTags = routerOutbounds.mapNotNull { outbound ->
+            (outbound.asMap()["tag"] as? String) ?: outbound.tag
+        }.toSet()
+        val routerTagsById = routerGroups.mapNotNull { router ->
+            router.stableTag.takeIf(builtRouterTags::contains)?.let { router.id to it }
+        }.toMap()
+        validateRouterReferences(extraRules, allRouterGroups, routerTagsById.keys)
+        routerSelectorTags = routerOutbounds
+            .filterIsInstance<Outbound_SelectorOptions>()
+            .mapNotNull { outbound ->
+                outbound.tag?.takeIf { it.isNotBlank() }?.let { it to it }
+            }
+            .toMap()
+        routerMemberIds = routerGroups.associate { router ->
+            router.stableTag to routerMembers[router.id].orEmpty().map { it.proxyId }.toSet()
+        }.filterKeys(routerSelectorTags::containsKey)
 
-        val mainProxyTag = (if (buildSelector) TAG_PROXY else tagMap[proxy.id]) ?: TAG_PROXY
+        routerUrlTestTags = runtimeRouterGroups.filter {
+            it.mode == RouterRuntimeMode.URL_TEST && it.stableTag in builtRouterTags
+        }.associate { it.id to it.stableTag }
+
+        // Router membership must not change the legacy main selection or outbound=0.
+        val mainProxyTag = if (buildSelector) TAG_PROXY else tagMap[proxy.id] ?: TAG_PROXY
 
         // 在应用用户规则之前检查全局模式
         if (!forTest && DataStore.globalMode) {
@@ -829,12 +1005,7 @@ fun buildConfig(
                         }
                     }
 
-                    outbound = when (val outId = rule.outbound) {
-                        0L -> mainProxyTag
-                        -1L -> TAG_BYPASS
-                        -2L -> TAG_BLOCK
-                        else -> if (outId == proxy.id) mainProxyTag else tagMap[outId] ?: ""
-                    }
+                    outbound = resolveRouteOutbound(rule, mainProxyTag, tagMap, routerTagsById, proxy.id)
 
                     _hack_custom_config = rule.config
                 }
@@ -916,35 +1087,27 @@ fun buildConfig(
             }
         }
 
-        dns.servers.add(DNSServerOptions().apply {
-            address = "rcode://success"
-            tag = "dns-block"
-        })
-
-        dns.servers.add(DNSServerOptions().apply {
-            address = "local"
-            tag = "dns-local"
-            detour = TAG_DIRECT
-        })
+        dns.servers.add(buildDnsServerOptions("dns-block", "rcode://success"))
+        dns.servers.add(buildDnsServerOptions("dns-local", "local", detour = TAG_DIRECT))
 
         directDNS.firstOrNull().let {
-            dns.servers.add(DNSServerOptions().apply {
-                address = it ?: throw Exception("No direct DNS, check your settings!")
-                tag = "dns-direct"
-                detour = TAG_DIRECT
-                address_resolver = "dns-local"
-                strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
-            })
+            dns.servers.add(buildDnsServerOptions(
+                tag = "dns-direct",
+                address = it ?: throw Exception("No direct DNS, check your settings!"),
+                detour = TAG_DIRECT,
+                addressResolver = "dns-local",
+                strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy("dns-direct"))
+            ))
         }
 
         remoteDns.firstOrNull().let {
             // Always use direct DNS for urlTest
-            if (!forTest) dns.servers.add(DNSServerOptions().apply {
-                address = it ?: throw Exception("No remote DNS, check your settings!")
-                tag = "dns-remote"
-                address_resolver = "dns-direct"
-                strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
-            })
+            if (!forTest) dns.servers.add(buildDnsServerOptions(
+                tag = "dns-remote",
+                address = it ?: throw Exception("No remote DNS, check your settings!"),
+                addressResolver = "dns-direct",
+                strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy("dns-remote"))
+            ))
         }
         if (dnsHosts.isNotEmpty()) {
             dns.servers.add(DNSServerOptions().apply {
@@ -989,15 +1152,12 @@ fun buildConfig(
             })
             // FakeDNS obj
             if (useFakeDns) {
-                dns.fakeip = DNSFakeIPOptions().apply {
-                    enabled = true
-                    inet4_range = "198.18.0.0/15"
-                    inet6_range = "fc00::/18"
-                }
                 dns.servers.add(DNSServerOptions().apply {
-                    address = "fakeip"
                     tag = "dns-fake"
                     strategy = "ipv4_only"
+                    _hack_config_map["type"] = "fakeip"
+                    _hack_config_map["inet4_range"] = "198.18.0.0/15"
+                    _hack_config_map["inet6_range"] = "fc00::/18"
                 })
                 dns.rules.add(DNSRule_DefaultOptions().apply {
                     inbound = listOf(deviceInboundTag)
@@ -1031,15 +1191,13 @@ fun buildConfig(
                 if (hosts.isNullOrEmpty()) return@forEach
 
                 val serverTag = "dns-sub-$gid"
-                dns.servers.add(DNSServerOptions().apply {
-                    address = resolver
-                    tag = serverTag
-                    detour = TAG_DIRECT
-                    if (!resolver.isIpAddress()) {
-                        address_resolver = "dns-direct"
-                    }
+                dns.servers.add(buildDnsServerOptions(
+                    tag = serverTag,
+                    address = resolver,
+                    detour = TAG_DIRECT,
+                    addressResolver = if (!resolver.isIpAddress()) "dns-direct" else null,
                     strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy("server"))
-                })
+                ))
                 dns.rules.add(0, DNSRule_DefaultOptions().apply {
                     makeSingBoxRule(hosts)
                     server = serverTag
@@ -1051,14 +1209,125 @@ fun buildConfig(
     }.let {
         val configMap = it.asMap()
         Util.mergeJSON(configMap, proxy.requireBean().customConfigJson)
+        val allRouterMemberIds = routerGroups.flatMapTo(mutableSetOf<Long>()) { router ->
+            routerMembers[router.id].orEmpty().map { member -> member.proxyId }
+        }
         ConfigBuildResult(
             gson.toJson(configMap),
             externalIndexMap,
             proxy.id,
             trafficMap,
             tagMap,
-            if (buildSelector) group.id else -1L
+            if (buildSelector) group.id else -1L,
+            routerSelectorTags,
+            routerMemberIds,
+            routerUrlTestTags,
+            null,
+            allRouterMemberIds,
         )
     }
 
+}
+
+// buildDnsServerOptions converts the legacy sing-box DNS server address string
+// (used by NekoBox settings) into the sing-box 1.15+ typed DNS server format.
+// The legacy "address" field was removed in sing-box 1.14, so we must emit
+// "type" + type-specific fields instead.
+internal fun buildDnsServerOptions(
+    tag: String,
+    address: String,
+    detour: String? = null,
+    addressResolver: String? = null,
+    strategy: String? = null,
+): DNSServerOptions {
+    val options = DNSServerOptions().apply {
+        this.tag = tag
+        if (detour != null) this.detour = detour
+        if (addressResolver != null) this.address_resolver = addressResolver
+        if (strategy != null) this.strategy = strategy
+    }
+    when {
+        address == "local" -> {
+            options._hack_config_map["type"] = "local"
+        }
+        address == "fakeip" -> {
+            options._hack_config_map["type"] = "fakeip"
+        }
+        address.startsWith("rcode://") -> {
+            options._hack_config_map["type"] = "rcode"
+            options._hack_config_map["rcode"] = address.substringAfter("rcode://")
+        }
+        else -> {
+            val scheme = if (address.contains("://")) {
+                address.substringBefore("://").lowercase()
+            } else {
+                "udp"
+            }
+            val body = if (address.contains("://")) address.substringAfter("://") else address
+            when (scheme) {
+                "https", "h3" -> {
+                    val url = "https://$body".toHttpUrlOrNull()
+                        ?: error("invalid DNS HTTPS URL: $address")
+                    options._hack_config_map["type"] = if (scheme == "h3") "h3" else "https"
+                    options._hack_config_map["server"] = url.host
+                    options._hack_config_map["server_port"] =
+                        if (url.port != -1) url.port else 443
+                    if (url.encodedPath.isNotBlank() && url.encodedPath != "/") {
+                        options._hack_config_map["path"] = url.encodedPath
+                    }
+                    options._hack_config_map["tls"] = mapOf(
+                        "enabled" to true,
+                        "server_name" to if (url.host.isIpAddress()) "" else url.host
+                    )
+                }
+                "tls", "tcp", "udp", "quic" -> {
+                    val defaultPort = when (scheme) {
+                        "tls", "quic" -> 853
+                        else -> 53
+                    }
+                    val (host, port) = parseDnsHostPort(body, defaultPort)
+                    options._hack_config_map["type"] = scheme
+                    options._hack_config_map["server"] = host
+                    options._hack_config_map["server_port"] = port
+                    if (scheme == "tls" || scheme == "quic") {
+                        options._hack_config_map["tls"] = mapOf(
+                            "enabled" to true,
+                            "server_name" to if (host.isIpAddress()) "" else host
+                        )
+                    }
+                }
+                else -> {
+                    // Unknown scheme: treat as plain UDP to avoid silently
+                    // emitting an unsupported legacy address.
+                    val (host, port) = parseDnsHostPort(address, 53)
+                    options._hack_config_map["type"] = "udp"
+                    options._hack_config_map["server"] = host
+                    options._hack_config_map["server_port"] = port
+                }
+            }
+        }
+    }
+    return options
+}
+
+private fun parseDnsHostPort(input: String, defaultPort: Int): Pair<String, Int> {
+    val s = input.trim()
+    if (s.startsWith("[")) {
+        val close = s.indexOf("]")
+        if (close == -1) return s to defaultPort
+        val host = s.substring(1, close)
+        val port = if (s.length > close + 2 && s[close + 1] == ':') {
+            s.substring(close + 2).toIntOrNull() ?: defaultPort
+        } else {
+            defaultPort
+        }
+        return host to port
+    }
+    val lastColon = s.lastIndexOf(":")
+    val firstColon = s.indexOf(":")
+    if (lastColon != -1 && firstColon == lastColon) {
+        val port = s.substring(lastColon + 1).toIntOrNull()
+        if (port != null) return s.substring(0, lastColon) to port
+    }
+    return s to defaultPort
 }

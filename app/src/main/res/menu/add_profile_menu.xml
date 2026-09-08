@@ -96,6 +96,12 @@
         app:showAsAction="always">
         <menu>
             <item
+                android:id="@+id/action_switch_group_view"
+                android:title="@string/switch_to_subscription_view" />
+            <item
+                android:id="@+id/action_manage_router_groups"
+                android:title="@string/manage_router_groups" />
+            <item
                 android:id="@+id/action_update_subscription"
                 android:title="@string/update_current_subscription" />
             <item

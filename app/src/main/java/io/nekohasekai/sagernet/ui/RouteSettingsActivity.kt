@@ -30,6 +30,7 @@ import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.RuleEntity
 import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeListener
+import io.nekohasekai.sagernet.fmt.serializeRouteOutboundChoice
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
@@ -68,7 +69,10 @@ class RouteSettingsActivity(
         DataStore.routeProtocol = protocol
         DataStore.routeRuleset = ruleset
         DataStore.routeOutboundRule = outbound
-        DataStore.routeOutbound = when (outbound) {
+        DataStore.routeOutboundRouter = routerGroupId
+        DataStore.routeOutbound = if (routerGroupId > 0L) {
+            OutboundPreference.VALUE_SELECT_ROUTER.toInt()
+        } else when (outbound) {
             0L -> 0
             -1L -> 1
             -2L -> 2
@@ -88,12 +92,14 @@ class RouteSettingsActivity(
         source = DataStore.routeSource
         protocol = DataStore.routeProtocol
         ruleset = DataStore.routeRuleset
-        outbound = when (DataStore.routeOutbound) {
-            0 -> 0L
-            1 -> -1L
-            2 -> -2L
-            else -> DataStore.routeOutboundRule
-        }
+        val outboundChoice = serializeRouteOutboundChoice(
+            DataStore.routeOutbound,
+            DataStore.routeOutboundRule,
+            DataStore.routeOutboundRouter,
+            OutboundPreference.VALUE_SELECT_ROUTER.toInt(),
+        )
+        outbound = outboundChoice.outbound
+        routerGroupId = outboundChoice.routerGroupId
         packages = DataStore.routePackages.split("\n").filter { it.isNotBlank() }.toSet()
 
         if (DataStore.editingId == 0L) {
@@ -146,6 +152,17 @@ class RouteSettingsActivity(
         apps.postUpdate()
     }
 
+    val selectRouterGroup = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { (resultCode, data) ->
+        if (resultCode == Activity.RESULT_OK) {
+            DataStore.routeOutboundRouter = data?.getLongExtra(
+                RouterGroupSelectActivity.EXTRA_ROUTER_ID, 0L
+            ) ?: 0L
+            outbound.value = OutboundPreference.VALUE_SELECT_ROUTER
+        }
+    }
+
     lateinit var outbound: OutboundPreference
     lateinit var apps: AppListPreference
 
@@ -162,6 +179,13 @@ class RouteSettingsActivity(
                         ProfileManager.getProfile(DataStore.routeOutboundRule)?.let {
                             putExtra(ProfileSelectActivity.EXTRA_SELECTED, it)
                         }
+                    }
+                )
+                false
+            } else if (newValue.toString() == OutboundPreference.VALUE_SELECT_ROUTER) {
+                selectRouterGroup.launch(
+                    Intent(this@RouteSettingsActivity, RouterGroupSelectActivity::class.java).apply {
+                        putExtra(RouterGroupSelectActivity.EXTRA_SELECTED, DataStore.routeOutboundRouter)
                     }
                 )
                 false

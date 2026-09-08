@@ -72,7 +72,7 @@ object ProfileManager {
         }
     }
 
-    suspend fun createProfile(groupId: Long, bean: AbstractBean): ProxyEntity {
+    suspend fun createProfile(groupId: Long, bean: AbstractBean, reconcile: Boolean = true): ProxyEntity {
         bean.applyDefaultValues()
 
         val profile = ProxyEntity(groupId = groupId).apply {
@@ -81,6 +81,11 @@ object ProfileManager {
             userOrder = SagerDatabase.proxyDao.nextOrder(groupId) ?: 1
         }
         profile.id = SagerDatabase.proxyDao.addProxy(profile)
+        if (reconcile && RouterGroupRepository.all().isNotEmpty()) {
+            runCatching {
+                GroupManager.reconcileRouterMembers(GroupManager.snapshotRouterMembers())
+            }
+        }
         iterator { onAdd(profile) }
         return profile
     }
@@ -108,14 +113,18 @@ object ProfileManager {
     }
 
     suspend fun deleteProfile2(groupId: Long, profileId: Long) {
+        SagerDatabase.routerMemberDao.deleteByProxy(profileId)
         if (SagerDatabase.proxyDao.deleteById(profileId) == 0) return
+        GroupManager.cleanupDanglingRouterMembers()
         if (DataStore.selectedProxy == profileId) {
             DataStore.selectedProxy = 0L
         }
     }
 
     suspend fun deleteProfile(groupId: Long, profileId: Long) {
+        SagerDatabase.routerMemberDao.deleteByProxy(profileId)
         if (SagerDatabase.proxyDao.deleteById(profileId) == 0) return
+        GroupManager.cleanupDanglingRouterMembers()
         if (DataStore.selectedProxy == profileId) {
             DataStore.selectedProxy = 0L
         }

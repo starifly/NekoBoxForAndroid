@@ -15,4 +15,7 @@ data class SpeedDisplayData(
     // Outbound "bypass" usage is not counted
     var txTotal: Long = 0L,
     var rxTotal: Long = 0L,
+
+    // Runtime-only Router URL_TEST selections as routerId/profileId pairs.
+    var urlTestSelections: LongArray = longArrayOf(),
 ) : Parcelable

@@ -37,66 +37,13 @@
             android:id="@+id/fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
             android:elevation="6dp"
-            android:nextFocusDown="@+id/stats"
             app:backgroundTint="?colorPrimary"
-            app:layout_anchor="@id/stats"
             app:pressedTranslationZ="6dp"
             app:srcCompat="@drawable/ic_service_idle" />
-
-        <io.nekohasekai.sagernet.widget.StatsBar
-            android:id="@+id/stats"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:nextFocusUp="@+id/fab"
-            app:backgroundTint="?colorPrimary"
-            app:contentInsetStart="0dp"
-            app:hideOnScroll="true">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackground"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:id="@+id/tx"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_gravity="fill_horizontal"
-                    android:ellipsize="marquee"
-                    android:singleLine="true"
-                    android:textColor="@color/white"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/rx"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_columnWeight="1"
-                    android:layout_gravity="fill_horizontal"
-                    android:ellipsize="marquee"
-                    android:singleLine="true"
-                    android:textColor="@color/white"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/status"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="fill_horizontal"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:textColor="@color/white"
-                    android:textSize="16sp"
-                    tools:text="@string/connection_test_available" />
-
-            </LinearLayout>
-
-        </io.nekohasekai.sagernet.widget.StatsBar>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

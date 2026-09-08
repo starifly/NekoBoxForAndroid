@@ -2,7 +2,6 @@ package io.nekohasekai.sagernet.ui
 
 import android.annotation.SuppressLint
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -35,9 +34,7 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
 
         binding = LayoutLogcatBinding.bind(view)
 
-        if (Build.VERSION.SDK_INT >= 23) {
-            binding.textview.breakStrategy = 0 // simple
-        }
+        binding.textview.breakStrategy = 0 // simple
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root, ListListener)
 
@@ -105,7 +102,7 @@ class LogcatFragment : ToolbarFragment(R.layout.layout_logcat),
             R.id.action_send_logcat -> {
                 val context = requireContext()
                 runOnDefaultDispatcher {
-                    SendLog.sendLog(context, "NB4A")
+                    SendLog.sendLog(context, "Asteria")
                 }
             }
 

@@ -1,13 +1,14 @@
 package io.nekohasekai.sagernet.bg.proto
 
-import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.ServiceNotification
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.ktx.Logs
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
-import moe.matsuri.nb4a.utils.JavaUtil
 
 class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = null) :
     BoxInstance(profile) {
@@ -18,28 +19,20 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     var displayProfileName = ServiceNotification.genTitle(profile)
 
     // for TrafficLooper
-    var looper: TrafficLooper? = null
+    @Volatile var looper: TrafficLooper? = null
+    private val runtimeScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     override fun buildConfig() {
         super.buildConfig()
         lastSelectorGroupId = super.config.selectorGroupId
         //
-        if (notTmp) Logs.d(config.config)
-        if (notTmp && BuildConfig.DEBUG) Logs.d(JavaUtil.gson.toJson(config.trafficMap))
+        if (notTmp) Logs.d("Built proxy configuration: ${config.profileTagMap.size} profiles")
     }
 
     // only use this in temporary instance
     fun buildConfigTmp() {
         notTmp = false
         buildConfig()
-    }
-
-    override suspend fun init() {
-        super.init()
-        pluginConfigs.forEach { (_, plugin) ->
-            val (_, content) = plugin
-            Logs.d(content)
-        }
     }
 
     override suspend fun loadConfig() {
@@ -49,17 +42,17 @@ class ProxyInstance(profile: ProxyEntity, var service: BaseService.Interface? = 
     override fun launch() {
         box.setAsMain()
         super.launch() // start box
-        runOnDefaultDispatcher {
-            looper = service?.let { TrafficLooper(it.data, this) }
-            looper?.start()
-        }
+        looper = service?.let { TrafficLooper(it.data, runtimeScope) }
+        looper?.start()
     }
 
     override fun close() {
-        super.close()
-        runBlocking {
-            looper?.stop()
+        try {
+            runBlocking { looper?.stop() }
+        } finally {
             looper = null
+            runtimeScope.cancel()
+            super.close()
         }
     }
 }

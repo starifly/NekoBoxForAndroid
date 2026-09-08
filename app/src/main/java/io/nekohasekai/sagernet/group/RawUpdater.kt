@@ -26,6 +26,7 @@ import io.nekohasekai.sagernet.ktx.*
 import libcore.Libcore
 import moe.matsuri.nb4a.Protocols
 import moe.matsuri.nb4a.proxy.anytls.AnyTLSBean
+import moe.matsuri.nb4a.proxy.anytls.parseSingBoxAnyTLS
 import moe.matsuri.nb4a.proxy.config.ConfigBean
 import moe.matsuri.nb4a.utils.Util
 import org.ini4j.Ini
@@ -36,6 +37,7 @@ import org.yaml.snakeyaml.TypeDescription
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.error.YAMLException
 import java.io.StringReader
+import java.util.IdentityHashMap
 import androidx.core.net.toUri
 
 @Suppress("EXPERIMENTAL_API_USAGE")
@@ -158,6 +160,9 @@ object RawUpdater : GroupUpdater() {
             error(app.getString(R.string.no_proxies_found))
         }
 
+        val stableIds = IdentityHashMap<AbstractBean, String>()
+        proxies.forEach { stableIds[it] = it.routerStableIdentity() }
+
         Logs.d("New profiles: ${proxies.size}")
 
         val nameMap = proxies.associateBy { bean ->
@@ -189,9 +194,11 @@ object RawUpdater : GroupUpdater() {
             if (toReplace.contains(name)) {
                 val entity = toReplace[name]!!
                 val existsBean = entity.requireBean()
+                val existingStableId = entity.uuid
                 // 更新订阅，保留自定义覆写设置
                 bean.customOutboundJson = existsBean.customOutboundJson
                 bean.customConfigJson = existsBean.customConfigJson
+                entity.uuid = stableIds[bean] ?: bean.routerStableIdentity()
                 when {
                     existsBean != bean -> {
                         changed++
@@ -202,7 +209,7 @@ object RawUpdater : GroupUpdater() {
                         Logs.d("Updated profile: $name")
                     }
 
-                    entity.userOrder != userOrder -> {
+                    entity.userOrder != userOrder || existingStableId != entity.uuid -> {
                         entity.putBean(bean)
                         toUpdate.add(entity)
                         entity.userOrder = userOrder
@@ -221,6 +228,7 @@ object RawUpdater : GroupUpdater() {
                         groupId = proxyGroup.id, userOrder = userOrder
                     ).apply {
                         putBean(bean)
+                        uuid = stableIds[bean] ?: bean.routerStableIdentity()
                     })
                 added.add(name)
                 Logs.d("Inserted profile: $name")
@@ -232,6 +240,9 @@ object RawUpdater : GroupUpdater() {
             Logs.d("Updated profiles: $it")
         }
 
+        toDelete.forEach { proxy ->
+            SagerDatabase.routerMemberDao.deleteByProxy(proxy.id)
+        }
         SagerDatabase.proxyDao.deleteProxy(toDelete).also {
             Logs.d("Deleted profiles: $it")
         }
@@ -1016,7 +1027,7 @@ object RawUpdater : GroupUpdater() {
                                 it
                             }
                         }.map {
-                            ConfigBean().apply {
+                            parseSingBoxAnyTLS(it) ?: ConfigBean().apply {
                                 applyDefaultValues()
                                 type = 1
                                 config = it.toStringPretty()

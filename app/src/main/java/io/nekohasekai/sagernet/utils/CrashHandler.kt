@@ -36,7 +36,7 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
         }
 
         ProcessPhoenix.triggerRebirth(app, Intent(app, BlankActivity::class.java).apply {
-            putExtra("sendLog", "NB4A Crash")
+            putExtra("sendLog", "Asteria Crash")
         })
     }
 
@@ -62,7 +62,7 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
 
     fun buildReportHeader(): String {
         var report = ""
-        report += "NekoBoxF for Android ${SagerNet.appVersionNameForDisplay} (${BuildConfig.VERSION_CODE})\n"
+        report += "${app.getString(io.nekohasekai.sagernet.R.string.app_name_long)} ${SagerNet.appVersionNameForDisplay} (${BuildConfig.VERSION_CODE})\n"
         report += "Date: ${getCurrentMilliSecondUTCTimeStamp()}\n\n"
         report += "OS_VERSION: ${getSystemPropertyWithAndroidAPI("os.version")}\n"
         report += "SDK_INT: ${Build.VERSION.SDK_INT}\n"

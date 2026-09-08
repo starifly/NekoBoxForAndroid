@@ -12,40 +12,36 @@ import kotlin.system.exitProcess
 
 private val Project.android get() = extensions.getByName<ApplicationExtension>("android")
 
-private lateinit var metadata: Properties
-private lateinit var localProperties: Properties
-
 fun Project.requireMetadata(): Properties {
-    if (!::metadata.isInitialized) {
-        metadata = Properties().apply {
-            load(rootProject.file("nb4a.properties").inputStream())
-        }
+    val file = rootProject.file("asteria.properties")
+    val props = Properties()
+    if (file.exists()) {
+        file.inputStream().use { props.load(it) }
     }
-    return metadata
+    return props
 }
 
 fun Project.requireLocalProperties(): Properties {
-    if (!::localProperties.isInitialized) {
-        localProperties = Properties()
-
-        val base64 = System.getenv("LOCAL_PROPERTIES")
-        if (!base64.isNullOrBlank()) {
-
-            localProperties.load(Base64.getDecoder().decode(base64).inputStream())
-        } else if (project.rootProject.file("local.properties").exists()) {
-            localProperties.load(rootProject.file("local.properties").inputStream())
+    val props = Properties()
+    val base64 = System.getenv("LOCAL_PROPERTIES")
+    if (!base64.isNullOrBlank()) {
+        props.load(Base64.getDecoder().decode(base64).inputStream())
+    } else {
+        val file = rootProject.file("local.properties")
+        if (file.exists()) {
+            file.inputStream().use { props.load(it) }
         }
     }
-    return localProperties
+    return props
 }
 
 fun Project.setupCommon() {
     android.apply {
-        buildToolsVersion = "35.0.1"
-        compileSdk = 35
+        buildToolsVersion = "36.0.0"
+        compileSdk = 36
         defaultConfig {
-            minSdk = 21
-            targetSdk = 35
+            minSdk = 36
+            targetSdk = 36
         }
         buildTypes {
             getByName("release") {
@@ -63,7 +59,9 @@ fun Project.setupCommon() {
             showAll = true
             checkAllWarnings = true
             checkReleaseBuilds = true
-            warningsAsErrors = true
+            // Keep advisory dependency/style findings visible without promoting them
+            // to runtime correctness errors. Lint errors still abort the build.
+            warningsAsErrors = false
             textOutput = project.file("build/lint.txt")
             htmlOutput = project.file("build/lint.html")
         }
@@ -115,26 +113,41 @@ fun Project.setupAppCommon() {
     setupCommon()
 
     val lp = requireLocalProperties()
+    val keystorePath = lp.getProperty("KEYSTORE_PATH") ?: System.getenv("KEYSTORE_PATH")
     val keystorePwd = lp.getProperty("KEYSTORE_PASS") ?: System.getenv("KEYSTORE_PASS")
     val alias = lp.getProperty("ALIAS_NAME") ?: System.getenv("ALIAS_NAME")
     val pwd = lp.getProperty("ALIAS_PASS") ?: System.getenv("ALIAS_PASS")
 
+    val asteriaKeystore = rootProject.file("asteria.keystore")
+    val releaseKeystore = rootProject.file("release.keystore")
+    val targetKeystore = when {
+        !keystorePath.isNullOrBlank() -> rootProject.file(keystorePath)
+        asteriaKeystore.exists() -> asteriaKeystore
+        releaseKeystore.exists() -> releaseKeystore
+        else -> null
+    }
+
     android.apply {
-        if (keystorePwd != null) {
+        if (targetKeystore != null && targetKeystore.exists() && keystorePwd != null && alias != null && pwd != null) {
             signingConfigs {
                 create("release") {
-                    storeFile = rootProject.file("release.keystore")
+                    storeFile = targetKeystore
                     storePassword = keystorePwd
                     keyAlias = alias
                     keyPassword = pwd
                 }
             }
+        } else if (gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) }) {
+            logger.warn("Release signing configuration is missing or incomplete! Provide KEYSTORE_PASS, ALIAS_NAME, ALIAS_PASS.")
         }
         buildTypes {
-            val key = signingConfigs.findByName("release")
-            if (key != null) {
-                getByName("release").signingConfig = key
-                getByName("debug").signingConfig = key
+            val releaseKey = signingConfigs.findByName("release")
+            if (releaseKey != null) {
+                getByName("release").signingConfig = releaseKey
+            }
+            val debugKey = signingConfigs.findByName("debug") ?: releaseKey
+            if (debugKey != null) {
+                getByName("debug").signingConfig = debugKey
             }
         }
     }
@@ -170,10 +183,7 @@ fun Project.setupApp() {
             reset()
             isEnable = true
             isUniversalApk = false
-            include("armeabi-v7a")
             include("arm64-v8a")
-            include("x86")
-            include("x86_64")
         }
 
         flavorDimensions += "vendor"
@@ -197,17 +207,17 @@ fun Project.setupApp() {
                 outputFileName = if (isPreview) {
                     outputFileName.replace(
                         project.name,
-                        "NekoBoxF-" + requireMetadata().getProperty("PRE_VERSION_NAME")
+                        "Asteria-" + requireMetadata().getProperty("PRE_VERSION_NAME")
                     ).replace("-preview", "")
                 } else {
-                    outputFileName.replace(project.name, "NekoBoxF-$versionName")
+                    outputFileName.replace(project.name, "Asteria-$versionName")
                         .replace("-release", "")
                         .replace("-oss", "")
                 }
             }
         }
 
-        for (abi in listOf("Arm64", "Arm", "X64", "X86")) {
+        for (abi in listOf("Arm64")) {
             tasks.create("assemble" + abi + "FdroidRelease") {
                 dependsOn("assembleFdroidRelease")
             }

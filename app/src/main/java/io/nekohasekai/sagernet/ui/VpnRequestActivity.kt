@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.VpnService
-import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContract
@@ -27,15 +26,11 @@ class VpnRequestActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         if (getSystemService<KeyguardManager>()!!.isKeyguardLocked) {
             receiver = broadcastReceiver { _, _ -> connect.launch(null) }
-            if (SDK_INT >= 33) {
-                registerReceiver(
-                    receiver,
-                    IntentFilter(Intent.ACTION_USER_PRESENT),
-                    Context.RECEIVER_EXPORTED
-                )
-            } else {
-                registerReceiver(receiver, IntentFilter(Intent.ACTION_USER_PRESENT))
-            }
+            registerReceiver(
+                receiver,
+                IntentFilter(Intent.ACTION_USER_PRESENT),
+                Context.RECEIVER_EXPORTED
+            )
         } else connect.launch(null)
     }
 

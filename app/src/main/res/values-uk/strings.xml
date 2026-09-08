@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">NekoBoxF</string>
-    <string name="app_name_long" translatable="false">NekoBoxF for Android</string>
+    <string name="app_name" translatable="false">Asteria</string>
+    <string name="app_name_long" translatable="false">Asteria for Android</string>
     <string name="app_desc">Універсальний набір інструментів проксі для Android, написаний на Kotlin.</string>
     <string name="project">Проєкт</string>
     <string name="github">Вихідний код</string>

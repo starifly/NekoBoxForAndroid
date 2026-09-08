@@ -3,12 +3,10 @@ package libcore
 import (
 	"fmt"
 	"net"
-	"path/filepath"
 	"strings"
 
 	"github.com/oschwald/maxminddb-golang"
 	C "github.com/sagernet/sing-box/constant"
-	"github.com/sagernet/sing-box/nekoutils"
 	"github.com/sagernet/sing-box/option"
 )
 
@@ -58,13 +56,5 @@ func (g *geoip) Rules(countryCode string) ([]option.HeadlessRule, error) {
 	}, nil
 }
 
-func init() {
-	nekoutils.GetGeoIPHeadlessRules = func(name string) ([]option.HeadlessRule, error) {
-		g := new(geoip)
-		if err := g.Open(filepath.Join(externalAssetsPath, "geoip.db")); err != nil {
-			return nil, err
-		}
-		defer g.geoipReader.Close()
-		return g.Rules(name)
-	}
-}
+// geoip reader kept for potential direct use; upstream sing-box 1.15 loads geoip
+// via its own resource manager using constant.resourcePaths.

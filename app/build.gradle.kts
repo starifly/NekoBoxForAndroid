@@ -1,5 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
+import java.util.zip.ZipFile
+import java.util.zip.ZipInputStream
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -10,8 +13,8 @@ plugins {
 setupApp()
 
 android {
-    compileOptions {
-        isCoreLibraryDesugaringEnabled = true
+    defaultConfig {
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     ksp {
         arg("room.incremental", "true")
@@ -28,13 +31,13 @@ android {
         aidl = true
     }
     namespace = "io.nekohasekai.sagernet"
-    packaging {
-        jniLibs {
-            useLegacyPackaging = true
-        }
-    }
     androidResources {
         generateLocaleConfig = true
+    }
+    sourceSets {
+        getByName("androidTest") {
+            assets.srcDir("$projectDir/schemas")
+        }
     }
 }
 
@@ -81,24 +84,78 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.room:room-testing:2.6.1")
+    androidTestImplementation("androidx.test:core:1.6.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
     implementation("com.github.MatrixDev.Roomigrant:RoomigrantLib:0.3.4")
     ksp("com.github.MatrixDev.Roomigrant:RoomigrantCompiler:0.3.4")
-
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
 }
 
-val buildHevTun by tasks.registering {
-    val hevAbis = listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+val verifyLibcore by tasks.registering {
+    val libcoreAar = file("libs/libcore.aar")
     doLast {
-        val missing = hevAbis.any { !file("src/main/jniLibs/$it/libhev-socks5-tunnel.so").exists() }
-        if (missing || System.getenv("FORCE_HEV") == "1") {
-            exec {
-                commandLine("bash", rootProject.file("buildScript/compile-hevtun.sh").absolutePath)
+        if (!libcoreAar.isFile) {
+            throw GradleException("Missing app/libs/libcore.aar. Build the native core with './run lib core' before building the APK.")
+        }
+        val requiredEntries = listOf(
+            "classes.jar",
+            "jni/arm64-v8a/libgojni.so"
+        )
+        ZipFile(libcoreAar).use { archive ->
+            val missingEntries = requiredEntries.filter { archive.getEntry(it) == null }
+            if (missingEntries.isNotEmpty()) {
+                throw GradleException("Invalid app/libs/libcore.aar; missing: ${missingEntries.joinToString()}")
+            }
+            val classesJar = archive.getInputStream(archive.getEntry("classes.jar")).readBytes()
+            var libcoreClass: ByteArray? = null
+            val classNames = linkedSetOf<String>()
+            ZipInputStream(classesJar.inputStream()).use { jar ->
+                var entry = jar.nextEntry
+                while (entry != null) {
+                    classNames += entry.name
+                    if (entry.name == "libcore/Libcore.class") libcoreClass = jar.readBytes()
+                    entry = jar.nextEntry
+                }
+            }
+            if ("libcore/HTTPClient.class" !in classNames || "libcore/HttpClient.class" in classNames) {
+                throw GradleException("Invalid libcore Java ABI: expected libcore.HTTPClient and no legacy libcore.HttpClient")
+            }
+            val libcoreSymbols = libcoreClass?.toString(Charsets.ISO_8859_1).orEmpty()
+            if ("newHttpClient" !in libcoreSymbols || "libcore/HTTPClient" !in libcoreSymbols) {
+                throw GradleException("Invalid libcore Java ABI: newHttpClient must return libcore.HTTPClient")
             }
         }
     }
 }
 
+val verifyOssDebugLibcoreCallers by tasks.registering {
+    dependsOn("compileOssDebugKotlin")
+    doLast {
+        val classesDir = layout.buildDirectory.dir("tmp/kotlin-classes/ossDebug").get().asFile
+        val classFiles = fileTree(classesDir) { include("**/*.class") }.files
+        val obsolete = classFiles.filter { file ->
+            file.readBytes().toString(Charsets.ISO_8859_1).contains("libcore/HttpClient")
+        }
+        if (obsolete.isNotEmpty()) {
+            throw GradleException(
+                "Stale libcore.HttpClient bytecode detected; run a clean rebuild: " +
+                    obsolete.joinToString { it.relativeTo(classesDir).path }
+            )
+        }
+        if (classFiles.none { file ->
+                file.readBytes().toString(Charsets.ISO_8859_1).contains("libcore/HTTPClient")
+            }) {
+            throw GradleException("No compiled caller references the current libcore.HTTPClient ABI")
+        }
+    }
+}
+
+tasks.matching { it.name == "assembleOssDebug" }.configureEach {
+    dependsOn(verifyOssDebugLibcoreCallers)
+}
+
 tasks.named("preBuild") {
-    dependsOn(buildHevTun)
+    dependsOn(verifyLibcore)
 }

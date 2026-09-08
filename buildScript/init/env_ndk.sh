@@ -20,5 +20,9 @@ if [ ! -f "$_NDK/source.properties" ]; then
   exit 1
 fi
 
+case "$_NDK" in
+  [A-Za-z]:\\*) _NDK="$(cygpath -u "$_NDK")" ;;
+esac
+
 export ANDROID_NDK_HOME=$_NDK
 export NDK=$_NDK

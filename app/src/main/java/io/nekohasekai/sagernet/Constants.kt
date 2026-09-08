@@ -47,6 +47,8 @@ object Key {
     const val ALLOW_ACCESS = "allowAccess"
     const val SPEED_INTERVAL = "speedInterval"
     const val SHOW_DIRECT_SPEED = "showDirectSpeed"
+    const val SHOW_PROFILE_IN_NOTIFICATION = "showProfileInNotification"
+    const val VIEW_MODE_ROUTER_GROUPS = "viewModeRouterGroups"
 
     const val APPEND_HTTP_PROXY = "appendHttpProxy"
     const val HTTP_PROXY_BYPASS = "httpProxyBypass"
@@ -73,15 +75,25 @@ object Key {
 
     const val ACQUIRE_WAKE_LOCK = "acquireWakeLock"
     const val HIDE_FROM_RECENT_APPS = "hideFromRecentApps"
-    const val SHOW_BOTTOM_BAR = "showBottomBar"
     const val CONFIRM_PROFILE_DELETE = "confirmProfileDelete"
     const val GROUP_LAYOUT_MODE = "groupLayoutMode"
     const val PROFILE_CARD_STYLE = "profileCardStyle"
 
     const val ALLOW_INSECURE_ON_REQUEST = "allowInsecureOnRequest"
 
+    val DEPRECATED_SETTING_KEYS = setOf(
+        APPEND_HTTP_PROXY,
+        HTTP_PROXY_BYPASS,
+        ENABLE_TLS_FRAGMENT,
+        FRAGMENT_LENGTH,
+        FRAGMENT_INTERVAL,
+        "enableHevTun",
+        "showBottomBar",
+        "meteredNetwork",
+        "wakeResetConnections",
+    )
+
     const val TUN_IMPLEMENTATION = "tunImplementation"
-    const val ENABLE_HEV_TUN = "enableHevTun"
     const val PROFILE_TRAFFIC_STATISTICS = "profileTrafficStatistics"
 
     const val PROFILE_DIRTY = "profileDirty"
@@ -155,6 +167,7 @@ object Key {
     const val ROUTE_PROTOCOL = "routeProtocol"
     const val ROUTE_RULESET = "routeRuleset"
     const val ROUTE_OUTBOUND = "routeOutbound"
+    const val ROUTE_OUTBOUND_ROUTER = "routeOutboundRouter"
     const val ROUTE_PACKAGES = "routePackages"
 
     const val GROUP_NAME = "groupName"
@@ -187,11 +200,6 @@ object Key {
     const val FRAGMENT_LENGTH = "fragmentLength"
     const val FRAGMENT_INTERVAL = "fragmentInterval"
 
-    const val WEBDAV_SERVER = "webdavServer"
-    const val WEBDAV_USERNAME = "webdavUsername"
-    const val WEBDAV_PASSWORD = "webdavPassword"
-    const val WEBDAV_PATH = "webdavPath"
-
     const val GLOBAL_MODE = "globalMode"
 }
 
@@ -199,6 +207,7 @@ object TunImplementation {
     const val GVISOR = 0
     const val SYSTEM = 1
     const val MIXED = 2
+    const val GO = 3
 }
 
 object IPv6Mode {
@@ -232,4 +241,8 @@ object Action {
 
     // const val SWITCH_WAKE_LOCK = "io.nekohasekai.sagernet.SWITCH_WAKELOCK"
     const val RESET_UPSTREAM_CONNECTIONS = "moe.nb4a.RESET_UPSTREAM_CONNECTIONS"
+
+    const val EXTRA_ROUTER_TAG = "routerTag"
+    const val EXTRA_ROUTER_PROXY_ID = "routerProxyId"
+    const val EXTRA_FORCE_FULL_RELOAD = "forceFullReload"
 }

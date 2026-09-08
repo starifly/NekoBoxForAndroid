@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">NekoBoxF</string>
-    <string name="app_name_long" translatable="false">NekoBoxF for Android</string>
+    <string name="app_name" translatable="false">Asteria</string>
+    <string name="app_name_long" translatable="false">Asteria for Android</string>
     <string name="app_desc">The universal proxy toolchain for Android, written in Kotlin.</string>
     <string name="project">Project</string>
     <string name="github">Source code</string>
@@ -19,7 +19,7 @@
     <string name="quick_toggle">Toggle</string>
     <string name="quick_enable">Enable</string>
     <string name="quick_disable">Disable</string>
-    <string name="tile_title">Switcher</string>
+    <string name="tile_title">Asteria</string>
     <string name="menu_traffic">Traffic</string>
     <string name="menu_dashboard">sing-box Dashboard</string>
     <!-- externel -->
@@ -46,6 +46,53 @@
     <string name="group_status_empty_subscription">Not updated yet</string>
     <string name="group_status_proxies">%d Proxies</string>
     <string name="group_status_proxies_subscription">%d Proxies | Updated on %s</string>
+    <string name="router_groups_title">Router groups</string>
+    <string name="router_mode_manual">Manual</string>
+    <string name="router_mode_automatic">Automatic</string>
+    <string name="router_status">%1$s | %2$d nodes</string>
+    <string name="refresh">Refresh</string>
+    <string name="router_current_node">Current: %s</string>
+    <string name="router_no_selection">No current node</string>
+    <string name="router_select_node">Select node</string>
+    <string name="router_members">Members</string>
+    <string name="router_edit_members">Select Router members</string>
+    <string name="router_no_members">No members configured</string>
+    <string name="router_no_available_nodes">No subscription nodes are available.</string>
+    <string name="router_manual_unavailable">Automatic Router groups select nodes by latency.</string>
+    <string name="router_group_add">Create proxy group</string>
+    <string name="router_group_add_summary">Combine nodes from one or more subscriptions</string>
+    <string name="router_group_settings">Proxy group settings</string>
+    <string name="router_group_name">Group name</string>
+    <string name="router_group_enabled">Enabled</string>
+    <string name="router_group_mode">Mode</string>
+    <string name="router_group_sources">Subscription sources</string>
+    <string name="router_group_include">Include regex (empty means all)</string>
+    <string name="router_group_exclude">Exclude regex</string>
+    <string name="router_url_test_settings">URL test</string>
+    <string name="router_test_url">Test URL</string>
+    <string name="router_test_interval">Test interval (seconds)</string>
+    <string name="router_test_tolerance">Tolerance (ms)</string>
+    <string name="router_group_preview">Matched nodes</string>
+    <string name="router_group_preview_count">%1$d nodes\n%2$s</string>
+    <string name="router_group_disabled">Disabled</string>
+    <string name="router_group_selected">Selected</string>
+    <string name="router_group_delete_referenced">This group is used by %1$d route rules. Reassign those routes before deleting it.</string>
+    <string name="router_group_validation_field">%1$s: %2$s</string>
+    <string name="route_proxy_group">Proxy group</string>
+    <string name="router_reference_invalid">Invalid proxy group reference</string>
+    <string name="router_groups_card_title">Proxy groups (Policy groups)</string>
+    <string name="router_groups_card_summary">Manage URL-Test automatic latency &amp; manual node groups</string>
+    <string name="router_groups_card_summary_with_count">%d groups configured • URL-Test &amp; Manual</string>
+    <string name="router_groups_nav_title">Proxy groups</string>
+    <string name="router_no_sources_selected">No subscriptions selected</string>
+    <string name="router_switch_node">Switch node</string>
+    <string name="router_edit_group">Edit group</string>
+    <string name="router_empty_title">No proxy groups</string>
+    <string name="router_empty_summary">Tap + above to create a proxy group, enabling automatic latency testing and policy-based routing.</string>
+    <string name="switch_to_subscription_view">Switch to subscription view</string>
+    <string name="switch_to_router_group_view">Switch to proxy groups view</string>
+    <string name="router_mode_automatic_hint">Automatic URL-test group selects the best node automatically</string>
+    <string name="manage_router_groups">Manage proxy groups</string>
     <string name="group_no_difference">%s: No difference</string>
     <string name="group_updated">%s: Updated %d proxies</string>
     <string name="group_show_diff">Diff</string>
@@ -500,8 +547,7 @@
     <string name="warp_generate">Generate Configuration</string>
     <string name="generating">Generating…</string>
     <string name="tun_implementation">TUN Implementation</string>
-    <string name="enable_hev_tun">Enable Hev TUN</string>
-    <string name="enable_hev_tun_summary">Use hev-socks5-tunnel to create the TUN device</string>
+    <string name="tun_implementation_go" translatable="false">Go</string>
     <string name="destination_override">Override Destination</string>
     <string name="destination_override_summary">Use the sniffed domain to overwrite the destination
         address, not just for routing</string>
@@ -590,6 +636,8 @@
     <string name="action_shadowtls" translatable="false">ShadowTLS</string>
     <string name="protocol_version">Protocol Version</string>
     <string name="share_subscription">Share Subscription</string>
+    <string name="show_profile_in_notification">Show profile name in notification</string>
+    <string name="show_profile_in_notification_summary">When disabled, the notification only displays the app name, hiding specific node details</string>
     <string name="show_group_in_notification">Show group name in notification</string>
     <string name="reset_connections">Reset Connections</string>
     <string name="remove_duplicate">Remove duplicate servers</string>
@@ -629,7 +677,7 @@
     <string name="webdav_path">Backup Path</string>
     <string name="webdav_test">Test Connection</string>
     <string name="webdav_test_success">Connection Successful</string>
-    <string name="webdav_test_failed" formatted="false">Connection Failed: %s</string>
+    <string name="webdav_test_failed">Connection Failed: %1$s</string>
     <string name="backup_to_webdav">Backup to WebDAV</string>
     <string name="restore_from_webdav">Restore from WebDAV</string>
     <string name="webdav_backup_success">Backup to WebDAV successful</string>

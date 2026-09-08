@@ -9,15 +9,14 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.net.ConnectivityManager
 import android.net.Network
-import android.os.Build
 import android.os.PowerManager
 import android.os.StrictMode
 import android.os.UserManager
-import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import go.Seq
 import io.nekohasekai.sagernet.bg.SagerConnection
+import io.nekohasekai.sagernet.bg.ServiceNotification
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.isOss
@@ -138,7 +137,7 @@ class SagerNet : Application(),
                     Intent(
                         application, MainActivity::class.java
                     ).setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+                    PendingIntent.FLAG_IMMUTABLE
                 )
             }
         }
@@ -164,39 +163,49 @@ class SagerNet : Application(),
         }
 
         fun updateNotificationChannels() {
-            if (Build.VERSION.SDK_INT >= 26) @RequiresApi(26) {
-                notification.createNotificationChannels(
-                    listOf(
-                        NotificationChannel(
-                            "service-vpn",
-                            application.getText(R.string.service_vpn),
-                            if (Build.VERSION.SDK_INT >= 28) NotificationManager.IMPORTANCE_MIN
-                            else NotificationManager.IMPORTANCE_LOW
-                        ),   // #1355
-                        NotificationChannel(
-                            "service-proxy",
-                            application.getText(R.string.service_proxy),
-                            NotificationManager.IMPORTANCE_LOW
-                        ), NotificationChannel(
-                            "service-subscription",
-                            application.getText(R.string.service_subscription),
-                            NotificationManager.IMPORTANCE_DEFAULT
-                        ), NotificationChannel(
-                            "connection-test",
-                            application.getText(R.string.connection_test),
-                            NotificationManager.IMPORTANCE_DEFAULT
-                        )
+            val vpnNotificationPolicy = ServiceNotification.vpnNotificationChannelPolicy()
+            notification.createNotificationChannels(
+                listOf(
+                    NotificationChannel(
+                        ServiceNotification.vpnNotificationChannel,
+                        application.getText(R.string.service_vpn),
+                        vpnNotificationPolicy.importance
+                    ).apply {
+                        setLockscreenVisibility(vpnNotificationPolicy.lockscreenVisibility)
+                    },   // #1355
+                    NotificationChannel(
+                        "service-proxy",
+                        application.getText(R.string.service_proxy),
+                        NotificationManager.IMPORTANCE_LOW
+                    ), NotificationChannel(
+                        "service-subscription",
+                        application.getText(R.string.service_subscription),
+                        NotificationManager.IMPORTANCE_DEFAULT
+                    ), NotificationChannel(
+                        "connection-test",
+                        application.getText(R.string.connection_test),
+                        NotificationManager.IMPORTANCE_DEFAULT
                     )
                 )
-            }
+            )
         }
 
         fun startService() = ContextCompat.startForegroundService(
             application, Intent(application, SagerConnection.serviceClass)
         )
 
-        fun reloadService() =
-            application.sendBroadcast(Intent(Action.RELOAD).setPackage(application.packageName))
+        fun reloadService(routerTag: String? = null, routerProxyId: Long? = null) =
+            application.sendBroadcast(Intent(Action.RELOAD).setPackage(application.packageName).apply {
+                if (routerTag != null && routerProxyId != null) {
+                    putExtra(Action.EXTRA_ROUTER_TAG, routerTag)
+                    putExtra(Action.EXTRA_ROUTER_PROXY_ID, routerProxyId)
+                }
+            })
+
+        fun reloadServiceFully() =
+            application.sendBroadcast(Intent(Action.RELOAD).setPackage(application.packageName).apply {
+                putExtra(Action.EXTRA_FORCE_FULL_RELOAD, true)
+            })
 
         fun stopService() =
             application.sendBroadcast(Intent(Action.CLOSE).setPackage(application.packageName))

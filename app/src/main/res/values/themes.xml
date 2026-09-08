@@ -36,6 +36,7 @@
         <item name="windowNoTitle">true</item>
 
         <item name="chipStyle">@style/Widget.MaterialComponents.Chip.Choice.SagerNet</item>
+        <item name="itemShapeFillColor">@color/nav_item_fill</item>
 
         <item name="itemShapeAppearance">
             @style/ShapeAppearance.MaterialComponents.MediumComponent
@@ -58,7 +59,9 @@
 
     </style>
 
-    <style name="Theme.SagerNet.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
+    <style name="Theme.SagerNet.Dialog" parent="Base.Theme.SagerNet.Dialog" />
+
+    <style name="Base.Theme.SagerNet.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
         <item name="actionBarStyle">@style/Widget.MaterialComponents.ActionBar.Solid</item>
         <item name="actionModeCloseDrawable">@drawable/ic_navigation_close</item>
         <item name="colorButtonNormal">?colorAccent</item>
@@ -94,6 +97,7 @@
         <item name="windowNoTitle">true</item>
 
         <item name="chipStyle">@style/Widget.MaterialComponents.Chip.Choice.SagerNet</item>
+        <item name="itemShapeFillColor">@color/nav_item_fill</item>
 
         <item name="itemShapeAppearance">
             @style/ShapeAppearance.MaterialComponents.MediumComponent
@@ -113,8 +117,6 @@
         <item name="actionOverflowMenuStyle">@style/Widget.SagerNet.PopupMenu.Overflow</item>
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.SagerNet.BottomSheetDialog</item>
         <item name="materialButtonStyle">@style/Widget.SagerNet.Button</item>
-
-        <item name="android:dialogCornerRadius">@dimen/dialog_corner_radius</item>
 
         <item name="windowFixedHeightMajor" type="dimen">95%</item>
 

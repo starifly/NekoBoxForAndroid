@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">NekoBoxF</string>
-    <string name="app_name_long" translatable="false">NekoBoxF for Android</string>
+    <string name="app_name" translatable="false">Asteria</string>
+    <string name="app_name_long" translatable="false">Asteria for Android</string>
     <string name="app_desc">مجموعه ابزار جامع پراکسی برای اندروید، نوشته‌شده با کاتلین.</string>
     <string name="project">پروژه</string>
     <string name="github">کد منبع</string>
@@ -448,8 +448,6 @@
     <string name="warp_generate">ایجاد پیکربندی</string>
     <string name="generating">در حال ایجاد...</string>
     <string name="tun_implementation">پیاده‌سازی TUN</string>
-    <string name="enable_hev_tun">فعال‌سازی Hev TUN</string>
-    <string name="enable_hev_tun_summary">ایجاد دستگاه TUN با hev-socks5-tunnel</string>
     <string name="destination_override">بازنویسی مقصد</string>
     <string name="destination_override_summary">از دامنه ردیابی‌شده برای بازنویسی آدرس مقصد استفاده کنید، نه فقط برای مسیریابی.</string>
     <string name="resolve_destination">بررسی مقصد</string>
@@ -593,7 +591,7 @@
     <string name="webdav_path">مسیر پشتیبان</string>
     <string name="webdav_test">آزمایش اتصال</string>
     <string name="webdav_test_success">اتصال موفق بود</string>
-    <string name="webdav_test_failed" formatted="false">اتصال ناموفق بود: %s</string>
+    <string name="webdav_test_failed">اتصال ناموفق بود: %1$s</string>
     <string name="backup_to_webdav">پشتیبان‌گیری در WebDAV</string>
     <string name="restore_from_webdav">بازیابی از WebDAV</string>
     <string name="webdav_backup_success">پشتیبان‌گیری در WebDAV موفق بود</string>

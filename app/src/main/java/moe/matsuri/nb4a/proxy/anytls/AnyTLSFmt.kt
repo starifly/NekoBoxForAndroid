@@ -1,5 +1,6 @@
 package moe.matsuri.nb4a.proxy.anytls
 
+import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.ktx.blankAsNull
 import io.nekohasekai.sagernet.ktx.linkBuilder
 import io.nekohasekai.sagernet.ktx.toLink
@@ -7,6 +8,30 @@ import io.nekohasekai.sagernet.ktx.urlSafe
 import moe.matsuri.nb4a.SingBoxOptions
 import moe.matsuri.nb4a.utils.listByLineOrComma
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import org.json.JSONObject
+
+fun parseSingBoxAnyTLS(json: JSONObject): AnyTLSBean? = parseSingBoxAnyTLSMap(buildMap {
+    for (key in json.keys()) put(key, json.get(key))
+})
+
+internal fun parseSingBoxAnyTLSMap(json: Map<String, Any?>): AnyTLSBean? {
+    if (json["type"] != "anytls") return null
+    val server = json["server"]?.toString()?.takeIf { it.isNotBlank() } ?: return null
+    val port = (json["server_port"] as? Number)?.toInt()?.takeIf { it > 0 } ?: return null
+    val tls = json["tls"] as? Map<*, *>
+    val utls = tls?.get("utls") as? Map<*, *>
+    return AnyTLSBean().apply {
+        name = json["tag"]?.toString()?.takeIf { it.isNotBlank() }
+        serverAddress = server
+        serverPort = port
+        password = json["password"]?.toString() ?: ""
+        sni = tls?.get("server_name")?.toString() ?: ""
+        allowInsecure = tls?.get("insecure") as? Boolean ?: false
+        utlsFingerprint = utls?.get("fingerprint")?.toString() ?: ""
+        alpn = (tls?.get("alpn") as? List<*>)?.joinToString("\n") ?: ""
+        initializeDefaultValues()
+    }
+}
 
 fun buildSingBoxOutboundAnyTLSBean(bean: AnyTLSBean): SingBoxOptions.Outbound_AnyTLSOptions {
     return SingBoxOptions.Outbound_AnyTLSOptions().apply {
@@ -18,7 +43,7 @@ fun buildSingBoxOutboundAnyTLSBean(bean: AnyTLSBean): SingBoxOptions.Outbound_An
         tls = SingBoxOptions.OutboundTLSOptions().apply {
             enabled = true
             server_name = bean.sni.blankAsNull()
-            if (bean.allowInsecure) insecure = true
+            insecure = bean.allowInsecure || DataStore.globalAllowInsecure
             alpn = bean.alpn.blankAsNull()?.listByLineOrComma()
             bean.certificates.blankAsNull()?.let {
                 certificate = it

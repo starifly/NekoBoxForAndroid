@@ -4,6 +4,7 @@ import android.os.Parcelable
 import androidx.room.*
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.ktx.app
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "rules")
@@ -27,6 +28,9 @@ data class RuleEntity(
     var ruleset: String = "",
     var outbound: Long = 0,
     var packages: Set<String> = emptySet(),
+    @IgnoredOnParcel
+    @ColumnInfo(defaultValue = "0")
+    var routerGroupId: Long = 0L,
 ) : Parcelable {
 
     fun displayName(): String {
@@ -56,6 +60,10 @@ data class RuleEntity(
     }
 
     fun displayOutbound(): String {
+        if (routerGroupId > 0L) {
+            return SagerDatabase.routerGroupDao.getById(routerGroupId)?.name
+                ?: app.getString(R.string.router_reference_invalid)
+        }
         return when (outbound) {
             0L -> app.getString(R.string.route_proxy)
             -1L -> app.getString(R.string.route_bypass)
@@ -82,6 +90,9 @@ data class RuleEntity(
 
         @Query("SELECT * FROM rules WHERE id = :ruleId")
         fun getById(ruleId: Long): RuleEntity?
+
+        @Query("SELECT COUNT(*) FROM rules WHERE routerGroupId = :routerGroupId")
+        fun countByRouterGroup(routerGroupId: Long): Int
 
         @Query("DELETE FROM rules WHERE id = :ruleId")
         fun deleteById(ruleId: Long): Int

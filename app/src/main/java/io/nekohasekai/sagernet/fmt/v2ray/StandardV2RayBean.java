@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.fmt.v2ray;
 
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
+import java.util.Locale;
 
 import io.nekohasekai.sagernet.fmt.AbstractBean;
 import io.nekohasekai.sagernet.fmt.trojan.TrojanBean;
@@ -98,7 +99,7 @@ public abstract class StandardV2RayBean extends AbstractBean {
         if (JavaUtil.isNullOrBlank(type)) type = "tcp";
         else if ("h2".equals(type)) type = "http";
 
-        type = type.toLowerCase();
+        type = type.toLowerCase(Locale.ROOT);
 
         if (JavaUtil.isNullOrBlank(host)) host = "";
         if (JavaUtil.isNullOrBlank(path)) path = "";

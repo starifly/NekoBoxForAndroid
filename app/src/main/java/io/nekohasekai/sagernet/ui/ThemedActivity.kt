@@ -1,7 +1,6 @@
 package io.nekohasekai.sagernet.ui
 
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
 import android.widget.TextView
 import androidx.annotation.StringRes
@@ -37,16 +36,14 @@ abstract class ThemedActivity : AppCompatActivity {
 
         uiMode = resources.configuration.uiMode
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
-            val isNight = (uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
-                Configuration.UI_MODE_NIGHT_YES
-            val insetController = WindowCompat.getInsetsController(window, window.decorView)
-            insetController.isAppearanceLightNavigationBars = false
-            insetController.isAppearanceLightStatusBars =
-                if (DataStore.appTheme == Theme.BLACK) !isNight else false
-        }
+        val isNight = (uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        val insetController = WindowCompat.getInsetsController(window, window.decorView)
+        insetController.isAppearanceLightNavigationBars = false
+        insetController.isAppearanceLightStatusBars =
+            if (DataStore.appTheme == Theme.BLACK) !isNight else false
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { _, insets ->
             val bars = insets.getInsets(

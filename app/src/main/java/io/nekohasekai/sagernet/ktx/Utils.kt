@@ -11,7 +11,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Resources
-import android.os.Build
 import android.system.Os
 import android.system.OsConstants
 import android.util.TypedValue
@@ -90,7 +89,7 @@ val FileDescriptor.int get() = getInt.invoke(this) as Int
 suspend fun <T> HttpURLConnection.useCancellable(block: suspend HttpURLConnection.() -> T): T {
     return suspendCancellableCoroutine { cont ->
         cont.invokeOnCancellation {
-            if (Build.VERSION.SDK_INT >= 26) disconnect() else GlobalScope.launch(Dispatchers.IO) { disconnect() }
+            disconnect()
         }
         GlobalScope.launch(Dispatchers.IO) {
             try {
@@ -138,23 +137,11 @@ fun Resources.Theme.resolveResourceId(@AttrRes resId: Int): Int {
 fun Preference.remove() = parent!!.removePreference(this)
 
 /**
- * A slightly more performant variant of parseNumericAddress.
- *
- * Bug in Android 9.0 and lower: https://issuetracker.google.com/issues/123456213
+ * A slightly more performant variant of InetAddress.parseNumericAddress.
  */
 
-private val parseNumericAddress by lazy {
-    InetAddress::class.java.getDeclaredMethod("parseNumericAddress", String::class.java).apply {
-        isAccessible = true
-    }
-}
-
 fun String?.parseNumericAddress(): InetAddress? =
-    Os.inet_pton(OsConstants.AF_INET, this) ?: Os.inet_pton(OsConstants.AF_INET6, this)?.let {
-        if (Build.VERSION.SDK_INT >= 29) it else parseNumericAddress.invoke(
-            null, this
-        ) as InetAddress
-    }
+    Os.inet_pton(OsConstants.AF_INET, this) ?: Os.inet_pton(OsConstants.AF_INET6, this)
 
 @JvmOverloads
 fun DialogFragment.showAllowingStateLoss(fragmentManager: FragmentManager, tag: String? = null) {
