@@ -528,13 +528,7 @@ fun buildConfig(
                         }
                     }
 
-                    if (needGlobal && DataStore.enableTLSFragment) {
-                        val outboundMap = currentOutbound.asMap()
-                        val tlsOptions = outboundMap["tls"] as? Map<*, *>
-                        if (tlsOptions?.get("enabled") == true) {
-                            currentOutbound._hack_config_map["detour"] = TAG_FRAGMENT
-                        }
-                    }
+                    // TLS 分片已改为路由动作（route-options tls_fragment），不再用 detour 绕经 fragment 出站
                 }
 
                 // internal & external
@@ -920,6 +914,7 @@ fun buildConfig(
             outbounds.add(Outbound().apply {
                 tag = TAG_FRAGMENT
                 type = "direct"
+                _hack_config_map["udp_fragment"] = false
             })
         }
 
@@ -1081,17 +1076,17 @@ fun buildConfig(
             }
         }
 
+        // 1.12+ 起 TLS 分片改为路由动作（原 fragment outbound 字段已移除）
+        if (DataStore.enableTLSFragment) {
+            route.rules.add(0, Rule_DefaultOptions().apply {
+                action = "route-options"
+                _hack_config_map["tls_fragment"] = true
+            })
+        }
+
         if (!forTest) {
             // 1.12+ 起出站缺省域名解析器由 route 统一指定（1.16 将改为强制）
             route._hack_config_map["default_domain_resolver"] = "dns-direct"
-
-            // 1.12+ 起 TLS 分片改为路由动作（原 fragment outbound 字段已移除）
-            if (DataStore.enableTLSFragment) {
-                route.rules.add(0, Rule_DefaultOptions().apply {
-                    action = "route-options"
-                    _hack_config_map["tls_fragment"] = true
-                })
-            }
             // 1.13+ 起 inbound 的 sniff / domain_strategy 字段被移除，改用路由规则动作
             if (needSniff) {
                 route.rules.add(0, Rule_DefaultOptions().apply {
