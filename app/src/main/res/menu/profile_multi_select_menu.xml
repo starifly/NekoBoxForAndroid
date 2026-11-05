@@ -13,6 +13,6 @@
     <item
         android:id="@+id/action_exit_select"
         android:icon="@drawable/ic_navigation_close"
-        android:title="@string/cancel"
+        android:title="@string/exit_selection"
         app:showAsAction="always" />
 </menu>

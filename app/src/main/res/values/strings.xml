@@ -706,5 +706,8 @@
     <string name="moved_to_group">Moved %1$d profiles to %2$s</string>
     <string name="rename_group">Rename group</string>
     <string name="delete_group">Delete group</string>
+    <string name="exit_selection">Exit selection</string>
+    <!-- 原项目只在俄语里定义了 mal_close，非俄语环境点 yacd 面板的关闭会崩，补上默认值 -->
+    <string name="mal_close">Close</string>
 
 </resources>
