@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/sagernet/sing-box/adapter"
+	"github.com/sagernet/sing-box/adapter/certificate"
 	"github.com/sagernet/sing-box/adapter/endpoint"
 	"github.com/sagernet/sing-box/adapter/inbound"
 	"github.com/sagernet/sing-box/adapter/outbound"
@@ -132,4 +133,10 @@ func nekoboxAndroidServiceRegistry() *service.Registry {
 	registry := service.NewRegistry()
 
 	return registry
+}
+
+// sing-box 1.14 的 box.Context 要求传入证书提供者 registry。
+// libcore 用到的 acme / originca / tailscale 服务都不存在，给个空注册表即可。
+func nekoboxAndroidCertificateProviderRegistry() *certificate.Registry {
+	return certificate.NewRegistry()
 }
