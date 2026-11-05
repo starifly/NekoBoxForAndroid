@@ -396,15 +396,17 @@ jobs:
           echo "TASK=$TASK" >> "$GITHUB_ENV"
           echo "EFFECTIVE_TYPE=$BT" >> "$GITHUB_ENV"
 
-          # 只构建目标 ABI，避免产出 4 个 split APK
-          ABI_ARGS=()
-          if [ "$ABI" != "all" ]; then
-            ABI_ARGS=("-Pandroid.injected.build.abi=$ABI")
+          # 只构建目标 ABI：buildSrc/Helpers.kt 读 NB4A_ABI 限制 splits
+          # （原先用 -Pandroid.injected.build.abi，AGP 8.8 上会构建成功但不出 APK）
+          if [ "$ABI" = "all" ]; then
+            unset NB4A_ABI
+          else
+            export NB4A_ABI="$ABI"
           fi
-          echo "==> ./gradlew app:$TASK ${ABI_ARGS[*]:-} $GRADLE_ARGS"
+          echo "==> NB4A_ABI=${NB4A_ABI:-全部} ./gradlew app:$TASK $GRADLE_ARGS"
 
           set +e
-          ./gradlew "app:$TASK" ${ABI_ARGS[@]+"${ABI_ARGS[@]}"} $GRADLE_ARGS 2>&1 | tee gradle.log
+          ./gradlew "app:$TASK" $GRADLE_ARGS 2>&1 | tee gradle.log
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
             # 把编译错误转成 annotation，便于在 Checks 页直接看到
@@ -417,25 +419,27 @@ jobs:
       - name: Collect APKs
         id: collect
         run: |
-          OUT="app/build/outputs/apk/${FLAVOR}/${EFFECTIVE_TYPE}"
-          if [ ! -d "$OUT" ]; then
-            echo "::error::未找到 APK 输出目录 $OUT"
-            ls -R app/build/outputs/apk || true
-            exit 1
-          fi
+          BASE="app/build/outputs/apk"
           if [ "$ABI" = "all" ]; then
             PATTERN="*.apk"
           else
             PATTERN="*${ABI}*.apk"
           fi
-          FILES=$(find "$OUT" -name "$PATTERN" | sort)
-          COUNT=$(printf '%s\n' "$FILES" | grep -c . || true)
-          if [ "$COUNT" -eq 0 ]; then
-            echo "::error::$OUT 下没有匹配 $PATTERN 的 APK"
-            ls -lh "$OUT" || true
+          FILES=""
+          if [ -d "$BASE" ]; then
+            FILES=$(find "$BASE" -name "$PATTERN" | sort)
+          fi
+          if [ -z "$FILES" ]; then
+            echo "::error::$BASE 下没有匹配 $PATTERN 的 APK"
+            echo "--- 实际产出的所有 APK ---"
+            find app/build -maxdepth 6 -name '*.apk' 2>/dev/null || true
+            echo "--- outputs 目录结构 ---"
+            find app/build/outputs -maxdepth 4 -type d 2>/dev/null | head -30 || true
+            echo "--- gradle 日志尾部 ---"
+            tail -30 gradle.log 2>/dev/null || true
             exit 1
           fi
-          echo "dir=$OUT" >> "$GITHUB_OUTPUT"
+          COUNT=$(printf '%s\n' "$FILES" | grep -c . || true)
           {
             echo "files<<EOF"
             echo "$FILES"

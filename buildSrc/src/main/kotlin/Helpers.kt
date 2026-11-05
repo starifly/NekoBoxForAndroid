@@ -170,10 +170,16 @@ fun Project.setupApp() {
             reset()
             isEnable = true
             isUniversalApk = false
-            include("armeabi-v7a")
-            include("arm64-v8a")
-            include("x86")
-            include("x86_64")
+            // 可用环境变量 NB4A_ABI 只打某一个 ABI（CI 用），不设置时保持全部 ABI
+            val abiFilter = System.getenv("NB4A_ABI")?.takeIf { it.isNotBlank() && it != "all" }
+            if (abiFilter != null) {
+                include(abiFilter)
+            } else {
+                include("armeabi-v7a")
+                include("arm64-v8a")
+                include("x86")
+                include("x86_64")
+            }
         }
 
         flavorDimensions += "vendor"
