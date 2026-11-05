@@ -34,6 +34,13 @@ func (s *interfaceMonitorStub) RegisterCallback(callback tun.DefaultInterfaceUpd
 	return nil
 }
 
+func (s *interfaceMonitorStub) RegisterMyInterface(interfaceName string) {
+}
+
+func (s *interfaceMonitorStub) MyInterfaces() []string {
+	return nil
+}
+
 func (s *interfaceMonitorStub) UnregisterCallback(element *list.Element[tun.DefaultInterfaceUpdateCallback]) {
 }
 
