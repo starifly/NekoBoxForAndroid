@@ -84,6 +84,25 @@ type geoIPQueryRecord struct {
 	} `maxminddb:"country"`
 }
 
+// lookupCountryCode 兼容两种记录格式：
+//   - sing-geoip 生成的库：值就是两位国家码字符串（见 Rules() 里的 networks.Network(&code)）
+//   - 标准 MaxMind GeoLite2-Country：{country: {iso_code: "US"}}
+func lookupCountryCode(reader *maxminddb.Reader, ip net.IP) string {
+	var code string
+	if err := reader.Lookup(ip, &code); err == nil {
+		if c := strings.ToUpper(strings.TrimSpace(code)); len(c) == 2 {
+			return c
+		}
+	}
+	var record geoIPQueryRecord
+	if err := reader.Lookup(ip, &record); err == nil {
+		if c := strings.ToUpper(strings.TrimSpace(record.Country.ISOCode)); len(c) == 2 {
+			return c
+		}
+	}
+	return ""
+}
+
 func getGeoIPQueryReader() (*maxminddb.Reader, error) {
 	geoIPQueryOnce.Do(func() {
 		geoIPQueryReader, geoIPQueryErr = maxminddb.Open(
@@ -103,9 +122,5 @@ func QueryGeoIPCountry(ip string) string {
 	if err != nil || reader == nil {
 		return ""
 	}
-	var record geoIPQueryRecord
-	if err = reader.Lookup(parsed, &record); err != nil {
-		return ""
-	}
-	return strings.ToUpper(record.Country.ISOCode)
+	return lookupCountryCode(reader, parsed)
 }

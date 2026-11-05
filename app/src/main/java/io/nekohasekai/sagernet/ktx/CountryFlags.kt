@@ -48,6 +48,7 @@ object CountryFlags {
             null
         }
         if (ip.isNullOrBlank()) {
+            Logs.d("CountryFlags: $host 无法解析为 IP")
             failed.add(host)
             return ""
         }
@@ -55,8 +56,10 @@ object CountryFlags {
         val code = try {
             Libcore.queryGeoIPCountry(ip) ?: ""
         } catch (e: Exception) {
+            Logs.w("CountryFlags: 查询 $ip 失败", e)
             ""
         }
+        Logs.d("CountryFlags: $host -> $ip -> [$code]")
         if (code.length == 2) {
             byHost[host] = code
             byProfile[profile.id] = code

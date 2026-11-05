@@ -1419,6 +1419,9 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                         // 顺带解析节点服务器的归属国家，供卡片显示国旗
                         CountryFlags.query(profile)
+                        runOnMainDispatcher {
+                            getCurrentGroupFragment()?.adapter?.notifyProfileChanged(profile.id)
+                        }
 
                         test.update(profile)
                     }
@@ -1977,6 +1980,11 @@ class ConfigurationFragment @JvmOverloads constructor(
                     refreshFromPosition(0)
                     notifyItemRangeChanged(0, itemCount)
                 }
+            }
+
+            fun notifyProfileChanged(profileId: Long) {
+                val index = configurationIdList.indexOf(profileId)
+                if (index >= 0) notifyItemChanged(index)
             }
 
             private fun getItem(profileId: Long): ProxyEntity {
