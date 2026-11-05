@@ -339,17 +339,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
         }
 
-        val searchView = toolbar.findViewById<SearchView>(R.id.action_search)
-        if (searchView != null) {
-            searchView.setOnQueryTextListener(this)
-            searchView.maxWidth = Int.MAX_VALUE
-
-            searchView.setOnQueryTextFocusChangeListener { _, hasFocus ->
-                if (!hasFocus) {
-                    cancelSearch(searchView)
-                }
-            }
-        }
+        setupSearchView()
 
         groupPager = view.findViewById(R.id.group_pager)
         tabLayout = view.findViewById(R.id.group_tab)
@@ -863,6 +853,29 @@ class ConfigurationFragment @JvmOverloads constructor(
                 urlTest()
             }
 
+            R.id.action_move_to_group -> {
+                val currentAdapter = getCurrentGroupFragment()?.adapter
+                if (currentAdapter != null) {
+                    moveProfilesToGroup(
+                        currentAdapter.selectedIds.mapNotNull { currentAdapter.configurationList[it] }
+                    )
+                }
+            }
+
+            R.id.action_select_all -> {
+                val currentAdapter = getCurrentGroupFragment()?.adapter
+                if (currentAdapter != null) {
+                    currentAdapter.selectedIds.clear()
+                    currentAdapter.selectedIds.addAll(currentAdapter.configurationIdList)
+                    currentAdapter.notifyDataSetChanged()
+                    updateSelectionUi()
+                }
+            }
+
+            R.id.action_exit_select -> {
+                exitSelectionMode()
+            }
+
             R.id.action_global_mode -> {
                 item.isChecked = !item.isChecked
                 DataStore.globalMode = item.isChecked
@@ -1133,6 +1146,129 @@ class ConfigurationFragment @JvmOverloads constructor(
                 "[${group.displayName()}] ${getString(R.string.connection_test)}"
             )
             dialog.hide()
+        }
+    }
+
+    // ---------------- 多选 & 移动分组 ----------------
+
+    fun isSelectionMode(): Boolean = getCurrentGroupFragment()?.adapter?.selectionMode == true
+
+    fun enterSelectionMode(initialId: Long) {
+        val currentAdapter = getCurrentGroupFragment()?.adapter ?: return
+        currentAdapter.selectionMode = true
+        currentAdapter.selectedIds.clear()
+        currentAdapter.selectedIds.add(initialId)
+        currentAdapter.notifyDataSetChanged()
+        updateSelectionUi()
+    }
+
+    fun exitSelectionMode() {
+        val currentAdapter = getCurrentGroupFragment()?.adapter ?: return
+        currentAdapter.selectionMode = false
+        currentAdapter.selectedIds.clear()
+        currentAdapter.notifyDataSetChanged()
+        restoreToolbarMenu()
+    }
+
+    fun toggleSelection(proxyEntity: ProxyEntity) {
+        val currentAdapter = getCurrentGroupFragment()?.adapter ?: return
+        if (!currentAdapter.selectionMode) return
+        if (!currentAdapter.selectedIds.remove(proxyEntity.id)) {
+            currentAdapter.selectedIds.add(proxyEntity.id)
+        }
+        if (currentAdapter.selectedIds.isEmpty()) {
+            // 取消最后一个即退出多选
+            exitSelectionMode()
+            return
+        }
+        val index = currentAdapter.configurationIdList.indexOf(proxyEntity.id)
+        if (index >= 0) currentAdapter.notifyItemChanged(index)
+        updateSelectionUi()
+    }
+
+    private fun updateSelectionUi() {
+        val currentAdapter = getCurrentGroupFragment()?.adapter ?: return
+        if (toolbar.menu.findItem(R.id.action_select_all) == null) {
+            toolbar.menu.clear()
+            toolbar.inflateMenu(R.menu.profile_multi_select_menu)
+            toolbar.setOnMenuItemClickListener(this)
+        }
+        toolbar.title = getString(R.string.selected_count, currentAdapter.selectedIds.size)
+    }
+
+    private fun setupSearchView() {
+        val sv = toolbar.findViewById<SearchView>(R.id.action_search) ?: return
+        sv.setOnQueryTextListener(this)
+        sv.maxWidth = Int.MAX_VALUE
+        sv.setOnQueryTextFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                cancelSearch(sv)
+            }
+        }
+    }
+
+    private fun restoreToolbarMenu() {
+        if (select) return
+        toolbar.menu.clear()
+        toolbar.inflateMenu(R.menu.add_profile_menu)
+        toolbar.menu.findItem(R.id.action_global_mode)?.isChecked = DataStore.globalMode
+        toolbar.setOnMenuItemClickListener(this)
+        toolbar.title = getString(R.string.app_name)
+        // 菜单被重新 inflate，SearchView 需要重新绑定监听
+        setupSearchView()
+    }
+
+    fun moveProfilesToGroup(profiles: List<ProxyEntity>) {
+        if (profiles.isEmpty()) return
+        val sourceGroupId = profiles.first().groupId
+        runOnDefaultDispatcher {
+            val groups = SagerDatabase.groupDao.allGroups().filter { it.id != sourceGroupId }
+            onMainDispatcher {
+                if (groups.isEmpty()) {
+                    snackbar(getString(R.string.no_other_group)).show()
+                    return@onMainDispatcher
+                }
+                val names = groups.map { it.displayName() }.toTypedArray()
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.move_to_group)
+                    .setItems(names) { _, which ->
+                        performMoveProfiles(profiles, groups[which])
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
+        }
+    }
+
+    private fun performMoveProfiles(profiles: List<ProxyEntity>, target: ProxyGroup) {
+        runOnDefaultDispatcher {
+            try {
+                for (profile in profiles) {
+                    profile.groupId = target.id
+                    profile.userOrder = SagerDatabase.proxyDao.nextOrder(target.id) ?: 1
+                    ProfileManager.updateProfile(profile)
+                }
+                onMainDispatcher {
+                    val currentAdapter = getCurrentGroupFragment()?.adapter
+                    currentAdapter?.apply {
+                        selectionMode = false
+                        selectedIds.clear()
+                    }
+                    restoreToolbarMenu()
+                    snackbar(
+                        getString(R.string.moved_to_group, profiles.size, target.displayName())
+                    ).show()
+                }
+                // 已创建的分组页面都从库里重新加载（reloadProfiles 会直接访问数据库，不能放主线程）
+                for (fragment in adapter.groupFragments.values.toList()) {
+                    fragment.adapter?.reloadProfiles()
+                }
+            } catch (e: Exception) {
+                Logs.w(e)
+                onMainDispatcher {
+                    snackbar(e.readableMessage).show()
+                }
+            }
         }
     }
 
@@ -1434,6 +1570,9 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
             
             itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, 0) {
+                // 长按改为弹菜单，拖拽排序由菜单里的「调整顺序」手动启动
+                override fun isLongPressDragEnabled(): Boolean = false
+
                 override fun getMovementFlags(
                     recyclerView: RecyclerView,
                     viewHolder: RecyclerView.ViewHolder
@@ -1719,6 +1858,31 @@ class ConfigurationFragment @JvmOverloads constructor(
             val configurationList = HashMap<Long, ProxyEntity>()
             private val pendingTrafficUpdates = HashSet<Long>()
             private val profileStatePayload = Any()
+
+            // 多选移动分组
+            var selectionMode = false
+            val selectedIds = LinkedHashSet<Long>()
+
+            fun startDrag(holder: RecyclerView.ViewHolder) {
+                if (::itemTouchHelper.isInitialized) itemTouchHelper.startDrag(holder)
+            }
+
+            fun removeProfiles(ids: Collection<Long>) {
+                var removed = false
+                for (id in ids) {
+                    val index = configurationIdList.indexOf(id)
+                    if (index >= 0) {
+                        configurationIdList.removeAt(index)
+                        configurationList.remove(id)
+                        notifyItemRemoved(index)
+                        removed = true
+                    }
+                }
+                if (removed) {
+                    refreshFromPosition(0)
+                    notifyItemRangeChanged(0, itemCount)
+                }
+            }
 
             private fun getItem(profileId: Long): ProxyEntity {
                 var profile = configurationList[profileId]
@@ -2226,11 +2390,27 @@ class ConfigurationFragment @JvmOverloads constructor(
             init {
                 view.setOnClickListener {
                     val proxyEntity = entity
+                    val owner = parentFragment as? ConfigurationFragment
+                    if (owner != null && owner.isSelectionMode()) {
+                        owner.toggleSelection(proxyEntity)
+                        return@setOnClickListener
+                    }
                     if (select) {
                         (requireActivity() as SelectCallback).returnProfile(proxyEntity.id)
                     } else {
                         selectProfile(proxyEntity)
                     }
+                }
+                view.setOnLongClickListener {
+                    if (select) return@setOnLongClickListener false
+                    val owner = parentFragment as? ConfigurationFragment
+                        ?: return@setOnLongClickListener false
+                    if (owner.isSelectionMode()) {
+                        owner.toggleSelection(entity)
+                    } else {
+                        showProfileMenu(view, entity, this)
+                    }
+                    true
                 }
                 profileStatus.setOnClickListener {
                     val proxyEntity = entity
@@ -2386,6 +2566,57 @@ class ConfigurationFragment @JvmOverloads constructor(
                 popup.show()
             }
 
+            /** 长按节点卡片的菜单：移动分组 / 多选 / 排序 / 编辑 / 分享 / 删除 */
+            private fun showProfileMenu(
+                anchor: View,
+                proxyEntity: ProxyEntity,
+                holder: ConfigurationHolder,
+            ) {
+                val owner = parentFragment as? ConfigurationFragment ?: return
+                val popup = PopupMenu(requireContext(), anchor)
+                popup.menuInflater.inflate(R.menu.profile_long_click_menu, popup.menu)
+                popup.setOnMenuItemClickListener { menuItem ->
+                    when (menuItem.itemId) {
+                        R.id.action_move_to_group -> {
+                            owner.moveProfilesToGroup(listOf(proxyEntity))
+                            true
+                        }
+
+                        R.id.action_multi_select -> {
+                            owner.enterSelectionMode(proxyEntity.id)
+                            true
+                        }
+
+                        R.id.action_drag_sort -> {
+                            adapter?.startDrag(holder)
+                            true
+                        }
+
+                        R.id.action_edit -> {
+                            anchor.context.startActivity(
+                                proxyEntity.settingIntent(
+                                    anchor.context, proxyGroup.type == GroupType.SUBSCRIPTION
+                                )
+                            )
+                            true
+                        }
+
+                        R.id.action_share -> {
+                            showShareMenu(anchor, proxyEntity)
+                            true
+                        }
+
+                        R.id.action_delete -> {
+                            removeProfile(proxyEntity)
+                            true
+                        }
+
+                        else -> false
+                    }
+                }
+                popup.show()
+            }
+
             private fun applySelected(selected: Boolean) {
                 val ctx = card.context
                 val surface = ctx.getColorAttr(R.attr.colorSurface)
@@ -2519,6 +2750,20 @@ class ConfigurationFragment @JvmOverloads constructor(
                 editButton.isEnabled = !started
                 removeButton.isEnabled = !started
                 applySelected(selected)
+
+                // 多选高亮：只覆盖选中态，未选中保持 applySelected 的描边
+                val inSelection = adapter?.selectionMode == true
+                val picked = inSelection && adapter?.selectedIds?.contains(proxyEntity.id) == true
+                if (picked) {
+                    card.strokeWidth = (2 * resources.displayMetrics.density).toInt()
+                    card.strokeColor = requireContext().getColour(R.color.material_green_500)
+                }
+                if (inSelection) {
+                    // 多选时隐藏操作按钮，避免误触编辑/删除
+                    editButton.isGone = true
+                    removeButton.isGone = true
+                    shareLayout.isGone = true
+                }
 
                 if (!(select || proxyEntity.type == ProxyEntity.TYPE_CHAIN)) {
                     shareLayer.setBackgroundColor(Color.TRANSPARENT)
