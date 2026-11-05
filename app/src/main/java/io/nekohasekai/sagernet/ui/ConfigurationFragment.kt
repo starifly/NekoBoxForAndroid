@@ -2194,6 +2194,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             private val card = view as MaterialCardView
             private val selectedIndicator: View = view.findViewById(R.id.selected_indicator)
             val editButton: ImageView = view.findViewById(R.id.edit)
+            val urlTestButton: ImageView = view.findViewById(R.id.url_test)
             val doubleColumnMenuButton: ImageView = view.findViewById(R.id.double_column_menu)
             val shareLayout: LinearLayout = view.findViewById(R.id.share)
             val shareLayer: LinearLayout = view.findViewById(R.id.share_layer)
@@ -2224,6 +2225,9 @@ class ConfigurationFragment @JvmOverloads constructor(
                         )
                     )
                 }
+                urlTestButton.setOnClickListener {
+                    startUrlTest(entity)
+                }
                 removeButton.setOnClickListener {
                     removeProfile(entity)
                 }
@@ -2234,6 +2238,50 @@ class ConfigurationFragment @JvmOverloads constructor(
                     val proxyEntity = entity
                     if (!select && proxyEntity.type != ProxyEntity.TYPE_CHAIN) {
                         showShareMenu(it, proxyEntity)
+                    }
+                }
+            }
+
+            private var urlTestRunning = false
+
+            /** 对当前这一个节点做 URL Test，完成后就地刷新该行状态 */
+            private fun startUrlTest(proxyEntity: ProxyEntity) {
+                if (urlTestRunning || select) return
+                urlTestRunning = true
+                urlTestButton.isEnabled = false
+                profileStatus.setTextColor(
+                    requireContext().getColorAttr(android.R.attr.textColorSecondary)
+                )
+                profileStatus.text = getString(R.string.connection_test_testing)
+                val targetId = proxyEntity.id
+
+                runOnDefaultDispatcher {
+                    try {
+                        val ping = UrlTest().doTest(proxyEntity)
+                        proxyEntity.status = 1
+                        proxyEntity.ping = ping
+                        proxyEntity.error = null
+                    } catch (e: PluginManager.PluginNotFoundException) {
+                        proxyEntity.status = 2
+                        proxyEntity.error = e.readableMessage
+                    } catch (e: Exception) {
+                        proxyEntity.status = 3
+                        proxyEntity.error = e.readableMessage
+                    }
+                    try {
+                        ProfileManager.updateProfile(proxyEntity)
+                    } catch (e: Exception) {
+                        Logs.w(e)
+                    }
+                    runOnMainDispatcher {
+                        urlTestRunning = false
+                        if (::entity.isInitialized && entity.id == targetId) {
+                            urlTestButton.isEnabled = true
+                            val pos = bindingAdapterPosition
+                            if (pos != RecyclerView.NO_POSITION) {
+                                adapter?.notifyItemChanged(pos)
+                            }
+                        }
                     }
                 }
             }
@@ -2425,12 +2473,14 @@ class ConfigurationFragment @JvmOverloads constructor(
                 
                 if (isDoubleColumn) {
                     editButton.isGone = true
+                    urlTestButton.isGone = true
                     shareLayout.isGone = true
                     removeButton.isGone = true
                     doubleColumnMenuButton.isVisible = true
                 } else {
                     shareLayout.isGone = selectOrChain
                     editButton.isGone = select
+                    urlTestButton.isGone = select
                     removeButton.isGone = select
                     doubleColumnMenuButton.isGone = true
                 }
