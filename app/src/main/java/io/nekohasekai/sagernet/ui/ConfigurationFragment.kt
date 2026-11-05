@@ -67,6 +67,7 @@ import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.group.RawUpdater
+import io.nekohasekai.sagernet.ktx.CountryFlags
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.FixedGridLayoutManager
 import io.nekohasekai.sagernet.ktx.Logs
@@ -1416,6 +1417,9 @@ class ConfigurationFragment @JvmOverloads constructor(
                             profile.error = e.readableMessage
                         }
 
+                        // 顺带解析节点服务器的归属国家，供卡片显示国旗
+                        CountryFlags.query(profile)
+
                         test.update(profile)
                     }
                 })
@@ -2464,6 +2468,7 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             val profileName: TextView = view.findViewById(R.id.profile_name)
             val profileType: TextView = view.findViewById(R.id.profile_type)
+            val profileCountry: TextView = view.findViewById(R.id.profile_country)
             val profileAddress: TextView = view.findViewById(R.id.profile_address)
             val profileStatus: TextView = view.findViewById(R.id.profile_status)
 
@@ -2566,6 +2571,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                         proxyEntity.status = 3
                         proxyEntity.error = e.readableMessage
                     }
+                    // 顺带解析节点服务器的归属国家，供卡片显示国旗
+                    CountryFlags.query(proxyEntity)
                     try {
                         ProfileManager.updateProfile(proxyEntity)
                     } catch (e: Exception) {
@@ -2763,6 +2770,14 @@ class ConfigurationFragment @JvmOverloads constructor(
                 profileName.text = bean.displayName()
                 profileType.text = proxyEntity.displayType()
                 profileType.setTextColor(requireContext().getProtocolColor(proxyEntity.type))
+
+                val countryFlag = CountryFlags.flagOf(CountryFlags.get(proxyEntity.id))
+                if (countryFlag.isEmpty()) {
+                    profileCountry.isGone = true
+                } else {
+                    profileCountry.text = countryFlag
+                    profileCountry.isVisible = true
+                }
 
                 val rx = proxyEntity.rx
                 val tx = proxyEntity.tx
