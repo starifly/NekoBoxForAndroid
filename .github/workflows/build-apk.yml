@@ -1,5 +1,11 @@
 name: Android CI
 
+# main 分支唯一的构建入口。
+#   ci.yml        仅 pull_request 触发（PR 校验）
+#   build.yml     仅手动触发（原 nb4a.properties 触发已与这里重叠，已移除）
+#   preview.yml / release.yml  仅手动触发
+# 这样一次 push 只会产生一条运行记录，避免重复构建。
+#
 # 编译 NekoBox APK 的完整流水线：
 #   native job -> 生成 libcore.aar（Go/gomobile）与 hev-tun 的 .so（NDK）
 #   build  job -> 下载 native 产物 + 下载 geo 资源 + Gradle 打包 APK
