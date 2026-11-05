@@ -21,7 +21,6 @@ object CountryFlags {
     private val byProfile = ConcurrentHashMap<Long, String>()      // profileId -> ISO 代码
     private val byHost = ConcurrentHashMap<String, String>()       // serverAddress -> ISO 代码
     private val failedAt = ConcurrentHashMap<String, Long>()       // 失败时间戳，冷却重试
-    private val inFlight = ConcurrentHashMap.newKeySet<String>()   // 正在查询中的地址
 
     private val prefs by lazy {
         app.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -113,37 +112,26 @@ object CountryFlags {
     }
 
     /**
-     * 卡片绘制时调用：缓存缺失就后台补查一次，查到后回调（主线程）。
-     * 已在查询中或处于冷却期则直接跳过，避免滚动列表时反复解析。
+     * 清除指定节点的图标缓存（内存 + 持久化）。
+     * 「清理测试结果」时调用，让图标与延迟一起消失。
      */
-    fun ensure(profile: ProxyEntity, onResolved: (Long) -> Unit) {
-        if (byProfile.containsKey(profile.id)) return
-        val host = hostOf(profile)
-        if (host.isBlank()) return
-
-        // 同一域名已被别的节点查过，直接复用
-        byHost[host]?.let { cached ->
-            byProfile[profile.id] = cached
-            runOnMainDispatcher { onResolved(profile.id) }
-            return
+    fun forgetProfiles(profiles: List<ProxyEntity>) {
+        if (profiles.isEmpty()) return
+        val editor = prefs.edit()
+        var changed = false
+        for (profile in profiles) {
+            byProfile.remove(profile.id)
+            val host = hostOf(profile)
+            if (host.isBlank()) continue
+            byHost.remove(host)
+            failedAt.remove(host)
+            editor.remove(host)
+            changed = true
         }
-
-        val failedTime = failedAt[host]
-        if (failedTime != null &&
-            System.currentTimeMillis() - failedTime < RETRY_COOL_DOWN_MS
-        ) return
-        if (!inFlight.add(host)) return
-
-        runOnDefaultDispatcher {
+        if (changed) {
             try {
-                query(profile)
-            } finally {
-                inFlight.remove(host)
-            }
-            if (byProfile.containsKey(profile.id)) {
-                runOnMainDispatcher {
-                    onResolved(profile.id)
-                }
+                editor.apply()
+            } catch (ignored: Exception) {
             }
         }
     }
