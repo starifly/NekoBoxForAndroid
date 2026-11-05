@@ -16,7 +16,21 @@
             android:id="@+id/nav_route"
             android:icon="@drawable/ic_maps_directions"
             android:title="@string/menu_route" />
+    </group>
 
+    <!-- 快捷入口：分应用代理，点击直接打开应用管理页，不参与 fragment 导航的选中态 -->
+    <group
+        android:id="@+id/shortcut"
+        android:checkableBehavior="none">
+        <item
+            android:id="@+id/nav_apps"
+            android:icon="@drawable/ic_navigation_apps"
+            android:title="@string/proxied_apps" />
+    </group>
+
+    <group
+        android:id="@+id/main_nav"
+        android:checkableBehavior="single">
         <item
             android:id="@+id/nav_settings"
             android:icon="@drawable/ic_action_settings"

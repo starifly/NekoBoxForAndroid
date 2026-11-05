@@ -19,6 +19,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -65,6 +67,7 @@ import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.group.RawUpdater
+import io.nekohasekai.sagernet.ktx.CountryFlags
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.FixedGridLayoutManager
 import io.nekohasekai.sagernet.ktx.Logs
@@ -339,17 +342,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
         }
 
-        val searchView = toolbar.findViewById<SearchView>(R.id.action_search)
-        if (searchView != null) {
-            searchView.setOnQueryTextListener(this)
-            searchView.maxWidth = Int.MAX_VALUE
-
-            searchView.setOnQueryTextFocusChangeListener { _, hasFocus ->
-                if (!hasFocus) {
-                    cancelSearch(searchView)
-                }
-            }
-        }
+        setupSearchView()
 
         groupPager = view.findViewById(R.id.group_pager)
         tabLayout = view.findViewById(R.id.group_tab)
@@ -361,11 +354,15 @@ class ConfigurationFragment @JvmOverloads constructor(
         groupPager.offscreenPageLimit = 2
 
         TabLayoutMediator(tabLayout, groupPager) { tab, position ->
-            if (adapter.groupList.size > position) {
-                tab.text = adapter.groupList[position].displayName()
-            }
-            tab.view.setOnLongClickListener { // clear toast
-                true
+            val group = adapter.groupList.getOrNull(position)
+            if (group != null) {
+                tab.text = group.displayName()
+                tab.view.setOnLongClickListener { anchor ->
+                    showGroupTabMenu(anchor, group)
+                    true
+                }
+            } else {
+                tab.view.setOnLongClickListener { true }
             }
         }.attach()
 
@@ -758,6 +755,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                     if (toClear.isNotEmpty()) {
                         ProfileManager.updateProfile(toClear)
                     }
+                    // 国家图标与本轮测试结果一起清理
+                    CountryFlags.forgetProfiles(profiles)
                     onMainDispatcher {
                         getCurrentGroupFragment()?.adapter?.clearTestResults()
                     }
@@ -861,6 +860,29 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             R.id.action_connection_url_test -> {
                 urlTest()
+            }
+
+            R.id.action_move_to_group -> {
+                val currentAdapter = getCurrentGroupFragment()?.adapter
+                if (currentAdapter != null) {
+                    moveProfilesToGroup(
+                        currentAdapter.selectedIds.mapNotNull { currentAdapter.configurationList[it] }
+                    )
+                }
+            }
+
+            R.id.action_select_all -> {
+                val currentAdapter = getCurrentGroupFragment()?.adapter
+                if (currentAdapter != null) {
+                    currentAdapter.selectedIds.clear()
+                    currentAdapter.selectedIds.addAll(currentAdapter.configurationIdList)
+                    currentAdapter.notifyDataSetChanged()
+                    updateSelectionUi()
+                }
+            }
+
+            R.id.action_exit_select -> {
+                exitSelectionMode()
             }
 
             R.id.action_global_mode -> {
@@ -1136,6 +1158,214 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
     }
 
+    // ---------------- 分组名长按菜单 ----------------
+
+    private fun showGroupTabMenu(anchor: View, group: ProxyGroup) {
+        // 「未分组」是系统分组，不提供改名/删除
+        if (group.ungrouped) return
+        val popup = PopupMenu(requireContext(), anchor)
+        popup.menuInflater.inflate(R.menu.group_tab_menu, popup.menu)
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_rename_group -> {
+                    renameGroup(group)
+                    true
+                }
+
+                R.id.action_delete_group -> {
+                    confirmDeleteGroup(group)
+                    true
+                }
+
+                else -> false
+            }
+        }
+        popup.show()
+    }
+
+    private fun renameGroup(group: ProxyGroup) {
+        val input = EditText(requireContext()).apply {
+            setText(group.name ?: "")
+            setSelection(text.length)
+            hint = getString(R.string.group_name)
+            setSingleLine()
+        }
+        val container = FrameLayout(requireContext()).apply {
+            val padding = (20 * resources.displayMetrics.density).toInt()
+            setPadding(padding, padding / 2, padding, 0)
+            addView(input)
+        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.rename_group)
+            .setView(container)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val newName = input.text?.toString()?.trim().orEmpty()
+                if (newName.isEmpty()) {
+                    snackbar(getString(R.string.group_name_required)).show()
+                    return@setPositiveButton
+                }
+                runOnDefaultDispatcher {
+                    try {
+                        group.name = newName
+                        GroupManager.updateGroup(group)
+                    } catch (e: Exception) {
+                        Logs.w(e)
+                        onMainDispatcher { snackbar(e.readableMessage).show() }
+                    }
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun confirmDeleteGroup(group: ProxyGroup) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.delete_group)
+            .setMessage("${getString(R.string.delete_group_prompt)}\n\n${group.displayName()}")
+            .setPositiveButton(R.string.yes) { _, _ ->
+                runOnDefaultDispatcher {
+                    try {
+                        GroupManager.deleteGroup(group.id)
+                    } catch (e: Exception) {
+                        Logs.w(e)
+                        onMainDispatcher { snackbar(e.readableMessage).show() }
+                        return@runOnDefaultDispatcher
+                    }
+                    onMainDispatcher {
+                        if (DataStore.selectedGroup == group.id) {
+                            DataStore.selectedGroup = -1L
+                        }
+                        adapter.reload()
+                    }
+                }
+            }
+            .setNegativeButton(R.string.no, null)
+            .show()
+    }
+
+    // ---------------- 多选 & 移动分组 ----------------
+
+    fun isSelectionMode(): Boolean = getCurrentGroupFragment()?.adapter?.selectionMode == true
+
+    fun enterSelectionMode(initialId: Long) {
+        val currentAdapter = getCurrentGroupFragment()?.adapter ?: return
+        currentAdapter.selectionMode = true
+        currentAdapter.selectedIds.clear()
+        currentAdapter.selectedIds.add(initialId)
+        currentAdapter.notifyDataSetChanged()
+        updateSelectionUi()
+    }
+
+    fun exitSelectionMode() {
+        val currentAdapter = getCurrentGroupFragment()?.adapter ?: return
+        currentAdapter.selectionMode = false
+        currentAdapter.selectedIds.clear()
+        currentAdapter.notifyDataSetChanged()
+        restoreToolbarMenu()
+    }
+
+    fun toggleSelection(proxyEntity: ProxyEntity) {
+        val currentAdapter = getCurrentGroupFragment()?.adapter ?: return
+        if (!currentAdapter.selectionMode) return
+        if (!currentAdapter.selectedIds.remove(proxyEntity.id)) {
+            currentAdapter.selectedIds.add(proxyEntity.id)
+        }
+        if (currentAdapter.selectedIds.isEmpty()) {
+            // 取消最后一个即退出多选
+            exitSelectionMode()
+            return
+        }
+        val index = currentAdapter.configurationIdList.indexOf(proxyEntity.id)
+        if (index >= 0) currentAdapter.notifyItemChanged(index)
+        updateSelectionUi()
+    }
+
+    private fun updateSelectionUi() {
+        val currentAdapter = getCurrentGroupFragment()?.adapter ?: return
+        if (toolbar.menu.findItem(R.id.action_select_all) == null) {
+            toolbar.menu.clear()
+            toolbar.inflateMenu(R.menu.profile_multi_select_menu)
+            toolbar.setOnMenuItemClickListener(this)
+        }
+        toolbar.title = getString(R.string.selected_count, currentAdapter.selectedIds.size)
+    }
+
+    private fun setupSearchView() {
+        val sv = toolbar.findViewById<SearchView>(R.id.action_search) ?: return
+        sv.setOnQueryTextListener(this)
+        sv.maxWidth = Int.MAX_VALUE
+        sv.setOnQueryTextFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                cancelSearch(sv)
+            }
+        }
+    }
+
+    private fun restoreToolbarMenu() {
+        if (select) return
+        toolbar.menu.clear()
+        toolbar.inflateMenu(R.menu.add_profile_menu)
+        toolbar.menu.findItem(R.id.action_global_mode)?.isChecked = DataStore.globalMode
+        toolbar.setOnMenuItemClickListener(this)
+        toolbar.title = getString(R.string.app_name)
+        // 菜单被重新 inflate，SearchView 需要重新绑定监听
+        setupSearchView()
+    }
+
+    fun moveProfilesToGroup(profiles: List<ProxyEntity>) {
+        if (profiles.isEmpty()) return
+        val sourceGroupId = profiles.first().groupId
+        runOnDefaultDispatcher {
+            val groups = SagerDatabase.groupDao.allGroups().filter { it.id != sourceGroupId }
+            onMainDispatcher {
+                if (groups.isEmpty()) {
+                    snackbar(getString(R.string.no_other_group)).show()
+                    return@onMainDispatcher
+                }
+                val names = groups.map { it.displayName() }.toTypedArray()
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.move_to_group)
+                    .setItems(names) { _, which ->
+                        performMoveProfiles(profiles, groups[which])
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
+        }
+    }
+
+    private fun performMoveProfiles(profiles: List<ProxyEntity>, target: ProxyGroup) {
+        runOnDefaultDispatcher {
+            try {
+                for (profile in profiles) {
+                    profile.groupId = target.id
+                    profile.userOrder = SagerDatabase.proxyDao.nextOrder(target.id) ?: 1
+                    ProfileManager.updateProfile(profile)
+                }
+                onMainDispatcher {
+                    val currentAdapter = getCurrentGroupFragment()?.adapter
+                    currentAdapter?.apply {
+                        selectionMode = false
+                        selectedIds.clear()
+                    }
+                    restoreToolbarMenu()
+                    snackbar(
+                        getString(R.string.moved_to_group, profiles.size, target.displayName())
+                    ).show()
+                }
+                // 已创建的分组页面都从库里重新加载（reloadProfiles 会直接访问数据库，不能放主线程）
+                for (fragment in adapter.groupFragments.values.toList()) {
+                    fragment.adapter?.reloadProfiles()
+                }
+            } catch (e: Exception) {
+                Logs.w(e)
+                onMainDispatcher {
+                    snackbar(e.readableMessage).show()
+                }
+            }
+        }
+    }
+
     @OptIn(DelicateCoroutinesApi::class)
     fun urlTest() {
         if (DataStore.runningTest) return else DataStore.runningTest = true
@@ -1146,6 +1376,30 @@ class ConfigurationFragment @JvmOverloads constructor(
 
         val mainJob = runOnDefaultDispatcher {
             val profilesList = SagerDatabase.proxyDao.getByGroup(group.id)
+            // 开始测试前先清理上一轮的测试结果，避免中途取消时新旧状态混在一起
+            if (profilesList.isNotEmpty()) {
+                var cleared = false
+                for (profile in profilesList) {
+                    if (profile.status != 0) {
+                        profile.status = 0
+                        profile.ping = 0
+                        profile.error = null
+                        cleared = true
+                    }
+                }
+                if (cleared) {
+                    try {
+                        ProfileManager.updateProfile(profilesList)
+                    } catch (e: Exception) {
+                        Logs.w(e)
+                    }
+                }
+                // 与「清理测试结果」保持一致：图标也一起清掉，随后由本轮测试重新产生
+                CountryFlags.forgetProfiles(profilesList)
+                onMainDispatcher {
+                    getCurrentGroupFragment()?.adapter?.clearTestResults()
+                }
+            }
             test.proxyN = profilesList.size
             val profiles = ConcurrentLinkedQueue(profilesList)
             repeat(DataStore.connectionTestConcurrent) {
@@ -1165,6 +1419,19 @@ class ConfigurationFragment @JvmOverloads constructor(
                         } catch (e: Exception) {
                             profile.status = 3
                             profile.error = e.readableMessage
+                        }
+
+                        // 顺带解析节点服务器的归属国家，供卡片显示国旗
+                        CountryFlags.query(profile)
+                        // 立即落库并刷新该行，让延迟和国旗同时出现
+                        // （只 notifyItemChanged 不会更新延迟：adapter 里缓存的是旧对象）
+                        try {
+                            ProfileManager.updateProfile(profile)
+                        } catch (e: Exception) {
+                            Logs.w(e)
+                            runOnMainDispatcher {
+                                getCurrentGroupFragment()?.adapter?.notifyProfileChanged(profile.id)
+                            }
                         }
 
                         test.update(profile)
@@ -1412,6 +1679,9 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
             
             itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, 0) {
+                // 长按改为弹菜单，拖拽排序由菜单里的「调整顺序」手动启动
+                override fun isLongPressDragEnabled(): Boolean = false
+
                 override fun getMovementFlags(
                     recyclerView: RecyclerView,
                     viewHolder: RecyclerView.ViewHolder
@@ -1697,6 +1967,36 @@ class ConfigurationFragment @JvmOverloads constructor(
             val configurationList = HashMap<Long, ProxyEntity>()
             private val pendingTrafficUpdates = HashSet<Long>()
             private val profileStatePayload = Any()
+
+            // 多选移动分组
+            var selectionMode = false
+            val selectedIds = LinkedHashSet<Long>()
+
+            fun startDrag(holder: RecyclerView.ViewHolder) {
+                if (::itemTouchHelper.isInitialized) itemTouchHelper.startDrag(holder)
+            }
+
+            fun removeProfiles(ids: Collection<Long>) {
+                var removed = false
+                for (id in ids) {
+                    val index = configurationIdList.indexOf(id)
+                    if (index >= 0) {
+                        configurationIdList.removeAt(index)
+                        configurationList.remove(id)
+                        notifyItemRemoved(index)
+                        removed = true
+                    }
+                }
+                if (removed) {
+                    refreshFromPosition(0)
+                    notifyItemRangeChanged(0, itemCount)
+                }
+            }
+
+            fun notifyProfileChanged(profileId: Long) {
+                val index = configurationIdList.indexOf(profileId)
+                if (index >= 0) notifyItemChanged(index)
+            }
 
             private fun getItem(profileId: Long): ProxyEntity {
                 var profile = configurationList[profileId]
@@ -2187,6 +2487,7 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             val profileName: TextView = view.findViewById(R.id.profile_name)
             val profileType: TextView = view.findViewById(R.id.profile_type)
+            val profileCountry: TextView = view.findViewById(R.id.profile_country)
             val profileAddress: TextView = view.findViewById(R.id.profile_address)
             val profileStatus: TextView = view.findViewById(R.id.profile_status)
 
@@ -2194,6 +2495,8 @@ class ConfigurationFragment @JvmOverloads constructor(
             private val card = view as MaterialCardView
             private val selectedIndicator: View = view.findViewById(R.id.selected_indicator)
             val editButton: ImageView = view.findViewById(R.id.edit)
+            val urlTestButton: ImageView = view.findViewById(R.id.url_test)
+            val urlTestButtonDouble: ImageView = view.findViewById(R.id.url_test_double)
             val doubleColumnMenuButton: ImageView = view.findViewById(R.id.double_column_menu)
             val shareLayout: LinearLayout = view.findViewById(R.id.share)
             val shareLayer: LinearLayout = view.findViewById(R.id.share_layer)
@@ -2203,11 +2506,27 @@ class ConfigurationFragment @JvmOverloads constructor(
             init {
                 view.setOnClickListener {
                     val proxyEntity = entity
+                    val owner = parentFragment as? ConfigurationFragment
+                    if (owner != null && owner.isSelectionMode()) {
+                        owner.toggleSelection(proxyEntity)
+                        return@setOnClickListener
+                    }
                     if (select) {
                         (requireActivity() as SelectCallback).returnProfile(proxyEntity.id)
                     } else {
                         selectProfile(proxyEntity)
                     }
+                }
+                view.setOnLongClickListener {
+                    if (select) return@setOnLongClickListener false
+                    val owner = parentFragment as? ConfigurationFragment
+                        ?: return@setOnLongClickListener false
+                    if (owner.isSelectionMode()) {
+                        owner.toggleSelection(entity)
+                    } else {
+                        showProfileMenu(view, entity, this)
+                    }
+                    true
                 }
                 profileStatus.setOnClickListener {
                     val proxyEntity = entity
@@ -2224,6 +2543,12 @@ class ConfigurationFragment @JvmOverloads constructor(
                         )
                     )
                 }
+                urlTestButton.setOnClickListener {
+                    startUrlTest(entity)
+                }
+                urlTestButtonDouble.setOnClickListener {
+                    startUrlTest(entity)
+                }
                 removeButton.setOnClickListener {
                     removeProfile(entity)
                 }
@@ -2234,6 +2559,54 @@ class ConfigurationFragment @JvmOverloads constructor(
                     val proxyEntity = entity
                     if (!select && proxyEntity.type != ProxyEntity.TYPE_CHAIN) {
                         showShareMenu(it, proxyEntity)
+                    }
+                }
+            }
+
+            private var urlTestRunning = false
+
+            /** 对当前这一个节点做 URL Test，完成后就地刷新该行状态 */
+            private fun startUrlTest(proxyEntity: ProxyEntity) {
+                if (urlTestRunning || select) return
+                urlTestRunning = true
+                urlTestButton.isEnabled = false
+                urlTestButtonDouble.isEnabled = false
+                profileStatus.setTextColor(
+                    requireContext().getColorAttr(android.R.attr.textColorSecondary)
+                )
+                profileStatus.text = getString(R.string.connection_test_testing)
+                val targetId = proxyEntity.id
+
+                runOnDefaultDispatcher {
+                    try {
+                        val ping = UrlTest().doTest(proxyEntity)
+                        proxyEntity.status = 1
+                        proxyEntity.ping = ping
+                        proxyEntity.error = null
+                    } catch (e: PluginManager.PluginNotFoundException) {
+                        proxyEntity.status = 2
+                        proxyEntity.error = e.readableMessage
+                    } catch (e: Exception) {
+                        proxyEntity.status = 3
+                        proxyEntity.error = e.readableMessage
+                    }
+                    // 顺带解析节点服务器的归属国家，供卡片显示国旗
+                    CountryFlags.query(proxyEntity)
+                    try {
+                        ProfileManager.updateProfile(proxyEntity)
+                    } catch (e: Exception) {
+                        Logs.w(e)
+                    }
+                    runOnMainDispatcher {
+                        urlTestRunning = false
+                        if (::entity.isInitialized && entity.id == targetId) {
+                            urlTestButton.isEnabled = true
+                            urlTestButtonDouble.isEnabled = true
+                            val pos = bindingAdapterPosition
+                            if (pos != RecyclerView.NO_POSITION) {
+                                adapter?.notifyItemChanged(pos)
+                            }
+                        }
                     }
                 }
             }
@@ -2316,6 +2689,57 @@ class ConfigurationFragment @JvmOverloads constructor(
                 popup.show()
             }
 
+            /** 长按节点卡片的菜单：移动分组 / 多选 / 排序 / 编辑 / 分享 / 删除 */
+            private fun showProfileMenu(
+                anchor: View,
+                proxyEntity: ProxyEntity,
+                holder: ConfigurationHolder,
+            ) {
+                val owner = parentFragment as? ConfigurationFragment ?: return
+                val popup = PopupMenu(requireContext(), anchor)
+                popup.menuInflater.inflate(R.menu.profile_long_click_menu, popup.menu)
+                popup.setOnMenuItemClickListener { menuItem ->
+                    when (menuItem.itemId) {
+                        R.id.action_move_to_group -> {
+                            owner.moveProfilesToGroup(listOf(proxyEntity))
+                            true
+                        }
+
+                        R.id.action_multi_select -> {
+                            owner.enterSelectionMode(proxyEntity.id)
+                            true
+                        }
+
+                        R.id.action_drag_sort -> {
+                            adapter?.startDrag(holder)
+                            true
+                        }
+
+                        R.id.action_edit -> {
+                            anchor.context.startActivity(
+                                proxyEntity.settingIntent(
+                                    anchor.context, proxyGroup.type == GroupType.SUBSCRIPTION
+                                )
+                            )
+                            true
+                        }
+
+                        R.id.action_share -> {
+                            showShareMenu(anchor, proxyEntity)
+                            true
+                        }
+
+                        R.id.action_delete -> {
+                            removeProfile(proxyEntity)
+                            true
+                        }
+
+                        else -> false
+                    }
+                }
+                popup.show()
+            }
+
             private fun applySelected(selected: Boolean) {
                 val ctx = card.context
                 val surface = ctx.getColorAttr(R.attr.colorSurface)
@@ -2365,6 +2789,14 @@ class ConfigurationFragment @JvmOverloads constructor(
                 profileName.text = bean.displayName()
                 profileType.text = proxyEntity.displayType()
                 profileType.setTextColor(requireContext().getProtocolColor(proxyEntity.type))
+
+                val countryFlag = CountryFlags.flagOf(CountryFlags.resolve(proxyEntity))
+                if (countryFlag.isEmpty()) {
+                    profileCountry.isGone = true
+                } else {
+                    profileCountry.text = countryFlag
+                    profileCountry.isVisible = true
+                }
 
                 val rx = proxyEntity.rx
                 val tx = proxyEntity.tx
@@ -2425,12 +2857,16 @@ class ConfigurationFragment @JvmOverloads constructor(
                 
                 if (isDoubleColumn) {
                     editButton.isGone = true
+                    urlTestButton.isGone = true
+                    urlTestButtonDouble.isGone = select
                     shareLayout.isGone = true
                     removeButton.isGone = true
                     doubleColumnMenuButton.isVisible = true
                 } else {
                     shareLayout.isGone = selectOrChain
                     editButton.isGone = select
+                    urlTestButton.isGone = select
+                    urlTestButtonDouble.isGone = true
                     removeButton.isGone = select
                     doubleColumnMenuButton.isGone = true
                 }
@@ -2447,6 +2883,22 @@ class ConfigurationFragment @JvmOverloads constructor(
                 editButton.isEnabled = !started
                 removeButton.isEnabled = !started
                 applySelected(selected)
+
+                // 多选高亮：只覆盖选中态，未选中保持 applySelected 的描边
+                val inSelection = adapter?.selectionMode == true
+                val picked = inSelection && adapter?.selectedIds?.contains(proxyEntity.id) == true
+                if (picked) {
+                    card.strokeWidth = (2 * resources.displayMetrics.density).toInt()
+                    card.strokeColor = requireContext().getColour(R.color.material_green_500)
+                }
+                if (inSelection) {
+                    // 多选时隐藏操作按钮，避免误触编辑/删除
+                    editButton.isGone = true
+                    removeButton.isGone = true
+                    shareLayout.isGone = true
+                    urlTestButton.isGone = true
+                    urlTestButtonDouble.isGone = true
+                }
 
                 if (!(select || proxyEntity.type == ProxyEntity.TYPE_CHAIN)) {
                     shareLayer.setBackgroundColor(Color.TRANSPARENT)
