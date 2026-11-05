@@ -1,2 +1,3 @@
-export COMMIT_SING_BOX="0b7a2fc2f2c33f754e5fe5a1bb3e0a4f610b6aa9"
+# sing-box v1.14.0 (官方 release)
+export COMMIT_SING_BOX="0b8995879f29a9b98ee027bc17b75e101445b238"
 export COMMIT_LIBNEKO="6a85c185d62435a5293ef70ac3b638ae3ee1efa7"
