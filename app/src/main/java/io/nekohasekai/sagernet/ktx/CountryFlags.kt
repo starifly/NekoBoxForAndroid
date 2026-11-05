@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ktx
 
+import android.content.Context
 import io.nekohasekai.sagernet.database.ProxyEntity
 import libcore.Libcore
 import java.net.InetAddress
@@ -8,19 +9,45 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * IP 归属地国旗缓存。
  *
- * URL Test 时同步查询一次（本地 geoip.db，无需联网），卡片首次绑定时也会异步补查一次。
- * 结果按 profileId 与服务器地址双键缓存；查询失败只冷却一段时间，不做永久拉黑。
+ * 查询走本地 geoip.db（无需联网）：服务器地址 -> IP -> ISO 国家码。
+ * 结果按 服务器地址 持久化到 SharedPreferences，重启后仍然有效；
+ * profileId 映射只存在内存里，卡片首次绑定时按地址回填。
  */
 object CountryFlags {
+
+    private const val PREFS_NAME = "country_flags"
+    private const val RETRY_COOL_DOWN_MS = 60_000L
 
     private val byProfile = ConcurrentHashMap<Long, String>()      // profileId -> ISO 代码
     private val byHost = ConcurrentHashMap<String, String>()       // serverAddress -> ISO 代码
     private val failedAt = ConcurrentHashMap<String, Long>()       // 失败时间戳，冷却重试
     private val inFlight = ConcurrentHashMap.newKeySet<String>()   // 正在查询中的地址
 
-    private const val RETRY_COOL_DOWN_MS = 60_000L
+    private val prefs by lazy {
+        app.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    }
+
+    init {
+        // 把上次运行持久化的结果读回内存
+        try {
+            prefs.all.forEach { (host, code) ->
+                if (host is String && code is String && code.length == 2) {
+                    byHost[host] = code
+                }
+            }
+        } catch (ignored: Exception) {
+        }
+    }
 
     fun get(profileId: Long): String? = byProfile[profileId]
+
+    /** 优先按 profile 取，其次按服务器地址取（持久化数据在重启后走这条路径） */
+    fun resolve(profile: ProxyEntity): String? {
+        byProfile[profile.id]?.let { return it }
+        val host = hostOf(profile)
+        if (host.isBlank()) return null
+        return byHost[host]?.also { byProfile[profile.id] = it }
+    }
 
     fun forget(profileId: Long) {
         byProfile.remove(profileId)
@@ -38,10 +65,7 @@ object CountryFlags {
      */
     fun query(profile: ProxyEntity): String {
         val host = hostOf(profile)
-        if (host.isBlank()) {
-            Logs.d("CountryFlags: profile=${profile.id} 服务器地址为空")
-            return ""
-        }
+        if (host.isBlank()) return ""
 
         byHost[host]?.let { cached ->
             byProfile[profile.id] = cached
@@ -51,15 +75,12 @@ object CountryFlags {
         val failedTime = failedAt[host]
         if (failedTime != null &&
             System.currentTimeMillis() - failedTime < RETRY_COOL_DOWN_MS
-        ) {
-            return ""
-        }
+        ) return ""
 
         // 域名先解析成 IP（IP 字面量会直接返回，不产生 DNS 请求）
         val ip = try {
             InetAddress.getByName(host).hostAddress
         } catch (e: Exception) {
-            Logs.w("CountryFlags: $host 域名解析失败", e)
             null
         }
         if (ip.isNullOrBlank()) {
@@ -70,19 +91,25 @@ object CountryFlags {
         val code = try {
             Libcore.queryGeoIPCountry(ip) ?: ""
         } catch (e: Exception) {
-            Logs.w("CountryFlags: 查询 $ip 归属地异常", e)
             ""
         }
-        Logs.d("CountryFlags: $host -> $ip -> [$code]")
 
         if (code.length == 2) {
-            byHost[host] = code
-            byProfile[profile.id] = code
-            failedAt.remove(host)
+            remember(host, profile.id, code)
             return code
         }
         failedAt[host] = System.currentTimeMillis()
         return ""
+    }
+
+    private fun remember(host: String, profileId: Long, code: String) {
+        byHost[host] = code
+        byProfile[profileId] = code
+        failedAt.remove(host)
+        try {
+            prefs.edit().putString(host, code).apply()
+        } catch (ignored: Exception) {
+        }
     }
 
     /**
