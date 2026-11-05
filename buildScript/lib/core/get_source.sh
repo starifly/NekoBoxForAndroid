@@ -4,6 +4,9 @@ set -e
 source "buildScript/init/env.sh"
 ENV_NB4A=1
 source "buildScript/lib/core/get_source_env.sh"
+
+# 记住仓库根：下面要 pushd 到仓库父目录去 clone 依赖（../sing-box、../libneko）
+REPO_ROOT="$(pwd)"
 pushd ..
 
 #### sing-box 内核源码
@@ -19,8 +22,8 @@ git checkout -f "$COMMIT_SING_BOX"
 popd
 
 #### 应用 NekoBox 定制补丁（geoip/geosite 钩子 + 选择器回调）
-# 官方仓库不含 nekoutils，必须打补丁才能和 libcore 对接
-python3 buildScript/lib/core/patch-singbox.py sing-box
+# 必须用绝对路径：当前目录已是仓库父目录
+python3 "$REPO_ROOT/buildScript/lib/core/patch-singbox.py" sing-box
 
 ####
 
