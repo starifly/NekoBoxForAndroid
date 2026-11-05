@@ -2779,7 +2779,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 profileType.text = proxyEntity.displayType()
                 profileType.setTextColor(requireContext().getProtocolColor(proxyEntity.type))
 
-                val countryFlag = CountryFlags.flagOf(CountryFlags.get(proxyEntity.id))
+                val countryFlag = CountryFlags.flagOf(CountryFlags.resolve(proxyEntity))
                 if (countryFlag.isEmpty()) {
                     profileCountry.isGone = true
                     // 首次绑定就后台补查一次，查到后刷新该行
