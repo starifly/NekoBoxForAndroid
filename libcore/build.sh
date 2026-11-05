@@ -15,7 +15,12 @@ if [ -z "$GOPATH" ]; then
 fi
 
 export GOBIND=gobind-matsuri
-"$GOPATH"/bin/gomobile-matsuri bind -v -androidapi 21 -cache "$(realpath $BUILD)" -trimpath -ldflags='-s -w' -tags='with_conntrack,with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api' . || exit 1
+# 可选：GOMOBILE_TARGET 限定 ABI（如 "android/arm64"），不设置时保持原有全量编译
+TARGET_ARGS=()
+if [ -n "${GOMOBILE_TARGET:-}" ]; then
+  TARGET_ARGS=("-target=$GOMOBILE_TARGET")
+fi
+"$GOPATH"/bin/gomobile-matsuri bind "${TARGET_ARGS[@]}" -v -androidapi 21 -cache "$(realpath $BUILD)" -trimpath -ldflags='-s -w' -tags='with_conntrack,with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api' . || exit 1
 rm -r libcore-sources.jar
 
 proj=../app/libs

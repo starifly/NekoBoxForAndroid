@@ -34,9 +34,19 @@ on:
         description: '构建类型'
         type: choice
         options:
-          - release
           - debug
-        default: release
+          - release
+        default: debug
+      abi:
+        description: '目标 ABI'
+        type: choice
+        options:
+          - arm64-v8a
+          - armeabi-v7a
+          - x86
+          - x86_64
+          - all
+        default: arm64-v8a
 
 permissions:
   contents: read
@@ -53,7 +63,8 @@ env:
   NDK_VERSION: 25.0.8775105           # buildScript/init/env_ndk.sh 首选版本
   GRADLE_ARGS: --no-daemon --stacktrace
   FLAVOR: ${{ inputs.flavor || 'oss' }}
-  BUILD_TYPE: ${{ inputs.build_type || 'release' }}
+  BUILD_TYPE: ${{ inputs.build_type || 'debug' }}
+  ABI: ${{ inputs.abi || 'arm64-v8a' }}
 
 jobs:
   # ---------------------------------------------------------------- native
@@ -126,6 +137,18 @@ jobs:
           echo "build-tools: $(ls "$SDK/build-tools" | tr '\n' ' ')"
           echo "ndk: $(ls "$SDK/ndk" | tr '\n' ' ')"
 
+      - name: Resolve ABI
+        run: |
+          case "$ABI" in
+            arm64-v8a)   echo "GOMOBILE_TARGET=android/arm64" >> "$GITHUB_ENV"; echo "HEV_ABIS=arm64-v8a" >> "$GITHUB_ENV" ;;
+            armeabi-v7a) echo "GOMOBILE_TARGET=android/arm"   >> "$GITHUB_ENV"; echo "HEV_ABIS=armeabi-v7a" >> "$GITHUB_ENV" ;;
+            x86)         echo "GOMOBILE_TARGET=android/386"   >> "$GITHUB_ENV"; echo "HEV_ABIS=x86" >> "$GITHUB_ENV" ;;
+            x86_64)      echo "GOMOBILE_TARGET=android/amd64" >> "$GITHUB_ENV"; echo "HEV_ABIS=x86_64" >> "$GITHUB_ENV" ;;
+            all)         echo "HEV_ABIS=armeabi-v7a arm64-v8a x86 x86_64" >> "$GITHUB_ENV" ;;
+            *) echo "::error::未知 ABI: $ABI"; exit 1 ;;
+          esac
+          echo "ABI=$ABI -> gomobile target=${GOMOBILE_TARGET:-全部}, hevtun ABI=${HEV_ABIS}"
+
       - name: Compute native cache keys
         run: |
           find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
@@ -140,9 +163,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: app/libs/libcore.aar
-          key: libcore-${{ runner.os }}-${{ hashFiles('golang_status', 'libcore_status') }}
+          key: libcore-${{ runner.os }}-${{ env.ABI }}-${{ hashFiles('golang_status', 'libcore_status') }}
           restore-keys: |
-            libcore-${{ runner.os }}-
+            libcore-${{ runner.os }}-${{ env.ABI }}-
 
       - name: Setup Golang
         if: steps.libcore-cache.outputs.cache-hit != 'true'
@@ -166,9 +189,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: app/src/main/jniLibs
-          key: hevtun-${{ runner.os }}-${{ hashFiles('hev_status') }}
+          key: hevtun-${{ runner.os }}-${{ env.ABI }}-${{ hashFiles('hev_status') }}
           restore-keys: |
-            hevtun-${{ runner.os }}-
+            hevtun-${{ runner.os }}-${{ env.ABI }}-
 
       - name: Build hevtun (NDK, 4 ABIs)
         if: steps.hevtun-cache.outputs.cache-hit != 'true'
@@ -181,14 +204,14 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: app/libs/libcore.aar
-          key: libcore-${{ runner.os }}-${{ hashFiles('golang_status', 'libcore_status') }}
+          key: libcore-${{ runner.os }}-${{ env.ABI }}-${{ hashFiles('golang_status', 'libcore_status') }}
 
       - name: Save hevtun cache
         if: steps.hevtun-cache.outputs.cache-hit != 'true' && success()
         uses: actions/cache/save@v4
         with:
           path: app/src/main/jniLibs
-          key: hevtun-${{ runner.os }}-${{ hashFiles('hev_status') }}
+          key: hevtun-${{ runner.os }}-${{ env.ABI }}-${{ hashFiles('hev_status') }}
 
       - name: Save Android SDK cache
         if: steps.sdk-cache.outputs.cache-hit != 'true' && success()
@@ -356,10 +379,16 @@ jobs:
           TASK="assemble$(cap "$FLAVOR")$(cap "$BT")"
           echo "TASK=$TASK" >> "$GITHUB_ENV"
           echo "EFFECTIVE_TYPE=$BT" >> "$GITHUB_ENV"
-          echo "==> ./gradlew app:$TASK $GRADLE_ARGS"
+
+          # 只构建目标 ABI，避免产出 4 个 split APK
+          ABI_ARGS=()
+          if [ "$ABI" != "all" ]; then
+            ABI_ARGS=("-Pandroid.injected.build.abi=$ABI")
+          fi
+          echo "==> ./gradlew app:$TASK ${ABI_ARGS[*]:-} $GRADLE_ARGS"
 
           set +e
-          ./gradlew "app:$TASK" $GRADLE_ARGS 2>&1 | tee gradle.log
+          ./gradlew "app:$TASK" ${ABI_ARGS[@]+"${ABI_ARGS[@]}"} $GRADLE_ARGS 2>&1 | tee gradle.log
           status=${PIPESTATUS[0]}
           if [ "$status" -ne 0 ]; then
             # 把编译错误转成 annotation，便于在 Checks 页直接看到
@@ -378,20 +407,34 @@ jobs:
             ls -R app/build/outputs/apk || true
             exit 1
           fi
-          COUNT=$(find "$OUT" -name '*.apk' | wc -l)
+          if [ "$ABI" = "all" ]; then
+            PATTERN="*.apk"
+          else
+            PATTERN="*${ABI}*.apk"
+          fi
+          FILES=$(find "$OUT" -name "$PATTERN" | sort)
+          COUNT=$(printf '%s\n' "$FILES" | grep -c . || true)
           if [ "$COUNT" -eq 0 ]; then
-            echo "::error::$OUT 下没有 APK"
+            echo "::error::$OUT 下没有匹配 $PATTERN 的 APK"
+            ls -lh "$OUT" || true
             exit 1
           fi
           echo "dir=$OUT" >> "$GITHUB_OUTPUT"
-          echo "=== 产物（$COUNT 个）==="
-          ls -lh "$OUT"
           {
-            echo "### APK 产物：$FLAVOR / $EFFECTIVE_TYPE"
+            echo "files<<EOF"
+            echo "$FILES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "=== 产物（$COUNT 个）==="
+          printf '%s\n' "$FILES" | while IFS= read -r f; do ls -lh "$f"; done
+          {
+            echo "### APK 产物：$FLAVOR / $EFFECTIVE_TYPE / $ABI"
             echo ""
             echo "| 文件 | 大小 |"
             echo "| --- | --- |"
-            find "$OUT" -name '*.apk' -printf '| %f | %k KB |\n'
+            while IFS= read -r f; do
+              [ -n "$f" ] && printf '| %s | %s KB |\n' "$(basename "$f")" "$(du -k "$f" | cut -f1)"
+            done <<< "$FILES"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify APK signature
@@ -399,16 +442,17 @@ jobs:
         run: |
           APKSIGNER=$(ls "$ANDROID_SDK_ROOT"/build-tools/*/apksigner | tail -1)
           echo "使用 $APKSIGNER"
-          for apk in ${{ steps.collect.outputs.dir }}/*.apk; do
+          printf '%s\n' "${{ steps.collect.outputs.files }}" | while IFS= read -r apk; do
+            [ -n "$apk" ] || continue
             echo "== $apk"
-            "$APKSIGNER" verify --print-certs "$apk"
+            "$APKSIGNER" verify "$apk"
           done
 
       - name: Upload APK
         uses: actions/upload-artifact@v7
         with:
-          name: NekoBox-${{ env.FLAVOR }}-${{ env.EFFECTIVE_TYPE }}
-          path: ${{ steps.collect.outputs.dir }}/*.apk
+          name: NekoBox-${{ env.FLAVOR }}-${{ env.EFFECTIVE_TYPE }}-${{ env.ABI }}
+          path: ${{ steps.collect.outputs.files }}
           retention-days: 7
           if-no-files-found: error
 

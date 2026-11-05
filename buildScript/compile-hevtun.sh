@@ -29,7 +29,7 @@ source "$SCRIPT_DIR/init/env_ndk.sh"
 
 HEV_VERSION="${HEV_VERSION:-2.17.1}"
 HEV_SRC="${HEV_SRC:-$REPO_DIR/hev-socks5-tunnel}"
-ABIS="armeabi-v7a arm64-v8a x86 x86_64"
+ABIS="${HEV_ABIS:-armeabi-v7a arm64-v8a x86 x86_64}"
 OUT_DIR="$REPO_DIR/app/src/main/jniLibs"
 BUILD_DIR="$REPO_DIR/.hev-build"
 
