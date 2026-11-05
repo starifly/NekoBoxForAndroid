@@ -1146,6 +1146,28 @@ class ConfigurationFragment @JvmOverloads constructor(
 
         val mainJob = runOnDefaultDispatcher {
             val profilesList = SagerDatabase.proxyDao.getByGroup(group.id)
+            // 开始测试前先清理上一轮的测试结果，避免中途取消时新旧状态混在一起
+            if (profilesList.isNotEmpty()) {
+                var cleared = false
+                for (profile in profilesList) {
+                    if (profile.status != 0) {
+                        profile.status = 0
+                        profile.ping = 0
+                        profile.error = null
+                        cleared = true
+                    }
+                }
+                if (cleared) {
+                    try {
+                        ProfileManager.updateProfile(profilesList)
+                    } catch (e: Exception) {
+                        Logs.w(e)
+                    }
+                }
+                onMainDispatcher {
+                    getCurrentGroupFragment()?.adapter?.clearTestResults()
+                }
+            }
             test.proxyN = profilesList.size
             val profiles = ConcurrentLinkedQueue(profilesList)
             repeat(DataStore.connectionTestConcurrent) {
