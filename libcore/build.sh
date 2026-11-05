@@ -15,6 +15,8 @@ if [ -z "$GOPATH" ]; then
 fi
 
 export GOBIND=gobind-matsuri
+# 内核升级会改动依赖矩阵，允许 go 自动补全 go.sum
+export GOFLAGS="-mod=mod"
 # 可选：GOMOBILE_TARGET 限定 ABI（如 "android/arm64"），不设置时保持原有全量编译
 TARGET_ARGS=()
 if [ -n "${GOMOBILE_TARGET:-}" ]; then
