@@ -1394,6 +1394,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                         Logs.w(e)
                     }
                 }
+                // 与「清理测试结果」保持一致：图标也一起清掉，随后由本轮测试重新产生
+                CountryFlags.forgetProfiles(profilesList)
                 onMainDispatcher {
                     getCurrentGroupFragment()?.adapter?.clearTestResults()
                 }
