@@ -2782,6 +2782,13 @@ class ConfigurationFragment @JvmOverloads constructor(
                 val countryFlag = CountryFlags.flagOf(CountryFlags.get(proxyEntity.id))
                 if (countryFlag.isEmpty()) {
                     profileCountry.isGone = true
+                    // 首次绑定就后台补查一次，查到后刷新该行
+                    val owner = parentFragment as? ConfigurationFragment
+                    CountryFlags.ensure(proxyEntity) { id ->
+                        if (owner != null && owner.isAdded) {
+                            owner.getCurrentGroupFragment()?.adapter?.notifyProfileChanged(id)
+                        }
+                    }
                 } else {
                     profileCountry.text = countryFlag
                     profileCountry.isVisible = true
