@@ -1,8 +1,6 @@
 module libcore
 
-go 1.24.7
-
-toolchain go1.24.9
+go 1.25.5
 
 require (
 	github.com/dyhkwong/sing-juicity v0.0.3
