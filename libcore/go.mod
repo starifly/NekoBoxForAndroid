@@ -3,7 +3,7 @@ module libcore
 go 1.25.5
 
 require (
-	github.com/dyhkwong/sing-juicity v0.3.1
+	github.com/exclavenetwork/sing-juicity v0.3.1
 	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/matsuridayo/libneko v1.0.0 // replaced
 	github.com/miekg/dns v1.1.67
