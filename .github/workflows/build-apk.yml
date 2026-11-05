@@ -40,9 +40,9 @@ on:
         description: '构建类型'
         type: choice
         options:
-          - debug
           - release
-        default: debug
+          - debug
+        default: release
       abi:
         description: '目标 ABI'
         type: choice
@@ -69,7 +69,7 @@ env:
   NDK_VERSION: 25.0.8775105           # buildScript/init/env_ndk.sh 首选版本
   GRADLE_ARGS: --no-daemon --stacktrace
   FLAVOR: ${{ inputs.flavor || 'oss' }}
-  BUILD_TYPE: ${{ inputs.build_type || 'debug' }}
+  BUILD_TYPE: ${{ inputs.build_type || 'release' }}
   ABI: ${{ inputs.abi || 'arm64-v8a' }}
 
 jobs:
@@ -340,16 +340,15 @@ jobs:
         run: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
           echo "ndk.dir=$ANDROID_SDK_ROOT/ndk/$NDK_VERSION" >> local.properties
-          # buildSrc/Helpers.kt 读取 release.keystore（已在仓库内），密码来自 env 或 local.properties
+          # buildSrc/Helpers.kt 读取 release.keystore（已在仓库内），密码来自 env 或 local.properties；
+          # secrets 不齐时自动改用仓库内固定的 debug.keystore（release/debug 都签名）
           for v in KEYSTORE_PASS ALIAS_NAME ALIAS_PASS; do
             if [ -n "${!v:-}" ]; then echo "secret $v: 已配置"; else echo "secret $v: 空（未配置）"; fi
           done
           if [ -n "$KEYSTORE_PASS" ] && [ -n "$ALIAS_NAME" ] && [ -n "$ALIAS_PASS" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-            echo "release 签名已就绪（release.keystore）"
+            echo "正式签名：release.keystore"
           else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::KEYSTORE_PASS / ALIAS_NAME / ALIAS_PASS 未配置，release 将自动回退为 debug 签名"
+            echo "::warning::KEYSTORE_PASS / ALIAS_NAME / ALIAS_PASS 未配置，使用固定 debug.keystore 签名"
           fi
 
       - name: Init assets (geoip / geosite)
@@ -379,18 +378,12 @@ jobs:
           cap() { echo "${1^}"; }
 
           BT="$BUILD_TYPE"
-          # 注意：secret 未配置时 GitHub 注入的是空字符串而非 null，
+          # secret 未配置时 GitHub 注入的是空字符串而非 null，
           # Helpers.kt 里 `?:` 判断不到 null 会创建密码/别名为空的 signingConfig，
-          # 连 debug 构建都会被它拖挂（Failed to read key ... password was incorrect）。
-          # 所以无论构建类型是什么，只要三项不全就彻底 unset。
+          # 必须彻底 unset；此时 Helpers.kt 会给 release 和 debug 都配上仓库内固定证书
           if [ -z "${KEYSTORE_PASS:-}" ] || [ -z "${ALIAS_NAME:-}" ] || [ -z "${ALIAS_PASS:-}" ]; then
             unset KEYSTORE_PASS ALIAS_NAME ALIAS_PASS
-            if [ "$BT" = "release" ]; then
-              BT="debug"
-              echo "::warning::签名 secrets 不完整，release 已自动改为 debug 构建"
-            else
-              echo "签名 secrets 不完整，使用 AGP 默认 debug keystore 签名"
-            fi
+            echo "未配置正式签名 secrets，使用仓库内固定证书（debug.keystore）签名"
           fi
           TASK="assemble$(cap "$FLAVOR")$(cap "$BT")"
           echo "TASK=$TASK" >> "$GITHUB_ENV"
@@ -458,7 +451,6 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify APK signature
-        if: steps.signing.outputs.enabled == 'true'
         run: |
           APKSIGNER=$(ls "$ANDROID_SDK_ROOT"/build-tools/*/apksigner | tail -1)
           echo "使用 $APKSIGNER"

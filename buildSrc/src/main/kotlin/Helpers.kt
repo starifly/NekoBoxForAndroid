@@ -153,8 +153,9 @@ fun Project.setupAppCommon() {
                     getByName("release").signingConfig = releaseKey
                     getByName("debug").signingConfig = releaseKey
                 }
-
+                // 没有正式证书时，release 也用仓库内固定证书签名，保证可安装可升级
                 fixedKey != null -> {
+                    getByName("release").signingConfig = fixedKey
                     getByName("debug").signingConfig = fixedKey
                 }
             }
