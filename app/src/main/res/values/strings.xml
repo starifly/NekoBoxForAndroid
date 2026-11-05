@@ -696,4 +696,13 @@
     <string name="snell_quic_proxy_summary">v6 only: legacy v5 QUIC Proxy compatibility</string>
     <string name="snell_reuse_summary">v4-v6 only</string>
 
+    <!-- 节点长按菜单 / 多选移动分组 -->
+    <string name="move_to_group">Move to group</string>
+    <string name="multi_select">Multi-select</string>
+    <string name="drag_to_sort">Reorder</string>
+    <string name="select_all">Select all</string>
+    <string name="selected_count">%d selected</string>
+    <string name="no_other_group">No other group</string>
+    <string name="moved_to_group">Moved %1$d profiles to %2$s</string>
+
 </resources>
