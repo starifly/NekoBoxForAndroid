@@ -2472,6 +2472,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             private val selectedIndicator: View = view.findViewById(R.id.selected_indicator)
             val editButton: ImageView = view.findViewById(R.id.edit)
             val urlTestButton: ImageView = view.findViewById(R.id.url_test)
+            val urlTestButtonDouble: ImageView = view.findViewById(R.id.url_test_double)
             val doubleColumnMenuButton: ImageView = view.findViewById(R.id.double_column_menu)
             val shareLayout: LinearLayout = view.findViewById(R.id.share)
             val shareLayer: LinearLayout = view.findViewById(R.id.share_layer)
@@ -2521,6 +2522,9 @@ class ConfigurationFragment @JvmOverloads constructor(
                 urlTestButton.setOnClickListener {
                     startUrlTest(entity)
                 }
+                urlTestButtonDouble.setOnClickListener {
+                    startUrlTest(entity)
+                }
                 removeButton.setOnClickListener {
                     removeProfile(entity)
                 }
@@ -2542,6 +2546,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 if (urlTestRunning || select) return
                 urlTestRunning = true
                 urlTestButton.isEnabled = false
+                urlTestButtonDouble.isEnabled = false
                 profileStatus.setTextColor(
                     requireContext().getColorAttr(android.R.attr.textColorSecondary)
                 )
@@ -2570,6 +2575,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                         urlTestRunning = false
                         if (::entity.isInitialized && entity.id == targetId) {
                             urlTestButton.isEnabled = true
+                            urlTestButtonDouble.isEnabled = true
                             val pos = bindingAdapterPosition
                             if (pos != RecyclerView.NO_POSITION) {
                                 adapter?.notifyItemChanged(pos)
@@ -2818,6 +2824,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 if (isDoubleColumn) {
                     editButton.isGone = true
                     urlTestButton.isGone = true
+                    urlTestButtonDouble.isGone = select
                     shareLayout.isGone = true
                     removeButton.isGone = true
                     doubleColumnMenuButton.isVisible = true
@@ -2825,6 +2832,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                     shareLayout.isGone = selectOrChain
                     editButton.isGone = select
                     urlTestButton.isGone = select
+                    urlTestButtonDouble.isGone = true
                     removeButton.isGone = select
                     doubleColumnMenuButton.isGone = true
                 }
@@ -2854,6 +2862,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                     editButton.isGone = true
                     removeButton.isGone = true
                     shareLayout.isGone = true
+                    urlTestButton.isGone = true
+                    urlTestButtonDouble.isGone = true
                 }
 
                 if (!(select || proxyEntity.type == ProxyEntity.TYPE_CHAIN)) {
