@@ -1423,8 +1423,15 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                         // 顺带解析节点服务器的归属国家，供卡片显示国旗
                         CountryFlags.query(profile)
-                        runOnMainDispatcher {
-                            getCurrentGroupFragment()?.adapter?.notifyProfileChanged(profile.id)
+                        // 立即落库并刷新该行，让延迟和国旗同时出现
+                        // （只 notifyItemChanged 不会更新延迟：adapter 里缓存的是旧对象）
+                        try {
+                            ProfileManager.updateProfile(profile)
+                        } catch (e: Exception) {
+                            Logs.w(e)
+                            runOnMainDispatcher {
+                                getCurrentGroupFragment()?.adapter?.notifyProfileChanged(profile.id)
+                            }
                         }
 
                         test.update(profile)
