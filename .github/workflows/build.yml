@@ -1,11 +1,8 @@
 name: Build
 on:
+  # 版本号变更的构建已由 build-apk.yml 覆盖（它的 paths 含 nb4a.properties），
+  # 这里改为仅手动触发，避免同一次 push 触发两个 workflow
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'nb4a.properties'
 jobs:
   libcore:
     name: Native Build (LibCore)

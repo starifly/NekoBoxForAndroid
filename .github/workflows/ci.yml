@@ -1,11 +1,8 @@
 name: CI
 on:
-  push:
-    tags-ignore:
-      - 'v*'
-    branches:
-      - '*'
+  # main 分支的构建统一由 build-apk.yml 负责，这里只在 PR 上做校验，避免同一提交跑两遍
   pull_request:
+  workflow_dispatch:
 jobs:
   libcore:
     name: Native Build (LibCore)
