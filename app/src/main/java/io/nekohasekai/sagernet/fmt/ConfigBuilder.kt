@@ -72,6 +72,51 @@ private fun sanitizeDnsEntry(value: String): String {
     return value.filterNot { it.isISOControl() }.trim()
 }
 
+// sing-box 1.12+ 新 DNS 服务器格式：把旧版地址字符串拆成 type / server / server_port / path
+private fun DNSServerOptions.applyDnsAddress(address: String) {
+    val value = address.trim()
+    val hasScheme = value.contains("://")
+    val scheme = if (hasScheme) value.substringBefore("://").lowercase() else ""
+    val hostPart = if (hasScheme) value.substringAfter("://") else value
+    when (val typeName = scheme.ifEmpty {
+        when (hostPart.lowercase()) {
+            "local", "fakeip", "dhcp" -> hostPart.lowercase()
+            else -> "udp"
+        }
+    }) {
+        "local" -> type = "local"
+        "fakeip" -> type = "fakeip"
+        "dhcp" -> {
+            type = "dhcp"
+            if (hasScheme && hostPart.isNotBlank()) interface_ = hostPart
+        }
+        "https", "h3" -> {
+            type = typeName
+            val url = (if (hasScheme) value else "https://$value").toHttpUrlOrNull()
+                ?: throw Exception("Invalid DNS address: $address")
+            server = url.host
+            if (url.port != 443) server_port = url.port
+            path = url.encodedPath.takeIf { it.isNotBlank() && it != "/" }
+        }
+        "tls", "quic", "tcp", "udp" -> {
+            type = typeName
+            val hostPort = hostPart.trim()
+            when {
+                hostPort.startsWith("[") -> {
+                    server = hostPort.substringAfter("[").substringBefore("]")
+                    hostPort.substringAfter("]", "").removePrefix(":").toIntOrNull()?.let { server_port = it }
+                }
+                hostPort.count { it == ':' } == 1 -> {
+                    server = hostPort.substringBefore(":")
+                    hostPort.substringAfter(":").toIntOrNull()?.let { server_port = it }
+                }
+                else -> server = hostPort
+            }
+        }
+        else -> throw Exception("Unsupported DNS address: $address")
+    }
+}
+
 private fun parseDnsHosts(value: String): Map<String, List<String>> {
     val hosts = linkedMapOf<String, MutableList<String>>()
     value.lineSequence().forEach { line ->
@@ -79,7 +124,7 @@ private fun parseDnsHosts(value: String): Map<String, List<String>> {
         if (trimmed.isEmpty() || trimmed.startsWith("#")) return@forEach
         val tokens = trimmed.split("\\s+".toRegex())
         if (tokens.size < 2) return@forEach
-        val domain = tokens.first()
+        val domain = tokens.first().lowercase()
         val addresses = tokens.drop(1).filter { it.isIpAddress() }
         if (addresses.isEmpty()) return@forEach
         hosts.getOrPut(domain) { mutableListOf() }.addAll(addresses)
@@ -267,23 +312,22 @@ fun buildConfig(
                 }
                 endpoint_independent_nat = true
                 mtu = DataStore.mtu
-                domain_strategy = genDomainStrategy(DataStore.resolveDestination)
                 auto_route = true
                 strict_route = DataStore.strictRoute
-                sniff = needSniff
-                sniff_override_destination = needSniffOverride
                 when (ipv6Mode) {
                     IPv6Mode.DISABLE -> {
-                        inet4_address = listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
+                        address = listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
                     }
 
                     IPv6Mode.ONLY -> {
-                        inet6_address = listOf(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
+                        address = listOf(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
                     }
 
                     else -> {
-                        inet4_address = listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
-                        inet6_address = listOf(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
+                        address = listOf(
+                            VpnService.PRIVATE_VLAN4_CLIENT + "/28",
+                            VpnService.PRIVATE_VLAN6_CLIENT + "/126"
+                        )
                     }
                 }
             })
@@ -292,9 +336,6 @@ fun buildConfig(
                 tag = TAG_MIXED
                 listen = bind
                 listen_port = DataStore.mixedPort
-                domain_strategy = genDomainStrategy(DataStore.resolveDestination)
-                sniff = needSniff
-                sniff_override_destination = needSniffOverride
                 if (DataStore.mixedInboundHasAuth) {
                     users = listOf(User().also { u ->
                         u.username = DataStore.mixedUsername
@@ -809,8 +850,8 @@ fun buildConfig(
                         -2L -> {
                             if (shouldAddDnsRule) {
                                 userDNSRuleList += makeDnsRuleObj().apply {
-                                    server = "dns-block"
-                                    disable_cache = true
+                                    _hack_config_map["action"] = "predefined"
+                                    _hack_config_map["rcode"] = "NOERROR"
                                 }
                             }
 
@@ -820,8 +861,8 @@ fun buildConfig(
                                     if (tag.startsWith("ruleset-") && tagInfo != null && !tagInfo.second) {
                                         userDNSRuleList += DNSRule_DefaultOptions().apply {
                                             rule_set = mutableListOf(tag)
-                                            server = "dns-block"
-                                            disable_cache = true
+                                            _hack_config_map["action"] = "predefined"
+                                            _hack_config_map["rcode"] = "NOERROR"
                                         }
                                     }
                                 }
@@ -917,40 +958,35 @@ fun buildConfig(
         }
 
         dns.servers.add(DNSServerOptions().apply {
-            address = "rcode://success"
-            tag = "dns-block"
-        })
-
-        dns.servers.add(DNSServerOptions().apply {
-            address = "local"
+            type = "local"
             tag = "dns-local"
             detour = TAG_DIRECT
         })
 
         directDNS.firstOrNull().let {
             dns.servers.add(DNSServerOptions().apply {
-                address = it ?: throw Exception("No direct DNS, check your settings!")
+                applyDnsAddress(it ?: throw Exception("No direct DNS, check your settings!"))
                 tag = "dns-direct"
                 detour = TAG_DIRECT
-                address_resolver = "dns-local"
-                strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
+                domain_resolver = "dns-local"
+                domain_strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
             })
         }
 
         remoteDns.firstOrNull().let {
             // Always use direct DNS for urlTest
             if (!forTest) dns.servers.add(DNSServerOptions().apply {
-                address = it ?: throw Exception("No remote DNS, check your settings!")
+                applyDnsAddress(it ?: throw Exception("No remote DNS, check your settings!"))
                 tag = "dns-remote"
-                address_resolver = "dns-direct"
-                strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
+                domain_resolver = "dns-direct"
+                domain_strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
             })
         }
         if (dnsHosts.isNotEmpty()) {
             dns.servers.add(DNSServerOptions().apply {
+                type = "hosts"
                 tag = TAG_DNS_HOSTS
-                _hack_config_map["type"] = "hosts"
-                _hack_config_map["predefined"] = dnsHosts
+                predefined = dnsHosts
             })
         }
 
@@ -987,17 +1023,13 @@ fun buildConfig(
                 source_ip_cidr = listOf("224.0.0.0/3", "ff00::/8")
                 action = "reject"
             })
-            // FakeDNS obj
+            // FakeDNS
             if (useFakeDns) {
-                dns.fakeip = DNSFakeIPOptions().apply {
-                    enabled = true
+                dns.servers.add(DNSServerOptions().apply {
+                    type = "fakeip"
+                    tag = "dns-fake"
                     inet4_range = "198.18.0.0/15"
                     inet6_range = "fc00::/18"
-                }
-                dns.servers.add(DNSServerOptions().apply {
-                    address = "fakeip"
-                    tag = "dns-fake"
-                    strategy = "ipv4_only"
                 })
                 dns.rules.add(DNSRule_DefaultOptions().apply {
                     inbound = listOf(deviceInboundTag)
@@ -1008,8 +1040,9 @@ fun buildConfig(
             }
             if (dnsHosts.isNotEmpty()) {
                 dns.rules.add(0, DNSRule_DefaultOptions().apply {
+                    // hosts 服务器精确匹配域名，未命中会返回 NXDOMAIN，因此只在请求阶段命中 hosts 域名时才走它
+                    domain = dnsHosts.keys.map { "full:${it.lowercase()}" }
                     server = TAG_DNS_HOSTS
-                    _hack_config_map["ip_accept_any"] = true
                 })
             }
             // avoid loopback
@@ -1032,17 +1065,33 @@ fun buildConfig(
 
                 val serverTag = "dns-sub-$gid"
                 dns.servers.add(DNSServerOptions().apply {
-                    address = resolver
+                    applyDnsAddress(resolver)
                     tag = serverTag
                     detour = TAG_DIRECT
                     if (!resolver.isIpAddress()) {
-                        address_resolver = "dns-direct"
+                        domain_resolver = "dns-direct"
                     }
-                    strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy("server"))
+                    domain_strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy("server"))
                 })
                 dns.rules.add(0, DNSRule_DefaultOptions().apply {
                     makeSingBoxRule(hosts)
                     server = serverTag
+                })
+            }
+        }
+
+        if (!forTest) {
+            // 1.13+ 起 inbound 的 sniff / domain_strategy 字段被移除，改用路由规则动作
+            if (needSniff) {
+                route.rules.add(0, Rule_DefaultOptions().apply {
+                    action = "sniff"
+                })
+            }
+            val resolveStrategy = genDomainStrategy(DataStore.resolveDestination)
+            if (resolveStrategy.isNotEmpty()) {
+                route.rules.add(0, Rule_DefaultOptions().apply {
+                    action = "resolve"
+                    _hack_config_map["strategy"] = resolveStrategy
                 })
             }
         }
