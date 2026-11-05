@@ -54,6 +54,7 @@ const val TAG_BYPASS = "bypass"
 const val TAG_BLOCK = "block"
 const val TAG_FRAGMENT = "fragment"
 const val TAG_DNS_HOSTS = "dns-hosts"
+const val TAG_DNS_DIRECT_OUT = "dns-direct-out"
 
 const val LOCALHOST = "127.0.0.1"
 
@@ -353,9 +354,6 @@ fun buildConfig(
             override_android_vpn = true
             rules = mutableListOf()
             rule_set = mutableListOf()
-
-            // 添加并发拨号设置
-             concurrent_dial = DataStore.concurrentDial
         }
 
         // returns outbound tag
@@ -910,6 +908,13 @@ fun buildConfig(
             type = "direct"
         })
 
+        // 1.14 拒绝 detour 到「空 direct 出站」，DNS 服务器需要带参数的直连出站
+        outbounds.add(Outbound().apply {
+            tag = TAG_DNS_DIRECT_OUT
+            type = "direct"
+            _hack_config_map["udp_fragment"] = false
+        })
+
         if (DataStore.enableTLSFragment) {
             // 1.14 移除了 direct outbound 的 fragment 字段，分片改由路由动作实现
             outbounds.add(Outbound().apply {
@@ -956,14 +961,14 @@ fun buildConfig(
         dns.servers.add(DNSServerOptions().apply {
             type = "local"
             tag = "dns-local"
-            detour = TAG_DIRECT
+            detour = TAG_DNS_DIRECT_OUT
         })
 
         directDNS.firstOrNull().let {
             dns.servers.add(DNSServerOptions().apply {
                 applyDnsAddress(it ?: throw Exception("No direct DNS, check your settings!"))
                 tag = "dns-direct"
-                detour = TAG_DIRECT
+                detour = TAG_DNS_DIRECT_OUT
                 domain_resolver = "dns-local"
                 domain_strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
             })
