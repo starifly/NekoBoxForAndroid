@@ -6,15 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"libcore/procfs"
-	"log"
 	"net/netip"
 	"strings"
 	"syscall"
 
 	"github.com/matsuridayo/libneko/neko_log"
 	"github.com/sagernet/sing-box/adapter"
-	"github.com/sagernet/sing-box/common/process"
-	"github.com/sagernet/sing-box/experimental/libbox/platform"
 	sblog "github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	tun "github.com/sagernet/sing-tun"
@@ -23,21 +20,19 @@ import (
 	N "github.com/sagernet/sing/common/network"
 )
 
-var boxPlatformInterfaceInstance platform.Interface = &boxPlatformInterfaceWrapper{}
+// sing-box 1.14 的 adapter.PlatformInterface 有 34 个方法（1.12 只有 12 个），
+// 其中 Android 实际用到的只有 TUN、接口控制、WIFI 状态、连接归属这几组，
+// 其余（shell / bridge / tailscale / neighbor 等）一律声明为不支持。
+
+var boxPlatformInterfaceInstance adapter.PlatformInterface = &boxPlatformInterfaceWrapper{}
 
 type boxPlatformInterfaceWrapper struct{}
-
-func (w *boxPlatformInterfaceWrapper) ReadWIFIState() adapter.WIFIState {
-	state := strings.Split(intfBox.WIFIState(), ",")
-	return adapter.WIFIState{
-		SSID:  state[0],
-		BSSID: state[1],
-	}
-}
 
 func (w *boxPlatformInterfaceWrapper) Initialize(n adapter.NetworkManager) error {
 	return nil
 }
+
+// ---- TUN / 接口控制 ----
 
 func (w *boxPlatformInterfaceWrapper) UsePlatformAutoDetectInterfaceControl() bool {
 	return true
@@ -53,7 +48,11 @@ func (w *boxPlatformInterfaceWrapper) AutoDetectInterfaceControl(fd int) error {
 	return intfBox.AutoDetectInterfaceControl(int32(fd))
 }
 
-func (w *boxPlatformInterfaceWrapper) OpenTun(options *tun.Options, platformOptions option.TunPlatformOptions) (tun.Tun, error) {
+func (w *boxPlatformInterfaceWrapper) UsePlatformInterface() bool {
+	return true
+}
+
+func (w *boxPlatformInterfaceWrapper) OpenInterface(options *tun.Options, platformOptions option.TunPlatformOptions) (tun.Tun, error) {
 	if len(options.IncludeUID) > 0 || len(options.ExcludeUID) > 0 {
 		return nil, E.New("android: unsupported uid options")
 	}
@@ -66,19 +65,19 @@ func (w *boxPlatformInterfaceWrapper) OpenTun(options *tun.Options, platformOpti
 	if err != nil {
 		return nil, fmt.Errorf("intfBox.OpenTun: %v", err)
 	}
-	// Do you want to close it?
 	tunFd, err = syscall.Dup(tunFd)
 	if err != nil {
 		return nil, fmt.Errorf("syscall.Dup: %v", err)
 	}
-	//
 	options.FileDescriptor = int(tunFd)
 	return tun.New(*options)
 }
 
-func (w *boxPlatformInterfaceWrapper) CloseTun() error {
+func (w *boxPlatformInterfaceWrapper) ProcessPlatformOptions(options option.TunPlatformOptions) error {
 	return nil
 }
+
+// ---- 默认接口监听 ----
 
 func (w *boxPlatformInterfaceWrapper) UsePlatformDefaultInterfaceMonitor() bool {
 	return true
@@ -88,77 +87,167 @@ func (w *boxPlatformInterfaceWrapper) CreateDefaultInterfaceMonitor(l logger.Log
 	return &interfaceMonitorStub{}
 }
 
-func (w *boxPlatformInterfaceWrapper) UsePlatformInterfaceGetter() bool {
+// ---- 网络接口列表 ----
+
+func (w *boxPlatformInterfaceWrapper) UsePlatformNetworkInterfaces() bool {
 	return false
 }
 
-func (w *boxPlatformInterfaceWrapper) Interfaces() ([]adapter.NetworkInterface, error) {
-	return nil, errors.New("wtf")
+func (w *boxPlatformInterfaceWrapper) NetworkInterfaces() ([]adapter.NetworkInterface, error) {
+	return nil, errors.New("android: platform network interfaces not supported")
 }
 
-func (w *boxPlatformInterfaceWrapper) IncludeAllNetworks() bool {
-	return false
-}
-
-func (w *boxPlatformInterfaceWrapper) SendNotification(notification *platform.Notification) error {
-	return nil
-}
-
-func (s *boxPlatformInterfaceWrapper) SystemCertificates() []string {
-	return nil
-}
-
-// Android not using
+// ---- 网络扩展 / DNS ----
 
 func (w *boxPlatformInterfaceWrapper) UnderNetworkExtension() bool {
+	return false
+}
+
+func (w *boxPlatformInterfaceWrapper) NetworkExtensionIncludeAllNetworks() bool {
 	return false
 }
 
 func (w *boxPlatformInterfaceWrapper) ClearDNSCache() {
 }
 
-// process.Searcher
+// ---- WIFI ----
 
-func (w *boxPlatformInterfaceWrapper) FindProcessInfo(ctx context.Context, network string, source netip.AddrPort, destination netip.AddrPort) (*process.Info, error) {
+func (w *boxPlatformInterfaceWrapper) RequestPermissionForWIFIState() error {
+	return nil
+}
+
+func (w *boxPlatformInterfaceWrapper) ReadWIFIState(ctx context.Context) adapter.WIFIState {
+	state := strings.Split(intfBox.WIFIState(), ",")
+	return adapter.WIFIState{
+		SSID:  state[0],
+		BSSID: state[1],
+	}
+}
+
+func (w *boxPlatformInterfaceWrapper) UsePlatformWIFIMonitor() bool {
+	return false
+}
+
+// ---- 连接归属 ----
+
+func (w *boxPlatformInterfaceWrapper) UsePlatformConnectionOwnerFinder() bool {
+	return true
+}
+
+func (w *boxPlatformInterfaceWrapper) FindConnectionOwner(request *adapter.FindConnectionOwnerRequest) (*adapter.ConnectionOwner, error) {
 	var uid int32
+	network := N.NetworkTCP
+	if request.IpProtocol == syscall.IPPROTO_UDP {
+		network = N.NetworkUDP
+	}
+	source := netip.AddrPortFrom(
+		netip.MustParseAddr(request.SourceAddress), uint16(request.SourcePort),
+	)
+	destination := netip.AddrPortFrom(
+		netip.MustParseAddr(request.DestinationAddress), uint16(request.DestinationPort),
+	)
+
 	if useProcfs {
 		uid = procfs.ResolveSocketByProcSearch(network, source, destination)
 		if uid == -1 {
 			return nil, E.New("procfs: not found")
 		}
 	} else {
-		var ipProtocol int32
-		switch N.NetworkName(network) {
-		case N.NetworkTCP:
-			ipProtocol = syscall.IPPROTO_TCP
-		case N.NetworkUDP:
-			ipProtocol = syscall.IPPROTO_UDP
-		default:
-			return nil, E.New("unknown network: ", network)
-		}
 		var err error
-		uid, err = intfBox.FindConnectionOwner(ipProtocol, source.Addr().String(), int32(source.Port()), destination.Addr().String(), int32(destination.Port()))
+		uid, err = intfBox.FindConnectionOwner(
+			request.IpProtocol,
+			request.SourceAddress, request.SourcePort,
+			request.DestinationAddress, request.DestinationPort,
+		)
 		if err != nil {
 			return nil, err
 		}
 	}
+
 	packageName, _ := intfBox.PackageNameByUid(uid)
-	return &process.Info{UserId: uid, PackageName: packageName}, nil
+	return &adapter.ConnectionOwner{
+		ProcessID:           0,
+		UserId:              uid,
+		ProcessPath:         "",
+		AndroidPackageNames: []string{packageName},
+	}, nil
 }
 
-// io.Writer
+// ---- 通知 ----
 
-var disableSingBoxLog = false
-
-func (w *boxPlatformInterfaceWrapper) Write(p []byte) (n int, err error) {
-	// use neko_log
-	if !disableSingBoxLog {
-		log.Print(string(p))
-	}
-	return len(p), nil
+func (w *boxPlatformInterfaceWrapper) UsePlatformNotification() bool {
+	return false
 }
 
-// 日志
+func (w *boxPlatformInterfaceWrapper) SendNotification(notification *adapter.Notification) error {
+	return nil
+}
+
+func (w *boxPlatformInterfaceWrapper) CancelNotification(identifier string, typeID int32) error {
+	return nil
+}
+
+// ---- 地址 ----
+
+func (w *boxPlatformInterfaceWrapper) MyInterfaceAddress() []netip.Addr {
+	return nil
+}
+
+// ---- 邻居解析（Android 不支持）----
+
+func (w *boxPlatformInterfaceWrapper) UsePlatformNeighborResolver() bool {
+	return false
+}
+
+func (w *boxPlatformInterfaceWrapper) StartNeighborMonitor(listener adapter.NeighborUpdateListener) error {
+	return nil
+}
+
+func (w *boxPlatformInterfaceWrapper) CloseNeighborMonitor(listener adapter.NeighborUpdateListener) error {
+	return nil
+}
+
+// ---- Shell 会话（Android 不支持）----
+
+func (w *boxPlatformInterfaceWrapper) UsePlatformShell() bool {
+	return false
+}
+
+func (w *boxPlatformInterfaceWrapper) CheckPlatformShell() error {
+	return nil
+}
+
+func (w *boxPlatformInterfaceWrapper) OpenShellSession(user *adapter.PlatformUser, command string, env []string, term string, rows int32, cols int32) (adapter.ShellSession, error) {
+	return nil, E.New("android: platform shell not supported")
+}
+
+func (w *boxPlatformInterfaceWrapper) LookupUser(username string) (*adapter.PlatformUser, error) {
+	return nil, nil
+}
+
+func (w *boxPlatformInterfaceWrapper) LookupSFTPServer() (string, error) {
+	return "", nil
+}
+
+func (w *boxPlatformInterfaceWrapper) ReadSystemSSHHostKey() ([]byte, error) {
+	return nil, nil
+}
+
+func (w *boxPlatformInterfaceWrapper) TailscaleHostname() string {
+	return ""
+}
+
+// ---- Bridge（Android 不支持）----
+
+func (w *boxPlatformInterfaceWrapper) UsePlatformBridge() bool {
+	return false
+}
+
+func (w *boxPlatformInterfaceWrapper) CreateBridge(options adapter.BridgeOptions) (adapter.BridgeSession, error) {
+	return nil, E.New("android: platform bridge not supported")
+}
+
+// ---- 日志 ----
 
 type boxPlatformLogWriterWrapper struct {
 }

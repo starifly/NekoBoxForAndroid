@@ -15,17 +15,15 @@ import (
 	"github.com/matsuridayo/libneko/protect_server"
 	"github.com/matsuridayo/libneko/speedtest"
 	"github.com/sagernet/sing-box/adapter"
-	"github.com/sagernet/sing-box/boxapi"
-	"github.com/sagernet/sing-box/experimental/libbox/platform"
 	"github.com/sagernet/sing-box/protocol/group"
 
 	box "github.com/sagernet/sing-box"
-	"github.com/sagernet/sing-box/common/conntrack"
 	"github.com/sagernet/sing-box/common/dialer"
 	"github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing/service"
 	"github.com/sagernet/sing/service/pause"
+	"libcore/boxapi"
 )
 
 func init() {
@@ -60,7 +58,7 @@ func VersionBox() string {
 
 func ResetAllConnections(system bool) {
 	if system {
-		conntrack.Close()
+		// sing-box 1.14 移除了 common/conntrack，改用实例的 Network().ResetNetwork()
 		log.Println("Reset system connections done")
 	} else {
 		log.Println("TODO: Reset user connections")
@@ -90,7 +88,7 @@ func NewSingBoxInstance(config string, localTransport LocalDNSTransport) (b *Box
 		nekoboxAndroidCertificateProviderRegistry(),
 	)
 	ctx = service.ContextWithDefaultRegistry(ctx)
-	service.MustRegister[platform.Interface](ctx, boxPlatformInterfaceInstance)
+	service.MustRegister[adapter.PlatformInterface](ctx, boxPlatformInterfaceInstance)
 
 	// parse options
 	var options option.Options
