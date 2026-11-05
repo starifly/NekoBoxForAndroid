@@ -19,6 +19,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -351,11 +353,15 @@ class ConfigurationFragment @JvmOverloads constructor(
         groupPager.offscreenPageLimit = 2
 
         TabLayoutMediator(tabLayout, groupPager) { tab, position ->
-            if (adapter.groupList.size > position) {
-                tab.text = adapter.groupList[position].displayName()
-            }
-            tab.view.setOnLongClickListener { // clear toast
-                true
+            val group = adapter.groupList.getOrNull(position)
+            if (group != null) {
+                tab.text = group.displayName()
+                tab.view.setOnLongClickListener { anchor ->
+                    showGroupTabMenu(anchor, group)
+                    true
+                }
+            } else {
+                tab.view.setOnLongClickListener { true }
             }
         }.attach()
 
@@ -1147,6 +1153,91 @@ class ConfigurationFragment @JvmOverloads constructor(
             )
             dialog.hide()
         }
+    }
+
+    // ---------------- 分组名长按菜单 ----------------
+
+    private fun showGroupTabMenu(anchor: View, group: ProxyGroup) {
+        // 「未分组」是系统分组，不提供改名/删除
+        if (group.ungrouped) return
+        val popup = PopupMenu(requireContext(), anchor)
+        popup.menuInflater.inflate(R.menu.group_tab_menu, popup.menu)
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_rename_group -> {
+                    renameGroup(group)
+                    true
+                }
+
+                R.id.action_delete_group -> {
+                    confirmDeleteGroup(group)
+                    true
+                }
+
+                else -> false
+            }
+        }
+        popup.show()
+    }
+
+    private fun renameGroup(group: ProxyGroup) {
+        val input = EditText(requireContext()).apply {
+            setText(group.name ?: "")
+            setSelection(text.length)
+            hint = getString(R.string.group_name)
+            setSingleLine()
+        }
+        val container = FrameLayout(requireContext()).apply {
+            val padding = (20 * resources.displayMetrics.density).toInt()
+            setPadding(padding, padding / 2, padding, 0)
+            addView(input)
+        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.rename_group)
+            .setView(container)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val newName = input.text?.toString()?.trim().orEmpty()
+                if (newName.isEmpty()) {
+                    snackbar(getString(R.string.group_name_required)).show()
+                    return@setPositiveButton
+                }
+                runOnDefaultDispatcher {
+                    try {
+                        group.name = newName
+                        GroupManager.updateGroup(group)
+                    } catch (e: Exception) {
+                        Logs.w(e)
+                        onMainDispatcher { snackbar(e.readableMessage).show() }
+                    }
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun confirmDeleteGroup(group: ProxyGroup) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.delete_group)
+            .setMessage("${getString(R.string.delete_group_prompt)}\n\n${group.displayName()}")
+            .setPositiveButton(R.string.yes) { _, _ ->
+                runOnDefaultDispatcher {
+                    try {
+                        GroupManager.deleteGroup(group.id)
+                    } catch (e: Exception) {
+                        Logs.w(e)
+                        onMainDispatcher { snackbar(e.readableMessage).show() }
+                        return@runOnDefaultDispatcher
+                    }
+                    onMainDispatcher {
+                        if (DataStore.selectedGroup == group.id) {
+                            DataStore.selectedGroup = -1L
+                        }
+                        adapter.reload()
+                    }
+                }
+            }
+            .setNegativeButton(R.string.no, null)
+            .show()
     }
 
     // ---------------- 多选 & 移动分组 ----------------

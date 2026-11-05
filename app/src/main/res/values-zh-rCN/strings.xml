@@ -619,4 +619,6 @@
     <string name="selected_count">已选 %d 项</string>
     <string name="no_other_group">没有其他分组</string>
     <string name="moved_to_group">已移动 %1$d 个节点到 %2$s</string>
+    <string name="rename_group">修改分组名</string>
+    <string name="delete_group">删除分组</string>
 </resources>
