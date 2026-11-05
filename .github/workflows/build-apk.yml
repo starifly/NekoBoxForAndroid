@@ -335,6 +335,9 @@ jobs:
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
           echo "ndk.dir=$ANDROID_SDK_ROOT/ndk/$NDK_VERSION" >> local.properties
           # buildSrc/Helpers.kt 读取 release.keystore（已在仓库内），密码来自 env 或 local.properties
+          for v in KEYSTORE_PASS ALIAS_NAME ALIAS_PASS; do
+            if [ -n "${!v:-}" ]; then echo "secret $v: 已配置"; else echo "secret $v: 空（未配置）"; fi
+          done
           if [ -n "$KEYSTORE_PASS" ] && [ -n "$ALIAS_NAME" ] && [ -n "$ALIAS_PASS" ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
             echo "release 签名已就绪（release.keystore）"
@@ -370,11 +373,18 @@ jobs:
           cap() { echo "${1^}"; }
 
           BT="$BUILD_TYPE"
-          if [ "$BT" = "release" ] && [ -z "${KEYSTORE_PASS:-}" ]; then
-            # 空字符串会让 Helpers.kt 创建密码为空的 signingConfig，必须 unset
+          # 注意：secret 未配置时 GitHub 注入的是空字符串而非 null，
+          # Helpers.kt 里 `?:` 判断不到 null 会创建密码/别名为空的 signingConfig，
+          # 连 debug 构建都会被它拖挂（Failed to read key ... password was incorrect）。
+          # 所以无论构建类型是什么，只要三项不全就彻底 unset。
+          if [ -z "${KEYSTORE_PASS:-}" ] || [ -z "${ALIAS_NAME:-}" ] || [ -z "${ALIAS_PASS:-}" ]; then
             unset KEYSTORE_PASS ALIAS_NAME ALIAS_PASS
-            BT="debug"
-            echo "::warning::未配置签名密钥，已自动改为 debug 构建（APK 用 debug key 签名，可直接安装）"
+            if [ "$BT" = "release" ]; then
+              BT="debug"
+              echo "::warning::签名 secrets 不完整，release 已自动改为 debug 构建"
+            else
+              echo "签名 secrets 不完整，使用 AGP 默认 debug keystore 签名"
+            fi
           fi
           TASK="assemble$(cap "$FLAVOR")$(cap "$BT")"
           echo "TASK=$TASK" >> "$GITHUB_ENV"
