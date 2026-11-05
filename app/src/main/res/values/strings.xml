@@ -704,5 +704,7 @@
     <string name="selected_count">%d selected</string>
     <string name="no_other_group">No other group</string>
     <string name="moved_to_group">Moved %1$d profiles to %2$s</string>
+    <string name="rename_group">Rename group</string>
+    <string name="delete_group">Delete group</string>
 
 </resources>
