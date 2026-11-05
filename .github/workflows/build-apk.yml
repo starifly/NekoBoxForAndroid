@@ -1,0 +1,422 @@
+name: Android CI
+
+# 编译 NekoBox APK 的完整流水线：
+#   native job -> 生成 libcore.aar（Go/gomobile）与 hev-tun 的 .so（NDK）
+#   build  job -> 下载 native 产物 + 下载 geo 资源 + Gradle 打包 APK
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/**'
+      - 'buildSrc/**'
+      - 'buildScript/**'
+      - 'libcore/**'
+      - 'gradle/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - 'gradlew'
+      - 'nb4a.properties'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+    inputs:
+      flavor:
+        description: '产品风味'
+        type: choice
+        options:
+          - oss
+          - fdroid
+          - play
+          - preview
+        default: oss
+      build_type:
+        description: '构建类型'
+        type: choice
+        options:
+          - release
+          - debug
+        default: release
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+  ANDROID_HOME: /usr/local/lib/android/sdk
+  SDK_PLATFORM: android-35            # buildSrc/Helpers.kt: compileSdk = 35
+  BUILD_TOOLS: 35.0.1                 # buildSrc/Helpers.kt: buildToolsVersion = 35.0.1
+  NDK_VERSION: 25.0.8775105           # buildScript/init/env_ndk.sh 首选版本
+  GRADLE_ARGS: --no-daemon --stacktrace
+  FLAVOR: ${{ inputs.flavor || 'oss' }}
+  BUILD_TYPE: ${{ inputs.build_type || 'release' }}
+
+jobs:
+  # ---------------------------------------------------------------- native
+  native:
+    name: Native libs (libcore + hevtun)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    if: ${{ !startsWith(github.event.head_commit.message, '[skip ci]') }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Restore Android SDK cache
+        id: sdk-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            /usr/local/lib/android/sdk/platforms/android-35
+            /usr/local/lib/android/sdk/build-tools/35.0.1
+          key: android-sdk-${{ runner.os }}-35-35.0.1
+          restore-keys: |
+            android-sdk-${{ runner.os }}-
+
+      - name: Restore Android NDK cache
+        id: ndk-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /usr/local/lib/android/sdk/ndk/25.0.8775105
+          key: android-ndk-${{ runner.os }}-25.0.8775105
+
+      - name: Install missing Android SDK / NDK components
+        if: steps.sdk-cache.outputs.cache-hit != 'true' || steps.ndk-cache.outputs.cache-hit != 'true'
+        run: |
+          SDK="$ANDROID_SDK_ROOT"
+          SDKMGR="$SDK/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMGR" ]; then
+            echo "::error::sdkmanager not found at $SDKMGR"
+            exit 1
+          fi
+          yes | "$SDKMGR" --licenses > /dev/null 2>&1 || true
+          if [ ! -d "$SDK/platforms/$SDK_PLATFORM" ]; then
+            yes | "$SDKMGR" "platforms;$SDK_PLATFORM"
+          fi
+          if [ ! -d "$SDK/build-tools/$BUILD_TOOLS" ]; then
+            yes | "$SDKMGR" "build-tools;$BUILD_TOOLS"
+          fi
+          if [ ! -f "$SDK/ndk/$NDK_VERSION/source.properties" ]; then
+            yes | "$SDKMGR" "ndk;$NDK_VERSION" || true
+          fi
+          # 兜底：若该 NDK 版本已从仓库移除，退到 runner 上最新的 NDK
+          if [ ! -f "$SDK/ndk/$NDK_VERSION/source.properties" ]; then
+            ALT=$(ls -d "$SDK"/ndk/*/ 2>/dev/null | sort -V | tail -1)
+            if [ -z "$ALT" ]; then
+              echo "::error::既没有 $NDK_VERSION，runner 上也没有任何 NDK"
+              exit 1
+            fi
+            ALT="${ALT%/}"
+            echo "::warning::$NDK_VERSION 不可用，回退到 $ALT"
+            echo "ANDROID_NDK_HOME=$ALT" >> "$GITHUB_ENV"
+          fi
+          echo "platforms: $(ls "$SDK/platforms" | tr '\n' ' ')"
+          echo "build-tools: $(ls "$SDK/build-tools" | tr '\n' ' ')"
+          echo "ndk: $(ls "$SDK/ndk" | tr '\n' ' ')"
+
+      - name: Compute native cache keys
+        run: |
+          find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
+          git ls-files libcore | xargs cat | sha1sum > libcore_status
+          git submodule status hev-socks5-tunnel > hev_status
+          sha1sum buildScript/compile-hevtun.sh >> hev_status
+          echo "libcore deps: $(cat golang_status libcore_status | tr -d '\n')"
+          echo "hevtun deps: $(cat hev_status | tr -d '\n')"
+
+      - name: Restore libcore cache
+        id: libcore-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: app/libs/libcore.aar
+          key: libcore-${{ runner.os }}-${{ hashFiles('golang_status', 'libcore_status') }}
+          restore-keys: |
+            libcore-${{ runner.os }}-
+
+      - name: Setup Golang
+        if: steps.libcore-cache.outputs.cache-hit != 'true'
+        uses: actions/setup-go@v6
+        with:
+          go-version: '^1.25'
+          cache: false
+
+      - name: Build libcore (Go + gomobile)
+        if: steps.libcore-cache.outputs.cache-hit != 'true'
+        run: |
+          # libcore/init.sh 用裸命令调用 gomobile-matsuri，当前 step 的 PATH 必须同步导出
+          export PATH="$(go env GOPATH)/bin:$PATH"
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+          echo "NDK: ${ANDROID_NDK_HOME:-$ANDROID_SDK_ROOT/ndk/$NDK_VERSION}"
+          ./run lib core
+          ls -lh app/libs/libcore.aar
+
+      - name: Restore hevtun cache
+        id: hevtun-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: app/src/main/jniLibs
+          key: hevtun-${{ runner.os }}-${{ hashFiles('hev_status') }}
+          restore-keys: |
+            hevtun-${{ runner.os }}-
+
+      - name: Build hevtun (NDK, 4 ABIs)
+        if: steps.hevtun-cache.outputs.cache-hit != 'true'
+        run: |
+          bash buildScript/compile-hevtun.sh
+          find app/src/main/jniLibs -name '*.so' -exec ls -lh {} \;
+
+      - name: Save libcore cache
+        if: steps.libcore-cache.outputs.cache-hit != 'true' && success()
+        uses: actions/cache/save@v4
+        with:
+          path: app/libs/libcore.aar
+          key: libcore-${{ runner.os }}-${{ hashFiles('golang_status', 'libcore_status') }}
+
+      - name: Save hevtun cache
+        if: steps.hevtun-cache.outputs.cache-hit != 'true' && success()
+        uses: actions/cache/save@v4
+        with:
+          path: app/src/main/jniLibs
+          key: hevtun-${{ runner.os }}-${{ hashFiles('hev_status') }}
+
+      - name: Save Android SDK cache
+        if: steps.sdk-cache.outputs.cache-hit != 'true' && success()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            /usr/local/lib/android/sdk/platforms/android-35
+            /usr/local/lib/android/sdk/build-tools/35.0.1
+          key: android-sdk-${{ runner.os }}-35-35.0.1
+
+      - name: Save Android NDK cache
+        if: steps.ndk-cache.outputs.cache-hit != 'true' && success()
+        uses: actions/cache/save@v4
+        with:
+          path: /usr/local/lib/android/sdk/ndk/25.0.8775105
+          key: android-ndk-${{ runner.os }}-25.0.8775105
+
+      # 交给 build job，避免依赖缓存 key 的二次命中
+      - name: Upload libcore aar
+        uses: actions/upload-artifact@v7
+        with:
+          name: libcore-aar
+          path: app/libs/libcore.aar
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Upload hevtun libs
+        uses: actions/upload-artifact@v7
+        with:
+          name: hevtun-libs
+          path: app/src/main/jniLibs
+          retention-days: 1
+          if-no-files-found: error
+
+  # ----------------------------------------------------------------- build
+  build:
+    name: Build ${{ inputs.flavor || 'oss' }} APK
+    runs-on: ubuntu-latest
+    needs:
+      - native
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Restore Android SDK cache
+        id: sdk-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            /usr/local/lib/android/sdk/platforms/android-35
+            /usr/local/lib/android/sdk/build-tools/35.0.1
+          key: android-sdk-${{ runner.os }}-35-35.0.1
+          restore-keys: |
+            android-sdk-${{ runner.os }}-
+
+      - name: Restore Android NDK cache
+        id: ndk-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /usr/local/lib/android/sdk/ndk/25.0.8775105
+          key: android-ndk-${{ runner.os }}-25.0.8775105
+
+      - name: Install missing Android SDK / NDK components
+        if: steps.sdk-cache.outputs.cache-hit != 'true' || steps.ndk-cache.outputs.cache-hit != 'true'
+        run: |
+          SDK="$ANDROID_SDK_ROOT"
+          SDKMGR="$SDK/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMGR" ]; then
+            echo "::error::sdkmanager not found at $SDKMGR"
+            exit 1
+          fi
+          yes | "$SDKMGR" --licenses > /dev/null 2>&1 || true
+          [ -d "$SDK/platforms/$SDK_PLATFORM" ] || yes | "$SDKMGR" "platforms;$SDK_PLATFORM"
+          [ -d "$SDK/build-tools/$BUILD_TOOLS" ] || yes | "$SDKMGR" "build-tools;$BUILD_TOOLS"
+          if [ ! -f "$SDK/ndk/$NDK_VERSION/source.properties" ]; then
+            yes | "$SDKMGR" "ndk;$NDK_VERSION" || true
+          fi
+          if [ ! -f "$SDK/ndk/$NDK_VERSION/source.properties" ]; then
+            ALT=$(ls -d "$SDK"/ndk/*/ 2>/dev/null | sort -V | tail -1)
+            echo "::warning::$NDK_VERSION 不可用，回退到 ${ALT:-无}"
+            [ -z "$ALT" ] || echo "ANDROID_NDK_HOME=${ALT%/}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Download libcore aar
+        uses: actions/download-artifact@v7
+        with:
+          name: libcore-aar
+          path: app/libs
+
+      - name: Download hevtun libs
+        uses: actions/download-artifact@v7
+        with:
+          name: hevtun-libs
+          path: app/src/main/jniLibs
+
+      - name: Restore Gradle cache
+        id: gradle-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle', '**/*.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Prepare local.properties and signing
+        id: signing
+        env:
+          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
+          ALIAS_NAME: ${{ secrets.ALIAS_NAME }}
+          ALIAS_PASS: ${{ secrets.ALIAS_PASS }}
+        run: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+          echo "ndk.dir=$ANDROID_SDK_ROOT/ndk/$NDK_VERSION" >> local.properties
+          # buildSrc/Helpers.kt 读取 release.keystore（已在仓库内），密码来自 env 或 local.properties
+          if [ -n "$KEYSTORE_PASS" ] && [ -n "$ALIAS_NAME" ] && [ -n "$ALIAS_PASS" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "release 签名已就绪（release.keystore）"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::KEYSTORE_PASS / ALIAS_NAME / ALIAS_PASS 未配置，release 将自动回退为 debug 签名"
+          fi
+
+      - name: Init assets (geoip / geosite)
+        run: |
+          ok=0
+          for i in 1 2 3; do
+            if ./run init action gradle; then ok=1; break; fi
+            echo "::warning::assets 下载失败（第 $i 次），重试中…"
+            sleep 5
+          done
+          if [ "$ok" != "1" ]; then
+            echo "::error::geoip/geosite 资源初始化失败"
+            exit 1
+          fi
+          ls -lh app/src/main/assets/sing-box/
+
+      - name: Build APK
+        id: build
+        env:
+          BUILD_PLUGIN: none
+          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
+          ALIAS_NAME: ${{ secrets.ALIAS_NAME }}
+          ALIAS_PASS: ${{ secrets.ALIAS_PASS }}
+          LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
+        run: |
+          set -uo pipefail
+          cap() { echo "${1^}"; }
+
+          BT="$BUILD_TYPE"
+          if [ "$BT" = "release" ] && [ -z "${KEYSTORE_PASS:-}" ]; then
+            # 空字符串会让 Helpers.kt 创建密码为空的 signingConfig，必须 unset
+            unset KEYSTORE_PASS ALIAS_NAME ALIAS_PASS
+            BT="debug"
+            echo "::warning::未配置签名密钥，已自动改为 debug 构建（APK 用 debug key 签名，可直接安装）"
+          fi
+          TASK="assemble$(cap "$FLAVOR")$(cap "$BT")"
+          echo "TASK=$TASK" >> "$GITHUB_ENV"
+          echo "EFFECTIVE_TYPE=$BT" >> "$GITHUB_ENV"
+          echo "==> ./gradlew app:$TASK $GRADLE_ARGS"
+
+          set +e
+          ./gradlew "app:$TASK" $GRADLE_ARGS 2>&1 | tee gradle.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            # 把编译错误转成 annotation，便于在 Checks 页直接看到
+            grep -E "^e: |error:|FAILURE:|What went wrong|Caused by|> Task .* FAILED" gradle.log | head -40 | while IFS= read -r line; do
+              echo "::error::$line"
+            done
+            exit "$status"
+          fi
+
+      - name: Collect APKs
+        id: collect
+        run: |
+          OUT="app/build/outputs/apk/${FLAVOR}/${EFFECTIVE_TYPE}"
+          if [ ! -d "$OUT" ]; then
+            echo "::error::未找到 APK 输出目录 $OUT"
+            ls -R app/build/outputs/apk || true
+            exit 1
+          fi
+          COUNT=$(find "$OUT" -name '*.apk' | wc -l)
+          if [ "$COUNT" -eq 0 ]; then
+            echo "::error::$OUT 下没有 APK"
+            exit 1
+          fi
+          echo "dir=$OUT" >> "$GITHUB_OUTPUT"
+          echo "=== 产物（$COUNT 个）==="
+          ls -lh "$OUT"
+          {
+            echo "### APK 产物：$FLAVOR / $EFFECTIVE_TYPE"
+            echo ""
+            echo "| 文件 | 大小 |"
+            echo "| --- | --- |"
+            find "$OUT" -name '*.apk' -printf '| %f | %k KB |\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify APK signature
+        if: steps.signing.outputs.enabled == 'true'
+        run: |
+          APKSIGNER=$(ls "$ANDROID_SDK_ROOT"/build-tools/*/apksigner | tail -1)
+          echo "使用 $APKSIGNER"
+          for apk in ${{ steps.collect.outputs.dir }}/*.apk; do
+            echo "== $apk"
+            "$APKSIGNER" verify --print-certs "$apk"
+          done
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: NekoBox-${{ env.FLAVOR }}-${{ env.EFFECTIVE_TYPE }}
+          path: ${{ steps.collect.outputs.dir }}/*.apk
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Save Gradle cache
+        if: steps.gradle-cache.outputs.cache-hit != 'true' && success()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle', '**/*.gradle.kts', 'gradle/wrapper/gradle-wrapper.properties') }}
