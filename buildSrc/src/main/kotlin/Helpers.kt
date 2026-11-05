@@ -115,12 +115,17 @@ fun Project.setupAppCommon() {
     setupCommon()
 
     val lp = requireLocalProperties()
-    val keystorePwd = lp.getProperty("KEYSTORE_PASS") ?: System.getenv("KEYSTORE_PASS")
-    val alias = lp.getProperty("ALIAS_NAME") ?: System.getenv("ALIAS_NAME")
-    val pwd = lp.getProperty("ALIAS_PASS") ?: System.getenv("ALIAS_PASS")
+    // 空字符串也要当成「未设置」：CI 里未配置 secret 时注入的就是空串
+    val keystorePwd = (lp.getProperty("KEYSTORE_PASS") ?: System.getenv("KEYSTORE_PASS"))
+        ?.takeIf { it.isNotBlank() }
+    val alias = (lp.getProperty("ALIAS_NAME") ?: System.getenv("ALIAS_NAME"))
+        ?.takeIf { it.isNotBlank() }
+    val pwd = (lp.getProperty("ALIAS_PASS") ?: System.getenv("ALIAS_PASS"))
+        ?.takeIf { it.isNotBlank() }
+    val fixedDebugKeystore = rootProject.file("debug.keystore")
 
     android.apply {
-        if (keystorePwd != null) {
+        if (keystorePwd != null && alias != null && pwd != null) {
             signingConfigs {
                 create("release") {
                     storeFile = rootProject.file("release.keystore")
@@ -129,12 +134,29 @@ fun Project.setupAppCommon() {
                     keyPassword = pwd
                 }
             }
+        } else if (fixedDebugKeystore.isFile) {
+            // 仓库内固定的调试证书：让每次构建的签名一致，新包可以直接覆盖安装
+            signingConfigs {
+                create("fixedDebug") {
+                    storeFile = fixedDebugKeystore
+                    storePassword = "nekobox"
+                    keyAlias = "nekobox"
+                    keyPassword = "nekobox"
+                }
+            }
         }
         buildTypes {
-            val key = signingConfigs.findByName("release")
-            if (key != null) {
-                getByName("release").signingConfig = key
-                getByName("debug").signingConfig = key
+            val releaseKey = signingConfigs.findByName("release")
+            val fixedKey = signingConfigs.findByName("fixedDebug")
+            when {
+                releaseKey != null -> {
+                    getByName("release").signingConfig = releaseKey
+                    getByName("debug").signingConfig = releaseKey
+                }
+
+                fixedKey != null -> {
+                    getByName("debug").signingConfig = fixedKey
+                }
             }
         }
     }
