@@ -187,6 +187,16 @@
                     android:textAppearance="?android:attr/textAppearanceSmall"
                     android:textColor="?android:textColorSecondary" />
 
+                <TextView
+                    android:id="@+id/profile_country"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:gravity="center_vertical"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    tools:text="🇺🇸" />
+
                 <View
                     android:layout_width="0dp"
                     android:layout_height="0dp"

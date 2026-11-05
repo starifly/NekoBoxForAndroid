@@ -5,6 +5,7 @@ import (
 	"net"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/oschwald/maxminddb-golang"
 	C "github.com/sagernet/sing-box/constant"
@@ -67,4 +68,44 @@ func init() {
 		defer g.geoipReader.Close()
 		return g.Rules(name)
 	}
+}
+
+// ---- IP 归属地查询（供 Kotlin 侧显示国旗）----
+
+var (
+	geoIPQueryOnce   sync.Once
+	geoIPQueryReader *maxminddb.Reader
+	geoIPQueryErr    error
+)
+
+type geoIPQueryRecord struct {
+	Country struct {
+		ISOCode string `maxminddb:"iso_code"`
+	} `maxminddb:"country"`
+}
+
+func getGeoIPQueryReader() (*maxminddb.Reader, error) {
+	geoIPQueryOnce.Do(func() {
+		geoIPQueryReader, geoIPQueryErr = maxminddb.Open(
+			filepath.Join(externalAssetsPath, "geoip.db"),
+		)
+	})
+	return geoIPQueryReader, geoIPQueryErr
+}
+
+// QueryGeoIPCountry 返回 IP 的 ISO 3166-1 两位国家代码（如 "US"），查不到返回空串
+func QueryGeoIPCountry(ip string) string {
+	parsed := net.ParseIP(strings.TrimSpace(ip))
+	if parsed == nil {
+		return ""
+	}
+	reader, err := getGeoIPQueryReader()
+	if err != nil || reader == nil {
+		return ""
+	}
+	var record geoIPQueryRecord
+	if err = reader.Lookup(parsed, &record); err != nil {
+		return ""
+	}
+	return strings.ToUpper(record.Country.ISOCode)
 }
