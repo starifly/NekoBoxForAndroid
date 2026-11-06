@@ -2,6 +2,7 @@ package io.nekohasekai.sagernet.database
 
 import io.nekohasekai.sagernet.GroupType
 import io.nekohasekai.sagernet.bg.SubscriptionUpdater
+import io.nekohasekai.sagernet.ktx.CountryFlags
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
 
 object GroupManager {
@@ -54,6 +55,8 @@ object GroupManager {
     }
 
     suspend fun clearGroup(groupId: Long) {
+        // 清空分组时同步清理该组全部节点的国旗缓存
+        CountryFlags.forgetProfiles(SagerDatabase.proxyDao.getByGroup(groupId))
         DataStore.selectedProxy = 0L
         SagerDatabase.proxyDao.deleteAll(groupId)
         iterator { groupUpdated(groupId) }
@@ -98,6 +101,7 @@ object GroupManager {
     }
 
     suspend fun deleteGroup(groupId: Long) {
+        CountryFlags.forgetProfiles(SagerDatabase.proxyDao.getByGroup(groupId))
         SagerDatabase.groupDao.deleteById(groupId)
         SagerDatabase.proxyDao.deleteByGroup(groupId)
         iterator { groupRemoved(groupId) }
@@ -105,6 +109,9 @@ object GroupManager {
     }
 
     suspend fun deleteGroup(group: List<ProxyGroup>) {
+        for (proxyGroup in group) {
+            CountryFlags.forgetProfiles(SagerDatabase.proxyDao.getByGroup(proxyGroup.id))
+        }
         SagerDatabase.groupDao.deleteGroup(group)
         SagerDatabase.proxyDao.deleteByGroup(group.map { it.id }.toLongArray())
         for (proxyGroup in group) iterator { groupRemoved(proxyGroup.id) }

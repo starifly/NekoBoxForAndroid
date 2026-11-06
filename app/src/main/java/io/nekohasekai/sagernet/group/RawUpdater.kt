@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SubscriptionFilterMode
 import io.nekohasekai.sagernet.database.*
+import io.nekohasekai.sagernet.ktx.CountryFlags
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.http.HttpBean
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
@@ -232,6 +233,10 @@ object RawUpdater : GroupUpdater() {
             Logs.d("Updated profiles: $it")
         }
 
+        // 订阅更新删除的节点，同步清理国旗缓存（删除前实体还在，能取到服务器地址）
+        if (toDelete.isNotEmpty()) {
+            CountryFlags.forgetProfiles(toDelete)
+        }
         SagerDatabase.proxyDao.deleteProxy(toDelete).also {
             Logs.d("Deleted profiles: $it")
         }
