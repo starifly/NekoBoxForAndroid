@@ -1,13 +1,23 @@
 package io.nekohasekai.sagernet.ktx
 
+import io.nekohasekai.sagernet.database.DataStore
 import libcore.Libcore
+import okhttp3.Credentials
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.net.InetSocketAddress
+import java.net.Proxy
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 /**
  * 通过当前连接请求 Cloudflare trace，获取实际出口 IP 与归属国家。
  *
  * 与节点服务器地址的 geoip 查询不同，这里反映的是真实落地：
  * 中转/落地分离、CDN 入口等场景都能得到正确结果。
+ *
+ * 有两条通道：优先走本机 mixed inbound（纯 Kotlin，行为可控），
+ * 失败时退回 libcore 的默认出站请求。
  */
 object EgressInfo {
 
@@ -65,11 +75,7 @@ object EgressInfo {
      * 失败返回 null（连接刚建立时可能尚未就绪，调用方自行重试）。
      */
     fun fetch(): Result? {
-        val body = try {
-            Libcore.httpGet(TRACE_URL, 5000)
-        } catch (e: Exception) {
-            return null
-        }
+        val body = fetchBodyViaMixedInbound() ?: fetchBodyViaLibcore()
         if (body.isNullOrBlank()) return null
 
         var ip = ""
@@ -80,10 +86,60 @@ object EgressInfo {
                 line.startsWith("loc=") -> loc = line.removePrefix("loc=").trim()
             }
         }
-        if (ip.isEmpty()) return null
+        if (ip.isEmpty()) {
+            Logs.d("egress trace: no ip in response")
+            return null
+        }
 
         val result = Result(ip, loc.uppercase())
         current = result
         return result
+    }
+
+    /** 走本机 mixed inbound（HTTP 代理） */
+    private fun fetchBodyViaMixedInbound(): String? {
+        return try {
+            val port = DataStore.mixedPort
+            if (port <= 0) return null
+            val client = OkHttpClient.Builder()
+                .proxy(Proxy(Proxy.Type.HTTP, InetSocketAddress("127.0.0.1", port)))
+                .proxyAuthenticator { _, response ->
+                    if (DataStore.mixedInboundHasAuth) {
+                        response.request.newBuilder()
+                            .header(
+                                "Proxy-Authorization",
+                                Credentials.basic(DataStore.mixedUsername, DataStore.mixedSecret)
+                            )
+                            .build()
+                    } else {
+                        response.request
+                    }
+                }
+                .connectTimeout(5, TimeUnit.SECONDS)
+                .readTimeout(8, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(true)
+                .build()
+            client.newCall(Request.Builder().url(TRACE_URL).build()).execute().use { response ->
+                if (!response.isSuccessful) {
+                    Logs.d("egress trace via mixed: HTTP ${response.code}")
+                    null
+                } else {
+                    response.body?.string()
+                }
+            }
+        } catch (e: Exception) {
+            Logs.d("egress trace via mixed failed: ${e.message}")
+            null
+        }
+    }
+
+    /** 退回经内核默认出站请求 */
+    private fun fetchBodyViaLibcore(): String? {
+        return try {
+            Libcore.httpGet(TRACE_URL, 6000)
+        } catch (e: Exception) {
+            Logs.d("egress trace via libcore failed: ${e.message}")
+            null
+        }
     }
 }

@@ -352,6 +352,7 @@
     <string name="always_show_address_sum">Always display the server address on the configuration
         card</string>
     <string name="clear_traffic_statistics">Clear traffic statistics</string>
+    <string name="egress_detecting">Detecting…</string>
     <string name="connection_test">Connection test</string>
     <string name="connection_test_clear_results">Clear test results</string>
     <string name="connection_test_tcp_ping" translatable="false">TCPing</string>
