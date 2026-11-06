@@ -156,7 +156,11 @@ private fun serverHostOf(bean: AbstractBean): String? {
 }
 
 fun buildConfig(
-    proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean = false
+    proxy: ProxyEntity,
+    forTest: Boolean = false,
+    forExport: Boolean = false,
+    // 整组测速：一次构建组内全部节点的 outbound，配合单实例按 tag 并发测速
+    testProfiles: List<ProxyEntity>? = null,
 ): ConfigBuildResult {
 
     if (proxy.type == TYPE_CONFIG) {
@@ -632,17 +636,19 @@ fun buildConfig(
         }
 
         // build outbounds
-        if (buildSelector) {
-            val list = group.id.let { SagerDatabase.proxyDao.getByGroup(it) }
+        if (buildSelector || testProfiles != null) {
+            val list = testProfiles ?: group.id.let { SagerDatabase.proxyDao.getByGroup(it) }
             list.forEach {
                 tagMap[it.id] = buildChain(it.id, it)
             }
-            outbounds.add(0, Outbound_SelectorOptions().apply {
-                type = "selector"
-                tag = TAG_PROXY
-                default_ = tagMap[proxy.id]
-                outbounds = tagMap.values.toList()
-            })
+            if (buildSelector) {
+                outbounds.add(0, Outbound_SelectorOptions().apply {
+                    type = "selector"
+                    tag = TAG_PROXY
+                    default_ = tagMap[proxy.id]
+                    outbounds = tagMap.values.toList()
+                })
+            }
         } else {
             val mainTag = buildChain(0, proxy)
             tagMap[proxy.id] = mainTag

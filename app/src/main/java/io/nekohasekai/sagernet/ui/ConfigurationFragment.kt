@@ -52,6 +52,7 @@ import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.proto.UrlTest
+import io.nekohasekai.sagernet.bg.proto.BatchTestInstance
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
@@ -1320,44 +1321,78 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
             test.proxyN = profilesList.size
             val profiles = ConcurrentLinkedQueue(profilesList)
-            repeat(DataStore.connectionTestConcurrent) {
-                testJobs.add(launch(Dispatchers.IO) {
-                    val urlTest = UrlTest() // note: this is NOT in bg process
-                    while (isActive) {
-                        val profile = profiles.poll() ?: break
-                        profile.status = 0
+            // 单实例测速（对标 Clash 的 /proxies/{name}/delay）：
+            // 整组只构建并启动一次内核，随后按 outbound tag 并发拨号
+            var batch: BatchTestInstance? = null
+            try {
+                if (profilesList.isNotEmpty()) {
+                    val instance = BatchTestInstance(
+                        profilesList,
+                        DataStore.connectionTestURL,
+                        DataStore.connectionTestTimeout
+                    )
+                    batch = instance
+                    instance.prepare()
+                    val tags = instance.tagMap
 
-                        try {
-                            val result = urlTest.doTest(profile)
-                            profile.status = 1
-                            profile.ping = result
-                        } catch (e: PluginManager.PluginNotFoundException) {
-                            profile.status = 2
-                            profile.error = e.readableMessage
-                        } catch (e: Exception) {
-                            profile.status = 3
-                            profile.error = e.readableMessage
-                        }
+                    repeat(DataStore.connectionTestConcurrent.coerceAtLeast(1)) {
+                        testJobs.add(launch(Dispatchers.IO) {
+                            while (isActive) {
+                                val profile = profiles.poll() ?: break
+                                profile.status = 0
+                                val tag = tags[profile.id]
+                                if (tag == null) {
+                                    profile.status = 3
+                                    profile.error = "missing outbound tag"
+                                } else try {
+                                    val result = instance.testTag(tag)
+                                    profile.status = 1
+                                    profile.ping = result
+                                } catch (e: PluginManager.PluginNotFoundException) {
+                                    profile.status = 2
+                                    profile.error = e.readableMessage
+                                } catch (e: Exception) {
+                                    profile.status = 3
+                                    profile.error = e.readableMessage
+                                }
 
-                        // 顺带解析节点服务器的归属国家，供卡片显示国旗
-                        CountryFlags.query(profile)
-                        // 立即落库并刷新该行，让延迟和国旗同时出现
-                        // （只 notifyItemChanged 不会更新延迟：adapter 里缓存的是旧对象）
+                                // 顺带解析节点服务器的归属国家，供卡片显示国旗
+                                CountryFlags.query(profile)
+                                // 立即落库并刷新该行，让延迟和国旗同时出现
+                                // （只 notifyItemChanged 不会更新延迟：adapter 里缓存的是旧对象）
+                                try {
+                                    ProfileManager.updateProfile(profile)
+                                } catch (e: Exception) {
+                                    Logs.w(e)
+                                    runOnMainDispatcher {
+                                        getCurrentGroupFragment()?.adapter?.notifyProfileChanged(profile.id)
+                                    }
+                                }
+
+                                test.update(profile)
+                            }
+                        })
+                    }
+
+                    testJobs.joinAll()
+                }
+            } catch (e: Exception) {
+                // 内核启动失败：整组标记失败，避免所有节点停在「测试中」
+                Logs.w(e)
+                for (profile in profilesList) {
+                    if (profile.status == 0) {
+                        profile.status = 3
+                        profile.error = e.readableMessage
                         try {
                             ProfileManager.updateProfile(profile)
-                        } catch (e: Exception) {
-                            Logs.w(e)
-                            runOnMainDispatcher {
-                                getCurrentGroupFragment()?.adapter?.notifyProfileChanged(profile.id)
-                            }
+                        } catch (ignored: Exception) {
                         }
-
                         test.update(profile)
                     }
-                })
+                }
+            } finally {
+                batch?.close()
             }
-
-            testJobs.joinAll()
 
             runOnMainDispatcher {
                 test.cancel()
