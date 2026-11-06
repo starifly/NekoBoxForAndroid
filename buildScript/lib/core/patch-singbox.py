@@ -60,6 +60,35 @@ SELECTOR_BLOCK = '''\tif nekoutils.Selector_OnProxySelected != nil {
 '''
 
 
+
+VLESS_ENCRYPTION_DIR = pathlib.Path(__file__).resolve().parent / "singbox-vless-encryption"
+
+VLESS_OPTION_FIELD = (
+    "\t// Encryption 是 VLESS 内部的后量子加密层（mlkem768x25519plus），\n"
+    "\t// 位于传输层之下、与 TLS/REALITY 无关。空或 \"none\" 表示关闭。\n"
+    "\tEncryption string `json:\"encryption,omitempty\"`\n"
+)
+
+VLESS_FIELD_BLOCK = (
+    "\t// VLESS 后量子加密层（mlkem768x25519plus），未配置时为 nil\n"
+    "\tencryption *encryption.ClientInstance\n"
+)
+
+VLESS_NEW_BLOCK = (
+    "\t// VLESS Encryption：层在 VLESS 内部、传输之下，与 TLS/REALITY 无关\n"
+    "\tif options.Encryption != \"\" && options.Encryption != \"none\" {\n"
+    "\t\tencryptionConfig, err := parseClientEncryption(options.Encryption)\n"
+    "\t\tif err != nil {\n"
+    "\t\t\treturn nil, E.Cause(err, \"parse encryption\")\n"
+    "\t\t}\n"
+    "\t\toutbound.encryption = &encryption.ClientInstance{}\n"
+    "\t\tif err := outbound.encryption.Init(encryptionConfig.keys, encryptionConfig.xorMode, encryptionConfig.seconds, encryptionConfig.padding); err != nil {\n"
+    "\t\t\treturn nil, E.Cause(err, \"initialize encryption\")\n"
+    "\t\t}\n"
+    "\t}\n"
+)
+
+
 def fail(message: str) -> None:
     print("patch-singbox: " + message, file=sys.stderr)
     sys.exit(1)
@@ -121,6 +150,98 @@ def patch_selector(root: pathlib.Path) -> None:
     print("patch-singbox: selector.go patched")
 
 
+
+def patch_vless_encryption(root: pathlib.Path) -> None:
+    """移植 VLESS Encryption（mlkem768x25519plus，来自 qingwan 的 1.15 定制内核）。
+
+    上游 sing-box（含 1.15.0-alpha.13 / dev-next）至今未实现该特性，
+    这是 Xray 2025 引入的协议层后量子加密。实现文件为纯 Go 无第三方依赖。
+    """
+    if not VLESS_ENCRYPTION_DIR.is_dir():
+        fail("找不到 singbox-vless-encryption 目录，仓库不完整")
+
+    # 1) 拷贝实现文件
+    vless_dir = root / "protocol" / "vless"
+    if not vless_dir.is_dir():
+        fail("protocol/vless 目录不存在，上游结构可能已变化")
+    enc_dir = vless_dir / "encryption"
+    enc_dir.mkdir(parents=True, exist_ok=True)
+    (vless_dir / "lx_encryption.go").write_bytes(
+        (VLESS_ENCRYPTION_DIR / "lx_encryption.go").read_bytes()
+    )
+    for src in sorted((VLESS_ENCRYPTION_DIR / "encryption").glob("*.go")):
+        (enc_dir / src.name).write_bytes(src.read_bytes())
+
+    # 2) option/vless.go：新增 encryption 字段
+    path = root / "option" / "vless.go"
+    text = path.read_text(encoding="utf-8")
+    if 'json:"encryption,omitempty"' in text:
+        print("patch-singbox: option/vless.go 已打过补丁，跳过")
+    else:
+        anchor = '\tNetwork NetworkList `json:"network,omitempty"`\n'
+        if anchor not in text:
+            fail("option/vless.go 锚点未匹配，上游结构可能已变化")
+        text = text.replace(anchor, anchor + VLESS_OPTION_FIELD, 1)
+        path.write_text(text, encoding="utf-8")
+        print("patch-singbox: option/vless.go patched")
+
+    # 3) protocol/vless/outbound.go：结构体字段 / 初始化 / 两处握手接线
+    path = root / "protocol" / "vless" / "outbound.go"
+    text = path.read_text(encoding="utf-8")
+    if "wrapEncryption" in text:
+        print("patch-singbox: protocol/vless/outbound.go 已打过补丁，跳过")
+        return
+
+    import_anchor = '\t"github.com/sagernet/sing-box/option"\n'
+    if import_anchor not in text:
+        fail("outbound.go 找不到 option import 锚点")
+    text = text.replace(
+        import_anchor,
+        import_anchor + '\t"github.com/sagernet/sing-box/protocol/vless/encryption"\n',
+        1,
+    )
+
+    field_anchor = "\tpacketAddr      bool\n\txudp            bool\n"
+    if field_anchor not in text:
+        fail("outbound.go 结构体锚点未匹配，上游结构可能已变化")
+    text = text.replace(field_anchor, field_anchor + VLESS_FIELD_BLOCK, 1)
+
+    new_anchor = (
+        "\toutbound.multiplexDialer, err = mux.NewClientWithOptions("
+        "(*vlessDialer)(outbound), logger, common.PtrValueOrDefault(options.Multiplex))"
+    )
+    if new_anchor not in text:
+        fail("outbound.go NewOutbound 锚点未匹配，上游结构可能已变化")
+    text = text.replace(new_anchor, VLESS_NEW_BLOCK + new_anchor, 1)
+
+    dial_anchor = "\tif err != nil {\n\t\treturn nil, err\n\t}\n\tswitch N.NetworkName(network) {"
+    if dial_anchor not in text:
+        fail("outbound.go DialContext 锚点未匹配，上游结构可能已变化")
+    text = text.replace(
+        dial_anchor,
+        "\tif err != nil {\n\t\treturn nil, err\n\t}\n"
+        "\tconn, err = h.wrapEncryption(ctx, conn)\n"
+        "\tif err != nil {\n\t\treturn nil, err\n\t}\n"
+        "\tswitch N.NetworkName(network) {",
+        1,
+    )
+
+    packet_anchor = "\tif err != nil {\n\t\tcommon.Close(conn)\n\t\treturn nil, err\n\t}\n\tif h.xudp {"
+    if packet_anchor not in text:
+        fail("outbound.go ListenPacket 锚点未匹配，上游结构可能已变化")
+    text = text.replace(
+        packet_anchor,
+        "\tif err != nil {\n\t\tcommon.Close(conn)\n\t\treturn nil, err\n\t}\n"
+        "\tconn, err = h.wrapEncryption(ctx, conn)\n"
+        "\tif err != nil {\n\t\tcommon.Close(conn)\n\t\treturn nil, err\n\t}\n"
+        "\tif h.xudp {",
+        1,
+    )
+
+    path.write_text(text, encoding="utf-8")
+    print("patch-singbox: protocol/vless/outbound.go patched")
+
+
 def main() -> None:
     if len(sys.argv) < 2:
         fail("缺少 sing-box 源码目录参数")
@@ -135,6 +256,7 @@ def main() -> None:
 
     patch_rule_set_local(root)
     patch_selector(root)
+    patch_vless_encryption(root)
     print("patch-singbox: done")
 
 
