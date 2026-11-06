@@ -101,11 +101,18 @@ object CountryFlags {
         return ""
     }
 
+    private const val MAX_PERSISTED = 2000
+
     private fun remember(host: String, profileId: Long, code: String) {
         byHost[host] = code
         byProfile[profileId] = code
         failedAt.remove(host)
         try {
+            // 持久化条目设上限：超限整体清空，后续查询自动重建（条目很小，重建成本低）
+            if (prefs.all.size >= MAX_PERSISTED) {
+                prefs.edit().clear().apply()
+                byHost.clear()
+            }
             prefs.edit().putString(host, code).apply()
         } catch (ignored: Exception) {
         }

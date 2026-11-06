@@ -30,6 +30,7 @@ import io.nekohasekai.sagernet.fmt.snell.SnellBean
 import io.nekohasekai.sagernet.fmt.snell.buildSingBoxOutboundSnellBean
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxOutboundWireguardBean
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.utils.PackageCache
@@ -92,9 +93,14 @@ private fun DNSServerOptions.applyDnsAddress(address: String) {
             if (hasScheme && hostPart.isNotBlank()) interface_ = hostPart
         }
         "https", "h3" -> {
-            type = typeName
             val url = (if (hasScheme) value else "https://$value").toHttpUrlOrNull()
-                ?: throw Exception("Invalid DNS address: $address")
+            if (url == null) {
+                // 原版对坏地址更宽容：解析失败降级为 local，不让服务起不来
+                Logs.d("invalid DNS address, fallback to local: $address")
+                type = "local"
+                return
+            }
+            type = typeName
             server = url.host
             if (url.port != 443) server_port = url.port
             path = url.encodedPath.takeIf { it.isNotBlank() && it != "/" }
@@ -114,7 +120,10 @@ private fun DNSServerOptions.applyDnsAddress(address: String) {
                 else -> server = hostPort
             }
         }
-        else -> throw Exception("Unsupported DNS address: $address")
+        else -> {
+            Logs.d("unsupported DNS address, fallback to local: $address")
+            type = "local"
+        }
     }
 }
 
@@ -549,8 +558,10 @@ fun buildConfig(
                             domainListDNSDirectForce.add("full:$serverAddress")
                         }
                     }
-                    _hack_config_map["domain_strategy"] =
-                        if (forTest) "" else defaultServerDomainStrategy
+                    // 1.12+ 用 domain_resolver 替代已废弃的 domain_strategy
+                    _hack_config_map["domain_resolver"] =
+                        if (forTest || defaultServerDomainStrategy.isEmpty()) "dns-direct"
+                        else mapOf("server" to "dns-direct", "strategy" to defaultServerDomainStrategy)
 
                     _hack_config_map["tag"] = tagOut
 
@@ -965,7 +976,6 @@ fun buildConfig(
                 tag = "dns-direct"
                 detour = TAG_DNS_DIRECT_OUT
                 domain_resolver = "dns-local"
-                domain_strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
             })
         }
 
@@ -975,7 +985,6 @@ fun buildConfig(
                 applyDnsAddress(it ?: throw Exception("No remote DNS, check your settings!"))
                 tag = "dns-remote"
                 domain_resolver = "dns-direct"
-                domain_strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
             })
         }
         if (dnsHosts.isNotEmpty()) {
@@ -984,6 +993,11 @@ fun buildConfig(
                 tag = TAG_DNS_HOSTS
                 predefined = dnsHosts
             })
+        }
+
+        // 1.14 起 DNS server 不再支持独立 strategy（domain_strategy 已废弃），统一放到 dns.strategy
+        autoDnsDomainStrategy(genDomainStrategy(DataStore.resolveDestination))?.let {
+            dns.strategy = it
         }
 
         dns.final_ = if (forTest) "dns-direct" else "dns-remote"
@@ -1067,7 +1081,6 @@ fun buildConfig(
                     if (!resolver.isIpAddress()) {
                         domain_resolver = "dns-direct"
                     }
-                    domain_strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy("server"))
                 })
                 dns.rules.add(0, DNSRule_DefaultOptions().apply {
                     makeSingBoxRule(hosts)
