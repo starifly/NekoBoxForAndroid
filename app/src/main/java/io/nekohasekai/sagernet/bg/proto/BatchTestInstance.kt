@@ -27,7 +27,7 @@ class BatchTestInstance(
 
     /** profileId -> outbound tag，由批量配置的 buildChain 生成 */
     val tagMap: Map<Long, String>
-        get() = config.tagMap
+        get() = config.profileTagMap
 
     /**
      * 构建配置、初始化并启动内核（插件节点会在此一并拉起）。

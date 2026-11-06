@@ -637,7 +637,9 @@ fun buildConfig(
 
         // build outbounds
         if (buildSelector || testProfiles != null) {
-            val list = testProfiles ?: group.id.let { SagerDatabase.proxyDao.getByGroup(it) }
+            val list = testProfiles
+                ?: group?.id?.let { SagerDatabase.proxyDao.getByGroup(it) }
+                ?: emptyList()
             list.forEach {
                 tagMap[it.id] = buildChain(it.id, it)
             }
