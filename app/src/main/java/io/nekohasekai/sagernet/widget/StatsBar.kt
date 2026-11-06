@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class StatsBar @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null,
@@ -41,6 +42,9 @@ class StatsBar @JvmOverloads constructor(
     private lateinit var statusText: TextView
     private lateinit var txText: TextView
     private lateinit var rxText: TextView
+    private lateinit var egressCountry: TextView
+    private lateinit var egressIp: TextView
+    private var egressJob: Job? = null
     @Suppress("unused")
     private lateinit var behavior: YourBehavior
     private var currentState = BaseService.State.Idle
@@ -119,7 +123,47 @@ class StatsBar @JvmOverloads constructor(
         statusText = findViewById(R.id.status)
         txText = findViewById(R.id.tx)
         rxText = findViewById(R.id.rx)
+        egressCountry = findViewById(R.id.egress_country)
+        egressIp = findViewById(R.id.egress_ip)
         super.setOnClickListener(l)
+    }
+
+    /**
+     * 连接成功后请求出口 IP / 归属国家并显示在状态栏右侧。
+     * 刚连上时可能还没就绪，失败会重试几次。
+     */
+    private fun refreshEgress() {
+        val activity = context as? MainActivity ?: return
+        egressJob?.cancel()
+        egressJob = activity.lifecycleScope.launch(Dispatchers.IO) {
+            var fetched: EgressInfo.Result? = EgressInfo.current
+            for (attempt in 0..2) {
+                if (fetched != null) break
+                fetched = EgressInfo.fetch()
+                if (fetched != null) break
+                delay(1500L)
+            }
+            val info = fetched ?: return@launch
+            withContext(Dispatchers.Main) {
+                if (!::egressCountry.isInitialized) return@withContext
+                egressCountry.text = info.display
+                egressIp.text = info.ip
+                egressCountry.isVisible = true
+                egressIp.isVisible = true
+            }
+        }
+    }
+
+    private fun clearEgress() {
+        egressJob?.cancel()
+        egressJob = null
+        EgressInfo.clear()
+        if (::egressCountry.isInitialized) {
+            egressCountry.text = null
+            egressIp.text = null
+            egressCountry.isGone = true
+            egressIp.isGone = true
+        }
     }
 
     private fun setStatus(text: CharSequence) {
@@ -279,7 +323,9 @@ class StatsBar @JvmOverloads constructor(
         updateHideOnScroll()
         if (state == BaseService.State.Connected) {
             setStatus(app.getText(R.string.vpn_connected))
+            refreshEgress()
         } else {
+            clearEgress()
             updateSpeed(0, 0)
             setStatus(
                 context.getText(

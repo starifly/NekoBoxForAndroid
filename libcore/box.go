@@ -11,6 +11,7 @@ import (
 	"runtime/debug"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/matsuridayo/libneko/protect_server"
 	"github.com/matsuridayo/libneko/speedtest"
@@ -240,6 +241,27 @@ func UrlTestTag(i *BoxInstance, tag string, link string, timeout int32) (latency
 		connectionTracker = i.v2api.StatsService()
 	}
 	return speedtest.UrlTest(boxapi.CreateProxyHttpClientWithTag(i.Box, connectionTracker, tag), link, timeout, speedtest.UrlTestStandard_RTT)
+}
+
+// HttpGet 经当前连接（mainInstance）发起 GET，返回响应体（最多 8KB）。
+// 用于获取实际出口 IP 与归属国家（如 Cloudflare trace），反映真实落地而非节点服务器地址。
+func HttpGet(url string, timeout int32) (body string, err error) {
+	defer device.DeferPanicToError("box.HttpGet", func(err_ error) { err = err_ })
+	if mainInstance == nil || mainInstance.Box == nil {
+		return "", errors.New("box is not initialized")
+	}
+	client := boxapi.CreateProxyHttpClient(mainInstance.Box, nil)
+	client.Timeout = time.Duration(timeout) * time.Millisecond
+	resp, err := client.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	buffer, err := io.ReadAll(io.LimitReader(resp.Body, 8192))
+	if err != nil {
+		return "", err
+	}
+	return string(buffer), nil
 }
 
 var protectCloser io.Closer
