@@ -4,7 +4,6 @@ import android.database.sqlite.SQLiteCantOpenDatabaseException
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.fmt.AbstractBean
-import io.nekohasekai.sagernet.ktx.CountryFlags
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
 import io.nekohasekai.sagernet.ktx.applyDefaultValues
@@ -109,10 +108,6 @@ object ProfileManager {
     }
 
     suspend fun deleteProfile2(groupId: Long, profileId: Long) {
-        // 删除节点时同步清理国旗缓存（订阅更新 / 清理不可用 / 多选 / 设置页都走这里）
-        SagerDatabase.proxyDao.getById(profileId)?.let {
-            CountryFlags.forgetProfiles(listOf(it))
-        }
         if (SagerDatabase.proxyDao.deleteById(profileId) == 0) return
         if (DataStore.selectedProxy == profileId) {
             DataStore.selectedProxy = 0L
@@ -120,9 +115,6 @@ object ProfileManager {
     }
 
     suspend fun deleteProfile(groupId: Long, profileId: Long) {
-        SagerDatabase.proxyDao.getById(profileId)?.let {
-            CountryFlags.forgetProfiles(listOf(it))
-        }
         if (SagerDatabase.proxyDao.deleteById(profileId) == 0) return
         if (DataStore.selectedProxy == profileId) {
             DataStore.selectedProxy = 0L
