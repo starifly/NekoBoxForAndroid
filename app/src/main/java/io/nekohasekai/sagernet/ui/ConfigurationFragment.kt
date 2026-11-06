@@ -66,6 +66,7 @@ import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.group.RawUpdater
+import io.nekohasekai.sagernet.ktx.EgressInfo
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.FixedGridLayoutManager
 import io.nekohasekai.sagernet.ktx.Logs
@@ -2570,6 +2571,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
 
                     if (update) {
+                        // 换节点（非 selector 分组会重连）：清掉旧出口信息，重连成功后重新探测
+                        EgressInfo.clear()
                         ProfileManager.postUpdate(lastSelected, noTraffic = true)
                         if (DataStore.serviceState.canStop && reloadAccess.tryLock()) {
                             SagerNet.reloadService()

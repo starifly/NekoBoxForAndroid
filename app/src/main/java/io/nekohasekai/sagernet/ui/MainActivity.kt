@@ -513,6 +513,8 @@ class MainActivity : ThemedActivity(),
         DataStore.selectedProxy = id
         DataStore.currentProfile = id
         refreshConfigurationProfileState()
+        // 分组内切换节点：服务不会重启，主动刷新出口 IP / 国家
+        binding.stats.refreshEgressInfo(1000L)
         runOnDefaultDispatcher {
             ProfileManager.postUpdate(old, true)
             ProfileManager.postUpdate(id, true)

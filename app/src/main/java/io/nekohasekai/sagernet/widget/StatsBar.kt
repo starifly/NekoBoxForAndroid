@@ -154,6 +154,38 @@ class StatsBar @JvmOverloads constructor(
         }
     }
 
+    /**
+     * 切换节点后刷新出口信息。
+     * selector 即时切换不会改变服务状态，重连分支也可能命中缓存，
+     * 因此这里主动清缓存并延迟一小段时间等新出口就绪。
+     */
+    fun refreshEgressInfo(delayMs: Long = 0L) {
+        if (currentState != BaseService.State.Connected) {
+            EgressInfo.clear()
+            return
+        }
+        val activity = context as? MainActivity ?: return
+        egressJob?.cancel()
+        EgressInfo.clear()
+        egressJob = activity.lifecycleScope.launch(Dispatchers.IO) {
+            if (delayMs > 0) delay(delayMs)
+            var fetched: EgressInfo.Result? = null
+            for (attempt in 0..2) {
+                fetched = EgressInfo.fetch()
+                if (fetched != null) break
+                delay(1500L)
+            }
+            val info = fetched ?: return@launch
+            withContext(Dispatchers.Main) {
+                if (!::egressCountry.isInitialized) return@withContext
+                egressCountry.text = info.display
+                egressIp.text = info.ip
+                egressCountry.isVisible = true
+                egressIp.isVisible = true
+            }
+        }
+    }
+
     private fun clearEgress() {
         egressJob?.cancel()
         egressJob = null
