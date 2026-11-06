@@ -137,6 +137,13 @@ class StatsBar @JvmOverloads constructor(
     private fun refreshEgress() {
         val activity = context as? MainActivity ?: return
         egressJob?.cancel()
+        if (::egressCountry.isInitialized) {
+            // 先给个占位，探测失败时也不会一片空白
+            egressCountry.text = context.getString(R.string.egress_detecting)
+            egressCountry.isVisible = true
+            egressIp.text = null
+            egressIp.isGone = true
+        }
         egressJob = activity.lifecycleScope.launch(Dispatchers.IO) {
             var fetched: EgressInfo.Result? = EgressInfo.current
             for (attempt in 0..2) {
@@ -145,13 +152,19 @@ class StatsBar @JvmOverloads constructor(
                 if (fetched != null) break
                 delay(1500L)
             }
-            val info = fetched ?: return@launch
+            val info = fetched
             withContext(Dispatchers.Main) {
                 if (!::egressCountry.isInitialized) return@withContext
-                egressCountry.text = info.display
-                egressIp.text = info.ip
-                egressCountry.isVisible = true
-                egressIp.isVisible = true
+                if (info == null) {
+                    egressCountry.text = "--"
+                    egressIp.text = null
+                    egressIp.isGone = true
+                } else {
+                    egressCountry.text = info.display
+                    egressIp.text = info.ip
+                    egressCountry.isVisible = true
+                    egressIp.isVisible = true
+                }
             }
         }
     }
