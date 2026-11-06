@@ -842,9 +842,9 @@ fun buildSingBoxOutboundStandardV2RayBean(bean: StandardV2RayBean): Outbound {
                 if (bean.encryption.isNotBlank() && bean.encryption != "auto") {
                     flow = bean.encryption
                 }
-                if (bean.vlessEncryption.isNotBlank() && bean.vlessEncryption != "none") {
-                    encryption = bean.vlessEncryption
-                }
+                // sing-box 1.14 的 vless outbound 没有 encryption 字段（VLESS Encryption
+                // 是 mihomo/Xray 生态能力），输出会导致 decode config: unknown field，
+                // 整个服务无法启动。解析与存储保留（分享链接仍带 encryption=）。
                 when (bean.packetEncoding) {
                     0 -> packet_encoding = ""
                     1 -> packet_encoding = "packetaddr"
