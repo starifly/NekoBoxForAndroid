@@ -1167,6 +1167,14 @@ class ConfigurationFragment @JvmOverloads constructor(
         popup.menuInflater.inflate(R.menu.group_tab_menu, popup.menu)
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
+                R.id.action_edit_group -> {
+                    // 打开分组详情编辑页（名称/类型/订阅链接等）
+                    startActivity(Intent(requireContext(), GroupSettingsActivity::class.java).apply {
+                        putExtra(GroupSettingsActivity.EXTRA_GROUP_ID, group.id)
+                    })
+                    true
+                }
+
                 R.id.action_rename_group -> {
                     renameGroup(group)
                     true
