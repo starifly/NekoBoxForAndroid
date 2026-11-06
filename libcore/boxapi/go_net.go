@@ -21,3 +21,16 @@ func DialContext(ctx context.Context, box *box.Box, tracker adapter.ConnectionTr
 	}
 	return conn, nil
 }
+
+// DialContextWithTag 与 DialContext 相同，但强制经指定出站 tag 拨号，
+// 用于单实例内的按节点并发测速（对标 Clash 的 /proxies/{name}/delay）。
+func DialContextWithTag(ctx context.Context, box *box.Box, tracker adapter.ConnectionTracker, tag, network, addr string) (net.Conn, error) {
+	conn, err := dialer.NewDetour(box.Outbound(), tag, true).DialContext(ctx, network, metadata.ParseSocksaddr(addr))
+	if err != nil {
+		return nil, err
+	}
+	if ss, ok := tracker.(*SbStatsService); ok {
+		conn = ss.RoutedConnectionInternal("", tag, "", conn, false)
+	}
+	return conn, nil
+}

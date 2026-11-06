@@ -228,6 +228,20 @@ func UrlTest(i *BoxInstance, link string, timeout int32) (latency int32, err err
 	return speedtest.UrlTest(boxapi.CreateProxyHttpClient(mainInstance.Box, connectionTracker), link, timeout, speedtest.UrlTestStandard_RTT)
 }
 
+// UrlTestTag 在已启动的实例内，按 outbound tag 测速（不重启内核）。
+// 供整组并发测速使用：一次 init，逐 tag 拨号，调用方并发拿结果逐条回显。
+func UrlTestTag(i *BoxInstance, tag string, link string, timeout int32) (latency int32, err error) {
+	defer device.DeferPanicToError("box.UrlTestTag", func(err_ error) { err = err_ })
+	if i == nil || i.Box == nil {
+		return 0, errors.New("box is not initialized")
+	}
+	var connectionTracker adapter.ConnectionTracker
+	if i.v2api != nil {
+		connectionTracker = i.v2api.StatsService()
+	}
+	return speedtest.UrlTest(boxapi.CreateProxyHttpClientWithTag(i.Box, connectionTracker, tag), link, timeout, speedtest.UrlTestStandard_RTT)
+}
+
 var protectCloser io.Closer
 
 func goServeProtect(start bool) {
