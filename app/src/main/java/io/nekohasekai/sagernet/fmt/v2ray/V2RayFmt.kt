@@ -17,6 +17,11 @@ private val supportedKcpHeaderType = arrayOf(
     "none", "srtp", "utp", "wechat-video", "dtls", "wireguard", "dns"
 )
 
+/** sing-box common/tls 实际支持的 uTLS 指纹（小写） */
+private val knownUTLSFingerprints = setOf(
+    "chrome", "firefox", "edge", "safari", "360", "qq", "ios", "android", "random", "randomized"
+)
+
 data class VmessQRCode(
     var v: String = "",
     var ps: String = "",
@@ -790,20 +795,27 @@ fun buildSingBoxOutboundTLS(bean: StandardV2RayBean): OutboundTLSOptions? {
             }
         }
         if (bean.certificates.isNotBlank()) certificate = bean.certificates
-        var fp = bean.utlsFingerprint
+        var fp = bean.utlsFingerprint?.trim()?.lowercase().orEmpty()
+        // sing-box 的 uTLS 只认这些指纹。Xray 的 "unsafe" 表示禁用 uTLS，
+        // 直接透传会让内核初始化失败（unknown uTLS fingerprint），
+        // 进而整组测速/连接全部失败。
         if (bean.realityPubKey.isNotBlank()) {
             reality = OutboundRealityOptions().apply {
                 enabled = true
                 public_key = bean.realityPubKey
                 short_id = bean.realityShortId
             }
-            if (fp.isNullOrBlank()) fp = "chrome"
+            // REALITY 必须启用 uTLS，未知指纹退回最通用的 chrome
+            if (fp !in knownUTLSFingerprints) fp = "chrome"
         }
-        if (fp.isNotBlank()) {
+        if (fp in knownUTLSFingerprints) {
             utls = OutboundUTLSOptions().apply {
                 enabled = true
                 fingerprint = fp
             }
+        } else if (fp.isNotEmpty()) {
+            // 未知指纹按「不启用 uTLS」处理，即 Xray 的 unsafe 语义
+            Logs.w("unsupported uTLS fingerprint \"$fp\", falling back to default TLS")
         }
         if (bean.enableECH) {
             ech = OutboundECHOptions().apply {

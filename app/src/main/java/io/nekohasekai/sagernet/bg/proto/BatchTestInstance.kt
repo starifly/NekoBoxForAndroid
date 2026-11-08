@@ -113,7 +113,8 @@ class BatchTestInstance(
         val message = generateSequence<Throwable>(e) { it.cause }
             .mapNotNull { it.message }
             .joinToString(" | ")
-        val index = Regex("""outbounds\[(\d+)]""").find(message)
+        // 兼容 "outbounds[20]"（decode 阶段）和 "outbound[1]"（初始化阶段）
+        val index = Regex("""outbounds?\[(\d+)]""").find(message)
             ?.groupValues?.get(1)?.toIntOrNull() ?: return null
         val tag = runCatching {
             JSONObject(config.config).getJSONArray("outbounds").getJSONObject(index).optString("tag")
