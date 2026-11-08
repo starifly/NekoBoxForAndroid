@@ -1330,6 +1330,18 @@ class ConfigurationFragment @JvmOverloads constructor(
                     )
                     batch = instance
                     instance.prepare()
+                    // 内核不支持/配置非法的节点已被剔除，直接判失败，不能让它们停在「测试中」
+                    for ((id, reason) in instance.excluded) {
+                        val profile = profilesList.firstOrNull { it.id == id } ?: continue
+                        profile.status = 3
+                        profile.error = reason
+                        try {
+                            ProfileManager.updateProfile(profile)
+                        } catch (e: Exception) {
+                            Logs.w(e)
+                        }
+                        test.update(profile)
+                    }
                     val tags = instance.tagMap
 
                     repeat(DataStore.connectionTestConcurrent.coerceAtLeast(1)) {
@@ -1342,7 +1354,23 @@ class ConfigurationFragment @JvmOverloads constructor(
                                     profile.status = 3
                                     profile.error = "missing outbound tag"
                                 } else try {
-                                    val result = instance.testTag(tag)
+                                    // 并发拨号偶尔会被瞬时失败（DNS/握手抖动）误判，
+                                    // 失败后隔一小会儿重试一次再判不可用
+                                    var result = 0
+                                    var lastError: Exception? = null
+                                    for (attempt in 0 until 2) {
+                                        try {
+                                            result = instance.testTag(tag)
+                                            lastError = null
+                                            break
+                                        } catch (e: PluginManager.PluginNotFoundException) {
+                                            throw e
+                                        } catch (e: Exception) {
+                                            lastError = e
+                                            if (attempt == 0) delay(300L)
+                                        }
+                                    }
+                                    if (lastError != null) throw lastError!!
                                     profile.status = 1
                                     profile.ping = result
                                 } catch (e: PluginManager.PluginNotFoundException) {
@@ -1377,7 +1405,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 for (profile in profilesList) {
                     if (profile.status == 0) {
                         profile.status = 3
-                        profile.error = e.readableMessage
+                        profile.error = batch?.excluded?.get(profile.id) ?: e.readableMessage
                         try {
                             ProfileManager.updateProfile(profile)
                         } catch (ignored: Exception) {
