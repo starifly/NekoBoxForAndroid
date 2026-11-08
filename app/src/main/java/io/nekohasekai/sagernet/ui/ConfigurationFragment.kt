@@ -52,6 +52,7 @@ import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.proto.UrlTest
+import io.nekohasekai.sagernet.bg.proto.BatchTestInstance
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.GroupManager
 import io.nekohasekai.sagernet.database.ProfileManager
@@ -65,6 +66,7 @@ import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.group.RawUpdater
+import io.nekohasekai.sagernet.ktx.EgressInfo
 import io.nekohasekai.sagernet.ktx.FixedLinearLayoutManager
 import io.nekohasekai.sagernet.ktx.FixedGridLayoutManager
 import io.nekohasekai.sagernet.ktx.Logs
@@ -339,17 +341,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
         }
 
-        val searchView = toolbar.findViewById<SearchView>(R.id.action_search)
-        if (searchView != null) {
-            searchView.setOnQueryTextListener(this)
-            searchView.maxWidth = Int.MAX_VALUE
-
-            searchView.setOnQueryTextFocusChangeListener { _, hasFocus ->
-                if (!hasFocus) {
-                    cancelSearch(searchView)
-                }
-            }
-        }
+        setupSearchView()
 
         groupPager = view.findViewById(R.id.group_pager)
         tabLayout = view.findViewById(R.id.group_tab)
@@ -361,11 +353,20 @@ class ConfigurationFragment @JvmOverloads constructor(
         groupPager.offscreenPageLimit = 2
 
         TabLayoutMediator(tabLayout, groupPager) { tab, position ->
-            if (adapter.groupList.size > position) {
-                tab.text = adapter.groupList[position].displayName()
-            }
-            tab.view.setOnLongClickListener { // clear toast
-                true
+            val group = adapter.groupList.getOrNull(position)
+            if (group != null) {
+                tab.text = group.displayName()
+                tab.view.setOnLongClickListener {
+                    // 长按直接进入分组详情编辑页（名称/类型/订阅链接，含改名与删除）
+                    if (!group.ungrouped) {
+                        startActivity(Intent(requireContext(), GroupSettingsActivity::class.java).apply {
+                            putExtra(GroupSettingsActivity.EXTRA_GROUP_ID, group.id)
+                        })
+                    }
+                    true
+                }
+            } else {
+                tab.view.setOnLongClickListener { true }
             }
         }.attach()
 
@@ -758,6 +759,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                     if (toClear.isNotEmpty()) {
                         ProfileManager.updateProfile(toClear)
                     }
+                    // 国家图标与本轮测试结果一起清理
                     onMainDispatcher {
                         getCurrentGroupFragment()?.adapter?.clearTestResults()
                     }
@@ -861,6 +863,29 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             R.id.action_connection_url_test -> {
                 urlTest()
+            }
+
+            R.id.action_move_to_group -> {
+                val currentAdapter = getCurrentGroupFragment()?.adapter
+                if (currentAdapter != null) {
+                    moveProfilesToGroup(
+                        currentAdapter.selectedIds.mapNotNull { currentAdapter.configurationList[it] }
+                    )
+                }
+            }
+
+            R.id.action_select_all -> {
+                val currentAdapter = getCurrentGroupFragment()?.adapter
+                if (currentAdapter != null) {
+                    currentAdapter.selectedIds.clear()
+                    currentAdapter.selectedIds.addAll(currentAdapter.configurationIdList)
+                    currentAdapter.notifyDataSetChanged()
+                    updateSelectionUi()
+                }
+            }
+
+            R.id.action_exit_select -> {
+                exitSelectionMode()
             }
 
             R.id.action_global_mode -> {
@@ -1136,6 +1161,129 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
     }
 
+    // ---------------- 多选 & 移动分组 ----------------
+
+    fun isSelectionMode(): Boolean = getCurrentGroupFragment()?.adapter?.selectionMode == true
+
+    fun enterSelectionMode(initialId: Long) {
+        val currentAdapter = getCurrentGroupFragment()?.adapter ?: return
+        currentAdapter.selectionMode = true
+        currentAdapter.selectedIds.clear()
+        currentAdapter.selectedIds.add(initialId)
+        currentAdapter.notifyDataSetChanged()
+        updateSelectionUi()
+    }
+
+    fun exitSelectionMode() {
+        val currentAdapter = getCurrentGroupFragment()?.adapter ?: return
+        currentAdapter.selectionMode = false
+        currentAdapter.selectedIds.clear()
+        currentAdapter.notifyDataSetChanged()
+        restoreToolbarMenu()
+    }
+
+    fun toggleSelection(proxyEntity: ProxyEntity) {
+        val currentAdapter = getCurrentGroupFragment()?.adapter ?: return
+        if (!currentAdapter.selectionMode) return
+        if (!currentAdapter.selectedIds.remove(proxyEntity.id)) {
+            currentAdapter.selectedIds.add(proxyEntity.id)
+        }
+        if (currentAdapter.selectedIds.isEmpty()) {
+            // 取消最后一个即退出多选
+            exitSelectionMode()
+            return
+        }
+        val index = currentAdapter.configurationIdList.indexOf(proxyEntity.id)
+        if (index >= 0) currentAdapter.notifyItemChanged(index)
+        updateSelectionUi()
+    }
+
+    private fun updateSelectionUi() {
+        val currentAdapter = getCurrentGroupFragment()?.adapter ?: return
+        if (toolbar.menu.findItem(R.id.action_select_all) == null) {
+            toolbar.menu.clear()
+            toolbar.inflateMenu(R.menu.profile_multi_select_menu)
+            toolbar.setOnMenuItemClickListener(this)
+        }
+        toolbar.title = getString(R.string.selected_count, currentAdapter.selectedIds.size)
+    }
+
+    private fun setupSearchView() {
+        val sv = toolbar.findViewById<SearchView>(R.id.action_search) ?: return
+        sv.setOnQueryTextListener(this)
+        sv.maxWidth = Int.MAX_VALUE
+        sv.setOnQueryTextFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                cancelSearch(sv)
+            }
+        }
+    }
+
+    private fun restoreToolbarMenu() {
+        if (select) return
+        toolbar.menu.clear()
+        toolbar.inflateMenu(R.menu.add_profile_menu)
+        toolbar.menu.findItem(R.id.action_global_mode)?.isChecked = DataStore.globalMode
+        toolbar.setOnMenuItemClickListener(this)
+        toolbar.title = getString(R.string.app_name)
+        // 菜单被重新 inflate，SearchView 需要重新绑定监听
+        setupSearchView()
+    }
+
+    fun moveProfilesToGroup(profiles: List<ProxyEntity>) {
+        if (profiles.isEmpty()) return
+        val sourceGroupId = profiles.first().groupId
+        runOnDefaultDispatcher {
+            val groups = SagerDatabase.groupDao.allGroups().filter { it.id != sourceGroupId }
+            onMainDispatcher {
+                if (groups.isEmpty()) {
+                    snackbar(getString(R.string.no_other_group)).show()
+                    return@onMainDispatcher
+                }
+                val names = groups.map { it.displayName() }.toTypedArray()
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.move_to_group)
+                    .setItems(names) { _, which ->
+                        performMoveProfiles(profiles, groups[which])
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
+        }
+    }
+
+    private fun performMoveProfiles(profiles: List<ProxyEntity>, target: ProxyGroup) {
+        runOnDefaultDispatcher {
+            try {
+                for (profile in profiles) {
+                    profile.groupId = target.id
+                    profile.userOrder = SagerDatabase.proxyDao.nextOrder(target.id) ?: 1
+                    ProfileManager.updateProfile(profile)
+                }
+                onMainDispatcher {
+                    val currentAdapter = getCurrentGroupFragment()?.adapter
+                    currentAdapter?.apply {
+                        selectionMode = false
+                        selectedIds.clear()
+                    }
+                    restoreToolbarMenu()
+                    snackbar(
+                        getString(R.string.moved_to_group, profiles.size, target.displayName())
+                    ).show()
+                }
+                // 已创建的分组页面都从库里重新加载（reloadProfiles 会直接访问数据库，不能放主线程）
+                for (fragment in adapter.groupFragments.values.toList()) {
+                    fragment.adapter?.reloadProfiles()
+                }
+            } catch (e: Exception) {
+                Logs.w(e)
+                onMainDispatcher {
+                    snackbar(e.readableMessage).show()
+                }
+            }
+        }
+    }
+
     @OptIn(DelicateCoroutinesApi::class)
     fun urlTest() {
         if (DataStore.runningTest) return else DataStore.runningTest = true
@@ -1146,33 +1294,128 @@ class ConfigurationFragment @JvmOverloads constructor(
 
         val mainJob = runOnDefaultDispatcher {
             val profilesList = SagerDatabase.proxyDao.getByGroup(group.id)
+            // 开始测试前先清理上一轮的测试结果，避免中途取消时新旧状态混在一起
+            if (profilesList.isNotEmpty()) {
+                var cleared = false
+                for (profile in profilesList) {
+                    if (profile.status != 0) {
+                        profile.status = 0
+                        profile.ping = 0
+                        profile.error = null
+                        cleared = true
+                    }
+                }
+                if (cleared) {
+                    try {
+                        ProfileManager.updateProfile(profilesList)
+                    } catch (e: Exception) {
+                        Logs.w(e)
+                    }
+                }
+                onMainDispatcher {
+                    getCurrentGroupFragment()?.adapter?.clearTestResults()
+                }
+            }
             test.proxyN = profilesList.size
             val profiles = ConcurrentLinkedQueue(profilesList)
-            repeat(DataStore.connectionTestConcurrent) {
-                testJobs.add(launch(Dispatchers.IO) {
-                    val urlTest = UrlTest() // note: this is NOT in bg process
-                    while (isActive) {
-                        val profile = profiles.poll() ?: break
-                        profile.status = 0
-
+            // 单实例测速（对标 Clash 的 /proxies/{name}/delay）：
+            // 整组只构建并启动一次内核，随后按 outbound tag 并发拨号
+            var batch: BatchTestInstance? = null
+            try {
+                if (profilesList.isNotEmpty()) {
+                    val instance = BatchTestInstance(
+                        profilesList,
+                        DataStore.connectionTestURL,
+                        DataStore.connectionTestTimeout
+                    )
+                    batch = instance
+                    instance.prepare()
+                    // 内核不支持/配置非法的节点已被剔除，直接判失败，不能让它们停在「测试中」
+                    for ((id, reason) in instance.excluded) {
+                        val profile = profilesList.firstOrNull { it.id == id } ?: continue
+                        profile.status = 3
+                        profile.error = reason
                         try {
-                            val result = urlTest.doTest(profile)
-                            profile.status = 1
-                            profile.ping = result
-                        } catch (e: PluginManager.PluginNotFoundException) {
-                            profile.status = 2
-                            profile.error = e.readableMessage
+                            ProfileManager.updateProfile(profile)
                         } catch (e: Exception) {
-                            profile.status = 3
-                            profile.error = e.readableMessage
+                            Logs.w(e)
                         }
-
                         test.update(profile)
                     }
-                })
-            }
+                    val tags = instance.tagMap
 
-            testJobs.joinAll()
+                    repeat(DataStore.connectionTestConcurrent.coerceAtLeast(1)) {
+                        testJobs.add(launch(Dispatchers.IO) {
+                            while (isActive) {
+                                val profile = profiles.poll() ?: break
+                                profile.status = 0
+                                val tag = tags[profile.id]
+                                if (tag == null) {
+                                    profile.status = 3
+                                    profile.error = "missing outbound tag"
+                                } else try {
+                                    // 并发拨号偶尔会被瞬时失败（DNS/握手抖动）误判，
+                                    // 失败后隔一小会儿重试一次再判不可用
+                                    var result = 0
+                                    var lastError: Exception? = null
+                                    for (attempt in 0 until 2) {
+                                        try {
+                                            result = instance.testTag(tag)
+                                            lastError = null
+                                            break
+                                        } catch (e: PluginManager.PluginNotFoundException) {
+                                            throw e
+                                        } catch (e: Exception) {
+                                            lastError = e
+                                            if (attempt == 0) delay(300L)
+                                        }
+                                    }
+                                    if (lastError != null) throw lastError!!
+                                    profile.status = 1
+                                    profile.ping = result
+                                } catch (e: PluginManager.PluginNotFoundException) {
+                                    profile.status = 2
+                                    profile.error = e.readableMessage
+                                } catch (e: Exception) {
+                                    profile.status = 3
+                                    profile.error = e.readableMessage
+                                }
+
+                                // 立即落库并刷新该行，让延迟和国旗同时出现
+                                // （只 notifyItemChanged 不会更新延迟：adapter 里缓存的是旧对象）
+                                try {
+                                    ProfileManager.updateProfile(profile)
+                                } catch (e: Exception) {
+                                    Logs.w(e)
+                                    runOnMainDispatcher {
+                                        getCurrentGroupFragment()?.adapter?.notifyProfileChanged(profile.id)
+                                    }
+                                }
+
+                                test.update(profile)
+                            }
+                        })
+                    }
+
+                    testJobs.joinAll()
+                }
+            } catch (e: Exception) {
+                // 内核启动失败：整组标记失败，避免所有节点停在「测试中」
+                Logs.w(e)
+                for (profile in profilesList) {
+                    if (profile.status == 0) {
+                        profile.status = 3
+                        profile.error = batch?.excluded?.get(profile.id) ?: e.readableMessage
+                        try {
+                            ProfileManager.updateProfile(profile)
+                        } catch (ignored: Exception) {
+                        }
+                        test.update(profile)
+                    }
+                }
+            } finally {
+                batch?.close()
+            }
 
             runOnMainDispatcher {
                 test.cancel()
@@ -1412,6 +1655,9 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
             
             itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, 0) {
+                // 长按改为弹菜单，拖拽排序由菜单里的「调整顺序」手动启动
+                override fun isLongPressDragEnabled(): Boolean = false
+
                 override fun getMovementFlags(
                     recyclerView: RecyclerView,
                     viewHolder: RecyclerView.ViewHolder
@@ -1697,6 +1943,36 @@ class ConfigurationFragment @JvmOverloads constructor(
             val configurationList = HashMap<Long, ProxyEntity>()
             private val pendingTrafficUpdates = HashSet<Long>()
             private val profileStatePayload = Any()
+
+            // 多选移动分组
+            var selectionMode = false
+            val selectedIds = LinkedHashSet<Long>()
+
+            fun startDrag(holder: RecyclerView.ViewHolder) {
+                if (::itemTouchHelper.isInitialized) itemTouchHelper.startDrag(holder)
+            }
+
+            fun removeProfiles(ids: Collection<Long>) {
+                var removed = false
+                for (id in ids) {
+                    val index = configurationIdList.indexOf(id)
+                    if (index >= 0) {
+                        configurationIdList.removeAt(index)
+                        configurationList.remove(id)
+                        notifyItemRemoved(index)
+                        removed = true
+                    }
+                }
+                if (removed) {
+                    refreshFromPosition(0)
+                    notifyItemRangeChanged(0, itemCount)
+                }
+            }
+
+            fun notifyProfileChanged(profileId: Long) {
+                val index = configurationIdList.indexOf(profileId)
+                if (index >= 0) notifyItemChanged(index)
+            }
 
             private fun getItem(profileId: Long): ProxyEntity {
                 var profile = configurationList[profileId]
@@ -2194,6 +2470,8 @@ class ConfigurationFragment @JvmOverloads constructor(
             private val card = view as MaterialCardView
             private val selectedIndicator: View = view.findViewById(R.id.selected_indicator)
             val editButton: ImageView = view.findViewById(R.id.edit)
+            val urlTestButton: ImageView = view.findViewById(R.id.url_test)
+            val urlTestButtonDouble: ImageView = view.findViewById(R.id.url_test_double)
             val doubleColumnMenuButton: ImageView = view.findViewById(R.id.double_column_menu)
             val shareLayout: LinearLayout = view.findViewById(R.id.share)
             val shareLayer: LinearLayout = view.findViewById(R.id.share_layer)
@@ -2203,11 +2481,27 @@ class ConfigurationFragment @JvmOverloads constructor(
             init {
                 view.setOnClickListener {
                     val proxyEntity = entity
+                    val owner = parentFragment as? ConfigurationFragment
+                    if (owner != null && owner.isSelectionMode()) {
+                        owner.toggleSelection(proxyEntity)
+                        return@setOnClickListener
+                    }
                     if (select) {
                         (requireActivity() as SelectCallback).returnProfile(proxyEntity.id)
                     } else {
                         selectProfile(proxyEntity)
                     }
+                }
+                view.setOnLongClickListener {
+                    if (select) return@setOnLongClickListener false
+                    val owner = parentFragment as? ConfigurationFragment
+                        ?: return@setOnLongClickListener false
+                    if (owner.isSelectionMode()) {
+                        owner.toggleSelection(entity)
+                    } else {
+                        showProfileMenu(view, entity, this)
+                    }
+                    true
                 }
                 profileStatus.setOnClickListener {
                     val proxyEntity = entity
@@ -2224,6 +2518,12 @@ class ConfigurationFragment @JvmOverloads constructor(
                         )
                     )
                 }
+                urlTestButton.setOnClickListener {
+                    startUrlTest(entity)
+                }
+                urlTestButtonDouble.setOnClickListener {
+                    startUrlTest(entity)
+                }
                 removeButton.setOnClickListener {
                     removeProfile(entity)
                 }
@@ -2234,6 +2534,52 @@ class ConfigurationFragment @JvmOverloads constructor(
                     val proxyEntity = entity
                     if (!select && proxyEntity.type != ProxyEntity.TYPE_CHAIN) {
                         showShareMenu(it, proxyEntity)
+                    }
+                }
+            }
+
+            private var urlTestRunning = false
+
+            /** 对当前这一个节点做 URL Test，完成后就地刷新该行状态 */
+            private fun startUrlTest(proxyEntity: ProxyEntity) {
+                if (urlTestRunning || select) return
+                urlTestRunning = true
+                urlTestButton.isEnabled = false
+                urlTestButtonDouble.isEnabled = false
+                profileStatus.setTextColor(
+                    requireContext().getColorAttr(android.R.attr.textColorSecondary)
+                )
+                profileStatus.text = getString(R.string.connection_test_testing)
+                val targetId = proxyEntity.id
+
+                runOnDefaultDispatcher {
+                    try {
+                        val ping = UrlTest().doTest(proxyEntity)
+                        proxyEntity.status = 1
+                        proxyEntity.ping = ping
+                        proxyEntity.error = null
+                    } catch (e: PluginManager.PluginNotFoundException) {
+                        proxyEntity.status = 2
+                        proxyEntity.error = e.readableMessage
+                    } catch (e: Exception) {
+                        proxyEntity.status = 3
+                        proxyEntity.error = e.readableMessage
+                    }
+                    try {
+                        ProfileManager.updateProfile(proxyEntity)
+                    } catch (e: Exception) {
+                        Logs.w(e)
+                    }
+                    runOnMainDispatcher {
+                        urlTestRunning = false
+                        if (::entity.isInitialized && entity.id == targetId) {
+                            urlTestButton.isEnabled = true
+                            urlTestButtonDouble.isEnabled = true
+                            val pos = bindingAdapterPosition
+                            if (pos != RecyclerView.NO_POSITION) {
+                                adapter?.notifyItemChanged(pos)
+                            }
+                        }
                     }
                 }
             }
@@ -2253,6 +2599,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
 
                     if (update) {
+                        // 换节点（非 selector 分组会重连）：清掉旧出口信息，重连成功后重新探测
+                        EgressInfo.clear()
                         ProfileManager.postUpdate(lastSelected, noTraffic = true)
                         if (DataStore.serviceState.canStop && reloadAccess.tryLock()) {
                             SagerNet.reloadService()
@@ -2310,6 +2658,57 @@ class ConfigurationFragment @JvmOverloads constructor(
                             removeProfile(proxyEntity)
                             true
                         }
+                        else -> false
+                    }
+                }
+                popup.show()
+            }
+
+            /** 长按节点卡片的菜单：移动分组 / 多选 / 排序 / 编辑 / 分享 / 删除 */
+            private fun showProfileMenu(
+                anchor: View,
+                proxyEntity: ProxyEntity,
+                holder: ConfigurationHolder,
+            ) {
+                val owner = parentFragment as? ConfigurationFragment ?: return
+                val popup = PopupMenu(requireContext(), anchor)
+                popup.menuInflater.inflate(R.menu.profile_long_click_menu, popup.menu)
+                popup.setOnMenuItemClickListener { menuItem ->
+                    when (menuItem.itemId) {
+                        R.id.action_move_to_group -> {
+                            owner.moveProfilesToGroup(listOf(proxyEntity))
+                            true
+                        }
+
+                        R.id.action_multi_select -> {
+                            owner.enterSelectionMode(proxyEntity.id)
+                            true
+                        }
+
+                        R.id.action_drag_sort -> {
+                            adapter?.startDrag(holder)
+                            true
+                        }
+
+                        R.id.action_edit -> {
+                            anchor.context.startActivity(
+                                proxyEntity.settingIntent(
+                                    anchor.context, proxyGroup.type == GroupType.SUBSCRIPTION
+                                )
+                            )
+                            true
+                        }
+
+                        R.id.action_share -> {
+                            showShareMenu(anchor, proxyEntity)
+                            true
+                        }
+
+                        R.id.action_delete -> {
+                            removeProfile(proxyEntity)
+                            true
+                        }
+
                         else -> false
                     }
                 }
@@ -2425,12 +2824,16 @@ class ConfigurationFragment @JvmOverloads constructor(
                 
                 if (isDoubleColumn) {
                     editButton.isGone = true
+                    urlTestButton.isGone = true
+                    urlTestButtonDouble.isGone = select
                     shareLayout.isGone = true
                     removeButton.isGone = true
                     doubleColumnMenuButton.isVisible = true
                 } else {
                     shareLayout.isGone = selectOrChain
                     editButton.isGone = select
+                    urlTestButton.isGone = select
+                    urlTestButtonDouble.isGone = true
                     removeButton.isGone = select
                     doubleColumnMenuButton.isGone = true
                 }
@@ -2447,6 +2850,22 @@ class ConfigurationFragment @JvmOverloads constructor(
                 editButton.isEnabled = !started
                 removeButton.isEnabled = !started
                 applySelected(selected)
+
+                // 多选高亮：只覆盖选中态，未选中保持 applySelected 的描边
+                val inSelection = adapter?.selectionMode == true
+                val picked = inSelection && adapter?.selectedIds?.contains(proxyEntity.id) == true
+                if (picked) {
+                    card.strokeWidth = (2 * resources.displayMetrics.density).toInt()
+                    card.strokeColor = requireContext().getColour(R.color.material_green_500)
+                }
+                if (inSelection) {
+                    // 多选时隐藏操作按钮，避免误触编辑/删除
+                    editButton.isGone = true
+                    removeButton.isGone = true
+                    shareLayout.isGone = true
+                    urlTestButton.isGone = true
+                    urlTestButtonDouble.isGone = true
+                }
 
                 if (!(select || proxyEntity.type == ProxyEntity.TYPE_CHAIN)) {
                     shareLayer.setBackgroundColor(Color.TRANSPARENT)

@@ -312,8 +312,6 @@ public class SingBoxOptions {
 
         public Boolean reverse_mapping;
 
-        public DNSFakeIPOptions fakeip;
-
         // Generate note: nested type DNSClientOptions
         public String strategy;
 
@@ -329,19 +327,36 @@ public class SingBoxOptions {
 
     public static class DNSServerOptions extends SingBoxOption {
 
+        public String type;
+
         public String tag;
 
-        public String address;
+        public String server;
 
-        public String address_resolver;
+        public Integer server_port;
 
-        public String address_strategy;
-
-        public Long address_fallback_delay;
-
-        public String strategy;
+        public String path;
 
         public String detour;
+
+        public String domain_resolver;
+
+        public String domain_strategy;
+
+        public Map<String, List<String>> predefined;
+
+        public String inet4_range;
+
+        public String inet6_range;
+
+        public String method;
+
+        public Map<String, String> headers;
+
+        @SerializedName("interface")
+        public String interface_;
+
+        public Boolean prefer_go;
 
     }
 
@@ -354,16 +369,6 @@ public class SingBoxOptions {
         public Boolean disable_expire;
 
         public Boolean independent_cache;
-
-    }
-
-    public static class DNSFakeIPOptions extends SingBoxOption {
-
-        public Boolean enabled;
-
-        public String inet4_range;
-
-        public String inet6_range;
 
     }
 
@@ -2827,6 +2832,11 @@ public class SingBoxOptions {
         public String interface_name;
 
         public Integer mtu;
+
+        // Generate note: Listable
+        public List<String> address;
+
+        public String dns_mode;
 
         // Generate note: Listable
         public List<String> inet4_address;

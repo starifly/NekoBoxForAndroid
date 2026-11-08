@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_move_to_group"
+        android:icon="@drawable/ic_baseline_folder_open_24"
+        android:title="@string/move_to_group"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_select_all"
+        android:title="@string/select_all"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_exit_select"
+        android:icon="@drawable/ic_navigation_close"
+        android:title="@string/exit_selection"
+        app:showAsAction="always" />
+</menu>

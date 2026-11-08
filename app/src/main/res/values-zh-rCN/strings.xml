@@ -297,6 +297,7 @@
     <string name="always_show_address">始终显示地址</string>
     <string name="always_show_address_sum">始终在配置卡片上显示服务器地址</string>
     <string name="clear_traffic_statistics">清空流量统计数据</string>
+    <string name="egress_detecting">检测中…</string>
     <string name="connection_test">连接测试</string>
     <string name="connection_test_clear_results">清理测试结果</string>
     <string name="connection_test_domain_not_found">域名不存在</string>
@@ -610,4 +611,17 @@
     <string name="snell_quic_proxy">QUIC Proxy 模式</string>
     <string name="snell_quic_proxy_summary">仅 v6：旧版 v5 QUIC Proxy 兼容</string>
     <string name="snell_reuse_summary">仅适用于 v4-v6</string>
+
+    <!-- 节点长按菜单 / 多选移动分组 -->
+    <string name="move_to_group">移动到分组</string>
+    <string name="multi_select">多选</string>
+    <string name="drag_to_sort">调整顺序</string>
+    <string name="select_all">全选</string>
+    <string name="selected_count">已选 %d 项</string>
+    <string name="no_other_group">没有其他分组</string>
+    <string name="moved_to_group">已移动 %1$d 个节点到 %2$s</string>
+    <string name="rename_group">修改分组名</string>
+    <string name="delete_group">删除分组</string>
+    <string name="exit_selection">退出多选</string>
+    <string name="mal_close">关闭</string>
 </resources>

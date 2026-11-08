@@ -30,6 +30,7 @@ import io.nekohasekai.sagernet.fmt.snell.SnellBean
 import io.nekohasekai.sagernet.fmt.snell.buildSingBoxOutboundSnellBean
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean
 import io.nekohasekai.sagernet.fmt.wireguard.buildSingBoxOutboundWireguardBean
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.isIpAddress
 import io.nekohasekai.sagernet.ktx.mkPort
 import io.nekohasekai.sagernet.utils.PackageCache
@@ -54,6 +55,7 @@ const val TAG_BYPASS = "bypass"
 const val TAG_BLOCK = "block"
 const val TAG_FRAGMENT = "fragment"
 const val TAG_DNS_HOSTS = "dns-hosts"
+const val TAG_DNS_DIRECT_OUT = "dns-direct-out"
 
 const val LOCALHOST = "127.0.0.1"
 
@@ -72,6 +74,59 @@ private fun sanitizeDnsEntry(value: String): String {
     return value.filterNot { it.isISOControl() }.trim()
 }
 
+// sing-box 1.12+ 新 DNS 服务器格式：把旧版地址字符串拆成 type / server / server_port / path
+private fun DNSServerOptions.applyDnsAddress(address: String) {
+    val value = address.trim()
+    val hasScheme = value.contains("://")
+    val scheme = if (hasScheme) value.substringBefore("://").lowercase() else ""
+    val hostPart = if (hasScheme) value.substringAfter("://") else value
+    when (val typeName = scheme.ifEmpty {
+        when (hostPart.lowercase()) {
+            "local", "fakeip", "dhcp" -> hostPart.lowercase()
+            else -> "udp"
+        }
+    }) {
+        "local" -> type = "local"
+        "fakeip" -> type = "fakeip"
+        "dhcp" -> {
+            type = "dhcp"
+            if (hasScheme && hostPart.isNotBlank()) interface_ = hostPart
+        }
+        "https", "h3" -> {
+            val url = (if (hasScheme) value else "https://$value").toHttpUrlOrNull()
+            if (url == null) {
+                // 原版对坏地址更宽容：解析失败降级为 local，不让服务起不来
+                Logs.d("invalid DNS address, fallback to local: $address")
+                type = "local"
+                return
+            }
+            type = typeName
+            server = url.host
+            if (url.port != 443) server_port = url.port
+            path = url.encodedPath.takeIf { it.isNotBlank() && it != "/" }
+        }
+        "tls", "quic", "tcp", "udp" -> {
+            type = typeName
+            val hostPort = hostPart.trim()
+            when {
+                hostPort.startsWith("[") -> {
+                    server = hostPort.substringAfter("[").substringBefore("]")
+                    hostPort.substringAfter("]", "").removePrefix(":").toIntOrNull()?.let { server_port = it }
+                }
+                hostPort.count { it == ':' } == 1 -> {
+                    server = hostPort.substringBefore(":")
+                    hostPort.substringAfter(":").toIntOrNull()?.let { server_port = it }
+                }
+                else -> server = hostPort
+            }
+        }
+        else -> {
+            Logs.d("unsupported DNS address, fallback to local: $address")
+            type = "local"
+        }
+    }
+}
+
 private fun parseDnsHosts(value: String): Map<String, List<String>> {
     val hosts = linkedMapOf<String, MutableList<String>>()
     value.lineSequence().forEach { line ->
@@ -79,7 +134,7 @@ private fun parseDnsHosts(value: String): Map<String, List<String>> {
         if (trimmed.isEmpty() || trimmed.startsWith("#")) return@forEach
         val tokens = trimmed.split("\\s+".toRegex())
         if (tokens.size < 2) return@forEach
-        val domain = tokens.first()
+        val domain = tokens.first().lowercase()
         val addresses = tokens.drop(1).filter { it.isIpAddress() }
         if (addresses.isEmpty()) return@forEach
         hosts.getOrPut(domain) { mutableListOf() }.addAll(addresses)
@@ -101,7 +156,11 @@ private fun serverHostOf(bean: AbstractBean): String? {
 }
 
 fun buildConfig(
-    proxy: ProxyEntity, forTest: Boolean = false, forExport: Boolean = false
+    proxy: ProxyEntity,
+    forTest: Boolean = false,
+    forExport: Boolean = false,
+    // 整组测速：一次构建组内全部节点的 outbound，配合单实例按 tag 并发测速
+    testProfiles: List<ProxyEntity>? = null,
 ): ConfigBuildResult {
 
     if (proxy.type == TYPE_CONFIG) {
@@ -267,23 +326,22 @@ fun buildConfig(
                 }
                 endpoint_independent_nat = true
                 mtu = DataStore.mtu
-                domain_strategy = genDomainStrategy(DataStore.resolveDestination)
                 auto_route = true
                 strict_route = DataStore.strictRoute
-                sniff = needSniff
-                sniff_override_destination = needSniffOverride
                 when (ipv6Mode) {
                     IPv6Mode.DISABLE -> {
-                        inet4_address = listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
+                        address = listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
                     }
 
                     IPv6Mode.ONLY -> {
-                        inet6_address = listOf(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
+                        address = listOf(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
                     }
 
                     else -> {
-                        inet4_address = listOf(VpnService.PRIVATE_VLAN4_CLIENT + "/28")
-                        inet6_address = listOf(VpnService.PRIVATE_VLAN6_CLIENT + "/126")
+                        address = listOf(
+                            VpnService.PRIVATE_VLAN4_CLIENT + "/28",
+                            VpnService.PRIVATE_VLAN6_CLIENT + "/126"
+                        )
                     }
                 }
             })
@@ -292,9 +350,6 @@ fun buildConfig(
                 tag = TAG_MIXED
                 listen = bind
                 listen_port = DataStore.mixedPort
-                domain_strategy = genDomainStrategy(DataStore.resolveDestination)
-                sniff = needSniff
-                sniff_override_destination = needSniffOverride
                 if (DataStore.mixedInboundHasAuth) {
                     users = listOf(User().also { u ->
                         u.username = DataStore.mixedUsername
@@ -312,9 +367,6 @@ fun buildConfig(
             override_android_vpn = true
             rules = mutableListOf()
             rule_set = mutableListOf()
-
-            // 添加并发拨号设置
-             concurrent_dial = DataStore.concurrentDial
         }
 
         // returns outbound tag
@@ -489,13 +541,7 @@ fun buildConfig(
                         }
                     }
 
-                    if (needGlobal && DataStore.enableTLSFragment) {
-                        val outboundMap = currentOutbound.asMap()
-                        val tlsOptions = outboundMap["tls"] as? Map<*, *>
-                        if (tlsOptions?.get("enabled") == true) {
-                            currentOutbound._hack_config_map["detour"] = TAG_FRAGMENT
-                        }
-                    }
+                    // TLS 分片已改为路由动作（route-options tls_fragment），不再用 detour 绕经 fragment 出站
                 }
 
                 // internal & external
@@ -516,8 +562,10 @@ fun buildConfig(
                             domainListDNSDirectForce.add("full:$serverAddress")
                         }
                     }
-                    _hack_config_map["domain_strategy"] =
-                        if (forTest) "" else defaultServerDomainStrategy
+                    // 1.12+ 用 domain_resolver 替代已废弃的 domain_strategy
+                    _hack_config_map["domain_resolver"] =
+                        if (forTest || defaultServerDomainStrategy.isEmpty()) "dns-direct"
+                        else mapOf("server" to "dns-direct", "strategy" to defaultServerDomainStrategy)
 
                     _hack_config_map["tag"] = tagOut
 
@@ -588,17 +636,21 @@ fun buildConfig(
         }
 
         // build outbounds
-        if (buildSelector) {
-            val list = group.id.let { SagerDatabase.proxyDao.getByGroup(it) }
+        if (buildSelector || testProfiles != null) {
+            val list = testProfiles
+                ?: group?.id?.let { SagerDatabase.proxyDao.getByGroup(it) }
+                ?: emptyList()
             list.forEach {
                 tagMap[it.id] = buildChain(it.id, it)
             }
-            outbounds.add(0, Outbound_SelectorOptions().apply {
-                type = "selector"
-                tag = TAG_PROXY
-                default_ = tagMap[proxy.id]
-                outbounds = tagMap.values.toList()
-            })
+            if (buildSelector) {
+                outbounds.add(0, Outbound_SelectorOptions().apply {
+                    type = "selector"
+                    tag = TAG_PROXY
+                    default_ = tagMap[proxy.id]
+                    outbounds = tagMap.values.toList()
+                })
+            }
         } else {
             val mainTag = buildChain(0, proxy)
             tagMap[proxy.id] = mainTag
@@ -809,8 +861,8 @@ fun buildConfig(
                         -2L -> {
                             if (shouldAddDnsRule) {
                                 userDNSRuleList += makeDnsRuleObj().apply {
-                                    server = "dns-block"
-                                    disable_cache = true
+                                    _hack_config_map["action"] = "predefined"
+                                    _hack_config_map["rcode"] = "NOERROR"
                                 }
                             }
 
@@ -820,8 +872,8 @@ fun buildConfig(
                                     if (tag.startsWith("ruleset-") && tagInfo != null && !tagInfo.second) {
                                         userDNSRuleList += DNSRule_DefaultOptions().apply {
                                             rule_set = mutableListOf(tag)
-                                            server = "dns-block"
-                                            disable_cache = true
+                                            _hack_config_map["action"] = "predefined"
+                                            _hack_config_map["rcode"] = "NOERROR"
                                         }
                                     }
                                 }
@@ -869,16 +921,20 @@ fun buildConfig(
             type = "direct"
         })
 
+        // 1.14 拒绝 detour 到「空 direct 出站」，DNS 服务器需要带参数的直连出站
+        outbounds.add(Outbound().apply {
+            tag = TAG_DNS_DIRECT_OUT
+            type = "direct"
+            _hack_config_map["udp_fragment"] = false
+        })
+
         if (DataStore.enableTLSFragment) {
-            val fragmentOutbound = Outbound().apply {
+            // 1.14 移除了 direct outbound 的 fragment 字段，分片改由路由动作实现
+            outbounds.add(Outbound().apply {
                 tag = TAG_FRAGMENT
                 type = "direct"
-                _hack_config_map["fragment"] = Fragment().apply {
-                    length = DataStore.fragmentLength
-                    interval = DataStore.fragmentInterval
-                }.asMap()
-            }
-            outbounds.add(fragmentOutbound)
+                _hack_config_map["udp_fragment"] = false
+            })
         }
 
         fun isExclusiveCustomHost(host: String): Boolean {
@@ -917,41 +973,39 @@ fun buildConfig(
         }
 
         dns.servers.add(DNSServerOptions().apply {
-            address = "rcode://success"
-            tag = "dns-block"
-        })
-
-        dns.servers.add(DNSServerOptions().apply {
-            address = "local"
+            type = "local"
             tag = "dns-local"
-            detour = TAG_DIRECT
+            detour = TAG_DNS_DIRECT_OUT
         })
 
         directDNS.firstOrNull().let {
             dns.servers.add(DNSServerOptions().apply {
-                address = it ?: throw Exception("No direct DNS, check your settings!")
+                applyDnsAddress(it ?: throw Exception("No direct DNS, check your settings!"))
                 tag = "dns-direct"
-                detour = TAG_DIRECT
-                address_resolver = "dns-local"
-                strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
+                detour = TAG_DNS_DIRECT_OUT
+                domain_resolver = "dns-local"
             })
         }
 
         remoteDns.firstOrNull().let {
             // Always use direct DNS for urlTest
             if (!forTest) dns.servers.add(DNSServerOptions().apply {
-                address = it ?: throw Exception("No remote DNS, check your settings!")
+                applyDnsAddress(it ?: throw Exception("No remote DNS, check your settings!"))
                 tag = "dns-remote"
-                address_resolver = "dns-direct"
-                strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy(tag))
+                domain_resolver = "dns-direct"
             })
         }
         if (dnsHosts.isNotEmpty()) {
             dns.servers.add(DNSServerOptions().apply {
+                type = "hosts"
                 tag = TAG_DNS_HOSTS
-                _hack_config_map["type"] = "hosts"
-                _hack_config_map["predefined"] = dnsHosts
+                predefined = dnsHosts
             })
+        }
+
+        // 1.14 起 DNS server 不再支持独立 strategy（domain_strategy 已废弃），统一放到 dns.strategy
+        autoDnsDomainStrategy(genDomainStrategy(DataStore.resolveDestination))?.let {
+            dns.strategy = it
         }
 
         dns.final_ = if (forTest) "dns-direct" else "dns-remote"
@@ -987,17 +1041,13 @@ fun buildConfig(
                 source_ip_cidr = listOf("224.0.0.0/3", "ff00::/8")
                 action = "reject"
             })
-            // FakeDNS obj
+            // FakeDNS
             if (useFakeDns) {
-                dns.fakeip = DNSFakeIPOptions().apply {
-                    enabled = true
+                dns.servers.add(DNSServerOptions().apply {
+                    type = "fakeip"
+                    tag = "dns-fake"
                     inet4_range = "198.18.0.0/15"
                     inet6_range = "fc00::/18"
-                }
-                dns.servers.add(DNSServerOptions().apply {
-                    address = "fakeip"
-                    tag = "dns-fake"
-                    strategy = "ipv4_only"
                 })
                 dns.rules.add(DNSRule_DefaultOptions().apply {
                     inbound = listOf(deviceInboundTag)
@@ -1008,8 +1058,9 @@ fun buildConfig(
             }
             if (dnsHosts.isNotEmpty()) {
                 dns.rules.add(0, DNSRule_DefaultOptions().apply {
+                    // hosts 服务器精确匹配域名，未命中会返回 NXDOMAIN，因此只在请求阶段命中 hosts 域名时才走它
+                    domain = dnsHosts.keys.map { "full:${it.lowercase()}" }
                     server = TAG_DNS_HOSTS
-                    _hack_config_map["ip_accept_any"] = true
                 })
             }
             // avoid loopback
@@ -1032,17 +1083,42 @@ fun buildConfig(
 
                 val serverTag = "dns-sub-$gid"
                 dns.servers.add(DNSServerOptions().apply {
-                    address = resolver
+                    applyDnsAddress(resolver)
                     tag = serverTag
                     detour = TAG_DIRECT
                     if (!resolver.isIpAddress()) {
-                        address_resolver = "dns-direct"
+                        domain_resolver = "dns-direct"
                     }
-                    strategy = autoDnsDomainStrategy(SingBoxOptionsUtil.domainStrategy("server"))
                 })
                 dns.rules.add(0, DNSRule_DefaultOptions().apply {
                     makeSingBoxRule(hosts)
                     server = serverTag
+                })
+            }
+        }
+
+        // 1.12+ 起 TLS 分片改为路由动作（原 fragment outbound 字段已移除）
+        if (DataStore.enableTLSFragment) {
+            route.rules.add(0, Rule_DefaultOptions().apply {
+                action = "route-options"
+                _hack_config_map["tls_fragment"] = true
+            })
+        }
+
+        if (!forTest) {
+            // 1.12+ 起出站缺省域名解析器由 route 统一指定（1.16 将改为强制）
+            route._hack_config_map["default_domain_resolver"] = "dns-direct"
+            // 1.13+ 起 inbound 的 sniff / domain_strategy 字段被移除，改用路由规则动作
+            if (needSniff) {
+                route.rules.add(0, Rule_DefaultOptions().apply {
+                    action = "sniff"
+                })
+            }
+            val resolveStrategy = genDomainStrategy(DataStore.resolveDestination)
+            if (resolveStrategy.isNotEmpty()) {
+                route.rules.add(0, Rule_DefaultOptions().apply {
+                    action = "resolve"
+                    _hack_config_map["strategy"] = resolveStrategy
                 })
             }
         }

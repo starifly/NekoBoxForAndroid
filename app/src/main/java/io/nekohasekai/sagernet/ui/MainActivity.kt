@@ -425,6 +425,12 @@ class MainActivity : ThemedActivity(),
 
             R.id.nav_group -> displayFragment(GroupFragment())
             R.id.nav_route -> displayFragment(RouteFragment())
+            R.id.nav_apps -> {
+                binding.drawerLayout.closeDrawers()
+                startActivity(Intent(this, AppManagerActivity::class.java))
+                return false
+            }
+
             R.id.nav_settings -> displayFragment(SettingsFragment())
             R.id.nav_traffic -> displayFragment(WebviewFragment())
             R.id.nav_tools -> displayFragment(ToolsFragment())
@@ -507,6 +513,8 @@ class MainActivity : ThemedActivity(),
         DataStore.selectedProxy = id
         DataStore.currentProfile = id
         refreshConfigurationProfileState()
+        // 分组内切换节点：服务不会重启，主动刷新出口 IP / 国家
+        binding.stats.refreshEgressInfo(1000L)
         runOnDefaultDispatcher {
             ProfileManager.postUpdate(old, true)
             ProfileManager.postUpdate(id, true)

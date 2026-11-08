@@ -3,6 +3,8 @@ package io.nekohasekai.sagernet.fmt.snell
 import moe.matsuri.nb4a.SingBoxOptions
 
 fun buildSingBoxOutboundSnellBean(bean: SnellBean): SingBoxOptions.Outbound_SnellOptions {
+    // sing-box 1.14 的 snell outbound 只接受 version 4 / 6 两种联合结构
+    val version = if (bean.version == 6) 6 else 4
     return SingBoxOptions.Outbound_SnellOptions().apply {
         type = "snell"
         server = bean.serverAddress
@@ -11,23 +13,25 @@ fun buildSingBoxOutboundSnellBean(bean: SnellBean): SingBoxOptions.Outbound_Snel
         if (!bean.userKey.isNullOrBlank()) {
             userkey = bean.userKey
         }
-        version = bean.version
+        this.version = version
 
         if (bean.network != null && bean.network.isNotBlank()) {
             network = bean.network
         }
 
-        if (bean.version == 6) {
-            if (!bean.mode.isNullOrBlank() && bean.mode != "default") {
-                mode = bean.mode
+        if (version == 6) {
+            // 1.14 的 v6 只有 mode（default / unshaped / unsafe-raw），quic_proxy_mode 已被移除
+            val snellMode = bean.mode?.takeIf { it in setOf("default", "unshaped", "unsafe-raw") }
+            if (snellMode != null && snellMode != "default") {
+                mode = snellMode
             }
-            if (bean.quicProxyMode == true) {
-                quic_proxy_mode = true
-            }
-        } else if (bean.obfsMode != null && bean.obfsMode.isNotBlank()) {
-            obfs_mode = if (bean.version != null && bean.version >= 4 && bean.obfsMode == "tls") "" else bean.obfsMode
-            if (obfs_mode.isNotBlank() && bean.obfsHost != null && bean.obfsHost.isNotBlank()) {
-                obfs_host = bean.obfsHost
+        } else if (!bean.obfsMode.isNullOrBlank()) {
+            val obfsModeValue = bean.obfsMode
+            if (obfsModeValue in setOf("none", "http", "tls")) {
+                if (obfsModeValue != "none") obfs_mode = obfsModeValue
+                if (obfs_mode.isNotBlank() && !bean.obfsHost.isNullOrBlank()) {
+                    obfs_host = bean.obfsHost
+                }
             }
         }
 

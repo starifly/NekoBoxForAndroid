@@ -115,12 +115,17 @@ fun Project.setupAppCommon() {
     setupCommon()
 
     val lp = requireLocalProperties()
-    val keystorePwd = lp.getProperty("KEYSTORE_PASS") ?: System.getenv("KEYSTORE_PASS")
-    val alias = lp.getProperty("ALIAS_NAME") ?: System.getenv("ALIAS_NAME")
-    val pwd = lp.getProperty("ALIAS_PASS") ?: System.getenv("ALIAS_PASS")
+    // 空字符串也要当成「未设置」：CI 里未配置 secret 时注入的就是空串
+    val keystorePwd = (lp.getProperty("KEYSTORE_PASS") ?: System.getenv("KEYSTORE_PASS"))
+        ?.takeIf { it.isNotBlank() }
+    val alias = (lp.getProperty("ALIAS_NAME") ?: System.getenv("ALIAS_NAME"))
+        ?.takeIf { it.isNotBlank() }
+    val pwd = (lp.getProperty("ALIAS_PASS") ?: System.getenv("ALIAS_PASS"))
+        ?.takeIf { it.isNotBlank() }
+    val fixedDebugKeystore = rootProject.file("debug.keystore")
 
     android.apply {
-        if (keystorePwd != null) {
+        if (keystorePwd != null && alias != null && pwd != null) {
             signingConfigs {
                 create("release") {
                     storeFile = rootProject.file("release.keystore")
@@ -129,12 +134,30 @@ fun Project.setupAppCommon() {
                     keyPassword = pwd
                 }
             }
+        } else if (fixedDebugKeystore.isFile) {
+            // 仓库内固定的调试证书：让每次构建的签名一致，新包可以直接覆盖安装
+            signingConfigs {
+                create("fixedDebug") {
+                    storeFile = fixedDebugKeystore
+                    storePassword = "nekobox"
+                    keyAlias = "nekobox"
+                    keyPassword = "nekobox"
+                }
+            }
         }
         buildTypes {
-            val key = signingConfigs.findByName("release")
-            if (key != null) {
-                getByName("release").signingConfig = key
-                getByName("debug").signingConfig = key
+            val releaseKey = signingConfigs.findByName("release")
+            val fixedKey = signingConfigs.findByName("fixedDebug")
+            when {
+                releaseKey != null -> {
+                    getByName("release").signingConfig = releaseKey
+                    getByName("debug").signingConfig = releaseKey
+                }
+                // 没有正式证书时，release 也用仓库内固定证书签名，保证可安装可升级
+                fixedKey != null -> {
+                    getByName("release").signingConfig = fixedKey
+                    getByName("debug").signingConfig = fixedKey
+                }
             }
         }
     }
@@ -170,10 +193,16 @@ fun Project.setupApp() {
             reset()
             isEnable = true
             isUniversalApk = false
-            include("armeabi-v7a")
-            include("arm64-v8a")
-            include("x86")
-            include("x86_64")
+            // 可用环境变量 NB4A_ABI 只打某一个 ABI（CI 用），不设置时保持全部 ABI
+            val abiFilter = System.getenv("NB4A_ABI")?.takeIf { it.isNotBlank() && it != "all" }
+            if (abiFilter != null) {
+                include(abiFilter)
+            } else {
+                include("armeabi-v7a")
+                include("arm64-v8a")
+                include("x86")
+                include("x86_64")
+            }
         }
 
         flavorDimensions += "vendor"
