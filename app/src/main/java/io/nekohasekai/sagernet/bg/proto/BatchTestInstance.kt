@@ -12,8 +12,8 @@ import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ktx.tryResume
 import io.nekohasekai.sagernet.ktx.tryResumeWithException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import libcore.Libcore
 import moe.matsuri.nb4a.net.LocalResolverImpl
@@ -159,11 +159,9 @@ class BatchTestInstance(
 
     /** 丢弃上一轮已创建但不可用的内核/插件进程 */
     private fun releaseKernel() {
-        runCatching {
-            if (::box.isInitialized) box.close()
-        }
-        if (::processes.isInitialized) {
-            runCatching { processes.close(GlobalScope + Dispatchers.IO) }
-        }
+        // box / processes 是父类的 lateinit 属性，子类不能用 ::x.isInitialized 检查，
+        // 未初始化时访问会抛 UninitializedPropertyAccessException，runCatching 兜住即可
+        runCatching { box.close() }
+        runCatching { processes.close(CoroutineScope(Dispatchers.IO)) }
     }
 }
