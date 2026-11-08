@@ -14,6 +14,7 @@
 """
 
 import pathlib
+import subprocess
 import sys
 
 SRS_GO = '''package nekoutils
@@ -242,6 +243,194 @@ def patch_vless_encryption(root: pathlib.Path) -> None:
     print("patch-singbox: protocol/vless/outbound.go patched")
 
 
+XHTTP_BRIDGE_DIR = pathlib.Path(__file__).resolve().parent / "singbox-xhttp"
+XHTTP_VERSION = "0.1.6"
+
+XHTTP_OPTION_TYPES = '''
+// V2RayXHTTPOptions 是 Xray XHTTP（split-http）传输的配置。
+// 字段名与 App 侧 SingBoxOptions.XHTTPOptions 的序列化结果保持一致，
+// 实际传输实现由 github.com/justinwoo280/sing-xhttp 提供。
+type V2RayXHTTPOptions struct {
+    Mode                 string               `json:"mode,omitempty"`
+    Host                 string               `json:"host,omitempty"`
+    Path                 string               `json:"path,omitempty"`
+    Headers              badoption.HTTPHeader `json:"headers,omitempty"`
+    UplinkHTTPMethod     string               `json:"uplink_http_method,omitempty"`
+    NoGRPCHeader         bool                 `json:"no_grpc_header,omitempty"`
+    NoSSEHeader          bool                 `json:"no_sse_header,omitempty"`
+    XPaddingBytes        *V2RayXHTTPRange     `json:"x_padding_bytes,omitempty"`
+    ScMaxEachPostBytes   *V2RayXHTTPRange     `json:"sc_max_each_post_bytes,omitempty"`
+    ScMaxBufferedPosts   int32                `json:"sc_max_buffered_posts,omitempty"`
+    ScMinPostsIntervalMs *V2RayXHTTPRange     `json:"sc_min_posts_interval_ms,omitempty"`
+    ScStreamUpServerSecs *V2RayXHTTPRange     `json:"sc_stream_up_server_secs,omitempty"`
+    XPaddingObfsMode     bool                 `json:"x_padding_obfs_mode,omitempty"`
+    XPaddingPlacement    string               `json:"x_padding_placement,omitempty"`
+    XPaddingKey          string               `json:"x_padding_key,omitempty"`
+    XPaddingHeader       string               `json:"x_padding_header,omitempty"`
+    XPaddingMethod       string               `json:"x_padding_method,omitempty"`
+    SessionPlacement     string               `json:"session_placement,omitempty"`
+    SessionKey           string               `json:"session_key,omitempty"`
+    SessionIDTable       string               `json:"session_id_table,omitempty"`
+    SessionIDLength      *V2RayXHTTPRange     `json:"session_id_length,omitempty"`
+    SeqPlacement         string               `json:"seq_placement,omitempty"`
+    SeqKey               string               `json:"seq_key,omitempty"`
+    UplinkDataPlacement  string               `json:"uplink_data_placement,omitempty"`
+    UplinkDataKey        string               `json:"uplink_data_key,omitempty"`
+    UplinkChunkSize      *V2RayXHTTPRange     `json:"uplink_chunk_size,omitempty"`
+    ServerMaxHeaderBytes int32                `json:"server_max_header_bytes,omitempty"`
+    // App 侧可能下发但当前实现不使用的字段，保留以免严格解码失败
+    CongestionController any                    `json:"congestion_controller,omitempty"`
+    Cwnd                 any                    `json:"cwnd,omitempty"`
+    Download             any                    `json:"download,omitempty"`
+    Xmux                 *V2RayXHTTPXmuxOptions `json:"xmux,omitempty"`
+}
+
+type V2RayXHTTPRange struct {
+    From int32 `json:"from,omitempty"`
+    To   int32 `json:"to,omitempty"`
+}
+
+type V2RayXHTTPXmuxOptions struct {
+    MaxConcurrency   *V2RayXHTTPRange `json:"max_concurrency,omitempty"`
+    MaxConnections   *V2RayXHTTPRange `json:"max_connections,omitempty"`
+    CMaxReuseTimes   *V2RayXHTTPRange `json:"c_max_reuse_times,omitempty"`
+    HMaxRequestTimes *V2RayXHTTPRange `json:"h_max_request_times,omitempty"`
+    HMaxReusableSecs *V2RayXHTTPRange `json:"h_max_reusable_secs,omitempty"`
+    HKeepAlivePeriod int32            `json:"h_keep_alive_period,omitempty"`
+}
+'''
+
+
+def patch_xhttp(root: pathlib.Path) -> None:
+    """接入 Xray XHTTP（split-http）传输。
+
+    上游 sing-box 没有该传输。这里只补三处注册点，传输实现来自
+    github.com/justinwoo280/sing-xhttp（不依赖 sing-box，接口结构一致），
+    另加一层 option → xhttp.Options 的适配文件 transport/v2ray/xhttp.go。
+    """
+    bridge = XHTTP_BRIDGE_DIR / "xhttp.go"
+    if not bridge.is_file():
+        fail("找不到 singbox-xhttp/xhttp.go，仓库不完整")
+
+    # 1) constant/v2ray.go：类型常量
+    path = root / "constant" / "v2ray.go"
+    text = path.read_text(encoding="utf-8")
+    if "V2RayTransportTypeXHTTP" in text:
+        print("patch-singbox: constant/v2ray.go 已打过补丁，跳过")
+    else:
+        anchor = '\tV2RayTransportTypeHTTPUpgrade = "httpupgrade"\n'
+        if anchor not in text:
+            fail("constant/v2ray.go 锚点未匹配，上游结构可能已变化")
+        text = text.replace(anchor, anchor + '\tV2RayTransportTypeXHTTP = "xhttp"\n', 1)
+        path.write_text(text, encoding="utf-8")
+        print("patch-singbox: constant/v2ray.go patched")
+
+    # 2) option/v2ray_transport.go：选项类型 + 三个 switch 分支
+    path = root / "option" / "v2ray_transport.go"
+    text = path.read_text(encoding="utf-8")
+    if "V2RayXHTTPOptions" in text:
+        print("patch-singbox: option/v2ray_transport.go 已打过补丁，跳过")
+    else:
+        edits = [
+            (
+                '\tHTTPUpgradeOptions V2RayHTTPUpgradeOptions `json:"-"`\n',
+                '\tHTTPUpgradeOptions V2RayHTTPUpgradeOptions `json:"-"`\n'
+                '\tXHTTPOptions        V2RayXHTTPOptions        `json:"-"`\n',
+            ),
+            (
+                'enum:"http,ws,quic,grpc,httpupgrade"',
+                'enum:"http,ws,quic,grpc,httpupgrade,xhttp"',
+            ),
+            (
+                '\tcase C.V2RayTransportTypeHTTPUpgrade:\n\t\tv = o.HTTPUpgradeOptions\n',
+                '\tcase C.V2RayTransportTypeHTTPUpgrade:\n\t\tv = o.HTTPUpgradeOptions\n'
+                '\tcase C.V2RayTransportTypeXHTTP:\n\t\tv = o.XHTTPOptions\n',
+            ),
+            (
+                '\tcase C.V2RayTransportTypeHTTPUpgrade:\n\t\tv = &o.HTTPUpgradeOptions\n',
+                '\tcase C.V2RayTransportTypeHTTPUpgrade:\n\t\tv = &o.HTTPUpgradeOptions\n'
+                '\tcase C.V2RayTransportTypeXHTTP:\n\t\tv = &o.XHTTPOptions\n',
+            ),
+            (
+                '\t\t\t{Value: C.V2RayTransportTypeHTTPUpgrade, StructType: reflect.TypeFor[V2RayHTTPUpgradeOptions]()},\n',
+                '\t\t\t{Value: C.V2RayTransportTypeHTTPUpgrade, StructType: reflect.TypeFor[V2RayHTTPUpgradeOptions]()},\n'
+                '\t\t\t{Value: C.V2RayTransportTypeXHTTP, StructType: reflect.TypeFor[V2RayXHTTPOptions]()},\n',
+            ),
+        ]
+        for old, new in edits:
+            if old not in text:
+                fail("option/v2ray_transport.go 锚点未匹配: " + old.strip()[:48])
+            text = text.replace(old, new, 1)
+        text = text.rstrip("\n") + "\n" + XHTTP_OPTION_TYPES
+        path.write_text(text, encoding="utf-8")
+        print("patch-singbox: option/v2ray_transport.go patched")
+
+    # 3) transport/v2ray/transport.go：服务端/客户端分支
+    path = root / "transport" / "v2ray" / "transport.go"
+    text = path.read_text(encoding="utf-8")
+    if "V2RayTransportTypeXHTTP" in text:
+        print("patch-singbox: transport/v2ray/transport.go 已打过补丁，跳过")
+    else:
+        server_anchor = (
+            "\tcase C.V2RayTransportTypeHTTPUpgrade:\n"
+            "\t\treturn v2rayhttpupgrade.NewServer(ctx, logger, options.HTTPUpgradeOptions, tlsConfig, handler)\n"
+        )
+        client_anchor = (
+            "\tcase C.V2RayTransportTypeHTTPUpgrade:\n"
+            "\t\treturn v2rayhttpupgrade.NewClient(ctx, dialer, serverAddr, options.HTTPUpgradeOptions, tlsConfig)\n"
+        )
+        if server_anchor not in text:
+            fail("transport/v2ray/transport.go 服务端锚点未匹配")
+        if client_anchor not in text:
+            fail("transport/v2ray/transport.go 客户端锚点未匹配")
+        text = text.replace(
+            server_anchor,
+            server_anchor
+            + "\tcase C.V2RayTransportTypeXHTTP:\n"
+            + "\t\treturn NewXHTTPServer(ctx, logger, options.XHTTPOptions, tlsConfig, handler)\n",
+            1,
+        )
+        text = text.replace(
+            client_anchor,
+            client_anchor
+            + "\tcase C.V2RayTransportTypeXHTTP:\n"
+            + "\t\treturn NewXHTTPClient(ctx, dialer, serverAddr, options.XHTTPOptions, tlsConfig)\n",
+            1,
+        )
+        path.write_text(text, encoding="utf-8")
+        print("patch-singbox: transport/v2ray/transport.go patched")
+
+    # 4) 适配层文件
+    (root / "transport" / "v2ray" / "xhttp.go").write_bytes(bridge.read_bytes())
+
+    # 5) go.mod：声明外部依赖（go.sum 由构建时的 -mod=mod 补全）
+    path = root / "go.mod"
+    text = path.read_text(encoding="utf-8")
+    if "justinwoo280/sing-xhttp" not in text:
+        anchor = "\nrequire (\n"
+        if anchor not in text:
+            fail("go.mod 找不到 require 块")
+        text = text.replace(
+            anchor,
+            anchor + "\tgithub.com/justinwoo280/sing-xhttp v" + XHTTP_VERSION + "\n",
+            1,
+        )
+        path.write_text(text, encoding="utf-8")
+        print("patch-singbox: go.mod patched")
+
+    # 6) 尽力格式化改动的文件（gofmt 不可用时跳过）
+    for target in (
+        root / "constant" / "v2ray.go",
+        root / "option" / "v2ray_transport.go",
+        root / "transport" / "v2ray" / "transport.go",
+        root / "transport" / "v2ray" / "xhttp.go",
+    ):
+        try:
+            subprocess.run(["gofmt", "-w", str(target)], capture_output=True, check=False)
+        except OSError:
+            break
+
+
 def main() -> None:
     if len(sys.argv) < 2:
         fail("缺少 sing-box 源码目录参数")
@@ -257,6 +446,7 @@ def main() -> None:
     patch_rule_set_local(root)
     patch_selector(root)
     patch_vless_encryption(root)
+    patch_xhttp(root)
     print("patch-singbox: done")
 
 

@@ -3,10 +3,7 @@ package io.nekohasekai.sagernet.bg.proto
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.bg.GuardedProcessPool
 import io.nekohasekai.sagernet.database.ProxyEntity
-import io.nekohasekai.sagernet.database.SagerDatabase
 import io.nekohasekai.sagernet.fmt.buildConfig
-import io.nekohasekai.sagernet.fmt.internal.ChainBean
-import io.nekohasekai.sagernet.fmt.v2ray.StandardV2RayBean
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.readableMessage
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
@@ -26,10 +23,8 @@ import kotlin.coroutines.suspendCoroutine
  *
  * 原实现（[TestInstance]）每个节点都要新建并启动一次内核，节点多时开销很大。
  *
- * 注意：整组共用一个配置，任何一个节点配置非法都会让整个内核起不来
- * （例如 xhttp 传输当前内核不支持，会报 "unknown transport type"）。
- * 因此这里对单节点做了隔离：静态检查出内核明确不支持的节点先剔除，
- * 动态 decode 失败时再按出错的 outbound 定位节点并剔除重试，
+ * 注意：整组共用一个配置，任何一个节点配置非法都会让整个内核起不来。
+ * 因此这里对单节点做了隔离：decode 失败时按出错的 outbound 定位节点并剔除重试，
  * 被剔除的节点记在 [excluded] 里由调用方标记失败，避免整组显示不可用。
  */
 class BatchTestInstance(
@@ -52,20 +47,9 @@ class BatchTestInstance(
      * 只需调用一次，之后用 [testTag] 并发测速。
      */
     suspend fun prepare() {
-        // 1) 静态剔除内核明确不支持的传输
-        runOnDefaultDispatcher {
-            val usable = ArrayList<ProxyEntity>()
-            for (profile in activeProfiles) {
-                val reason = unsupportedReason(profile)
-                if (reason == null) usable.add(profile) else excluded[profile.id] = reason
-            }
-            if (usable.isNotEmpty()) activeProfiles = usable
-        }
-        if (activeProfiles.isEmpty()) {
-            throw Exception("没有可测试的节点")
-        }
-
-        // 2) 动态兜底：decode 失败时定位出错的节点，剔除后重建配置重试
+        // 整组共用一个配置：任何一个节点配置非法都会让整个内核起不来，
+        // decode 失败时按出错的 outbound 定位到具体节点，剔除后重建配置重试，
+        // 避免一个坏节点让整组显示不可用。
         while (true) {
             try {
                 startOnce()
@@ -118,23 +102,6 @@ class BatchTestInstance(
         // don't call destroyAllJsi here
         if (BuildConfig.DEBUG) Logs.d(config.config)
         box = Libcore.newSingBoxInstance(config.config, LocalResolverImpl)
-    }
-
-    /** 静态检查：节点（含链内节点）是否用了当前内核不支持的传输 */
-    private fun unsupportedReason(profile: ProxyEntity): String? {
-        val bean = runCatching { profile.requireBean() }.getOrNull() ?: return null
-        if (bean is ChainBean) {
-            val beans = runCatching { SagerDatabase.proxyDao.getEntities(bean.proxies) }
-                .getOrNull() ?: return null
-            for (sub in beans) {
-                unsupportedReason(sub)?.let { return it }
-            }
-            return null
-        }
-        if (bean is StandardV2RayBean && bean.type == "xhttp") {
-            return "当前内核不支持 xhttp 传输"
-        }
-        return null
     }
 
     /**
